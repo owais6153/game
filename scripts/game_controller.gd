@@ -9,6 +9,11 @@ var active_piece_id := -1
 var shot_count := 0
 var dragging := false
 var merge_presentations: Array[Dictionary] = []
+var score := 0
+var chain_multiplier := 1
+var danger_timers: Dictionary = {}
+var won := false
+var failed := false
 
 # A completed shot can pass through each state only once. This prevents the
 # settled-board condition from spawning a launcher again on every frame.
@@ -26,14 +31,20 @@ func _ready() -> void:
 	queue_redraw()
 
 func _process(delta: float) -> void:
+	if won or failed:
+		_update_merge_presentations(delta)
+		queue_redraw()
+		return
 	simulation.step(pieces, delta, merge_service)
 	var result := merge_service.resolve(pieces, next_piece_id)
 	pieces = result.pieces
 	next_piece_id = result.next_id
-	for merge_event in result.presentation_events:
-		merge_event.elapsed = 0.0
-		merge_presentations.append(merge_event)
+	_apply_confirmed_merge_events(result.presentation_events)
 	_update_merge_presentations(delta)
+	_update_danger_timers(delta)
+	if won or failed:
+		queue_redraw()
+		return
 	if result.merge_count > 0:
 		if get_active_piece() == null:
 			active_piece_id = -1
@@ -57,6 +68,7 @@ func _advance_launcher_lifecycle() -> void:
 		LauncherState.SPAWNING_NEXT:
 			if all_pieces_settled() and spawn_active_piece():
 				launcher_state = LauncherState.READY_TO_AIM
+				chain_multiplier = 1
 
 func lifecycle_name() -> String:
 	return LauncherState.keys()[launcher_state]
@@ -72,6 +84,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		move_active_to(event.position.x)
 
 func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
+	if won or failed:
+		if pressed and GameConfig.OVERLAY_BUTTON_RECT.has_point(pointer):
+			restart()
+		return
 	if pressed:
 		if GameConfig.RESTART_RECT.has_point(pointer):
 			restart()
@@ -128,9 +144,48 @@ func restart() -> void:
 	next_level = 1
 	active_piece_id = -1
 	shot_count = 0
+	score = 0
+	chain_multiplier = 1
+	danger_timers.clear()
+	won = false
+	failed = false
 	dragging = false
 	launcher_state = LauncherState.SPAWNING_NEXT
 	_advance_launcher_lifecycle()
+
+func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
+	var resolution_multiplier := 1
+	for merge_event in events:
+		var result_level: int = int(merge_event.level)
+		chain_multiplier = resolution_multiplier
+		score += GameConfig.merge_score_for_result_level(result_level) * chain_multiplier
+		merge_event.elapsed = 0.0
+		merge_presentations.append(merge_event)
+		if result_level == GameConfig.TARGET_LEVEL and not won:
+			won = true
+			active_piece_id = -1
+			launcher_state = LauncherState.RESOLVING
+		resolution_multiplier += 1
+
+func _update_danger_timers(delta: float) -> void:
+	var live_ids: Dictionary = {}
+	for piece in pieces:
+		live_ids[piece.id] = true
+		if piece.id == active_piece_id or piece.is_active_launcher or piece.consumed or not piece.is_settled():
+			danger_timers.erase(piece.id)
+			continue
+		if piece.position.y + piece.radius > GameConfig.DANGER_LINE_Y:
+			danger_timers[piece.id] = float(danger_timers.get(piece.id, 0.0)) + delta
+			if float(danger_timers[piece.id]) >= GameConfig.DANGER_GRACE_DURATION and not failed:
+				failed = true
+				active_piece_id = -1
+				launcher_state = LauncherState.RESOLVING
+				return
+		else:
+			danger_timers.erase(piece.id)
+	for id in danger_timers.keys():
+		if not live_ids.has(id):
+			danger_timers.erase(id)
 
 func _update_merge_presentations(delta: float) -> void:
 	for presentation in merge_presentations:
@@ -149,6 +204,7 @@ func _draw() -> void:
 	var current_label := GameConfig.gem_name(active.level) if active != null else "Resolving"
 	draw_string(font, Vector2(54.0, 92.0), "Current: %s" % current_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 25, Color.WHITE)
 	draw_string(font, Vector2(54.0, 124.0), "Next: %s    Shots: %d" % [GameConfig.gem_name(next_level), shot_count], HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color("d9e8f3"))
+	draw_string(font, Vector2(54.0, 150.0), "Score: %d    Chain x%d    Target: %s" % [score, chain_multiplier, GameConfig.gem_name(GameConfig.TARGET_LEVEL)], HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("fff0bb"))
 	draw_rect(GameConfig.RESTART_RECT, Color("3b6689"), true)
 	draw_string(font, Vector2(542.0, 94.0), "Restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color.WHITE)
 	for piece in pieces:
@@ -158,6 +214,18 @@ func _draw() -> void:
 		draw_string(font, piece.position + Vector2(-12.0, 8.0), "L%d" % piece.level, HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("172334"))
 	for presentation in merge_presentations:
 		_draw_merge_presentation(presentation)
+	if won or failed:
+		_draw_result_overlay(font)
+
+func _draw_result_overlay(font: Font) -> void:
+	draw_rect(Rect2(80.0, 420.0, 560.0, 470.0), Color(0.03, 0.08, 0.14, 0.93), true)
+	draw_rect(Rect2(80.0, 420.0, 560.0, 470.0), Color("f6bb42"), false, 3.0)
+	var title := "You created a Diamond!" if won else "Table overflowed"
+	var button := "Replay" if won else "Retry"
+	draw_string(font, Vector2(142.0, 550.0), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 34, Color.WHITE)
+	draw_string(font, Vector2(270.0, 615.0), "Score: %d" % score, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("fff0bb"))
+	draw_rect(GameConfig.OVERLAY_BUTTON_RECT, Color("3b6689"), true)
+	draw_string(font, Vector2(320.0, 812.0), button, HORIZONTAL_ALIGNMENT_LEFT, -1, 25, Color.WHITE)
 
 func _draw_merge_presentation(presentation: Dictionary) -> void:
 	var t: float = clampf(presentation.elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)

@@ -2,7 +2,7 @@
 
 ## Scope
 
-This milestone implements only the smallest playable board loop. It has no score, win/fail, chains, sound, persistence, menus, ads, final art, or progression.
+This milestone implements one complete prototype level loop. It has scoring, a Diamond target, danger-line failure, and replay/retry. Sound, persistence, menus, ads, final art, and progression remain out of scope.
 
 ## Board and input
 
@@ -29,3 +29,17 @@ This milestone implements only the smallest playable board loop. It has no score
 - Simulation removes sources and immediately creates the upgraded gem at the validated midpoint.
 - Presentation draws source ghosts pulling inward for 0.12 s, then a 0.22 s upgraded-gem pulse, glow, and ring. It never affects physics or collision.
 - The next launcher waits for both board settlement and presentation completion.
+
+## Score, chain, and target
+
+- Confirmed merge events are the sole score source; collisions and pushes have no score path.
+- Result scores are centralized: Ruby (L2) 10, Emerald (L3) 25, Sapphire (L4) 60, Diamond (L5) 150.
+- Every confirmed merge in one resolver sequence increases the chain multiplier from x1 upward. Score is result score times sequence multiplier.
+- The multiplier resets to x1 only when the next launcher is ready.
+- The level target is one Diamond (L5). Its confirmed upgraded-spawn event triggers win once and freezes launch/spawn input until Replay.
+
+## Danger and reset
+
+- The danger line remains visual-only. It never blocks an active shot.
+- A non-active, settled board gem whose lower edge stays below the line for 0.75 seconds loses the level. Moving, merging, presentation-only, or active launcher pieces never accumulate danger time.
+- Win and fail overlays display the score and provide Replay/Retry. Either action fully resets the board, queue, launcher state, score, chain state, timers, flags, shot count, contacts, and presentations to one ready launcher on an empty table.

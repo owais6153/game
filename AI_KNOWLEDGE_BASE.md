@@ -32,6 +32,14 @@ Update order: controller input -> board movement/border constraints -> capture c
 
 The queue is controller-owned and must advance once per completed shot. Presentation events are non-physical ghost/pulse/ring effects. The source pull/fade lasts `MERGE_SOURCE_PULL_DURATION`; the upgraded-gem pulse/ring runs for `MERGE_PRESENTATION_DURATION`. A new launcher waits for board settlement and presentation completion.
 
+## Score, outcomes, and danger timers
+
+- Score is calculated only in `GameController._apply_confirmed_merge_events()`. Never infer it by scanning board pieces or collision pairs.
+- `GameConfig.MERGE_SCORE_BY_RESULT_LEVEL` maps L2/L3/L4/L5 to 10/25/60/150. A resolver sequence starts at x1 and increments per confirmed event; x1 is restored when the next launcher becomes ready.
+- A confirmed L5 spawn triggers `won` once. A won/failed controller rejects input and cannot spawn another launcher.
+- `danger_timers` is keyed by non-active piece ID. A timer accumulates only when a settled piece’s lower edge is below `DANGER_LINE_Y`; `DANGER_GRACE_DURATION` is 0.75 seconds. Clear timers whenever pieces move, become active, merge/disappear, or leave the zone.
+- `restart()` is the sole full reset path. It restores exactly one active launcher on an otherwise empty board and clears all gameplay/session fields.
+
 ## File and test map
 
 - `scenes/Game.tscn`: minimal scene entry point.

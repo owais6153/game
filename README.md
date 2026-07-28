@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`clean-contact-merge-v2-chain-polish`: a simple drawn-circle board with drag-horizontal / release-upward input, strict contact-only merges, capped local chain merges, and lightweight merge presentation effects.
+`clean-contact-merge-v3-playable-loop`: a simple drawn-circle playable level with strict contact-only chain merges, score/chain HUD, Diamond win, danger-line fail, and full Replay/Retry reset.
 
 ## Commands
 

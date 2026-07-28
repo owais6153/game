@@ -26,5 +26,6 @@ Before inspecting or editing project files, every future agent must read, in thi
 - Record tests actually run, the standalone APK file existence check, and connected-device status truthfully. Never infer phone testing from a successful export.
 - Make one mechanic change per task whenever practical.
 - Do not perform broad refactors or retuning without explicit user approval.
+- For any level-loop work, test the controller path for confirmed-event score handling, overlay spawn blocking, danger-timer exemptions, and full reset in addition to the existing movement/merge/lifecycle suite.
 - Do not claim success without passing relevant tests and confirming a standalone APK exists.
 - Do not touch files outside `D:\Owais\game` without explicit approval.

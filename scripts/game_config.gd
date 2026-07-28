@@ -19,6 +19,19 @@ const MERGE_SOURCE_PULL_DURATION := 0.12
 const MERGE_PULSE_SCALE := 1.28
 const MERGE_CHAIN_DEPTH_CAP := 6
 const RESTART_RECT := Rect2(520.0, 58.0, 150.0, 54.0)
+const OVERLAY_BUTTON_RECT := Rect2(220.0, 770.0, 280.0, 64.0)
+const OVERLAY_FADE_DURATION := 0.18
+const TARGET_LEVEL := 5
+const DANGER_GRACE_DURATION := 0.75
+const MERGE_SCORE_BY_RESULT_LEVEL := {
+	2: 10,
+	3: 25,
+	4: 60,
+	5: 150,
+}
+
+static func merge_score_for_result_level(level: int) -> int:
+	return int(MERGE_SCORE_BY_RESULT_LEVEL.get(level, 0))
 
 static func gem_name(level: int) -> String:
 	match level:
