@@ -2,6 +2,17 @@
 
 Every APK record includes its filename, path, size, modified timestamp, source commit, tag, validation, and device status.
 
+## Clean Contact Merge v2 — Chain Polish
+
+- File: `clean-contact-merge-v2-chain-polish.apk`
+- Path: `D:\Owais\game\build\android\clean-contact-merge-v2-chain-polish.apk`
+- Size: 27,711,469 bytes
+- Modified: 2026-07-29 03:44:48 +05:00
+- Source commit: `10f8d59408cccd6287d308f5fc0ab0046326ea3a` (`feat: add smooth merge animation and contact chain merges`)
+- Tag: `clean-contact-merge-v2-chain-polish`
+- Validation: Godot 4.6.3 headless parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and the APK file was physically verified.
+- Device status: `adb devices` reported no connected device. The APK was not installed or launched on a phone.
+
 ## Clean Contact Merge v1 — Spawn Lifecycle Fix
 
 - File: `clean-contact-merge-v1-spawn-fix.apk`

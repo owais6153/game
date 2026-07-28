@@ -35,6 +35,7 @@ Initial candidates still come only from current-frame physical contacts captured
 - File: `D:\Owais\game\build\android\clean-contact-merge-v2-chain-polish.apk`
 - Size: 27,711,469 bytes
 - Modified: 2026-07-29 03:44:48 +05:00
+- Source commit/tag: `10f8d59408cccd6287d308f5fc0ab0046326ea3a` / `clean-contact-merge-v2-chain-polish`
 - Device status: no device was connected; not installed or phone-tested.
 
 ## Phone test checklist
