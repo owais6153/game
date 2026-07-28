@@ -6,11 +6,15 @@
 - `scripts/gem_piece.gd`: typed mutable gameplay entity.
 - `scripts/board_simulation.gd`: movement, borders, physical pair detection, pre-separation contact capture, and overlap response.
 - `scripts/contact_pair.gd`: immutable source-ID pair used for one current step.
-- `scripts/merge_service.gd`: isolated contact-only candidate validation, consumption, removal, and upgraded spawn.
-- `scripts/game_controller.gd`: launcher queue, pointer input, explicit one-shot lifecycle state machine, minimal HUD, and simple drawing.
+- `scripts/merge_service.gd`: isolated contact validation, deterministic consumption, immediate upgraded spawn, and local contact-only chain resolution.
+- `scripts/game_controller.gd`: launcher queue, pointer input, explicit one-shot lifecycle state machine, minimal HUD, rendering, and presentation-only merge effect lifecycle.
 - `tools/run_clean_contact_tests.gd`: headless integration coverage of the actual simulation → contact → merge path.
 
 Presentation stays in the controller; merge rules have no drawing/UI dependencies.
+
+## Merge data flow
+
+`BoardSimulation` captures physical contact → `ContactMergeService` commits immediate simulation changes and emits presentation events → `GameController` advances effect timers → drawing renders non-physical source ghosts, ring, glow, and pulse. Only a just-spawned gem can seed a chain, and all chain cycles are capped at 6.
 
 ## Launcher lifecycle
 

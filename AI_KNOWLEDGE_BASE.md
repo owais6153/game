@@ -10,7 +10,7 @@
 
 ## Merge invariant
 
-The only allowed merge input is a current-step physical contact captured by `BoardSimulation` before separation. `ContactMergeService` must not scan all gems, search nearest neighbors, reuse candidates from previous frames, or require pieces to be settled. Chain merging is not present in v1.
+The only allowed initial merge input is a current-step physical contact captured by `BoardSimulation` before separation. `ContactMergeService` must not scan all gems, search nearest neighbors, reuse candidates from previous frames, or require pieces to be settled. A chain is the narrow exception: a just-created upgraded gem may only be checked against live equal-level pieces using actual radius distance. Chains cap at 6 cycles.
 
 ## Launcher invariant
 

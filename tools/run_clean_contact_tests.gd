@@ -10,6 +10,10 @@ func _init() -> void:
 	_test_contact_merges()
 	_test_rejections()
 	_test_one_piece_once_per_cycle()
+	_test_contact_chain_merges()
+	_test_distant_piece_does_not_chain()
+	_test_chain_depth_cap()
+	_test_merge_presentation_blocks_next_launcher()
 	_test_unobstructed_top_border()
 	_test_launcher_spawn_lifecycle()
 	if failures.is_empty():
@@ -52,6 +56,40 @@ func _test_rejections() -> void:
 func _test_one_piece_once_per_cycle() -> void:
 	var items: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500)), _piece(3, 1, Vector2(420, 500))]
 	_assert(_resolve(items).pieces.size() == 2, "A source piece must not merge twice in one cycle")
+
+func _test_contact_chain_merges() -> void:
+	var items: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500)), _piece(3, 2, Vector2(330, 500))]
+	var merger = MergeType.new()
+	merger.capture_contact(items[0], items[1])
+	var result := merger.resolve(items, 100)
+	_assert(result.pieces.size() == 1 and result.pieces[0].level == 3, "A newly spawned Ruby physically contacting a Ruby must chain into Emerald")
+	_assert(result.merge_count == 2 and result.chain_depth == 1, "A contact chain must record exactly one chained resolution")
+
+func _test_distant_piece_does_not_chain() -> void:
+	var items: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500)), _piece(3, 2, Vector2(520, 500))]
+	var merger = MergeType.new()
+	merger.capture_contact(items[0], items[1])
+	var result := merger.resolve(items, 100)
+	_assert(result.pieces.size() == 2 and result.pieces.any(func(piece: GemPiece): return piece.level == 2), "A distant equal-level piece must not chain")
+
+func _test_chain_depth_cap() -> void:
+	var merger := MergeType.new()
+	var items: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500)), _piece(3, 2, Vector2(330, 500)), _piece(4, 3, Vector2(330, 500)), _piece(5, 4, Vector2(330, 500))]
+	merger.capture_contact(items[0], items[1])
+	var result := merger.resolve(items, 100)
+	_assert(result.chain_depth <= GameConfig.MERGE_CHAIN_DEPTH_CAP, "Chain processing must remain capped")
+
+func _test_merge_presentation_blocks_next_launcher() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	controller.merge_presentations.append({"first_position": Vector2(300, 500), "second_position": Vector2(360, 500), "midpoint": Vector2(330, 500), "level": 2, "depth": 0, "elapsed": 0.0})
+	controller.launcher_state = controller.LauncherState.RESOLVING
+	controller.active_piece_id = -1
+	controller.pieces.clear()
+	controller._process(0.01)
+	_assert(controller.get_active_piece() == null, "Next launcher must wait while merge presentation is active")
+	for frame in range(30): controller._process(1.0 / 60.0)
+	_assert(controller.get_active_piece() != null, "Next launcher must spawn after merge presentation completes")
 
 func _test_unobstructed_top_border() -> void:
 	var simulation = SimulationType.new()

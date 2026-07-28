@@ -8,6 +8,7 @@ var next_level := 1
 var active_piece_id := -1
 var shot_count := 0
 var dragging := false
+var merge_presentations: Array[Dictionary] = []
 
 # A completed shot can pass through each state only once. This prevents the
 # settled-board condition from spawning a launcher again on every frame.
@@ -29,6 +30,10 @@ func _process(delta: float) -> void:
 	var result := merge_service.resolve(pieces, next_piece_id)
 	pieces = result.pieces
 	next_piece_id = result.next_id
+	for merge_event in result.presentation_events:
+		merge_event.elapsed = 0.0
+		merge_presentations.append(merge_event)
+	_update_merge_presentations(delta)
 	if result.merge_count > 0:
 		if get_active_piece() == null:
 			active_piece_id = -1
@@ -47,7 +52,7 @@ func _advance_launcher_lifecycle() -> void:
 					active_piece_id = -1
 				launcher_state = LauncherState.RESOLVING
 		LauncherState.RESOLVING:
-			if all_pieces_settled() and not merge_service.has_pending_candidates():
+			if all_pieces_settled() and not merge_service.has_pending_candidates() and merge_presentations.is_empty():
 				launcher_state = LauncherState.SPAWNING_NEXT
 		LauncherState.SPAWNING_NEXT:
 			if all_pieces_settled() and spawn_active_piece():
@@ -118,6 +123,7 @@ func all_pieces_settled() -> bool:
 func restart() -> void:
 	pieces.clear()
 	merge_service.clear()
+	merge_presentations.clear()
 	next_piece_id = 1
 	next_level = 1
 	active_piece_id = -1
@@ -125,6 +131,11 @@ func restart() -> void:
 	dragging = false
 	launcher_state = LauncherState.SPAWNING_NEXT
 	_advance_launcher_lifecycle()
+
+func _update_merge_presentations(delta: float) -> void:
+	for presentation in merge_presentations:
+		presentation.elapsed += delta
+	merge_presentations = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed < GameConfig.MERGE_PRESENTATION_DURATION)
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("132337"))
@@ -145,3 +156,25 @@ func _draw() -> void:
 		draw_circle(piece.position, piece.radius, GameConfig.gem_color(piece.level))
 		draw_arc(piece.position, piece.radius, 0.0, TAU, 32, Color.WHITE.lightened(0.15), 2.0)
 		draw_string(font, piece.position + Vector2(-12.0, 8.0), "L%d" % piece.level, HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("172334"))
+	for presentation in merge_presentations:
+		_draw_merge_presentation(presentation)
+
+func _draw_merge_presentation(presentation: Dictionary) -> void:
+	var t: float = clampf(presentation.elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)
+	var pull_t: float = clampf(presentation.elapsed / GameConfig.MERGE_SOURCE_PULL_DURATION, 0.0, 1.0)
+	var midpoint: Vector2 = presentation.midpoint
+	var source_scale := 1.0 - pull_t * 0.75
+	var source_alpha := 1.0 - pull_t
+	for source_position in [presentation.first_position, presentation.second_position]:
+		var position: Vector2 = source_position.lerp(midpoint, pull_t * 0.72)
+		var color := GameConfig.gem_color(presentation.level - 1)
+		color.a = source_alpha
+		draw_circle(position, GameConfig.PIECE_RADIUS * source_scale, color)
+	var ring_alpha := 1.0 - t
+	var ring_color := GameConfig.gem_color(presentation.level).lightened(0.35)
+	ring_color.a = ring_alpha
+	draw_arc(midpoint, GameConfig.PIECE_RADIUS * (1.0 + t * 1.15), 0.0, TAU, 28, ring_color, 3.0)
+	var pulse := 1.0 + sin(t * PI) * (GameConfig.MERGE_PULSE_SCALE - 1.0)
+	var glow := GameConfig.gem_color(presentation.level)
+	glow.a = (1.0 - t) * 0.35
+	draw_circle(midpoint, GameConfig.PIECE_RADIUS * pulse, glow)

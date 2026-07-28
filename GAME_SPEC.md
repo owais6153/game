@@ -22,4 +22,10 @@ This milestone implements only the smallest playable board loop. It has no score
 - Sources must be distinct, same-level, unconsumed, and within radius sum + 1.5 px.
 - Sources are marked consumed before the upgraded gem appears at their midpoint.
 - A source can merge only once per resolution cycle. Candidates are cleared afterwards.
-- No chains or global/nearest same-level scans exist.
+- Contact-based chains are permitted only for an upgraded gem physically touching an existing equal-level gem by radius distance after the upgrade spawns. Chains are capped at 6 cycles; global, nearest-neighbor, and stale-pair scans remain forbidden.
+
+## Merge presentation
+
+- Simulation removes sources and immediately creates the upgraded gem at the validated midpoint.
+- Presentation draws source ghosts pulling inward for 0.12 s, then a 0.22 s upgraded-gem pulse, glow, and ring. It never affects physics or collision.
+- The next launcher waits for both board settlement and presentation completion.

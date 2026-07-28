@@ -14,6 +14,10 @@ const LINEAR_DAMPING := 2.7
 const SLEEP_SPEED := 11.0
 const CONTACT_EPSILON := 1.5
 const SEPARATION_EPSILON := 0.25
+const MERGE_PRESENTATION_DURATION := 0.22
+const MERGE_SOURCE_PULL_DURATION := 0.12
+const MERGE_PULSE_SCALE := 1.28
+const MERGE_CHAIN_DEPTH_CAP := 6
 const RESTART_RECT := Rect2(520.0, 58.0, 150.0, 54.0)
 
 static func gem_name(level: int) -> String:
