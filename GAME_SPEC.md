@@ -30,6 +30,13 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Presentation draws source ghosts pulling inward for 0.12 s, then a 0.22 s upgraded-gem pulse, glow, and ring. It never affects physics or collision.
 - The next launcher waits for both board settlement and presentation completion.
 
+## Gemstone visual prototype
+
+- Gameplay pieces retain their existing circular collision radius; only their rendering changes.
+- Pearl is round with a soft highlight; Ruby is a faceted red gem; Emerald is an emerald-cut green gem; Sapphire is a faceted blue gem; Diamond is a bright multi-facet diamond.
+- The board uses a lightweight jewelry-table treatment with gold rails, a deep green felt inset, soft gem shadows, and no shaders, bloom, or external image assets.
+- Source ghosts are rendered behind the immediate upgraded gem during merge presentation so the visual reads as an inward transformation rather than a one-frame pop.
+
 ## Score, chain, and target
 
 - Confirmed merge events are the sole score source; collisions and pushes have no score path.

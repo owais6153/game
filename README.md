@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`clean-contact-merge-v3-playable-loop`: a simple drawn-circle playable level with strict contact-only chain merges, score/chain HUD, Diamond win, danger-line fail, and full Replay/Retry reset.
+`gem-visual-prototype-v1`: the playable level loop now has procedural precious-stone visuals, a lightweight luxury jewelry table, and clearer HUD styling. The merge, collision, queue, danger, score, win, and reset rules are unchanged from the verified playable-loop milestone.
 
 ## Commands
 

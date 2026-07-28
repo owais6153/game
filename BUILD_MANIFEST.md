@@ -1,5 +1,15 @@
 # Build Manifest
 
+## Gemstone Visual Prototype v1
+
+- File: `gem-visual-prototype-v1.apk`
+- Path: `D:\Owais\game\build\android\gem-visual-prototype-v1.apk`
+- Size: 27,723,914 bytes
+- Modified: 2026-07-29 04:40:27 +05:00
+- Source commit/tag: recorded in the immediate provenance commit following the feature milestone.
+- Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and APK existence was verified.
+- Device status: no device install or launch was attempted in this session.
+
 ## Clean Contact Merge v3 — Playable Loop
 
 - File: `clean-contact-merge-v3-playable-loop.apk`

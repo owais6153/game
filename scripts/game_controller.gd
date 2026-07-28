@@ -1,5 +1,7 @@
 extends Node2D
 
+const GemVisualsType = preload("res://scripts/gem_visuals.gd")
+
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
 var merge_service := ContactMergeService.new()
@@ -193,38 +195,43 @@ func _update_merge_presentations(delta: float) -> void:
 	merge_presentations = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed < GameConfig.MERGE_PRESENTATION_DURATION)
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("132337"))
-	draw_rect(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP), Color("274864"), true)
-	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Color("d5e8f3"), 6.0)
-	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM), Color("d5e8f3"), 6.0)
-	draw_line(Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_BOTTOM), Color("d5e8f3"), 6.0)
+	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("100d18"))
+	draw_rect(Rect2(GameConfig.BOARD_LEFT - 9.0, GameConfig.BOARD_TOP - 9.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 18.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 18.0), Color("8b6b31"), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP), Color("193b3b"), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT + 14.0, GameConfig.BOARD_TOP + 14.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT - 28.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP - 28.0), Color("214b46"), false, 3.0)
+	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Color("f6d77e"), 5.0)
+	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
+	draw_line(Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
 	draw_dashed_line(Vector2(GameConfig.BOARD_LEFT + 8.0, GameConfig.DANGER_LINE_Y), Vector2(GameConfig.BOARD_RIGHT - 8.0, GameConfig.DANGER_LINE_Y), Color("f6bb42"), 3.0, 12.0)
 	var font := ThemeDB.fallback_font
 	var active := get_active_piece()
 	var current_label := GameConfig.gem_name(active.level) if active != null else "Resolving"
-	draw_string(font, Vector2(54.0, 92.0), "Current: %s" % current_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 25, Color.WHITE)
-	draw_string(font, Vector2(54.0, 124.0), "Next: %s    Shots: %d" % [GameConfig.gem_name(next_level), shot_count], HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color("d9e8f3"))
-	draw_string(font, Vector2(54.0, 150.0), "Score: %d    Chain x%d    Target: %s" % [score, chain_multiplier, GameConfig.gem_name(GameConfig.TARGET_LEVEL)], HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("fff0bb"))
-	draw_rect(GameConfig.RESTART_RECT, Color("3b6689"), true)
-	draw_string(font, Vector2(542.0, 94.0), "Restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color.WHITE)
-	for piece in pieces:
-		draw_circle(piece.position + Vector2(4.0, 6.0), piece.radius, Color(0.02, 0.05, 0.08, 0.35))
-		draw_circle(piece.position, piece.radius, GameConfig.gem_color(piece.level))
-		draw_arc(piece.position, piece.radius, 0.0, TAU, 32, Color.WHITE.lightened(0.15), 2.0)
-		draw_string(font, piece.position + Vector2(-12.0, 8.0), "L%d" % piece.level, HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("172334"))
+	draw_rect(Rect2(30.0, 20.0, 660.0, 112.0), Color("201b2d"), true)
+	draw_rect(Rect2(30.0, 20.0, 660.0, 112.0), Color("b9954a"), false, 2.0)
+	draw_string(font, Vector2(52.0, 57.0), "CURRENT  %s" % current_label.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color("fff4d5"))
+	draw_string(font, Vector2(52.0, 88.0), "NEXT  %s     SHOTS  %d" % [GameConfig.gem_name(next_level).to_upper(), shot_count], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("d7e9df"))
+	draw_string(font, Vector2(52.0, 116.0), "SCORE  %d     CHAIN x%d     TARGET  DIAMOND" % [score, chain_multiplier], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("ffe6a1"))
+	draw_rect(GameConfig.RESTART_RECT, Color("5a3f68"), true)
+	draw_rect(GameConfig.RESTART_RECT, Color("d8b46d"), false, 2.0)
+	draw_string(font, Vector2(542.0, 94.0), "Restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color.WHITE)
+	# Draw the non-physical source ghosts first. The new simulated gem is then
+	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
 	for presentation in merge_presentations:
 		_draw_merge_presentation(presentation)
+	for piece in pieces:
+		GemVisualsType.draw_shadow(self, piece.position, piece.radius)
+		GemVisualsType.draw_gem(self, piece.level, piece.position, piece.radius)
 	if won or failed:
 		_draw_result_overlay(font)
 
 func _draw_result_overlay(font: Font) -> void:
-	draw_rect(Rect2(80.0, 420.0, 560.0, 470.0), Color(0.03, 0.08, 0.14, 0.93), true)
-	draw_rect(Rect2(80.0, 420.0, 560.0, 470.0), Color("f6bb42"), false, 3.0)
+	draw_rect(Rect2(80.0, 420.0, 560.0, 470.0), Color("1b1427", 0.96), true)
+	draw_rect(Rect2(80.0, 420.0, 560.0, 470.0), Color("f1cd78"), false, 3.0)
 	var title := "You created a Diamond!" if won else "Table overflowed"
 	var button := "Replay" if won else "Retry"
 	draw_string(font, Vector2(142.0, 550.0), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 34, Color.WHITE)
 	draw_string(font, Vector2(270.0, 615.0), "Score: %d" % score, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("fff0bb"))
-	draw_rect(GameConfig.OVERLAY_BUTTON_RECT, Color("3b6689"), true)
+	draw_rect(GameConfig.OVERLAY_BUTTON_RECT, Color("5a3f68"), true)
 	draw_string(font, Vector2(320.0, 812.0), button, HORIZONTAL_ALIGNMENT_LEFT, -1, 25, Color.WHITE)
 
 func _draw_merge_presentation(presentation: Dictionary) -> void:
@@ -235,9 +242,7 @@ func _draw_merge_presentation(presentation: Dictionary) -> void:
 	var source_alpha := 1.0 - pull_t
 	for source_position in [presentation.first_position, presentation.second_position]:
 		var position: Vector2 = source_position.lerp(midpoint, pull_t * 0.72)
-		var color := GameConfig.gem_color(presentation.level - 1)
-		color.a = source_alpha
-		draw_circle(position, GameConfig.PIECE_RADIUS * source_scale, color)
+		GemVisualsType.draw_gem(self, presentation.level - 1, position, GameConfig.PIECE_RADIUS, source_alpha, source_scale)
 	var ring_alpha := 1.0 - t
 	var ring_color := GameConfig.gem_color(presentation.level).lightened(0.35)
 	ring_color.a = ring_alpha

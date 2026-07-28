@@ -3,6 +3,7 @@ extends SceneTree
 const GemPieceType = preload("res://scripts/gem_piece.gd")
 const SimulationType = preload("res://scripts/board_simulation.gd")
 const MergeType = preload("res://scripts/merge_service.gd")
+const GemVisualsType = preload("res://scripts/gem_visuals.gd")
 const GameScene = preload("res://scenes/Game.tscn")
 var failures: Array[String] = []
 
@@ -20,6 +21,7 @@ func _init() -> void:
 	_test_win_stops_spawning()
 	_test_danger_line_failure_rules()
 	_test_overlay_reset()
+	_test_visual_level_mapping()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -202,6 +204,11 @@ func _test_overlay_reset() -> void:
 	_assert(not controller.won and not controller.failed and controller.score == 0 and controller.chain_multiplier == 1, "Replay or Retry must clear outcome, score, and chain state")
 	_assert(controller.danger_timers.is_empty() and controller.shot_count == 0, "Replay or Retry must clear danger timers and shots")
 	_assert(controller.pieces.size() == 1 and _active_launcher_count(controller.pieces) == 1, "Replay or Retry must restore empty board plus one launcher")
+
+func _test_visual_level_mapping() -> void:
+	var expected := ["round pearl with soft highlight", "faceted ruby", "emerald-cut gem", "faceted sapphire", "multi-facet diamond"]
+	for level in range(1, 6):
+		_assert(GemVisualsType.visual_style_name(level) == expected[level - 1], "Gem level %d must keep its assigned procedural visual style" % level)
 
 func _active_launcher_count(items: Array[GemPiece]) -> int:
 	var count := 0

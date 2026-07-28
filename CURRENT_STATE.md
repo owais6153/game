@@ -1,5 +1,14 @@
 # Current State
 
+**Phase:** Gemstone visual prototype delivered; gameplay source remains the verified playable-loop behavior, with presentation-only visual updates pending commit provenance.
+
+## Verified Working Now
+
+- `build/android/gem-visual-prototype-v1.apk` is the standalone Android delivery (27,723,914 bytes, 2026-07-29 04:40:27 +05:00).
+- `GemVisuals` owns procedural visuals only: Pearl, Ruby, Emerald, Sapphire, and Diamond match their intended level mapping without affecting circular collision truth.
+- Merge physics review found no justified simulation retune. The only safe improvement was render ordering: ghosts draw before live pieces so upgraded gems do not appear beneath fading source visuals.
+- Godot parse/import validation and the complete headless controller/simulation suite passed. No device installation was attempted in this session.
+
 **Phase:** Complete playable level loop delivered at source commit `2d982a8af80e0477caf2c8641f8543c28587a178`, tagged `clean-contact-merge-v3-playable-loop`.
 
 ## Verified Working Now

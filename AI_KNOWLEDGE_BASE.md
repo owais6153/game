@@ -49,12 +49,17 @@ The queue is controller-owned and must advance once per completed shot. Presenta
 - `scripts/board_simulation.gd`: movement, borders, current-step contacts, and separation.
 - `scripts/merge_service.gd`: deterministic direct and local chain merge resolution.
 - `scripts/game_controller.gd`: input, lifecycle, queue, drawing, and presentation-only effects.
+- `scripts/gem_visuals.gd`: procedural gemstone artwork only. Keep it draw-only; never pass its output into collision or merge code.
 - `tools/run_clean_contact_tests.gd`: headless controller/simulation integration tests.
 - `BUILD_MANIFEST.md`: authoritative delivered-APK provenance.
 
 ## Tuning constants
 
 All current tuning lives in `scripts/game_config.gd`: `VIEWPORT_SIZE`, board bounds, launch/damping/sleep constants, `CONTACT_EPSILON`, `SEPARATION_EPSILON`, `MERGE_SOURCE_PULL_DURATION`, `MERGE_PRESENTATION_DURATION`, `MERGE_PULSE_SCALE`, and `MERGE_CHAIN_DEPTH_CAP`. Do not retune them in unrelated work.
+
+## Gemstone visual prototype
+
+The current visual set is intentionally procedural and asset-free: Pearl is circular with a creamy highlight, Ruby and Sapphire are faceted, Emerald is emerald-cut, and Diamond is multi-faceted. `GemVisuals.visual_style_name()` is covered by the headless test suite. Rendering has no physics authority. The safe merge-presentation ordering is ghosts/ring/glow first, then live gems; retain it unless a dedicated presentation task verifies an alternative.
 
 ## Fragile areas and known-good milestones
 

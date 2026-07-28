@@ -8,9 +8,10 @@
 - `scripts/contact_pair.gd`: immutable source-ID pair used for one current step.
 - `scripts/merge_service.gd`: isolated contact validation, deterministic consumption, immediate upgraded spawn, and local contact-only chain resolution.
 - `scripts/game_controller.gd`: launcher queue, pointer input, explicit one-shot lifecycle state machine, minimal HUD, rendering, and presentation-only merge effect lifecycle.
+- `scripts/gem_visuals.gd`: rendering-only procedural Pearl/Ruby/Emerald/Sapphire/Diamond shapes, shadows, highlights, and visual-style mapping. It cannot change simulation state.
 - `tools/run_clean_contact_tests.gd`: headless integration coverage of the actual simulation → contact → merge path.
 
-Presentation stays in the controller; merge rules have no drawing/UI dependencies.
+Presentation stays in the controller and `GemVisuals`; merge rules have no drawing/UI dependencies. Source ghosts draw before live pieces, so the immediate upgraded simulation piece remains visually on top throughout a merge.
 
 ## Playable-level systems
 
