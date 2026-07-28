@@ -1,0 +1,29 @@
+; Engine configuration file.
+; Clean rebuild: Godot 4.6.3 Compatibility renderer, Android portrait.
+config_version=5
+
+[application]
+config/name="Gem Merge Rebuild"
+run/main_scene="res://scenes/Baseline.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[display]
+
+[display/window]
+size/viewport_width=720
+size/viewport_height=1280
+size/window_width_override=360
+size/window_height_override=640
+stretch/mode="canvas_items"
+
+[display/window/handheld]
+orientation=1
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+
+[editor_plugins]
+enabled=PackedStringArray()

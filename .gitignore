@@ -1,0 +1,16 @@
+# Godot generated/editor files
+.godot/
+.import/
+*.import
+
+# Android and exported build artifacts
+build/
+android/build/
+android/.gradle/
+*.apk
+*.aab
+
+# Local/editor files
+.vscode/
+.idea/
+*.tmp
