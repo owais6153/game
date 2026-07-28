@@ -36,9 +36,10 @@ The danger line is never colliding. Only a settled, non-active board gem whose l
 
 ## Validation
 
-- Godot parse/import validation: pending final export validation.
+- Godot 4.6.3 parse/import validation: passed.
 - Headless controller/simulation integration suite: passed (`CLEAN_CONTACT_TESTS: PASS`).
-- Android standalone APK: pending final export.
+- Android standalone APK: passed. `clean-contact-merge-v3-playable-loop.apk` is 27,719,661 bytes, modified 2026-07-29 04:16:50 +05:00, from source commit `2d982a8af80e0477caf2c8641f8543c28587a178`, tag `clean-contact-merge-v3-playable-loop`.
+- Device status: `adb devices` reported no connected device; installation and launch were not attempted.
 
 ## Known limitations
 

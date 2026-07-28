@@ -1,5 +1,21 @@
 # Current State
 
+**Phase:** Complete playable level loop delivered at source commit `2d982a8af80e0477caf2c8641f8543c28587a178`, tagged `clean-contact-merge-v3-playable-loop`.
+
+## Verified Working Now
+
+- `build/android/clean-contact-merge-v3-playable-loop.apk` is the verified standalone Android APK (27,719,661 bytes, 2026-07-29 04:16:50 +05:00).
+- The level awards score only from confirmed merges: Ruby 10, Emerald 25, Sapphire 60, Diamond 150; each confirmed event in one resolution sequence increments its score multiplier.
+- Creating Diamond wins once and blocks further launcher input/spawns. A settled non-active gem below the visual-only danger line for 0.75 seconds fails once; moving and active launcher gems are exempt.
+- Replay, Retry, and Restart share the complete reset path and restore an empty board with exactly one active launcher.
+- Parse/import validation, the complete headless controller/simulation suite, and standalone Android export passed. `adb devices` found no connected phone, so no device test was performed.
+
+## Do Not Regress
+
+- Score and win must consume confirmed merge events only; never rescan the board or collisions for outcomes.
+- Danger timers must remain keyed by non-active piece ID and be cleared for moving, active, removed, merged, or safe pieces.
+- Win/fail overlays must block launches and new launcher spawns until a full reset.
+
 **Phase:** Clean Gameplay Milestone 2 chain-merge polish delivered at commit `10f8d59408cccd6287d308f5fc0ab0046326ea3a`, tagged `clean-contact-merge-v2-chain-polish`.
 
 **Governance follow-up:** Documentation-only handoff hardening is committed in Git as `docs: harden AI project knowledge and agent workflow`. It adds no gameplay or build change.

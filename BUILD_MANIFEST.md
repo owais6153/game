@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Clean Contact Merge v3 — Playable Loop
+
+- File: `clean-contact-merge-v3-playable-loop.apk`
+- Path: `D:\Owais\game\build\android\clean-contact-merge-v3-playable-loop.apk`
+- Size: 27,719,661 bytes
+- Modified: 2026-07-29 04:16:50 +05:00
+- Source commit: `2d982a8af80e0477caf2c8641f8543c28587a178` (`feat: add scoring win and fail gameplay loop`)
+- Tag: `clean-contact-merge-v3-playable-loop`
+- Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and APK existence was verified.
+- Device status: `adb devices` reported no connected device. The APK was not installed or launched on a phone.
+
 Every APK record includes its filename, path, size, modified timestamp, source commit, tag, validation, and device status.
 
 ## Clean Contact Merge v2 — Chain Polish
