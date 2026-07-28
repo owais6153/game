@@ -1,20 +1,23 @@
-# Game Spec — Clean Rebuild Scope
+# Game Spec — Clean Contact Merge v1
 
-## Current scope
+## Scope
 
-1. Prove a standalone blank Android baseline.
-2. Then build a minimal contact-only merge slice with simple circles/colors.
+This milestone implements only the smallest playable board loop. It has no score, win/fail, chains, sound, persistence, menus, ads, final art, or progression.
 
-## Planned contact-merge mechanics
+## Board and input
 
-- Portrait board with left, right, and top boundaries.
-- Empty table at start; one active launcher below a visual-only danger line.
-- Horizontal drag only; release launches straight upward with negative Y velocity.
-- Unobstructed shots reach the top border and settle inside the board.
-- Exactly one active launcher exists. The next one appears only after resolution settles.
-- Levels: L1 Pearl, L2 Ruby, L3 Emerald, L4 Sapphire, L5 Diamond.
-- Only physical contacts captured in the current simulation step may merge.
-- Same-level pairs merge one level up; different/distant pairs do not.
-- No chain merges in the first slice.
+- Portrait board: left/right/top visible boundaries; empty table at launch.
+- One current launcher gem begins below the visible-only danger line.
+- Dragging changes only its horizontal position, clamped between side borders.
+- Releasing sends it straight upward with negative Y velocity.
+- The danger line is never a collision or movement clamp.
+- Unobstructed gems hit the top border, stay inside the board, and settle.
 
-No score, win/fail, sounds, persistence, ads, menus, final art, analytics, or backend are in the first gameplay slice.
+## Gems and merge rules
+
+- L1 Pearl → L2 Ruby → L3 Emerald → L4 Sapphire → L5 Diamond.
+- Only contact pairs captured in the current simulation step before separation enter merge resolution.
+- Sources must be distinct, same-level, unconsumed, and within radius sum + 1.5 px.
+- Sources are marked consumed before the upgraded gem appears at their midpoint.
+- A source can merge only once per resolution cycle. Candidates are cleared afterwards.
+- No chains or global/nearest same-level scans exist.
