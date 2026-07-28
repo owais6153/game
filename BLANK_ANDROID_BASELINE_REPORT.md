@@ -33,4 +33,7 @@ This enables ETC2/ASTC texture imports for Android export compatibility.
 - Architectures: `arm64-v8a`
 - Device testing: not performed; no Android device was connected.
 
-The Git commit hash and tag for the source state are recorded in `BUILD_MANIFEST.md` after the baseline commit is created.
+## Source traceability
+
+- Source commit: `ad1e2d720f615ce326da91ac15b5a303543b15d8` (`build: verify blank Android baseline export`).
+- Tag: `blank-android-baseline-verified`.
