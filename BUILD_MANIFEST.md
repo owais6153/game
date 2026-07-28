@@ -6,7 +6,8 @@
 - Path: `D:\Owais\game\build\android\gem-visual-prototype-v1.apk`
 - Size: 27,723,914 bytes
 - Modified: 2026-07-29 04:40:27 +05:00
-- Source commit/tag: recorded in the immediate provenance commit following the feature milestone.
+- Source commit: `561235ad45a6dbf50a3b8a018820656dae53cd53` (`feat: add first gemstone visual prototype`)
+- Tag: `gem-visual-prototype-v1`
 - Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and APK existence was verified.
 - Device status: no device install or launch was attempted in this session.
 

@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Gemstone visual prototype delivered; gameplay source remains the verified playable-loop behavior, with presentation-only visual updates pending commit provenance.
+**Phase:** Gemstone visual prototype delivered at source commit `561235ad45a6dbf50a3b8a018820656dae53cd53`, tagged `gem-visual-prototype-v1`; gameplay source remains the verified playable-loop behavior with presentation-only visual updates.
 
 ## Verified Working Now
 

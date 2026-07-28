@@ -34,6 +34,7 @@ One presentation-only issue was corrected: source ghosts were rendered after liv
 - Path: `D:\Owais\game\build\android\gem-visual-prototype-v1.apk`
 - Size: 27,723,914 bytes
 - Modified: 2026-07-29 04:40:27 +05:00
+- Source commit/tag: `561235ad45a6dbf50a3b8a018820656dae53cd53` / `gem-visual-prototype-v1`
 - Device status: no real device was installed or launched in this session.
 
 ## Known limitations
