@@ -2,6 +2,17 @@
 
 Every APK record includes its filename, path, size, modified timestamp, source commit, tag, validation, and device status.
 
+## Clean Contact Merge v1 — Spawn Lifecycle Fix
+
+- File: `clean-contact-merge-v1-spawn-fix.apk`
+- Path: `D:\Owais\game\build\android\clean-contact-merge-v1-spawn-fix.apk`
+- Size: 27,707,373 bytes
+- Modified: 2026-07-29 03:23:14 +05:00
+- Source commit: `53306bf1f9d96fbb6918380657dd611ed1a7a51e` (`fix: spawn exactly one launcher piece per shot cycle`)
+- Tag: `clean-contact-merge-v1-spawn-fix`
+- Validation: Godot 4.6.3 headless editor parse/import validation passed; `tools/run_clean_contact_tests.gd` passed, including the controller lifecycle regressions; standalone Android debug export completed.
+- Device status: `adb devices` reported no connected device. The APK was not installed or launched on a phone.
+
 ## Clean Contact Merge v1
 
 - File: `clean-contact-merge-v1.apk`

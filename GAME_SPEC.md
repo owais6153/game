@@ -10,6 +10,8 @@ This milestone implements only the smallest playable board loop. It has no score
 - One current launcher gem begins below the visible-only danger line.
 - Dragging changes only its horizontal position, clamped between side borders.
 - Releasing sends it straight upward with negative Y velocity.
+- Launcher lifecycle is `READY_TO_AIM → SHOT_IN_FLIGHT → RESOLVING → SPAWNING_NEXT → READY_TO_AIM`.
+- Exactly one active launcher exists. The next queue advances and one new launcher appears only after the launched piece and all board resolution have settled; idle frames never advance the queue or spawn another piece.
 - The danger line is never a collision or movement clamp.
 - Unobstructed gems hit the top border, stay inside the board, and settle.
 
