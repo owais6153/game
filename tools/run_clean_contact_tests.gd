@@ -3,6 +3,7 @@ extends SceneTree
 const GemPieceType = preload("res://scripts/gem_piece.gd")
 const SimulationType = preload("res://scripts/board_simulation.gd")
 const MergeType = preload("res://scripts/merge_service.gd")
+const GameScene = preload("res://scenes/Game.tscn")
 var failures: Array[String] = []
 
 func _init() -> void:
@@ -10,6 +11,7 @@ func _init() -> void:
 	_test_rejections()
 	_test_one_piece_once_per_cycle()
 	_test_unobstructed_top_border()
+	_test_launcher_spawn_lifecycle()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -61,3 +63,36 @@ func _test_unobstructed_top_border() -> void:
 		simulation.step(items, 1.0 / 120.0, merger)
 	_assert(shot.position.y >= GameConfig.BOARD_TOP + shot.radius, "Unobstructed shot must remain inside the top border")
 	_assert(shot.velocity.length() < GameConfig.SLEEP_SPEED, "Unobstructed shot must settle")
+
+func _test_launcher_spawn_lifecycle() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	_assert(controller.pieces.size() == 1 and controller.get_active_piece() != null, "Initial lifecycle state must contain exactly one active launcher")
+	_assert(controller.lifecycle_name() == "READY_TO_AIM", "Initial launcher state must be READY_TO_AIM")
+	var initial_next_level: int = controller.next_level
+	controller.launch_active_piece()
+	_assert(controller.lifecycle_name() == "SHOT_IN_FLIGHT", "Launching must enter SHOT_IN_FLIGHT")
+	for frame in range(200):
+		controller._process(1.0 / 60.0)
+	_assert(controller.get_active_piece() != null, "Exactly one new active piece must exist after the first shot settles")
+	_assert(_active_launcher_count(controller.pieces) == 1, "Active launcher count must never exceed one after settlement")
+	_assert(controller.lifecycle_name() == "READY_TO_AIM", "Resolution must return to READY_TO_AIM")
+	_assert(controller.next_level != initial_next_level, "Next queue must advance exactly once after the completed shot")
+	var pieces_after_first_cycle: int = controller.pieces.size()
+	var next_after_first_cycle: int = controller.next_level
+	for frame in range(120):
+		controller._process(1.0 / 60.0)
+	_assert(controller.pieces.size() == pieces_after_first_cycle, "Idle frames must not spawn extra launcher pieces")
+	_assert(controller.next_level == next_after_first_cycle, "Idle frames must not advance the next queue")
+	controller.launch_active_piece()
+	_assert(controller.lifecycle_name() == "SHOT_IN_FLIGHT", "Second launcher must be launchable normally")
+	controller.restart()
+	_assert(controller.pieces.size() == 1 and _active_launcher_count(controller.pieces) == 1, "Restart must leave exactly one active launcher")
+	_assert(controller.lifecycle_name() == "READY_TO_AIM", "Restart must reset lifecycle to READY_TO_AIM")
+
+func _active_launcher_count(items: Array[GemPiece]) -> int:
+	var count := 0
+	for item in items:
+		if item.is_active_launcher and not item.consumed:
+			count += 1
+	return count

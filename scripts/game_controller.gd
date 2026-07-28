@@ -8,10 +8,20 @@ var next_level := 1
 var active_piece_id := -1
 var shot_count := 0
 var dragging := false
-var resolution_delay := 0.0
+
+# A completed shot can pass through each state only once. This prevents the
+# settled-board condition from spawning a launcher again on every frame.
+enum LauncherState {
+	READY_TO_AIM,
+	SHOT_IN_FLIGHT,
+	RESOLVING,
+	SPAWNING_NEXT,
+}
+
+var launcher_state: LauncherState = LauncherState.SPAWNING_NEXT
 
 func _ready() -> void:
-	spawn_active_piece()
+	_advance_launcher_lifecycle()
 	queue_redraw()
 
 func _process(delta: float) -> void:
@@ -20,18 +30,31 @@ func _process(delta: float) -> void:
 	pieces = result.pieces
 	next_piece_id = result.next_id
 	if result.merge_count > 0:
-		active_piece_id = -1
-		resolution_delay = 0.12
-	var active := get_active_piece()
-	if active != null and active.is_settled() and not dragging and shot_count > 0:
-		active.is_active_launcher = false
-		active_piece_id = -1
-		resolution_delay = 0.12
-	if resolution_delay > 0.0:
-		resolution_delay -= delta
-	if active_piece_id == -1 and resolution_delay <= 0.0 and all_pieces_settled():
-		spawn_active_piece()
+		if get_active_piece() == null:
+			active_piece_id = -1
+		if launcher_state != LauncherState.READY_TO_AIM:
+			launcher_state = LauncherState.RESOLVING
+	_advance_launcher_lifecycle()
 	queue_redraw()
+
+func _advance_launcher_lifecycle() -> void:
+	match launcher_state:
+		LauncherState.SHOT_IN_FLIGHT:
+			if all_pieces_settled():
+				var active := get_active_piece()
+				if active != null:
+					active.is_active_launcher = false
+					active_piece_id = -1
+				launcher_state = LauncherState.RESOLVING
+		LauncherState.RESOLVING:
+			if all_pieces_settled() and not merge_service.has_pending_candidates():
+				launcher_state = LauncherState.SPAWNING_NEXT
+		LauncherState.SPAWNING_NEXT:
+			if all_pieces_settled() and spawn_active_piece():
+				launcher_state = LauncherState.READY_TO_AIM
+
+func lifecycle_name() -> String:
+	return LauncherState.keys()[launcher_state]
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
@@ -49,7 +72,7 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 			restart()
 			return
 		var active := get_active_piece()
-		if active != null and active.is_settled() and pointer.distance_to(active.position) <= active.radius * 1.8:
+		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and pointer.distance_to(active.position) <= active.radius * 1.8:
 			dragging = true
 			move_active_to(pointer.x)
 	elif dragging:
@@ -58,22 +81,27 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 
 func move_active_to(x_position: float) -> void:
 	var active := get_active_piece()
-	if active != null and active.is_settled():
+	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
 		active.position.x = clampf(x_position, GameConfig.BOARD_LEFT + active.radius, GameConfig.BOARD_RIGHT - active.radius)
 
 func launch_active_piece() -> void:
 	var active := get_active_piece()
-	if active != null and active.is_settled():
+	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
 		active.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 		shot_count += 1
+		launcher_state = LauncherState.SHOT_IN_FLIGHT
 
-func spawn_active_piece() -> void:
+func spawn_active_piece() -> bool:
+	# Idempotent for a lifecycle cycle: an existing launcher is never replaced.
+	if get_active_piece() != null:
+		return false
 	var piece := GemPiece.new(next_piece_id, next_level, Vector2(360.0, GameConfig.LAUNCH_Y), GameConfig.PIECE_RADIUS)
 	next_piece_id += 1
 	piece.is_active_launcher = true
 	pieces.append(piece)
 	active_piece_id = piece.id
 	next_level = 2 if next_level == 1 else 1
+	return true
 
 func get_active_piece() -> GemPiece:
 	for piece in pieces:
@@ -95,8 +123,8 @@ func restart() -> void:
 	active_piece_id = -1
 	shot_count = 0
 	dragging = false
-	resolution_delay = 0.0
-	spawn_active_piece()
+	launcher_state = LauncherState.SPAWNING_NEXT
+	_advance_launcher_lifecycle()
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("132337"))

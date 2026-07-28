@@ -49,3 +49,6 @@ func resolve(pieces: Array[GemPiece], next_id: int) -> Dictionary:
 
 func clear() -> void:
 	_candidates.clear()
+
+func has_pending_candidates() -> bool:
+	return not _candidates.is_empty()
