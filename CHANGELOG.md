@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Hardened the AI handoff documentation with a reusable `docs/SESSION_HANDOFF_TEMPLATE.md` and an expanded codebase knowledge map. No gameplay behavior changed.
+
 - Added lightweight presentation-only merge polish: source-gem pull/fade, midpoint pulse, glow, and ring burst.
 - Added deterministic, capped, contact-based chain merges. Only a just-created gem can chain via real radius contact with an equal-level gem.
 - Added chain, animation-lifecycle, and next-launcher presentation-gate regression coverage.
