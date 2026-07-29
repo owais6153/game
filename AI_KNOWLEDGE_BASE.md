@@ -55,7 +55,19 @@ The queue is controller-owned and must advance once per completed shot. Presenta
 
 ## Tuning constants
 
-All current tuning lives in `scripts/game_config.gd`: `VIEWPORT_SIZE`, board bounds, launch/damping/sleep constants, `CONTACT_EPSILON`, `SEPARATION_EPSILON`, `MERGE_SOURCE_PULL_DURATION`, `MERGE_PRESENTATION_DURATION`, `MERGE_PULSE_SCALE`, and `MERGE_CHAIN_DEPTH_CAP`. Do not retune them in unrelated work.
+All current tuning lives in `scripts/game_config.gd`. Do not retune them in unrelated work.
+
+| Feel value | Approved default | Safe range | Notes |
+| --- | ---: | --- | --- |
+| Launch speed | 1100 px/s | 1000–1180 | Straight upward only. |
+| Velocity damping | 285 px/s² | 250–330 | Delta-based; never use frame constants. |
+| Sleep speed | 9 px/s | 7–12 | Below this, velocity becomes exactly zero. |
+| Collision restitution | 0.48 | 0.40–0.58 | Equal-mass normal impulse only. |
+| Side/top/bottom restitution | 0.20 / 0.14 / 0.10 | 0.15–0.25 / 0.10–0.20 / 0.08–0.14 | Containment feel only. |
+| Source pull / merge pulse | 0.10 s / 0.20 s | 0.08–0.14 / 0.16–0.26 | Presentation only. |
+| Chain visual stagger | 0.07 s | 0.05–0.10 | Logic stays immediate/deterministic. |
+| Next launcher ready delay | 0.08 s | 0.05–0.12 | Does not alter one-spawn invariant. |
+| Danger grace | 0.75 s | 0.65–0.90 | Settled, non-active board pieces only. |
 
 ## Gemstone visual prototype
 

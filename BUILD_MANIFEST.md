@@ -11,6 +11,17 @@
 - Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and APK existence was verified.
 - Device status: `adb devices` found no connected device. No install or launch was attempted.
 
+## Gameplay Balance v1
+
+- File: `gameplay-balance-v1.apk`
+- Path: `D:\\Owais\\game\\build\\android\\gameplay-balance-v1.apk`
+- Size: 27,728,010 bytes
+- Modified: 2026-07-29 06:45:13 +05:00
+- Source commit: recorded by the `gameplay-balance-v1` tag.
+- Tag: `gameplay-balance-v1`
+- Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and APK existence was verified.
+- Device status: `adb devices -l` found no connected device. No install or launch was attempted.
+
 ## Gemstone Visual Prototype v1
 
 - File: `gem-visual-prototype-v1.apk`

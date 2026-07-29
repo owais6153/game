@@ -16,10 +16,14 @@ func _init() -> void:
 	_test_chain_depth_cap()
 	_test_merge_presentation_blocks_next_launcher()
 	_test_unobstructed_top_border()
+	_test_launch_timing_and_settling()
+	_test_frame_step_stability()
+	_test_border_containment()
 	_test_launcher_spawn_lifecycle()
 	_test_score_and_chain_runtime_path()
 	_test_win_stops_spawning()
 	_test_danger_line_failure_rules()
+	_test_chain_presentation_cadence()
 	_test_overlay_reset()
 	_test_visual_level_mapping()
 	_test_visual_layout_bounds()
@@ -109,6 +113,51 @@ func _test_unobstructed_top_border() -> void:
 	_assert(shot.position.y >= GameConfig.BOARD_TOP + shot.radius, "Unobstructed shot must remain inside the top border")
 	_assert(shot.velocity.length() < GameConfig.SLEEP_SPEED, "Unobstructed shot must settle")
 
+func _test_launch_timing_and_settling() -> void:
+	var simulation := SimulationType.new()
+	var merger := MergeType.new()
+	var shot := _piece(1, 1, Vector2(360, GameConfig.LAUNCH_Y))
+	shot.velocity = Vector2(0, -GameConfig.LAUNCH_SPEED)
+	var items: Array[GemPiece] = [shot]
+	var top_time := -1.0
+	var elapsed := 0.0
+	for frame in range(600):
+		simulation.step(items, 1.0 / 120.0, merger)
+		elapsed += 1.0 / 120.0
+		if top_time < 0.0 and is_equal_approx(shot.position.y, GameConfig.BOARD_TOP + shot.radius):
+			top_time = elapsed
+		if shot.is_settled(): break
+	_assert(top_time >= 0.70 and top_time <= 1.30, "Launch must reach the top border within the approved feel range")
+	_assert(shot.is_settled() and elapsed <= 2.25, "A clean top-border shot must settle without a long wait")
+	var settled_position := shot.position
+	for frame in range(120): simulation.step(items, 1.0 / 60.0, merger)
+	_assert(shot.velocity == Vector2.ZERO and shot.position.distance_to(settled_position) < 0.01, "A settled piece must not retain persistent jitter")
+
+func _test_frame_step_stability() -> void:
+	var fine_sim := SimulationType.new()
+	var coarse_sim := SimulationType.new()
+	var fine_merger := MergeType.new()
+	var coarse_merger := MergeType.new()
+	var fine := _piece(1, 1, Vector2(360, GameConfig.LAUNCH_Y))
+	var coarse := _piece(1, 1, Vector2(360, GameConfig.LAUNCH_Y))
+	fine.velocity = Vector2(0, -GameConfig.LAUNCH_SPEED)
+	coarse.velocity = Vector2(0, -GameConfig.LAUNCH_SPEED)
+	var fine_items: Array[GemPiece] = [fine]
+	var coarse_items: Array[GemPiece] = [coarse]
+	for frame in range(120): fine_sim.step(fine_items, 1.0 / 120.0, fine_merger)
+	for frame in range(60): coarse_sim.step(coarse_items, 1.0 / 60.0, coarse_merger)
+	_assert(fine.position.distance_to(coarse.position) < 18.0, "Representative frame steps must keep launch movement predictably close")
+
+func _test_border_containment() -> void:
+	var simulation := SimulationType.new()
+	var merger := MergeType.new()
+	var piece := _piece(1, 1, Vector2(GameConfig.BOARD_LEFT + 40.0, GameConfig.BOARD_TOP + 40.0))
+	piece.velocity = Vector2(-900.0, -900.0)
+	var items: Array[GemPiece] = [piece]
+	for frame in range(180): simulation.step(items, 1.0 / 60.0, merger)
+	_assert(piece.position.x >= GameConfig.BOARD_LEFT + piece.radius and piece.position.x <= GameConfig.BOARD_RIGHT - piece.radius, "Side containment must remain valid during a wall shot")
+	_assert(piece.position.y >= GameConfig.BOARD_TOP + piece.radius and piece.position.y <= GameConfig.BOARD_BOTTOM - piece.radius, "Top/bottom containment must remain valid during a wall shot")
+
 func _test_launcher_spawn_lifecycle() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
@@ -160,8 +209,8 @@ func _test_score_and_chain_runtime_path() -> void:
 	chain_controller.launcher_state = chain_controller.LauncherState.RESOLVING
 	chain_controller.get_active_piece().is_active_launcher = false
 	chain_controller.active_piece_id = -1
-	chain_controller._process(0.0)
-	chain_controller._process(0.0)
+	chain_controller._process(GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.01)
+	chain_controller._process(0.01)
 	_assert(chain_controller.chain_multiplier == 1, "Next-shot readiness must reset the chain multiplier")
 
 func _test_win_stops_spawning() -> void:
@@ -193,6 +242,17 @@ func _test_danger_line_failure_rules() -> void:
 	active_controller._ready()
 	for frame in range(60): active_controller._process(1.0 / 60.0)
 	_assert(not active_controller.failed, "The active launcher must never trigger danger failure")
+
+func _test_chain_presentation_cadence() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var chain_events: Array[Dictionary] = [{"level": 2, "depth": 0}, {"level": 3, "depth": 1}]
+	controller._apply_confirmed_merge_events(chain_events)
+	_assert(controller.merge_presentations.size() == 2, "Two confirmed chain events must create two presentation records")
+	_assert(is_equal_approx(controller.merge_presentations[0].elapsed, 0.0), "The first chain visual must start immediately")
+	_assert(is_equal_approx(controller.merge_presentations[1].elapsed, -GameConfig.CHAIN_PRESENTATION_STAGGER), "Each later chain visual must use the approved display stagger")
+	for frame in range(24): controller._update_merge_presentations(1.0 / 60.0)
+	_assert(controller.merge_presentations.is_empty(), "A two-step chain presentation must complete within the approved pacing window")
 
 func _test_overlay_reset() -> void:
 	var controller = GameScene.instantiate()

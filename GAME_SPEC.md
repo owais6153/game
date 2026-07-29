@@ -57,3 +57,11 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - The danger line remains visual-only. It never blocks an active shot.
 - A non-active, settled board gem whose lower edge stays below the line for 0.75 seconds loses the level. Moving, merging, presentation-only, or active launcher pieces never accumulate danger time.
 - Win and fail overlays display the score and provide Replay/Retry. Either action fully resets the board, queue, launcher state, score, chain state, timers, flags, shot count, contacts, and presentations to one ready launcher on an empty table.
+
+## Gameplay balance v1
+
+- Feel tuning is centralized in `GameConfig`; the rules above remain unchanged.
+- Launch speed is 1100 px/s with 285 px/s² delta-based damping and a 9 px/s settle threshold. This keeps clear shots immediate while avoiding long post-impact drift.
+- Equal-mass collision restitution is 0.48; side/top/bottom border restitution is 0.20/0.14/0.10. Contact capture and merge eligibility are unchanged.
+- Merge logic resolves immediately and deterministically. Only its visual presentation is staggered by 0.07 s per chain depth; source pull/pulse use 0.10 s/0.20 s.
+- Once board resolution and presentation finish, the next launcher uses a 0.08 s readiness delay. It still spawns exactly once through the existing lifecycle state machine.

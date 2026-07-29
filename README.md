@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`gem-visual-refinement-v1`: the playable level loop now has a refined lightweight jewelry-table presentation, clearer gem facets and shadows, an improved visual-only merge pulse, and responsive portrait-safe HUD/overlay layout. The merge, collision, queue, danger, score, win, and reset rules are unchanged.
+`gameplay-balance-v1`: centralized mobile-feel tuning improves launch responsiveness, collision settling, chain readability, and next-shot rhythm. The merge, collision eligibility, queue cardinality, danger, score, win, and reset rules are unchanged.
 
 ## Commands
 

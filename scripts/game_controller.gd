@@ -16,6 +16,7 @@ var chain_multiplier := 1
 var danger_timers: Dictionary = {}
 var won := false
 var failed := false
+var ready_delay_elapsed := 0.0
 
 # A completed shot can pass through each state only once. This prevents the
 # settled-board condition from spawning a launcher again on every frame.
@@ -52,10 +53,10 @@ func _process(delta: float) -> void:
 			active_piece_id = -1
 		if launcher_state != LauncherState.READY_TO_AIM:
 			launcher_state = LauncherState.RESOLVING
-	_advance_launcher_lifecycle()
+	_advance_launcher_lifecycle(delta)
 	queue_redraw()
 
-func _advance_launcher_lifecycle() -> void:
+func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
 	match launcher_state:
 		LauncherState.SHOT_IN_FLIGHT:
 			if all_pieces_settled():
@@ -64,13 +65,19 @@ func _advance_launcher_lifecycle() -> void:
 					active.is_active_launcher = false
 					active_piece_id = -1
 				launcher_state = LauncherState.RESOLVING
+				ready_delay_elapsed = 0.0
 		LauncherState.RESOLVING:
 			if all_pieces_settled() and not merge_service.has_pending_candidates() and merge_presentations.is_empty():
-				launcher_state = LauncherState.SPAWNING_NEXT
+				ready_delay_elapsed += delta
+				if ready_delay_elapsed >= GameConfig.NEXT_LAUNCHER_READY_DELAY:
+					launcher_state = LauncherState.SPAWNING_NEXT
+			else:
+				ready_delay_elapsed = 0.0
 		LauncherState.SPAWNING_NEXT:
 			if all_pieces_settled() and spawn_active_piece():
 				launcher_state = LauncherState.READY_TO_AIM
 				chain_multiplier = 1
+				ready_delay_elapsed = 0.0
 
 func lifecycle_name() -> String:
 	return LauncherState.keys()[launcher_state]
@@ -95,7 +102,7 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 			restart()
 			return
 		var active := get_active_piece()
-		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and pointer.distance_to(active.position) <= active.radius * 1.8:
+		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and pointer.distance_to(active.position) <= active.radius * GameConfig.DRAG_HIT_RADIUS_MULTIPLIER:
 			dragging = true
 			move_active_to(pointer.x)
 	elif dragging:
@@ -153,6 +160,7 @@ func restart() -> void:
 	failed = false
 	dragging = false
 	launcher_state = LauncherState.SPAWNING_NEXT
+	ready_delay_elapsed = 0.0
 	_advance_launcher_lifecycle()
 
 func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
@@ -161,7 +169,8 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		var result_level: int = int(merge_event.level)
 		chain_multiplier = resolution_multiplier
 		score += GameConfig.merge_score_for_result_level(result_level) * chain_multiplier
-		merge_event.elapsed = 0.0
+		# Chain resolution remains immediate and deterministic; this only staggers its visuals.
+		merge_event.elapsed = -float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
 		merge_presentations.append(merge_event)
 		if result_level == GameConfig.TARGET_LEVEL and not won:
 			won = true

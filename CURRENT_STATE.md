@@ -1,11 +1,12 @@
 # Current State
 
-**Phase:** Visual refinement v1 delivered at source commit `14d5de194e60dedf23c29e8c401e8c8b47e761a6`, tagged `gem-visual-refinement-v1`. It adds rendering-only board, gem, HUD, overlay, and merge-presentation refinement. The same headless gameplay suite remains green; no phone was connected for device testing.
+**Phase:** Gameplay balance v1 is delivered from verified visual-refinement baseline `14d5de194e60dedf23c29e8c401e8c8b47e761a6` / `gem-visual-refinement-v1`. It centralizes delta-based launch, damping, settling, collision, border, presentation, chain-display, and next-launcher pacing values without changing gameplay rules. `gameplay-balance-v1` will identify the gameplay source commit in `BUILD_MANIFEST.md`; no phone was connected for device testing.
 
 ## Do Not Regress
 
 - Visual layout constants and `GemVisuals` must remain presentation-only; never pass their values into simulation, collision, merge eligibility, launcher lifecycle, danger timers, scoring, chains, or outcomes.
 - Preserve the fixed portrait gameplay coordinate system. Canvas-item stretching scales the visual design; it does not authorize changes to board bounds or input math.
+- Preserve the balance profile in `GameConfig`: all mobile-feel numbers are centralized and documented with approved ranges. Do not alter contact eligibility, merge resolution, scoring, chain logic, danger semantics, or launcher state transitions during tuning.
 
 **Phase:** Gemstone visual prototype delivered at source commit `561235ad45a6dbf50a3b8a018820656dae53cd53`, tagged `gem-visual-prototype-v1`; gameplay source remains the verified playable-loop behavior with presentation-only visual updates.
 

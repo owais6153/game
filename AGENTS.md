@@ -30,3 +30,5 @@ Before inspecting or editing project files, every future agent must read, in thi
 - For any level-loop work, test the controller path for confirmed-event score handling, overlay spawn blocking, danger-timer exemptions, and full reset in addition to the existing movement/merge/lifecycle suite.
 - Do not claim success without passing relevant tests and confirming a standalone APK exists.
 - Do not touch files outside `D:\Owais\game` without explicit approval.
+- Gameplay-feel work must change only centralized `GameConfig` tuning values unless the task explicitly authorizes a behavior change. Record before/after values, safe ranges, and test evidence in the task report.
+- For balancing milestones, preserve delta-based simulation and add coverage for timing, settling, containment, launcher pacing, and danger grace behavior.

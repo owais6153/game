@@ -6,7 +6,7 @@ func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) ->
 		if piece.consumed or not piece.is_moving():
 			continue
 		piece.position += piece.velocity * delta
-		piece.velocity = piece.velocity.move_toward(Vector2.ZERO, GameConfig.LINEAR_DAMPING * 120.0 * delta)
+		piece.velocity = piece.velocity.move_toward(Vector2.ZERO, GameConfig.VELOCITY_DAMPING_PER_SECOND * delta)
 		_resolve_bounds(piece)
 		if piece.velocity.length() < GameConfig.SLEEP_SPEED:
 			piece.velocity = Vector2.ZERO
@@ -22,16 +22,16 @@ func _resolve_bounds(piece: GemPiece) -> void:
 	var bottom := GameConfig.BOARD_BOTTOM - piece.radius
 	if piece.position.x < left:
 		piece.position.x = left
-		piece.velocity.x = abs(piece.velocity.x) * 0.23
+		piece.velocity.x = abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	elif piece.position.x > right:
 		piece.position.x = right
-		piece.velocity.x = -abs(piece.velocity.x) * 0.23
+		piece.velocity.x = -abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	if piece.position.y < top:
 		piece.position.y = top
-		piece.velocity.y = abs(piece.velocity.y) * 0.18
+		piece.velocity.y = abs(piece.velocity.y) * GameConfig.TOP_WALL_RESTITUTION
 	elif piece.position.y > bottom:
 		piece.position.y = bottom
-		piece.velocity.y = -abs(piece.velocity.y) * 0.12
+		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION
 
 func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeService) -> void:
 	var offset := second.position - first.position
@@ -51,6 +51,6 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 		_resolve_bounds(second)
 	var relative_speed := (second.velocity - first.velocity).dot(normal)
 	if relative_speed < 0.0:
-		var impulse := -relative_speed * 0.58
+		var impulse := -relative_speed * GameConfig.COLLISION_RESTITUTION
 		first.velocity -= normal * impulse
 		second.velocity += normal * impulse
