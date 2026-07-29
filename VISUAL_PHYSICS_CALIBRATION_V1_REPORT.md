@@ -55,4 +55,5 @@
 - Size: 72,539,231 bytes
 - Built: 2026-07-29 10:58:56 +05:00
 - Device status: no connected Android device was used; no install or launch is claimed.
-- Commit/tag provenance is added in the delivery documentation commit immediately after the feature commit.
+- Source commit: `8fdebd405c791eddf9188bd32e9f0de3b83cbd42` (`fix: align table perspective and visible gem collisions`)
+- Tag: `visual-physics-calibration-v1`

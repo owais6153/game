@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Visual-Physics Calibration v1
+
+- File: `visual-physics-calibration-v1.apk`
+- Path: `D:\Owais\game\build\android\visual-physics-calibration-v1.apk`
+- Size: 72,539,231 bytes
+- Modified: 2026-07-29 10:58:56 +05:00
+- Source commit: `8fdebd405c791eddf9188bd32e9f0de3b83cbd42` (`fix: align table perspective and visible gem collisions`)
+- Tag: `visual-physics-calibration-v1`
+- Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug APK was physically verified.
+- Device status: no connected device was used; no install or launch was attempted.
+
 ## Asset Integration — Background, Table, and Gems v1
 
 - File: `asset-integration-background-table-gems-v1.apk`
