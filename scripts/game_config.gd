@@ -13,8 +13,8 @@ const BOARD_TOP := 224.0
 const BOARD_BOTTOM := 1080.0
 ## Shallower top anchors match the calibrated runtime table derivative and the
 ## tropical camera better than the original aggressive trapezoid.
-const TABLE_INNER_LEFT_TOP := 90.0
-const TABLE_INNER_RIGHT_TOP := 630.0
+const TABLE_INNER_LEFT_TOP := 58.0
+const TABLE_INNER_RIGHT_TOP := 662.0
 const TABLE_INNER_LEFT_BOTTOM := 0.0
 const TABLE_INNER_RIGHT_BOTTOM := 720.0
 const DANGER_LINE_Y := 926.0
@@ -22,8 +22,13 @@ const LAUNCH_Y := 1008.0
 ## Largest gameplay radius. Individual values are calibrated to the visible
 ## main body of the alpha-trimmed runtime texture for each gem level.
 const PIECE_RADIUS := 42.0
+## These radii are calibrated to the opaque main body after runtime scaling.
+## Gold rims, glows, shadows and transparent texture padding never add collision size.
 const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0}
-const VISIBLE_CONTACT_TOLERANCE := 1.0
+## Runtime visual-body expansion maps the opaque gem body to the stable
+## simple collider; it is a visual calibration only.
+const GEM_VISUAL_BODY_SCALE := {1: 1.08, 2: 1.08, 3: 1.05, 4: 1.08, 5: 1.10}
+const VISIBLE_CONTACT_TOLERANCE := 2.0
 # Gameplay balance v1 — all feel values live here. Keep simulation delta-based.
 # The default/range notes are the approved safe tuning envelope for this prototype.
 const DRAG_HIT_RADIUS_MULTIPLIER := 1.8 # default 1.8; safe 1.5–2.0
@@ -36,8 +41,8 @@ const BOTTOM_WALL_RESTITUTION := 0.08 # approved parity range 0.06–0.12
 const COLLISION_RESTITUTION := 0.34 # equal-mass normal impulse; approved parity range 0.28–0.42
 const COLLISION_TANGENTIAL_FRICTION := 0.18 # contact-only rolling resistance; approved range 0.12–0.24
 const MAX_PIECE_SPEED := 1200.0 # containment guard; preserves natural launch/collision speed
-const CONTACT_EPSILON := 0.75
-const SEPARATION_EPSILON := 0.10 # smaller correction avoids visible collision snapping
+const CONTACT_EPSILON := 0.20
+const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 const MERGE_PRESENTATION_DURATION := 0.18 # shorter total presentation reduces dead time
 const MERGE_SOURCE_PULL_DURATION := 0.11 # source convergence remains visible but soft
 const MERGE_PULSE_SCALE := 1.18 # a compact bounce rather than an oversized pop
@@ -51,6 +56,8 @@ const SOUND_TOGGLE_RECT := Rect2(584.0, 94.0, 48.0, 28.0)
 const VIBRATION_TOGGLE_RECT := Rect2(638.0, 94.0, 48.0, 28.0)
 const OVERLAY_BUTTON_RECT := Rect2(220.0, 770.0, 280.0, 64.0)
 const OVERLAY_FADE_DURATION := 0.18
+const RESULT_BACKDROP_OPACITY := 0.48
+const WIN_PRESENTATION_HOLD := 0.32
 ## Rendering-only layout values. These never feed simulation or collision geometry.
 const HUD_RECT := Rect2(20.0, 20.0, 680.0, 142.0)
 const CURRENT_PREVIEW_RECT := Rect2(184.0, 28.0, 118.0, 52.0)

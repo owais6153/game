@@ -6,6 +6,8 @@ const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.g
 const HapticsServiceType = preload("res://scripts/haptics_service.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
+const ResultOverlayLayerType = preload("res://scripts/result_overlay_layer.gd")
+const SHALLOW_TABLE_SHADER: Shader = preload("res://assets/runtime/table/shallow_table.gdshader")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -20,11 +22,15 @@ var score := 0
 var chain_multiplier := 1
 var danger_timers: Dictionary = {}
 var won := false
+var win_qualified := false
+var win_presented := false
+var win_hold_elapsed := 0.0
 var failed := false
 var ready_delay_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
 var gem_sprite_layer: GemSpriteLayer
+var result_overlay
 ## Developer-only inspection aid. F8 toggles it in editor/desktop builds; it
 ## starts disabled and has no input or gameplay authority on Android.
 var debug_calibration_enabled := false
@@ -54,8 +60,15 @@ func _process(delta: float) -> void:
 	for marker in debug_contact_points:
 		marker.age = float(marker.get("age", 0.0)) + delta
 	debug_contact_points = debug_contact_points.filter(func(marker: Dictionary) -> bool: return float(marker.get("age", 0.0)) < 0.45)
-	if won or failed:
+	if failed:
 		_update_merge_presentations(delta)
+		gem_sprite_layer.sync_gems(pieces)
+		queue_redraw()
+		return
+	if win_qualified:
+		_update_merge_presentations(delta)
+		gem_sprite_layer.sync_gems(pieces)
+		_update_win_presentation(delta)
 		queue_redraw()
 		return
 	simulation.step(pieces, delta, merge_service)
@@ -66,7 +79,8 @@ func _process(delta: float) -> void:
 	_apply_confirmed_merge_events(result.presentation_events)
 	_update_merge_presentations(delta)
 	_update_danger_timers(delta)
-	if won or failed:
+	if win_qualified or failed:
+		gem_sprite_layer.sync_gems(pieces)
 		queue_redraw()
 		return
 	if result.merge_count > 0:
@@ -138,7 +152,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		move_active_to(event.position.x)
 
 func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
-	if won or failed:
+	if win_presented or failed:
 		if pressed and GameConfig.OVERLAY_BUTTON_RECT.has_point(pointer):
 			restart()
 		return
@@ -214,6 +228,9 @@ func restart() -> void:
 	chain_multiplier = 1
 	danger_timers.clear()
 	won = false
+	win_qualified = false
+	win_presented = false
+	win_hold_elapsed = 0.0
 	failed = false
 	dragging = false
 	launcher_state = LauncherState.SPAWNING_NEXT
@@ -221,6 +238,8 @@ func restart() -> void:
 	_advance_launcher_lifecycle()
 	if gem_sprite_layer != null:
 		gem_sprite_layer.sync_gems(pieces)
+	if result_overlay != null:
+		result_overlay.dismiss()
 
 func _setup_asset_presentation() -> void:
 	var background := Sprite2D.new()
@@ -232,11 +251,19 @@ func _setup_asset_presentation() -> void:
 	var table := Sprite2D.new()
 	table.texture = AssetCatalogType.CORAL_TABLE
 	table.position = GameConfig.TABLE_TEXTURE_CENTER
+	var table_material := ShaderMaterial.new()
+	table_material.shader = SHALLOW_TABLE_SHADER
+	table.material = table_material
 	table.z_index = -10
 	add_child(table)
 	gem_sprite_layer = GemSpriteLayerType.new()
 	gem_sprite_layer.z_index = 10
 	add_child(gem_sprite_layer)
+	var overlay_canvas := CanvasLayer.new()
+	overlay_canvas.layer = 10
+	add_child(overlay_canvas)
+	result_overlay = ResultOverlayLayerType.new()
+	overlay_canvas.add_child(result_overlay)
 
 func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 	var resolution_multiplier := 1
@@ -252,12 +279,13 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if int(merge_event.get("depth", 0)) > 0:
 			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
-		if result_level == GameConfig.TARGET_LEVEL and not won:
+		if result_level == GameConfig.TARGET_LEVEL and not win_qualified:
 			won = true
+			win_qualified = true
+			win_presented = false
+			win_hold_elapsed = 0.0
 			active_piece_id = -1
 			launcher_state = LauncherState.RESOLVING
-			audio_feedback.emit_event("win")
-			haptics_feedback.emit_event("win")
 		resolution_multiplier += 1
 
 func _update_danger_timers(delta: float) -> void:
@@ -275,6 +303,7 @@ func _update_danger_timers(delta: float) -> void:
 				launcher_state = LauncherState.RESOLVING
 				audio_feedback.emit_event("fail")
 				haptics_feedback.emit_event("fail")
+				result_overlay.present(false, score)
 				return
 		else:
 			danger_timers.erase(piece.id)
@@ -286,6 +315,18 @@ func _update_merge_presentations(delta: float) -> void:
 	for presentation in merge_presentations:
 		presentation.elapsed += delta
 	merge_presentations = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed < GameConfig.MERGE_PRESENTATION_DURATION)
+
+func _update_win_presentation(delta: float) -> void:
+	# The Diamond must have been synchronized and its merge pulse completed
+	# before the dedicated UI layer can present victory.
+	if win_presented or not merge_presentations.is_empty():
+		return
+	win_hold_elapsed += delta
+	if win_hold_elapsed >= GameConfig.WIN_PRESENTATION_HOLD:
+		win_presented = true
+		result_overlay.present(true, score)
+		audio_feedback.emit_event("win")
+		haptics_feedback.emit_event("win")
 
 func _route_collision_feedback() -> void:
 	for impact in simulation.consume_collision_impacts():
@@ -309,8 +350,6 @@ func _draw() -> void:
 	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
 	for presentation in merge_presentations:
 		_draw_merge_presentation(presentation)
-	if won or failed:
-		_draw_result_overlay(font)
 	if debug_calibration_enabled:
 		_draw_calibration_debug(font)
 
@@ -342,18 +381,6 @@ func _draw_crystal_atmosphere() -> void:
 		draw_colored_polygon(points, Color("8bc7c2", 0.28))
 		draw_polyline(points + PackedVector2Array([points[0]]), Color("e8ca7d", 0.42), 1.0)
 	draw_rect(Rect2(0.0, 174.0, 720.0, 4.0), Color("d8b86a", 0.22), true)
-
-func _draw_result_overlay(font: Font) -> void:
-	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color(0.02, 0.02, 0.05, 0.48), true)
-	draw_rect(GameConfig.OVERLAY_RECT, Color("1b1427", 0.97), true)
-	draw_rect(GameConfig.OVERLAY_RECT, Color("f1cd78"), false, 3.0)
-	var title := "You created a Diamond!" if won else "Table overflowed"
-	var button := "Replay" if won else "Retry"
-	draw_string(font, Vector2(132.0, 548.0), title, HORIZONTAL_ALIGNMENT_CENTER, 456.0, 33, Color.WHITE)
-	draw_string(font, Vector2(132.0, 612.0), "Score: %d" % score, HORIZONTAL_ALIGNMENT_CENTER, 456.0, 26, Color("fff0bb"))
-	draw_rect(GameConfig.OVERLAY_BUTTON_RECT, Color("5a3f68"), true)
-	draw_rect(GameConfig.OVERLAY_BUTTON_RECT, Color("d8b46d"), false, 2.0)
-	draw_string(font, Vector2(220.0, 811.0), button, HORIZONTAL_ALIGNMENT_CENTER, 280.0, 24, Color.WHITE)
 
 func _draw_merge_presentation(presentation: Dictionary) -> void:
 	var t: float = clampf(presentation.elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)

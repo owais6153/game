@@ -1,5 +1,12 @@
 # Build Manifest
 
+## Visual Sequencing + Contact v2 — export blocked
+
+- Requested file: `build/android/visual-sequencing-contact-v2.apk`
+- Source state: pending commit `fix: delay win presentation and align visible contacts`.
+- Validation: Godot 4.6.3 import/parse validation and `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`).
+- Export status: blocked. Godot's Android exporter rejected every tested valid output form (absolute Windows path, absolute slash path, project-relative path, and preset path) with `Invalid filename! Android APK requires the *.apk extension.` before compiling. No replacement or old APK was copied, and no device testing is claimed.
+
 ## Visual-Physics Calibration v1
 
 - File: `visual-physics-calibration-v1.apk`

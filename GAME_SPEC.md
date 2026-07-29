@@ -55,6 +55,13 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Presentation draws source ghosts pulling inward for 0.12 s, then a 0.22 s upgraded-gem pulse, glow, and ring. It never affects physics or collision.
 - The next launcher waits for both board settlement and presentation completion.
 
+## Visual sequencing and contact v2
+
+- A Diamond merge now follows `diamond_created -> win_qualified -> merge_visual_complete -> win_overlay_presented`. Qualification blocks launcher creation immediately, while the Diamond texture is synchronized, pulses, and remains visible before victory UI appears after a 0.32-second hold.
+- Result UI is an independent `CanvasLayer`; its configurable backdrop does not modulate, recolor, replace, or reparent gameplay gems.
+- The table uses a non-destructive runtime shader that widens upper rows for a shallower, near-parallel rail presentation. Physical rails use the same corrected top anchors (`58..662`) and bottom anchors (`0..720`).
+- Collision uses stable per-level circles with a 0.20-design-pixel contact epsilon and 0.02 separation epsilon. Runtime gem rendering expands only the opaque main bodies (Pearl/Ruby/Sapphire 1.08, Emerald 1.05, Diamond 1.10); glow, shadows, and padding do not define physics.
+
 ## Gemstone visual prototype
 
 - Gameplay pieces retain their existing circular collision radius; only their rendering changes.

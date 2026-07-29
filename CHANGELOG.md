@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Delayed victory presentation until the spawned Diamond has synchronized and completed its merge pulse; qualification still blocks any launcher/spawn immediately.
+- Moved results to a dedicated CanvasLayer backdrop so win/fail UI no longer changes gem textures or modulation.
+- Applied a shallower runtime-only table perspective and narrowed physical contact tolerance while retaining contact-only merge rules.
+
 - Calibrated the tropical table presentation and gem visible-contact physics: a shallower derived table now shares the authoritative rail model, runtime gem bodies are alpha-trimmed, and per-level simple colliders match their visible main bodies.
 - Reduced contact tolerance from 1.5 px to 0.75 px; collision telemetry now carries the confirmed gem or rail contact point used for audio feedback and developer-only diagnostics.
 - Added F8 calibration debug rendering (off by default) for physical rails, gem colliders, and recent confirmed contact points.

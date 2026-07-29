@@ -23,6 +23,7 @@ func _init() -> void:
 	_test_launcher_spawn_lifecycle()
 	_test_score_and_chain_runtime_path()
 	_test_win_stops_spawning()
+	_test_win_visual_sequence_and_overlay_isolation()
 	_test_danger_line_failure_rules()
 	_test_chain_presentation_cadence()
 	_test_overlay_reset()
@@ -232,9 +233,28 @@ func _test_win_stops_spawning() -> void:
 	controller.pieces.append(_piece(301, 4, Vector2(360, 500)))
 	controller._process(0.0)
 	_assert(controller.won, "Creating Diamond must trigger win exactly once")
+	_assert(controller.win_qualified and not controller.win_presented, "Diamond must qualify the win before its overlay is presented")
 	var count: int = controller.pieces.size()
 	for frame in range(120): controller._process(1.0 / 60.0)
 	_assert(controller.pieces.size() == count, "No launcher may spawn after win")
+
+func _test_win_visual_sequence_and_overlay_isolation() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	controller.pieces.append(_piece(310, 4, Vector2(300, 500)))
+	controller.pieces.append(_piece(311, 4, Vector2(360, 500)))
+	controller._process(0.0)
+	_assert(controller.pieces.any(func(piece: GemPiece): return piece.level == 5), "Diamond must exist in simulation immediately after its confirmed merge")
+	_assert(not controller.win_presented, "Win overlay must wait for Diamond merge presentation")
+	controller.gem_sprite_layer.sync_gems(controller.pieces)
+	var diamond_id := -1
+	for piece in controller.pieces:
+		if piece.level == 5: diamond_id = piece.id
+	var diamond_sprite: Sprite2D = controller.gem_sprite_layer._sprites.get(diamond_id)
+	_assert(diamond_sprite != null and diamond_sprite.texture == AssetCatalogType.DIAMOND_CLEAN and diamond_sprite.modulate == Color.WHITE, "Diamond visual must be synchronized unchanged before result UI")
+	for frame in range(40): controller._process(1.0 / 60.0)
+	_assert(controller.win_presented and controller.result_overlay.visible_result, "Win overlay must present only after merge animation plus celebration hold")
+	_assert(diamond_sprite.texture == AssetCatalogType.DIAMOND_CLEAN and diamond_sprite.modulate == Color.WHITE, "Result backdrop must not change Diamond texture or modulation")
 
 func _test_danger_line_failure_rules() -> void:
 	var controller = GameScene.instantiate()
@@ -363,6 +383,7 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	controller.haptics_feedback.clear_trace()
 	var win_events: Array[Dictionary] = [{"level": 5, "depth": 0}, {"level": 5, "depth": 0}]
 	controller._apply_confirmed_merge_events(win_events)
+	for frame in range(40): controller._process(1.0 / 60.0)
 	_assert(_event_count(controller.audio_feedback.emitted_events, "win") == 1 and _event_count(controller.haptics_feedback.emitted_events, "win") == 1, "Win feedback must fire exactly once")
 	var fail_controller = GameScene.instantiate()
 	fail_controller._ready()

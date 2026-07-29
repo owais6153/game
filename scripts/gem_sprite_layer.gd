@@ -26,8 +26,11 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		# The runtime images are alpha-trimmed to their main bodies. Independent
 		# axis scales map that visible box to this piece's calibrated simple body,
 		# preventing a fixed full-texture rectangle from creating invisible gaps.
-		var collider_diameter := piece.radius * 2.0
-		sprite.scale = Vector2(collider_diameter / texture.get_size().x, collider_diameter / texture.get_size().y)
+		var visual_diameter := piece.radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(piece.level, 1.0))
+		sprite.scale = Vector2(visual_diameter / texture.get_size().x, visual_diameter / texture.get_size().y)
+		# Overlay state must never replace or dim a live gem texture. This layer
+		# owns the exact texture/modulate values for every sync.
+		sprite.modulate = Color.WHITE
 		# Emerald and Diamond retain simple stable circular bodies; their artwork
 		# remains presentation-only and never defines merge eligibility.
 		sprite.visible = true

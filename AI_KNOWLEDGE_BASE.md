@@ -198,3 +198,8 @@ The active reference comparison files are intentionally local and ignored by Git
 | Normal / tangential collision | 0.34 / 0.18 | 0.28–0.42 / 0.12–0.24 | Tangential resistance is symmetric; never use it for merge decisions. |
 | Merge momentum | 35%, max 260 px/s | 25–45%, 200–300 px/s | Applied after a valid merge only. |
 | Presentation / ready delay | 0.18 s / 0.04 s | 0.16–0.22 / 0.03–0.06 | Launcher still waits for full settlement and presentation completion. |
+# Visual sequencing contact milestone
+
+For Diamond wins, never present the overlay directly from confirmed merge handling. Set `win_qualified`, synchronize the spawned Diamond, wait until `merge_presentations` finishes plus `WIN_PRESENTATION_HOLD`, then set `win_presented`. Result overlays must use `ResultOverlayLayer` and must never modulate `GameController`, `GemSpriteLayer`, or individual gem sprites.
+
+Visible contact is calibrated through `GEM_COLLISION_RADIUS`, `GEM_VISUAL_BODY_SCALE`, `CONTACT_EPSILON`, and `SEPARATION_EPSILON` in `GameConfig`. Do not change one without updating the focused contact tests and report.

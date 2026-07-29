@@ -17,3 +17,5 @@ android/.gradle/
 .vscode/
 .idea/
 *.tmp
+WhatsApp Video*.mp4
+WhatsApp Image*.jpeg
