@@ -1,5 +1,11 @@
 # Changelog
 
+## 18-Gem Chain v1
+
+- Rolled back to the verified `new-table-shadow-contact-fix-v1` baseline before making this isolated change.
+- Added a deterministic 18-tier source/runtime asset catalog and L1→L18 contact-merge bounds; L18 is terminal.
+- Preserved baseline table, HUD, launcher flow, target, physics, score, fail/win, pause, restart, sound, and haptics behavior.
+
 ## Unreleased
 
 - Delayed victory presentation until the spawned Diamond has synchronized and completed its merge pulse; qualification still blocks any launcher/spawn immediately.

@@ -1,0 +1,367 @@
+{
+	"alpha_threshold": 20,
+	"entries": [
+		{
+			"alpha_bounds": [
+				199,
+				181,
+				622,
+				626
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_01.png",
+			"runtime_size": [
+				626,
+				630
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_08 PM (1).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 1
+		},
+		{
+			"alpha_bounds": [
+				235,
+				144,
+				556,
+				717
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_02.png",
+			"runtime_size": [
+				560,
+				721
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_08 PM (2).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 2
+		},
+		{
+			"alpha_bounds": [
+				199,
+				185,
+				628,
+				627
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_03.png",
+			"runtime_size": [
+				632,
+				631
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_09 PM (3).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 3
+		},
+		{
+			"alpha_bounds": [
+				228,
+				216,
+				567,
+				562
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_04.png",
+			"runtime_size": [
+				571,
+				566
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_10 PM (4).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 4
+		},
+		{
+			"alpha_bounds": [
+				264,
+				167,
+				495,
+				659
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_05.png",
+			"runtime_size": [
+				499,
+				663
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_10 PM (5).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 5
+		},
+		{
+			"alpha_bounds": [
+				230,
+				183,
+				564,
+				631
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_06.png",
+			"runtime_size": [
+				568,
+				635
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_11 PM (6).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 6
+		},
+		{
+			"alpha_bounds": [
+				155,
+				179,
+				713,
+				613
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_07.png",
+			"runtime_size": [
+				717,
+				617
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_13 PM (8).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 7
+		},
+		{
+			"alpha_bounds": [
+				243,
+				150,
+				538,
+				700
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_08.png",
+			"runtime_size": [
+				542,
+				704
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_14 PM (10).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 8
+		},
+		{
+			"alpha_bounds": [
+				274,
+				317,
+				482,
+				862
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_09.png",
+			"runtime_size": [
+				486,
+				866
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_14 PM (9).png",
+			"source_size": [
+				1024,
+				1536
+			],
+			"tier": 9
+		},
+		{
+			"alpha_bounds": [
+				202,
+				176,
+				619,
+				666
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_10.png",
+			"runtime_size": [
+				623,
+				670
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_17 PM (2).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 10
+		},
+		{
+			"alpha_bounds": [
+				262,
+				152,
+				500,
+				702
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_11.png",
+			"runtime_size": [
+				504,
+				706
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_17 PM (3).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 11
+		},
+		{
+			"alpha_bounds": [
+				182,
+				153,
+				659,
+				648
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_12.png",
+			"runtime_size": [
+				663,
+				652
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_19 PM (4).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 12
+		},
+		{
+			"alpha_bounds": [
+				143,
+				229,
+				738,
+				557
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_13.png",
+			"runtime_size": [
+				742,
+				561
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_20 PM (5).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 13
+		},
+		{
+			"alpha_bounds": [
+				184,
+				190,
+				655,
+				729
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_14.png",
+			"runtime_size": [
+				659,
+				733
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_20 PM (6).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 14
+		},
+		{
+			"alpha_bounds": [
+				185,
+				169,
+				653,
+				640
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_15.png",
+			"runtime_size": [
+				657,
+				644
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_20 PM (7).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 15
+		},
+		{
+			"alpha_bounds": [
+				184,
+				165,
+				656,
+				676
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_16.png",
+			"runtime_size": [
+				660,
+				680
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_21 PM (10).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 16
+		},
+		{
+			"alpha_bounds": [
+				169,
+				197,
+				686,
+				645
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_17.png",
+			"runtime_size": [
+				690,
+				649
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_21 PM (8).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 17
+		},
+		{
+			"alpha_bounds": [
+				195,
+				158,
+				614,
+				651
+			],
+			"processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only.",
+			"runtime": "res://assets/runtime/gems18/tier_18.png",
+			"runtime_size": [
+				618,
+				655
+			],
+			"source": "res://assets/gems/ChatGPT Image Jul 29, 2026, 11_04_21 PM (9).png",
+			"source_size": [
+				1024,
+				1024
+			],
+			"tier": 18
+		}
+	],
+	"padding": 2,
+	"version": 1
+}

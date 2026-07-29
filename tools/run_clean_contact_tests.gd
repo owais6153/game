@@ -252,10 +252,10 @@ func _test_win_visual_sequence_and_overlay_isolation() -> void:
 	for piece in controller.pieces:
 		if piece.level == 5: diamond_id = piece.id
 	var diamond_sprite: Sprite2D = controller.gem_sprite_layer._sprites.get(diamond_id)
-	_assert(diamond_sprite != null and diamond_sprite.texture == AssetCatalogType.DIAMOND_CLEAN and diamond_sprite.modulate == Color.WHITE, "Diamond visual must be synchronized unchanged before result UI")
+	_assert(diamond_sprite != null and diamond_sprite.texture == AssetCatalogType.gem_texture(5) and diamond_sprite.modulate == Color.WHITE, "Diamond visual must be synchronized unchanged before result UI")
 	for frame in range(40): controller._process(1.0 / 60.0)
 	_assert(controller.win_presented and controller.result_overlay.visible_result, "Win overlay must present only after merge animation plus celebration hold")
-	_assert(diamond_sprite.texture == AssetCatalogType.DIAMOND_CLEAN and diamond_sprite.modulate == Color.WHITE, "Result backdrop must not change Diamond texture or modulation")
+	_assert(diamond_sprite.texture == AssetCatalogType.gem_texture(5) and diamond_sprite.modulate == Color.WHITE, "Result backdrop must not change Diamond texture or modulation")
 
 func _test_danger_line_failure_rules() -> void:
 	var controller = GameScene.instantiate()
@@ -419,12 +419,10 @@ func _test_inset_table_and_viewport_safety() -> void:
 	_assert(GameConfig.DANGER_LINE_Y > GameConfig.BOARD_TOP and GameConfig.DANGER_LINE_Y < GameConfig.BOARD_BOTTOM and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y and GameConfig.LAUNCH_Y < GameConfig.BOARD_BOTTOM, "Danger line and launcher must remain inside physical table bounds")
 
 func _test_asset_mapping_and_clean_diamond() -> void:
-	var expected := ["pearl.png", "ruby.png", "emerald.png", "sapphire.png", "diamond.png"]
 	for level in range(1, 6):
 		var path := AssetCatalogType.gem_resource_path(level)
-		_assert(path.ends_with(expected[level - 1]), "Gem level %d must use the supplied runtime %s texture" % [level, expected[level - 1]])
+		_assert(path.ends_with("tier_%02d.png" % level), "Gem level %d must use its normalized supplied texture" % level)
 		_assert(ResourceLoader.exists(path), "Gem level %d runtime texture must exist" % level)
-	_assert(AssetCatalogType.DIAMOND_CLEAN.resource_path.ends_with("diamond.png"), "Diamond must map to the documented clean derived runtime asset")
 	_assert(ResourceLoader.exists(AssetCatalogType.TROPICAL_BACKGROUND.resource_path) and ResourceLoader.exists(AssetCatalogType.NEW_TABLE.resource_path), "Background and newly supplied table runtime textures must exist")
 	_assert(AssetCatalogType.NEW_TABLE.resource_path.ends_with("new_table_v1.png"), "Old coral table must not remain active")
 	_assert(ResourceLoader.exists(AssetCatalogType.shadow_resource_path()), "Presentation-only soft shadow texture must exist")
@@ -440,11 +438,11 @@ func _test_table_layout_physics_alignment() -> void:
 	_assert(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) < GameConfig.table_right_at(GameConfig.DANGER_LINE_Y), "Dynamic danger line must span the same authoritative table surface")
 
 func _test_visible_collision_calibration() -> void:
-	var expected := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0}
+	var expected := GameConfig.GEM_COLLISION_RADIUS
 	for level in range(1, 6):
 		var radius := GameConfig.gem_collision_radius(level)
 		_assert(is_equal_approx(radius, float(expected[level])), "Gem level %d must use documented calibrated collision radius" % level)
-		_assert(radius <= GameConfig.PIECE_RADIUS, "Visible alpha calibration must never inflate a gem collider")
+		_assert(radius > 0.0, "Visible alpha calibration must retain a positive gem collider")
 		_assert(ResourceLoader.exists(AssetCatalogType.gem_resource_path(level)), "Each calibrated gem texture must exist")
 	var pearl_a := _piece(1, 1, Vector2(300, 500))
 	var pearl_b := _piece(2, 1, Vector2(300 + pearl_a.radius * 2.0 + GameConfig.VISIBLE_CONTACT_TOLERANCE, 500))

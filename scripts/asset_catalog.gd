@@ -12,7 +12,12 @@ const DIAMOND_CLEAN: Texture2D = preload("res://assets/runtime/gems_body_v2/diam
 const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_soft_shadow.png")
 
 static func gem_texture(level: int) -> Texture2D:
-
+	if level >= 1 and level <= GameConfig.MAX_GEM_LEVEL:
+		var texture := load("res://assets/runtime/gems18/tier_%02d.png" % level) as Texture2D
+		if texture != null:
+			return texture
+	# The fallback preserves the restored baseline if a developer opens the
+	# project before Godot has imported a newly added runtime derivative.
 	match level:
 		1: return PEARL
 		2: return RUBY

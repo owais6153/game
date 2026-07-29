@@ -1,5 +1,7 @@
 # Current State
 
+**Phase:** 18-Gem Chain v1. Source is restored from `new-table-shadow-contact-fix-v1` (`0b562d5`) with only the catalog/terminal merge bound extended. The original 18 files are in `assets/gems/`, their backup is `D:\Owais\game-18-gem-source-backup\`, and runtime copies are `assets/runtime/gems18/`. See `18_GEM_CHAIN_V1_REPORT.md`. No level, multi-target, perspective, table, HUD, or launcher redesign is present.
+
 **In progress:** Visual Sequencing + Perspective + Contact Calibration v2. The baseline is clean commit `8fdebd4` / tag `visual-physics-calibration-v1`. This milestone separates `win_qualified` from `win_presented`, moves result UI into `ResultOverlayLayer`, adjusts upper table anchors to `58..662`, and calibrates the visual gem body independently from stable simple colliders. It is awaiting its final APK export, manifest record, commit, and tag.
 
 **In progress:** New Table + Shadow-Separation Contact Fix v1 from clean commit `e6ddc99` / tag `visual-sequencing-contact-v2`. The active table is the latest supplied table; live gems use body-only textures plus separate soft shadows. The gameplay simulation and contact-only merge rules are unchanged. Headless validation passes; Android export and provenance are pending.

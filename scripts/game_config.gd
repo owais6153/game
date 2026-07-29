@@ -29,14 +29,16 @@ const LAUNCH_Y := 1028.0
 const PIECE_RADIUS := 42.0
 ## These radii are calibrated to the opaque main body after runtime scaling.
 ## Gold rims, glows, shadows and transparent texture padding never add collision size.
-const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0}
+## Per-tier body colliders are fixed in board coordinates. They are calibrated
+## from the trimmed visible source bodies; the separate shadow never contributes.
+const GEM_COLLISION_RADIUS := {1: 34.0, 2: 35.0, 3: 36.0, 4: 37.0, 5: 38.0, 6: 40.0, 7: 42.0, 8: 44.0, 9: 45.0, 10: 46.0, 11: 47.0, 12: 48.0, 13: 49.0, 14: 50.0, 15: 51.0, 16: 52.0, 17: 53.0, 18: 54.0}
 ## Runtime visual-body expansion maps the opaque gem body to the stable
 ## simple collider; it is a visual calibration only.
 ## Body-only textures are trimmed independently from their former baked
 ## shadows/glows. Their scale maps visible body edges directly to colliders.
-const GEM_VISUAL_BODY_SCALE := {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0}
-const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 18.0), 4: Vector2(5.0, 23.0), 5: Vector2(4.0, 19.0)}
-const GEM_SHADOW_OPACITY := {1: 0.42, 2: 0.40, 3: 0.38, 4: 0.40, 5: 0.34}
+const GEM_VISUAL_BODY_SCALE := {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0, 13: 1.0, 14: 1.0, 15: 1.0, 16: 1.0, 17: 1.0, 18: 1.0}
+const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 18.0), 4: Vector2(5.0, 23.0), 5: Vector2(4.0, 19.0), 6: Vector2(5.0, 22.0), 7: Vector2(5.0, 22.0), 8: Vector2(5.0, 23.0), 9: Vector2(5.0, 24.0), 10: Vector2(5.0, 24.0), 11: Vector2(5.0, 24.0), 12: Vector2(5.0, 25.0), 13: Vector2(5.0, 25.0), 14: Vector2(5.0, 25.0), 15: Vector2(5.0, 26.0), 16: Vector2(5.0, 26.0), 17: Vector2(5.0, 26.0), 18: Vector2(5.0, 27.0)}
+const GEM_SHADOW_OPACITY := {1: 0.42, 2: 0.40, 3: 0.38, 4: 0.40, 5: 0.34, 6: 0.36, 7: 0.36, 8: 0.36, 9: 0.36, 10: 0.36, 11: 0.36, 12: 0.36, 13: 0.36, 14: 0.36, 15: 0.36, 16: 0.36, 17: 0.36, 18: 0.36}
 const GEM_SHADOW_WIDTH_MULTIPLIER := 0.96
 const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.43
 const VISIBLE_CONTACT_TOLERANCE := 2.0
@@ -79,6 +81,9 @@ const PROGRESSION_Y := 54.0
 const OVERLAY_RECT := Rect2(76.0, 398.0, 568.0, 484.0)
 const SAFE_VISUAL_MARGIN := 24.0
 const TARGET_LEVEL := 5
+## Catalog-only extension. The baseline launcher, target, queue and HUD remain
+## unchanged; this bounds merge eligibility for manually created higher tiers.
+const MAX_GEM_LEVEL := 18
 const DANGER_GRACE_DURATION := 0.75 # default 0.75 s; safe 0.65–0.90
 const MERGE_SCORE_BY_RESULT_LEVEL := {
 	2: 10,
@@ -123,13 +128,8 @@ static func merge_score_for_result_level(level: int) -> int:
 	return int(MERGE_SCORE_BY_RESULT_LEVEL.get(level, 0))
 
 static func gem_name(level: int) -> String:
-	match level:
-		1: return "Pearl"
-		2: return "Ruby"
-		3: return "Emerald"
-		4: return "Sapphire"
-		5: return "Diamond"
-		_: return "Unknown"
+	const NAMES := ["Pearl", "Ruby", "Emerald", "Sapphire", "Diamond", "Amethyst", "Topaz", "Opal", "Garnet", "Aquamarine", "Citrine", "Tourmaline", "Peridot", "Tanzanite", "Spinel", "Moonstone", "Alexandrite", "Black Diamond"]
+	return NAMES[level - 1] if level >= 1 and level <= NAMES.size() else "Unknown"
 
 static func gem_collision_radius(level: int) -> float:
 	return float(GEM_COLLISION_RADIUS.get(level, PIECE_RADIUS))

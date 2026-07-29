@@ -48,7 +48,7 @@ func _resolve_cycle(pieces: Array[GemPiece], candidates: Array[ContactPair], nex
 		var first: GemPiece = by_id.get(candidate.first_id)
 		var second: GemPiece = by_id.get(candidate.second_id)
 		if first == null or second == null or consumed.has(first.id) or consumed.has(second.id): continue
-		if first.level != second.level or first.level >= 5: continue
+		if first.level != second.level or first.level >= GameConfig.MAX_GEM_LEVEL: continue
 		if first.position.distance_to(second.position) > first.radius + second.radius + GameConfig.CONTACT_EPSILON: continue
 		consumed[first.id] = true; consumed[second.id] = true
 		remove_ids[first.id] = true; remove_ids[second.id] = true
