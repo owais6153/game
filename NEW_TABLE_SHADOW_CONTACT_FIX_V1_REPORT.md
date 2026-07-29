@@ -51,4 +51,9 @@ Clean bodies use a 1.0 body-to-collider render scale. The previous `0.20 px` con
 
 ## Delivery
 
-APK export, source commit/tag, final size/timestamp, and device status are recorded after the export gate in `BUILD_MANIFEST.md`.
+- APK: `D:\Owais\game\build\android\new-table-shadow-contact-fix-v1.apk`
+- Size: 76,113,263 bytes
+- Built: 2026-07-29 13:05:58 +05:00
+- SHA-256: `713E25E53E10B36AFA88BB83C1CB3183A11CFA120B6493A1AEE57F29E2B41E19`
+- Source commit/tag: `0b562d5b85b0b4d0330ecd10da3f832408949ad9` / `new-table-shadow-contact-fix-v1`
+- Device status: `adb devices -l` found no attached device; no install or launch is claimed.

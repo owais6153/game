@@ -1,5 +1,17 @@
 # Build Manifest
 
+## New Table Shadow Contact Fix v1
+
+- File: `new-table-shadow-contact-fix-v1.apk`
+- Path: `D:\Owais\game\build\android\new-table-shadow-contact-fix-v1.apk`
+- Size: 76,113,263 bytes
+- Modified: 2026-07-29 13:05:58 +05:00
+- SHA-256: `713E25E53E10B36AFA88BB83C1CB3183A11CFA120B6493A1AEE57F29E2B41E19`
+- Source commit: `0b562d5b85b0b4d0330ecd10da3f832408949ad9` (`fix: use new table and separate gem shadows from collision`)
+- Tag: `new-table-shadow-contact-fix-v1`
+- Validation: Godot 4.6.3 headless editor parse/import validation and `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and Godot verified the signed APK.
+- Device status: no device was listed by `adb devices -l`; the APK was not installed or launched on a phone.
+
 ## Visual Sequencing + Contact v2 — export blocked
 
 - Requested file: `build/android/visual-sequencing-contact-v2.apk`
