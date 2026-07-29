@@ -254,17 +254,22 @@ func _update_merge_presentations(delta: float) -> void:
 
 func _route_collision_feedback() -> void:
 	for impact in simulation.consume_collision_impacts():
-		if impact >= GameConfig.COLLISION_SOUND_THRESHOLD:
-			audio_feedback.emit_event("collision", clampf(impact / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
+		var kind := String(impact.get("kind", "gem"))
+		var strength := float(impact.get("strength", 0.0))
+		if kind == "wall":
+			if strength >= GameConfig.WALL_CONTACT_SOUND_THRESHOLD:
+				audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75))
+		elif strength >= GameConfig.GEM_CONTACT_SOUND_THRESHOLD:
+			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("0d101b"))
+	_draw_crystal_atmosphere()
 	# All geometry below is presentation-only; BoardSimulation keeps the same bounds.
-	draw_rect(Rect2(0.0, 0.0, 720.0, 138.0), Color("151728"), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT - 12.0, GameConfig.BOARD_TOP - 12.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 24.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 24.0), Color("4f381e"), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT - 8.0, GameConfig.BOARD_TOP - 8.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 16.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 16.0), Color("b28b42"), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT - 18.0, GameConfig.BOARD_TOP - 18.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 36.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 36.0), Color("0a1622", 0.72), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT - 13.0, GameConfig.BOARD_TOP - 13.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 26.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 26.0), Color("3d2d31"), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT - 8.0, GameConfig.BOARD_TOP - 8.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 16.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 16.0), Color("c79b51"), true)
 	draw_rect(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP), Color("163b38"), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT + 15.0, GameConfig.BOARD_TOP + 15.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT - 30.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP - 30.0), Color("31624e"), false, 2.0)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT + 15.0, GameConfig.BOARD_TOP + 15.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT - 30.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP - 30.0), Color("6cae83", 0.52), false, 2.0)
 	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Color("f6d77e"), 5.0)
 	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
 	draw_line(Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
@@ -280,6 +285,19 @@ func _draw() -> void:
 		GemVisualsType.draw_gem(self, piece.level, piece.position, piece.radius)
 	if won or failed:
 		_draw_result_overlay(font)
+
+func _draw_crystal_atmosphere() -> void:
+	# Lightweight procedural depth: only flat primitives, no shader/blur/particles.
+	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("09111f"), true)
+	for index in range(7):
+		var y := 110.0 + index * 175.0
+		var shade := Color(0.05 + index * 0.006, 0.11 + index * 0.008, 0.19 + index * 0.012, 0.38)
+		draw_circle(Vector2(90.0 + (index % 2) * 540.0, y), 170.0, shade)
+	for ornament in [Vector2(38, 200), Vector2(682, 310), Vector2(34, 890), Vector2(680, 1110)]:
+		var points := PackedVector2Array([ornament + Vector2(0, -18), ornament + Vector2(13, 0), ornament + Vector2(0, 18), ornament + Vector2(-13, 0)])
+		draw_colored_polygon(points, Color("8bc7c2", 0.28))
+		draw_polyline(points + PackedVector2Array([points[0]]), Color("e8ca7d", 0.42), 1.0)
+	draw_rect(Rect2(0.0, 174.0, 720.0, 4.0), Color("d8b86a", 0.22), true)
 
 func _draw_result_overlay(font: Font) -> void:
 	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color(0.02, 0.02, 0.05, 0.48), true)

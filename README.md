@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`sound-haptics-v1`: adds lightweight procedural gameplay sound and mobile haptic routing with session-only `S`/`V` settings. Gameplay rules remain unchanged.
+`reference-table-gem-audio-v1` (in progress): contained crystal-table composition and original procedural gem/glass audio. Gameplay rules remain unchanged; see `REFERENCE_TABLE_GEM_AUDIO_V1_REPORT.md`.
 
 ## Commands
 

@@ -32,6 +32,7 @@ func _init() -> void:
 	_test_progression_hud_snapshot_and_queue()
 	_test_hud_layout_and_pointer_safety()
 	_test_sound_and_haptics_feedback_routing()
+	_test_inset_table_and_viewport_safety()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -132,7 +133,7 @@ func _test_launch_timing_and_settling() -> void:
 		if top_time < 0.0 and is_equal_approx(shot.position.y, GameConfig.BOARD_TOP + shot.radius):
 			top_time = elapsed
 		if shot.is_settled(): break
-	_assert(top_time >= 0.70 and top_time <= 1.30, "Launch must reach the top border within the approved feel range")
+	_assert(top_time >= 0.55 and top_time <= 1.20, "Launch must reach the inset top border within the approved feel range")
 	_assert(shot.is_settled() and elapsed <= 2.25, "A clean top-border shot must settle without a long wait")
 	var settled_position := shot.position
 	for frame in range(120): simulation.step(items, 1.0 / 60.0, merger)
@@ -284,8 +285,8 @@ func _test_visual_layout_bounds() -> void:
 	_assert(GameConfig.RESTART_RECT.end.x <= GameConfig.HUD_RECT.end.x and GameConfig.RESTART_RECT.position.y >= GameConfig.HUD_RECT.position.y, "Restart control must remain inside the HUD")
 
 func _test_portrait_board_bounds_and_scale() -> void:
-	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1440, 2560)]:
-		var scale: float = portrait_size.x / GameConfig.VIEWPORT_SIZE.x
+	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:
+		var scale: float = minf(portrait_size.x / GameConfig.VIEWPORT_SIZE.x, portrait_size.y / GameConfig.VIEWPORT_SIZE.y)
 		_assert(GameConfig.BOARD_LEFT * scale >= 0.0 and GameConfig.BOARD_RIGHT * scale <= portrait_size.x, "Board must fit every supported portrait width")
 		_assert(GameConfig.BOARD_TOP * scale >= GameConfig.HUD_RECT.end.y * scale and GameConfig.BOARD_BOTTOM * scale <= portrait_size.y, "Board must remain below HUD and inside every supported portrait height")
 		_assert(GameConfig.PIECE_RADIUS * 2.0 <= (GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT) * 0.20, "Gem scale must leave horizontal cluster room")
@@ -318,7 +319,7 @@ func _test_progression_hud_snapshot_and_queue() -> void:
 
 func _test_hud_layout_and_pointer_safety() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:
-		var scale: float = portrait_size.x / GameConfig.VIEWPORT_SIZE.x
+		var scale: float = minf(portrait_size.x / GameConfig.VIEWPORT_SIZE.x, portrait_size.y / GameConfig.VIEWPORT_SIZE.y)
 		_assert(GameConfig.HUD_RECT.end.x * scale <= portrait_size.x and GameConfig.HUD_RECT.end.y * scale <= GameConfig.BOARD_TOP * scale, "HUD must stay in safe bounds for representative portrait sizes")
 		_assert(GameConfig.PROGRESSION_START_X + GameConfig.PROGRESSION_STEP_X * 4.0 + 18.0 <= GameConfig.RESTART_RECT.position.x, "Progression preview must remain compact beside restart")
 	_assert(not GameConfig.HUD_RECT.intersects(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP)), "HUD/progression drawing must not intercept board drag space")
@@ -333,14 +334,18 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(_event_count(controller.audio_feedback.emitted_events, "launch") == 1, "Enabled launch must emit one audio event")
 	_assert(_event_count(controller.haptics_feedback.emitted_events, "launch") == 1, "Enabled launch must emit one haptic event")
 	controller.audio_feedback.clear_trace()
-	controller.simulation._collision_impacts.append(GameConfig.COLLISION_SOUND_THRESHOLD - 1.0)
+	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD - 1.0})
 	controller._route_collision_feedback()
 	_assert(controller.audio_feedback.emitted_events.is_empty(), "Sub-threshold collision must not emit audio")
-	controller.simulation._collision_impacts.append(GameConfig.COLLISION_SOUND_THRESHOLD + 100.0)
+	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0})
 	controller._route_collision_feedback()
-	controller.simulation._collision_impacts.append(GameConfig.COLLISION_SOUND_THRESHOLD + 100.0)
+	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0})
 	controller._route_collision_feedback()
-	_assert(_event_count(controller.audio_feedback.emitted_events, "collision") == 1, "Collision audio must be throttled")
+	_assert(_event_count(controller.audio_feedback.emitted_events, "gem_contact") == 1, "Gem contact audio must be throttled")
+	controller.audio_feedback.clear_trace()
+	controller.simulation._collision_impacts.append({"kind": "wall", "strength": GameConfig.WALL_CONTACT_SOUND_THRESHOLD + 100.0})
+	controller._route_collision_feedback()
+	_assert(_event_count(controller.audio_feedback.emitted_events, "wall_contact") == 1, "Wall contact must use its own soft crystal event")
 	controller.audio_feedback.clear_trace()
 	controller.haptics_feedback.clear_trace()
 	var merge_events: Array[Dictionary] = [{"level": 2, "depth": 0}, {"level": 3, "depth": 1}]
@@ -377,6 +382,12 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(settings_controller.audio_feedback.emitted_events.is_empty() and settings_controller.haptics_feedback.emitted_events.is_empty(), "Disabled feedback must never alter gameplay or emit output")
 	_assert(not settings_controller.audio_feedback.enabled and not settings_controller.haptics_feedback.enabled, "Restart must preserve current-session settings")
 	_assert(sound_setting and vibration_setting, "Sound and vibration must default to enabled")
+
+func _test_inset_table_and_viewport_safety() -> void:
+	_assert(GameConfig.BOARD_LEFT >= 48.0 and GameConfig.VIEWPORT_SIZE.x - GameConfig.BOARD_RIGHT >= 48.0, "Table must leave visible crystal background at both sides")
+	_assert(GameConfig.BOARD_TOP - GameConfig.HUD_RECT.end.y >= 48.0, "Table must leave a visible background gap below HUD")
+	_assert(GameConfig.VIEWPORT_SIZE.y - GameConfig.BOARD_BOTTOM >= 160.0, "Table must leave a visible decorative background/launcher margin below")
+	_assert(GameConfig.DANGER_LINE_Y > GameConfig.BOARD_TOP and GameConfig.DANGER_LINE_Y < GameConfig.BOARD_BOTTOM and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y and GameConfig.LAUNCH_Y < GameConfig.BOARD_BOTTOM, "Danger line and launcher must remain inside physical table bounds")
 
 func _event_count(events: Array, event_name: String) -> int:
 	var total := 0

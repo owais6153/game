@@ -1,7 +1,8 @@
 class_name BoardSimulation
 extends RefCounted
 
-var _collision_impacts: Array[float] = []
+## Presentation feedback only. Simulation never uses this data to decide rules.
+var _collision_impacts: Array[Dictionary] = []
 
 func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) -> void:
 	_collision_impacts.clear()
@@ -24,15 +25,19 @@ func _resolve_bounds(piece: GemPiece) -> void:
 	var top := GameConfig.BOARD_TOP + piece.radius
 	var bottom := GameConfig.BOARD_BOTTOM - piece.radius
 	if piece.position.x < left:
+		_record_wall_impact(absf(piece.velocity.x))
 		piece.position.x = left
 		piece.velocity.x = abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	elif piece.position.x > right:
+		_record_wall_impact(absf(piece.velocity.x))
 		piece.position.x = right
 		piece.velocity.x = -abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	if piece.position.y < top:
+		_record_wall_impact(absf(piece.velocity.y))
 		piece.position.y = top
 		piece.velocity.y = abs(piece.velocity.y) * GameConfig.TOP_WALL_RESTITUTION
 	elif piece.position.y > bottom:
+		_record_wall_impact(absf(piece.velocity.y))
 		piece.position.y = bottom
 		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION
 
@@ -54,7 +59,7 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 		_resolve_bounds(second)
 	var relative_speed := (second.velocity - first.velocity).dot(normal)
 	if relative_speed < 0.0:
-		_collision_impacts.append(absf(relative_speed))
+		_collision_impacts.append({"kind": "gem", "strength": absf(relative_speed)})
 		var impulse := -relative_speed * GameConfig.COLLISION_RESTITUTION
 		first.velocity -= normal * impulse
 		second.velocity += normal * impulse
@@ -68,7 +73,11 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	first.velocity = first.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 	second.velocity = second.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 
-func consume_collision_impacts() -> Array[float]:
+func _record_wall_impact(strength: float) -> void:
+	if strength > 0.0:
+		_collision_impacts.append({"kind": "wall", "strength": strength})
+
+func consume_collision_impacts() -> Array[Dictionary]:
 	var result := _collision_impacts.duplicate()
 	_collision_impacts.clear()
 	return result

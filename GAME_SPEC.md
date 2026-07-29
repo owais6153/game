@@ -4,6 +4,11 @@
 
 ## Sound and haptics v1
 
+## Reference table + crystal audio v1
+
+- The contained tabletop and its collision bounds share `GameConfig` geometry and sit inside a separate full-screen crystal alcove background.
+- Feedback stays presentation-only: typed gem/wall impact telemetry and confirmed controller events route to original procedural crystal audio; sound/haptics never alter simulation or merge decisions.
+
 - Feedback is presentation-only and subscribes to confirmed controller events; it never changes simulation, collision, merge eligibility, chains, score, launcher lifecycle, danger timing, outcomes, or reset.
 - Short procedural tones cover launch, meaningful collision, level-specific merges, chains, win, fail, and button taps. Collision feedback requires a relative impact of at least 170 px/s and is throttled.
 - Android haptics use light launch, medium direct merge, stronger chain, success win, and distinct failure feedback. Non-mobile/editor runs safely skip the platform vibration call.

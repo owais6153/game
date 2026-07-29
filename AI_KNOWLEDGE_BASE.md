@@ -165,6 +165,10 @@ There is exactly one active launcher while the game is ready for input. Launcher
 
 ## Physics and pacing parity v1
 
+## Reference table + crystal audio v1
+
+Never redraw a differently sized table without changing the same centralized physical bounds and viewport tests. Gem/wall impact telemetry is feedback-only. `AudioFeedbackService` is the project-safe crystal identity: keep the inharmonic transient design or replace it only with clearly licensed original assets, never generic beeps or commercial samples.
+
 ## Progression HUD v1
 
 `HudRenderer` is a presentation-only helper. It receives `GameController.hud_snapshot()` (current level, next level, score, chain multiplier, shots, target level, highest live level) and draws the compact queue cards plus the Pearl-to-Diamond strip. Do not put queue advancement, target logic, drag input, or simulation state in this renderer. `GameConfig` owns its visual rectangles; their values must never enter board/collision math.
