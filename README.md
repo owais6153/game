@@ -30,4 +30,4 @@ Run the test suite from the project root:
 ```
 # Visual-sequencing contact v2
 
-The current milestone delays the win popup until the Diamond merge presentation completes, uses an overlay-only CanvasLayer backdrop, applies a shallower non-destructive table presentation, and calibrates visible gem contact without changing merge eligibility.
+The current milestone uses the newly supplied table plus body-only gem textures and separate presentation shadows. Contact-only merge eligibility remains unchanged.

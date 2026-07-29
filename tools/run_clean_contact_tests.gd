@@ -40,6 +40,7 @@ func _init() -> void:
 	_test_visible_collision_calibration()
 	_test_calibrated_wall_contacts()
 	_test_collision_audio_uses_confirmed_contact()
+	_test_shadow_presentation_is_collision_free()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -411,7 +412,8 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(sound_setting and vibration_setting, "Sound and vibration must default to enabled")
 
 func _test_inset_table_and_viewport_safety() -> void:
-	_assert(GameConfig.TABLE_TEXTURE_CENTER == GameConfig.VIEWPORT_SIZE * 0.5 + Vector2(0.0, 10.0), "Supplied table texture must use its documented authoritative placement")
+	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 730.0), "New table must use its documented normalized reference placement")
+	_assert(is_equal_approx(GameConfig.TABLE_TEXTURE_RENDER_SCALE.x, 720.0 / 920.0) and is_equal_approx(GameConfig.TABLE_TEXTURE_RENDER_SCALE.y, 956.0 / 810.0), "New table scale must preserve documented UI-reference proportions")
 	_assert(GameConfig.table_left_at(GameConfig.BOARD_TOP) > 0.0 and GameConfig.table_right_at(GameConfig.BOARD_TOP) < GameConfig.VIEWPORT_SIZE.x, "Top rail must leave background visible at both sides")
 	_assert(GameConfig.BOARD_TOP - GameConfig.HUD_RECT.end.y >= 48.0, "Table must leave a visible background gap below HUD")
 	_assert(GameConfig.DANGER_LINE_Y > GameConfig.BOARD_TOP and GameConfig.DANGER_LINE_Y < GameConfig.BOARD_BOTTOM and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y and GameConfig.LAUNCH_Y < GameConfig.BOARD_BOTTOM, "Danger line and launcher must remain inside physical table bounds")
@@ -423,7 +425,9 @@ func _test_asset_mapping_and_clean_diamond() -> void:
 		_assert(path.ends_with(expected[level - 1]), "Gem level %d must use the supplied runtime %s texture" % [level, expected[level - 1]])
 		_assert(ResourceLoader.exists(path), "Gem level %d runtime texture must exist" % level)
 	_assert(AssetCatalogType.DIAMOND_CLEAN.resource_path.ends_with("diamond.png"), "Diamond must map to the documented clean derived runtime asset")
-	_assert(ResourceLoader.exists(AssetCatalogType.TROPICAL_BACKGROUND.resource_path) and ResourceLoader.exists(AssetCatalogType.CORAL_TABLE.resource_path), "Background and table runtime textures must exist")
+	_assert(ResourceLoader.exists(AssetCatalogType.TROPICAL_BACKGROUND.resource_path) and ResourceLoader.exists(AssetCatalogType.NEW_TABLE.resource_path), "Background and newly supplied table runtime textures must exist")
+	_assert(AssetCatalogType.NEW_TABLE.resource_path.ends_with("new_table_v1.png"), "Old coral table must not remain active")
+	_assert(ResourceLoader.exists(AssetCatalogType.shadow_resource_path()), "Presentation-only soft shadow texture must exist")
 
 func _test_table_layout_physics_alignment() -> void:
 	for y in [GameConfig.BOARD_TOP, GameConfig.DANGER_LINE_Y, GameConfig.LAUNCH_Y, GameConfig.BOARD_BOTTOM]:
@@ -476,6 +480,21 @@ func _test_collision_audio_uses_confirmed_contact() -> void:
 	simulation.step(no_contact, 0.0, merger)
 	var impacts := simulation.consume_collision_impacts()
 	_assert(impacts.any(func(impact: Dictionary): return String(impact.get("kind", "")) == "gem" and impact.has("position")), "Gem audio telemetry must be emitted from the confirmed contact point")
+
+func _test_shadow_presentation_is_collision_free() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var pearl := _piece(901, 1, Vector2(300, 560))
+	controller.set("pieces", [pearl])
+	controller.gem_sprite_layer.sync_gems(controller.get("pieces"))
+	var shadow_rect: Rect2 = controller.gem_sprite_layer.shadow_bounds(pearl.id)
+	_assert(not shadow_rect.has_point(pearl.position), "Separate shadow must sit below the gem body instead of becoming a centered halo")
+	var distant := _piece(902, 1, Vector2(300 + pearl.radius * 2.0 + 4.0, 560))
+	var merger := MergeType.new()
+	var simulation := SimulationType.new()
+	var pair: Array[GemPiece] = [pearl, distant]
+	simulation.step(pair, 0.0, merger)
+	_assert(merger.resolve(pair, 999).merge_count == 0, "Shadow overlap or proximity must not create a merge candidate")
 
 func _event_count(events: Array, event_name: String) -> int:
 	var total := 0

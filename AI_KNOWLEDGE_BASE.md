@@ -203,3 +203,9 @@ The active reference comparison files are intentionally local and ignored by Git
 For Diamond wins, never present the overlay directly from confirmed merge handling. Set `win_qualified`, synchronize the spawned Diamond, wait until `merge_presentations` finishes plus `WIN_PRESENTATION_HOLD`, then set `win_presented`. Result overlays must use `ResultOverlayLayer` and must never modulate `GameController`, `GemSpriteLayer`, or individual gem sprites.
 
 Visible contact is calibrated through `GEM_COLLISION_RADIUS`, `GEM_VISUAL_BODY_SCALE`, `CONTACT_EPSILON`, and `SEPARATION_EPSILON` in `GameConfig`. Do not change one without updating the focused contact tests and report.
+
+## New table + shadow separation v1
+
+- The active table is `AssetCatalog.NEW_TABLE`, not the old coral derivative. Its visual scale and physical rail coordinates are centralized in `GameConfig`.
+- Live gems load from `assets/runtime/gems_body_v2/`. Former calibrated textures remain source/provenance only. Never allow shadows, glows, sparkles, or transparent padding to influence `GemPiece.radius`.
+- `GemSpriteLayer._shadows` is presentation-only. Shadow overlap is not a physical contact and cannot trigger merge, sound, score, or wall handling. F8 shows shadow bounds in cyan and remains disabled by default.

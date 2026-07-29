@@ -7,7 +7,6 @@ const HapticsServiceType = preload("res://scripts/haptics_service.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
 const ResultOverlayLayerType = preload("res://scripts/result_overlay_layer.gd")
-const SHALLOW_TABLE_SHADER: Shader = preload("res://assets/runtime/table/shallow_table.gdshader")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -249,11 +248,9 @@ func _setup_asset_presentation() -> void:
 	background.z_index = -20
 	add_child(background)
 	var table := Sprite2D.new()
-	table.texture = AssetCatalogType.CORAL_TABLE
+	table.texture = AssetCatalogType.NEW_TABLE
 	table.position = GameConfig.TABLE_TEXTURE_CENTER
-	var table_material := ShaderMaterial.new()
-	table_material.shader = SHALLOW_TABLE_SHADER
-	table.material = table_material
+	table.scale = GameConfig.TABLE_TEXTURE_RENDER_SCALE
 	table.z_index = -10
 	add_child(table)
 	gem_sprite_layer = GemSpriteLayerType.new()
@@ -365,6 +362,9 @@ func _draw_calibration_debug(font: Font) -> void:
 		draw_arc(piece.position, piece.radius, 0.0, TAU, 32, Color("ffdd55"), 1.5)
 		draw_line(piece.position - Vector2(5.0, 0.0), piece.position + Vector2(5.0, 0.0), Color("ffdd55"), 1.0)
 		draw_line(piece.position - Vector2(0.0, 5.0), piece.position + Vector2(0.0, 5.0), Color("ffdd55"), 1.0)
+		var shadow_rect := gem_sprite_layer.shadow_bounds(piece.id) if gem_sprite_layer != null else Rect2()
+		if shadow_rect.size != Vector2.ZERO:
+			draw_rect(shadow_rect, Color("8ad7ff", 0.65), false, 1.0)
 	for marker in debug_contact_points:
 		draw_circle(marker.position, 4.0, Color("ff5ccd"))
 	draw_string(font, Vector2(24.0, 190.0), "CALIBRATION DEBUG (F8): rails / colliders / contacts", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("ffdd55"))

@@ -66,3 +66,7 @@ Danger state is controller-owned and keyed by piece ID. It is cleared immediatel
 - `GameController` owns win qualification and presentation timing, but `ResultOverlayLayer` owns result UI in its dedicated `CanvasLayer`.
 - `GemSpriteLayer` remains the only owner of gem sprite texture, transform, and modulation. Overlay presentation has no reference to gameplay sprites.
 - `assets/runtime/table/shallow_table.gdshader` is a presentation-only derivative; `GameConfig.table_left_at/right_at` remains the authoritative collision, launcher, danger, and visual-bound model.
+
+## New table and shadow separation v1
+
+`AssetCatalog.NEW_TABLE` loads `new_table_v1.png`; `GameConfig` owns its render scale and every rail. `GemSpriteLayer` pairs a clean body Sprite2D with a separate soft-shadow Sprite2D for each simulation ID. The shadow map cannot reach `BoardSimulation` or `ContactMergeService`; collider and audio truth remain the existing `GemPiece.radius` and confirmed narrow-phase impacts.

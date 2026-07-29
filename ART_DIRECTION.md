@@ -12,3 +12,7 @@ This milestone intentionally excludes logo, menus, buttons, modal cards, level s
 # Visual Sequencing + Contact v2
 
 The table should read as a contained, mostly front-facing jewel board within the tropical scene: mild depth only, nearly parallel upper rails, and a visible environment around all edges. Victory UI is a separate dark translucent backdrop above the unchanged gem artwork; the Diamond remains visible and bright before and beneath the result card.
+
+## New table + separated shadows
+
+The active coral-framed aqua table is the newest supplied table, placed as the centered focal surface with tropical scenery visible around it. Gems use crisp body-only art; soft blue-green elliptical shadows sit subtly down/right on the felt and must read as surface contact, never as a halo or collision outline.

@@ -3,12 +3,13 @@ extends RefCounted
 
 ## Presentation-only texture catalog. Simulation must never read these resources.
 const TROPICAL_BACKGROUND: Texture2D = preload("res://assets/runtime/backgrounds/tropical_beach.png")
-const CORAL_TABLE: Texture2D = preload("res://assets/runtime/table/coral_table_calibrated.png")
-const PEARL: Texture2D = preload("res://assets/runtime/gems_calibrated/pearl.png")
-const RUBY: Texture2D = preload("res://assets/runtime/gems_calibrated/ruby.png")
-const EMERALD: Texture2D = preload("res://assets/runtime/gems_calibrated/emerald.png")
-const SAPPHIRE: Texture2D = preload("res://assets/runtime/gems_calibrated/sapphire.png")
-const DIAMOND_CLEAN: Texture2D = preload("res://assets/runtime/gems_calibrated/diamond.png")
+const NEW_TABLE: Texture2D = preload("res://assets/runtime/table/new_table_v1.png")
+const PEARL: Texture2D = preload("res://assets/runtime/gems_body_v2/pearl.png")
+const RUBY: Texture2D = preload("res://assets/runtime/gems_body_v2/ruby.png")
+const EMERALD: Texture2D = preload("res://assets/runtime/gems_body_v2/emerald.png")
+const SAPPHIRE: Texture2D = preload("res://assets/runtime/gems_body_v2/sapphire.png")
+const DIAMOND_CLEAN: Texture2D = preload("res://assets/runtime/gems_body_v2/diamond.png")
+const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_soft_shadow.png")
 
 static func gem_texture(level: int) -> Texture2D:
 
@@ -22,6 +23,9 @@ static func gem_texture(level: int) -> Texture2D:
 
 static func gem_resource_path(level: int) -> String:
 	return gem_texture(level).resource_path
+
+static func shadow_resource_path() -> String:
+	return GEM_SOFT_SHADOW.resource_path
 
 static func visual_scale(_level: int) -> float:
 	# Alpha-trimmed derivatives map their long visual axis directly to the

@@ -5,20 +5,25 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.
-const TABLE_TEXTURE_CENTER := Vector2(360.0, 650.0)
-const TABLE_TEXTURE_SIZE := Vector2(1024.0, 1536.0)
+## New table composition measured from the supplied UI reference at 941x1672
+## and normalized onto the 720x1280 design viewport. The table's outer image
+## occupies y=252..1208; its physical inner rails occupy y=300..1112.
+const TABLE_TEXTURE_CENTER := Vector2(360.0, 730.0)
+const TABLE_TEXTURE_SIZE := Vector2(920.0, 810.0)
+const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7826087, 1.1802469)
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
-const BOARD_TOP := 224.0
-const BOARD_BOTTOM := 1080.0
-## Shallower top anchors match the calibrated runtime table derivative and the
-## tropical camera better than the original aggressive trapezoid.
-const TABLE_INNER_LEFT_TOP := 58.0
-const TABLE_INNER_RIGHT_TOP := 662.0
-const TABLE_INNER_LEFT_BOTTOM := 0.0
-const TABLE_INNER_RIGHT_BOTTOM := 720.0
-const DANGER_LINE_Y := 926.0
-const LAUNCH_Y := 1008.0
+const BOARD_TOP := 300.0
+const BOARD_BOTTOM := 1112.0
+## These rails are sampled from the new table's visible inner coral edge after
+## applying TABLE_TEXTURE_RENDER_SCALE. Rendering and physics read this one
+## model so body-to-rail contact aligns with the art.
+const TABLE_INNER_LEFT_TOP := 178.0
+const TABLE_INNER_RIGHT_TOP := 542.0
+const TABLE_INNER_LEFT_BOTTOM := 44.0
+const TABLE_INNER_RIGHT_BOTTOM := 676.0
+const DANGER_LINE_Y := 930.0
+const LAUNCH_Y := 1028.0
 ## Largest gameplay radius. Individual values are calibrated to the visible
 ## main body of the alpha-trimmed runtime texture for each gem level.
 const PIECE_RADIUS := 42.0
@@ -27,7 +32,13 @@ const PIECE_RADIUS := 42.0
 const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0}
 ## Runtime visual-body expansion maps the opaque gem body to the stable
 ## simple collider; it is a visual calibration only.
-const GEM_VISUAL_BODY_SCALE := {1: 1.08, 2: 1.08, 3: 1.05, 4: 1.08, 5: 1.10}
+## Body-only textures are trimmed independently from their former baked
+## shadows/glows. Their scale maps visible body edges directly to colliders.
+const GEM_VISUAL_BODY_SCALE := {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0}
+const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 18.0), 4: Vector2(5.0, 23.0), 5: Vector2(4.0, 19.0)}
+const GEM_SHADOW_OPACITY := {1: 0.42, 2: 0.40, 3: 0.38, 4: 0.40, 5: 0.34}
+const GEM_SHADOW_WIDTH_MULTIPLIER := 0.96
+const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.43
 const VISIBLE_CONTACT_TOLERANCE := 2.0
 # Gameplay balance v1 — all feel values live here. Keep simulation delta-based.
 # The default/range notes are the approved safe tuning envelope for this prototype.
