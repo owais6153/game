@@ -54,3 +54,12 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 		var impulse := -relative_speed * GameConfig.COLLISION_RESTITUTION
 		first.velocity -= normal * impulse
 		second.velocity += normal * impulse
+	# Contact resistance makes clusters slide and settle rather than read as
+	# rigid frictionless billiard balls. It has no merge authority.
+	var post_impact_relative := second.velocity - first.velocity
+	var tangent := post_impact_relative - normal * post_impact_relative.dot(normal)
+	var tangential_impulse := tangent * (GameConfig.COLLISION_TANGENTIAL_FRICTION * 0.5)
+	first.velocity += tangential_impulse
+	second.velocity -= tangential_impulse
+	first.velocity = first.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
+	second.velocity = second.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)

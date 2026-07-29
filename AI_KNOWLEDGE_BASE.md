@@ -156,3 +156,16 @@ The only allowed initial merge input is a current-step physical contact captured
 ## Launcher invariant
 
 There is exactly one active launcher while the game is ready for input. Launcher creation is lifecycle-gated, not merely “board settled”-gated: a shot must enter `SHOT_IN_FLIGHT`, finish resolution, enter `SPAWNING_NEXT`, create one launcher, and then return to `READY_TO_AIM`. Do not reintroduce frame-by-frame spawning conditions based only on a missing active ID or settled board.
+
+## Physics and pacing parity v1
+
+The active reference comparison files are intentionally local and ignored by Git: `WhatsApp Video 2026-07-28 at 2.47.02 AM.mp4` (target) and `WhatsApp Video 2026-07-29 at 6.53.59 AM.mp4` (current build). Do not commit, rename, or treat them as game assets.
+
+| Feel value | Parity default | Guardrail | Notes |
+| --- | ---: | --- | --- |
+| Board horizontal bounds | 30..690 px | fixed design canvas | Wider cluster room; all collision geometry uses the same bounds. |
+| Gem radius | 42 px | keep collision and rendering aligned | Larger gems without narrowing the table. |
+| Launch / damping | 1160 / 235 | 1120–1200 / 210–260 | Delta-based and straight upward only. |
+| Normal / tangential collision | 0.34 / 0.18 | 0.28–0.42 / 0.12–0.24 | Tangential resistance is symmetric; never use it for merge decisions. |
+| Merge momentum | 35%, max 260 px/s | 25–45%, 200–300 px/s | Applied after a valid merge only. |
+| Presentation / ready delay | 0.18 s / 0.04 s | 0.16–0.22 / 0.03–0.06 | Launcher still waits for full settlement and presentation completion. |

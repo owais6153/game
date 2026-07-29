@@ -10,6 +10,9 @@ android/.gradle/
 *.apk
 *.aab
 
+# User-supplied comparison recordings are local reference inputs, never source assets.
+*.mp4
+
 # Local/editor files
 .vscode/
 .idea/

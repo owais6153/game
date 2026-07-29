@@ -27,6 +27,8 @@ func _init() -> void:
 	_test_overlay_reset()
 	_test_visual_level_mapping()
 	_test_visual_layout_bounds()
+	_test_portrait_board_bounds_and_scale()
+	_test_merge_momentum_is_bounded_and_contained()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -36,7 +38,7 @@ func _init() -> void:
 		quit(1)
 
 func _piece(id: int, level: int, at_position: Vector2) -> GemPiece:
-	return GemPieceType.new(id, level, at_position, 35.0)
+	return GemPieceType.new(id, level, at_position, GameConfig.PIECE_RADIUS)
 
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
@@ -277,6 +279,25 @@ func _test_visual_layout_bounds() -> void:
 	_assert(GameConfig.OVERLAY_RECT.position.x >= GameConfig.SAFE_VISUAL_MARGIN and GameConfig.OVERLAY_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x - GameConfig.SAFE_VISUAL_MARGIN, "Overlay must remain within visual safe margins")
 	_assert(GameConfig.OVERLAY_BUTTON_RECT.position.y >= GameConfig.OVERLAY_RECT.position.y and GameConfig.OVERLAY_BUTTON_RECT.end.y <= GameConfig.OVERLAY_RECT.end.y, "Overlay action must fit within its panel")
 	_assert(GameConfig.RESTART_RECT.end.x <= GameConfig.HUD_RECT.end.x and GameConfig.RESTART_RECT.position.y >= GameConfig.HUD_RECT.position.y, "Restart control must remain inside the HUD")
+
+func _test_portrait_board_bounds_and_scale() -> void:
+	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1440, 2560)]:
+		var scale: float = portrait_size.x / GameConfig.VIEWPORT_SIZE.x
+		_assert(GameConfig.BOARD_LEFT * scale >= 0.0 and GameConfig.BOARD_RIGHT * scale <= portrait_size.x, "Board must fit every supported portrait width")
+		_assert(GameConfig.BOARD_TOP * scale >= GameConfig.HUD_RECT.end.y * scale and GameConfig.BOARD_BOTTOM * scale <= portrait_size.y, "Board must remain below HUD and inside every supported portrait height")
+		_assert(GameConfig.PIECE_RADIUS * 2.0 <= (GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT) * 0.20, "Gem scale must leave horizontal cluster room")
+
+func _test_merge_momentum_is_bounded_and_contained() -> void:
+	var first := _piece(1, 1, Vector2(300, 500))
+	var second := _piece(2, 1, Vector2(360, 500))
+	first.velocity = Vector2(900, -600)
+	second.velocity = Vector2(900, -600)
+	var merger := MergeType.new()
+	merger.capture_contact(first, second)
+	var result := merger.resolve([first, second], 100)
+	var upgraded: GemPiece = result.pieces[0]
+	_assert(upgraded.velocity.length() <= GameConfig.MERGE_MAX_SPAWN_SPEED + 0.01, "Upgraded-gem momentum must remain bounded")
+	_assert(upgraded.position.x >= GameConfig.BOARD_LEFT + upgraded.radius and upgraded.position.x <= GameConfig.BOARD_RIGHT - upgraded.radius and upgraded.position.y >= GameConfig.BOARD_TOP + upgraded.radius and upgraded.position.y <= GameConfig.BOARD_BOTTOM - upgraded.radius, "Upgraded gem must spawn inside board bounds")
 
 func _active_launcher_count(items: Array[GemPiece]) -> int:
 	var count := 0

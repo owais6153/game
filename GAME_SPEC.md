@@ -65,3 +65,11 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Equal-mass collision restitution is 0.48; side/top/bottom border restitution is 0.20/0.14/0.10. Contact capture and merge eligibility are unchanged.
 - Merge logic resolves immediately and deterministically. Only its visual presentation is staggered by 0.07 s per chain depth; source pull/pulse use 0.10 s/0.20 s.
 - Once board resolution and presentation finish, the next launcher uses a 0.08 s readiness delay. It still spawns exactly once through the existing lifecycle state machine.
+
+## Physics and pacing parity v1
+
+- The playable board is wider (`x=30..690`) while retaining a fixed portrait design canvas. Gems use a 42 px collision radius, so compact clusters have room to form instead of producing a narrow flat row.
+- Launches use 1160 px/s and lower 235 px/s2 damping. Equal-level merge eligibility, contact capture, chains, scoring, outcomes, and launcher state transitions are unchanged.
+- Collision response has lower normal restitution plus symmetric tangential contact resistance. It only affects physical sliding/settling; it does not create attraction or inspect gem levels.
+- An upgraded gem receives a bounded 35% average-source-momentum handoff (maximum 260 px/s), then immediately returns to normal board physics. The presentation remains visual-only.
+- Presentation/launcher waits are shorter: 0.18 s merge presentation, 0.05 s chain visual stagger, then a 0.04 s readiness delay only after resolution is complete.
