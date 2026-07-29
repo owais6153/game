@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`gem-visual-prototype-v1`: the playable level loop now has procedural precious-stone visuals, a lightweight luxury jewelry table, and clearer HUD styling. The merge, collision, queue, danger, score, win, and reset rules are unchanged from the verified playable-loop milestone.
+`gem-visual-refinement-v1`: the playable level loop now has a refined lightweight jewelry-table presentation, clearer gem facets and shadows, an improved visual-only merge pulse, and responsive portrait-safe HUD/overlay layout. The merge, collision, queue, danger, score, win, and reset rules are unchanged.
 
 ## Commands
 

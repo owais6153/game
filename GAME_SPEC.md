@@ -37,6 +37,13 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - The board uses a lightweight jewelry-table treatment with gold rails, a deep green felt inset, soft gem shadows, and no shaders, bloom, or external image assets.
 - Source ghosts are rendered behind the immediate upgraded gem during merge presentation so the visual reads as an inward transformation rather than a one-frame pop.
 
+## Visual refinement v1
+
+- Rendering keeps the original simulation coordinate space and collision bounds intact. Board rails, felt inset, HUD panels, overlay dimmer, and safe margins are presentation-only.
+- Gem silhouettes remain centralized in `GemVisuals`: Pearl is rounded and luminous; Ruby, Emerald, Sapphire, and Diamond use distinct lightweight facet patterns. Collision radii remain circular and unchanged.
+- The merge pulse uses eased presentation timing only. Source ghosts, upgraded gem, ring, and glow have no simulation authority.
+- The fixed 720x1280 design canvas uses Godot canvas-item stretching for portrait devices. Safe-bound assertions cover the HUD, action controls, and result overlay.
+
 ## Score, chain, and target
 
 - Confirmed merge events are the sole score source; collisions and pushes have no score path.

@@ -1,5 +1,12 @@
 # Current State
 
+**Phase:** Visual refinement v1 is ready for Git delivery from the clean `gem-visual-prototype-v1` baseline. It adds rendering-only board, gem, HUD, overlay, and merge-presentation refinement. The same headless gameplay suite remains green; no phone was connected for device testing.
+
+## Do Not Regress
+
+- Visual layout constants and `GemVisuals` must remain presentation-only; never pass their values into simulation, collision, merge eligibility, launcher lifecycle, danger timers, scoring, chains, or outcomes.
+- Preserve the fixed portrait gameplay coordinate system. Canvas-item stretching scales the visual design; it does not authorize changes to board bounds or input math.
+
 **Phase:** Gemstone visual prototype delivered at source commit `561235ad45a6dbf50a3b8a018820656dae53cd53`, tagged `gem-visual-prototype-v1`; gameplay source remains the verified playable-loop behavior with presentation-only visual updates.
 
 ## Verified Working Now

@@ -61,6 +61,10 @@ All current tuning lives in `scripts/game_config.gd`: `VIEWPORT_SIZE`, board bou
 
 The current visual set is intentionally procedural and asset-free: Pearl is circular with a creamy highlight, Ruby and Sapphire are faceted, Emerald is emerald-cut, and Diamond is multi-faceted. `GemVisuals.visual_style_name()` is covered by the headless test suite. Rendering has no physics authority. The safe merge-presentation ordering is ghosts/ring/glow first, then live gems; retain it unless a dedicated presentation task verifies an alternative.
 
+## Visual refinement v1
+
+The visual system is still asset-free and low-cost: flat layered drawing calls only, with no shaders, blur, bloom, post-processing, or scene-node-per-particle effects. `GameConfig.HUD_RECT`, `OVERLAY_RECT`, `OVERLAY_BUTTON_RECT`, and `SAFE_VISUAL_MARGIN` are visual layout constants only. Do not use them to alter the board, launcher, danger line, collision, or input coordinates. `run_clean_contact_tests.gd` asserts that the HUD and result controls fit the fixed portrait design canvas; Godot canvas-item stretching carries that layout to portrait devices.
+
 ## Fragile areas and known-good milestones
 
 - `clean-contact-merge-v1-spawn-fix` preserves the one-launcher lifecycle and is the recovery reference for spawn behavior.

@@ -195,10 +195,13 @@ func _update_merge_presentations(delta: float) -> void:
 	merge_presentations = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed < GameConfig.MERGE_PRESENTATION_DURATION)
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("100d18"))
-	draw_rect(Rect2(GameConfig.BOARD_LEFT - 9.0, GameConfig.BOARD_TOP - 9.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 18.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 18.0), Color("8b6b31"), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP), Color("193b3b"), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT + 14.0, GameConfig.BOARD_TOP + 14.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT - 28.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP - 28.0), Color("214b46"), false, 3.0)
+	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("0d101b"))
+	# All geometry below is presentation-only; BoardSimulation keeps the same bounds.
+	draw_rect(Rect2(0.0, 0.0, 720.0, 138.0), Color("151728"), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT - 12.0, GameConfig.BOARD_TOP - 12.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 24.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 24.0), Color("4f381e"), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT - 8.0, GameConfig.BOARD_TOP - 8.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 16.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 16.0), Color("b28b42"), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP), Color("163b38"), true)
+	draw_rect(Rect2(GameConfig.BOARD_LEFT + 15.0, GameConfig.BOARD_TOP + 15.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT - 30.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP - 30.0), Color("31624e"), false, 2.0)
 	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Color("f6d77e"), 5.0)
 	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
 	draw_line(Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
@@ -206,11 +209,13 @@ func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	var active := get_active_piece()
 	var current_label := GameConfig.gem_name(active.level) if active != null else "Resolving"
-	draw_rect(Rect2(30.0, 20.0, 660.0, 112.0), Color("201b2d"), true)
-	draw_rect(Rect2(30.0, 20.0, 660.0, 112.0), Color("b9954a"), false, 2.0)
-	draw_string(font, Vector2(52.0, 57.0), "CURRENT  %s" % current_label.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color("fff4d5"))
-	draw_string(font, Vector2(52.0, 88.0), "NEXT  %s     SHOTS  %d" % [GameConfig.gem_name(next_level).to_upper(), shot_count], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("d7e9df"))
-	draw_string(font, Vector2(52.0, 116.0), "SCORE  %d     CHAIN x%d     TARGET  DIAMOND" % [score, chain_multiplier], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("ffe6a1"))
+	draw_rect(GameConfig.HUD_RECT, Color("211b2d"), true)
+	draw_rect(GameConfig.HUD_RECT, Color("c6a65a"), false, 2.0)
+	draw_rect(GameConfig.HUD_PRIMARY_RECT, Color("171927"), true)
+	draw_string(font, Vector2(54.0, 65.0), "CURRENT  %s" % current_label.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("fff4d5"))
+	draw_string(font, Vector2(54.0, 102.0), "NEXT  %s" % GameConfig.gem_name(next_level).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("d7e9df"))
+	draw_string(font, Vector2(258.0, 102.0), "SHOTS  %d" % shot_count, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("d7e9df"))
+	draw_string(font, Vector2(54.0, 126.0), "SCORE  %d   x%d CHAIN   TARGET: DIAMOND" % [score, chain_multiplier], HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("ffe6a1"))
 	draw_rect(GameConfig.RESTART_RECT, Color("5a3f68"), true)
 	draw_rect(GameConfig.RESTART_RECT, Color("d8b46d"), false, 2.0)
 	draw_string(font, Vector2(542.0, 94.0), "Restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color.WHITE)
@@ -225,14 +230,16 @@ func _draw() -> void:
 		_draw_result_overlay(font)
 
 func _draw_result_overlay(font: Font) -> void:
-	draw_rect(Rect2(80.0, 420.0, 560.0, 470.0), Color("1b1427", 0.96), true)
-	draw_rect(Rect2(80.0, 420.0, 560.0, 470.0), Color("f1cd78"), false, 3.0)
+	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color(0.02, 0.02, 0.05, 0.48), true)
+	draw_rect(GameConfig.OVERLAY_RECT, Color("1b1427", 0.97), true)
+	draw_rect(GameConfig.OVERLAY_RECT, Color("f1cd78"), false, 3.0)
 	var title := "You created a Diamond!" if won else "Table overflowed"
 	var button := "Replay" if won else "Retry"
-	draw_string(font, Vector2(142.0, 550.0), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 34, Color.WHITE)
-	draw_string(font, Vector2(270.0, 615.0), "Score: %d" % score, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("fff0bb"))
+	draw_string(font, Vector2(132.0, 548.0), title, HORIZONTAL_ALIGNMENT_CENTER, 456.0, 33, Color.WHITE)
+	draw_string(font, Vector2(132.0, 612.0), "Score: %d" % score, HORIZONTAL_ALIGNMENT_CENTER, 456.0, 26, Color("fff0bb"))
 	draw_rect(GameConfig.OVERLAY_BUTTON_RECT, Color("5a3f68"), true)
-	draw_string(font, Vector2(320.0, 812.0), button, HORIZONTAL_ALIGNMENT_LEFT, -1, 25, Color.WHITE)
+	draw_rect(GameConfig.OVERLAY_BUTTON_RECT, Color("d8b46d"), false, 2.0)
+	draw_string(font, Vector2(220.0, 811.0), button, HORIZONTAL_ALIGNMENT_CENTER, 280.0, 24, Color.WHITE)
 
 func _draw_merge_presentation(presentation: Dictionary) -> void:
 	var t: float = clampf(presentation.elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)
@@ -247,7 +254,9 @@ func _draw_merge_presentation(presentation: Dictionary) -> void:
 	var ring_color := GameConfig.gem_color(presentation.level).lightened(0.35)
 	ring_color.a = ring_alpha
 	draw_arc(midpoint, GameConfig.PIECE_RADIUS * (1.0 + t * 1.15), 0.0, TAU, 28, ring_color, 3.0)
-	var pulse := 1.0 + sin(t * PI) * (GameConfig.MERGE_PULSE_SCALE - 1.0)
+	# Ease the visual pulse only; presentation never affects live gem geometry.
+	var eased_t := 1.0 - pow(1.0 - t, 3.0)
+	var pulse := 1.0 + sin(eased_t * PI) * (GameConfig.MERGE_PULSE_SCALE - 1.0)
 	var glow := GameConfig.gem_color(presentation.level)
 	glow.a = (1.0 - t) * 0.35
 	draw_circle(midpoint, GameConfig.PIECE_RADIUS * pulse, glow)

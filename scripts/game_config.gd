@@ -21,6 +21,12 @@ const MERGE_CHAIN_DEPTH_CAP := 6
 const RESTART_RECT := Rect2(520.0, 58.0, 150.0, 54.0)
 const OVERLAY_BUTTON_RECT := Rect2(220.0, 770.0, 280.0, 64.0)
 const OVERLAY_FADE_DURATION := 0.18
+## Rendering-only layout values. These never feed simulation or collision geometry.
+const HUD_RECT := Rect2(30.0, 20.0, 660.0, 112.0)
+const HUD_PRIMARY_RECT := Rect2(44.0, 36.0, 300.0, 42.0)
+const HUD_SECONDARY_RECT := Rect2(44.0, 84.0, 452.0, 34.0)
+const OVERLAY_RECT := Rect2(76.0, 398.0, 568.0, 484.0)
+const SAFE_VISUAL_MARGIN := 24.0
 const TARGET_LEVEL := 5
 const DANGER_GRACE_DURATION := 0.75
 const MERGE_SCORE_BY_RESULT_LEVEL := {

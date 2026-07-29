@@ -22,6 +22,7 @@ func _init() -> void:
 	_test_danger_line_failure_rules()
 	_test_overlay_reset()
 	_test_visual_level_mapping()
+	_test_visual_layout_bounds()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -209,6 +210,13 @@ func _test_visual_level_mapping() -> void:
 	var expected := ["round pearl with soft highlight", "faceted ruby", "emerald-cut gem", "faceted sapphire", "multi-facet diamond"]
 	for level in range(1, 6):
 		_assert(GemVisualsType.visual_style_name(level) == expected[level - 1], "Gem level %d must keep its assigned procedural visual style" % level)
+
+func _test_visual_layout_bounds() -> void:
+	_assert(GameConfig.HUD_RECT.position.x >= 0.0 and GameConfig.HUD_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x, "HUD must remain inside the design viewport")
+	_assert(GameConfig.HUD_RECT.position.y >= 0.0 and GameConfig.HUD_RECT.end.y <= GameConfig.BOARD_TOP, "HUD must stay above the gameplay board")
+	_assert(GameConfig.OVERLAY_RECT.position.x >= GameConfig.SAFE_VISUAL_MARGIN and GameConfig.OVERLAY_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x - GameConfig.SAFE_VISUAL_MARGIN, "Overlay must remain within visual safe margins")
+	_assert(GameConfig.OVERLAY_BUTTON_RECT.position.y >= GameConfig.OVERLAY_RECT.position.y and GameConfig.OVERLAY_BUTTON_RECT.end.y <= GameConfig.OVERLAY_RECT.end.y, "Overlay action must fit within its panel")
+	_assert(GameConfig.RESTART_RECT.end.x <= GameConfig.HUD_RECT.end.x and GameConfig.RESTART_RECT.position.y >= GameConfig.HUD_RECT.position.y, "Restart control must remain inside the HUD")
 
 func _active_launcher_count(items: Array[GemPiece]) -> int:
 	var count := 0
