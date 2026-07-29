@@ -6,7 +6,8 @@
 - Path: `D:\Owais\game\build\android\asset-integration-background-table-gems-v1.apk`
 - Size: 70,457,131 bytes
 - Modified: 2026-07-29 10:24:35 +05:00
-- Source commit/tag: recorded in the immediate provenance documentation follow-up after the requested feature commit and tag.
+- Source commit: `7ac26f197d7768f13f8ea87c17e29b9893db4300` (`feat: integrate gameplay background table and gem assets`)
+- Tag: `asset-integration-background-table-gems-v1`
 - Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug APK physically verified.
 - Device status: `adb devices -l` found no connected device. No install or launch was attempted.
 

@@ -4,6 +4,7 @@
 
 - Started from clean verified milestone `d2e99213f01005ba08ff1f9bd50a98ac11a967c7`, tagged `reference-table-gem-audio-v1`.
 - The user-supplied `assets/` directory was intentionally untracked at the start of this task; the request explicitly authorized integrating it.
+- Delivered gameplay source: `7ac26f197d7768f13f8ea87c17e29b9893db4300` (`feat: integrate gameplay background table and gem assets`), tagged `asset-integration-background-table-gems-v1`.
 
 ## Selected source assets
 
