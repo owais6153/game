@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Visual refinement v1 is ready for Git delivery from the clean `gem-visual-prototype-v1` baseline. It adds rendering-only board, gem, HUD, overlay, and merge-presentation refinement. The same headless gameplay suite remains green; no phone was connected for device testing.
+**Phase:** Visual refinement v1 delivered at source commit `14d5de194e60dedf23c29e8c401e8c8b47e761a6`, tagged `gem-visual-refinement-v1`. It adds rendering-only board, gem, HUD, overlay, and merge-presentation refinement. The same headless gameplay suite remains green; no phone was connected for device testing.
 
 ## Do Not Regress
 

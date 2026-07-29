@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Gem Visual Refinement v1
+
+- File: `gem-visual-refinement-v1.apk`
+- Path: `D:\\Owais\\game\\build\\android\\gem-visual-refinement-v1.apk`
+- Size: 27,723,914 bytes
+- Modified: 2026-07-29 04:59:02 +05:00
+- Source commit: `14d5de194e60dedf23c29e8c401e8c8b47e761a6` (`feat: refine gemstone visuals and responsive layout`)
+- Tag: `gem-visual-refinement-v1`
+- Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and APK existence was verified.
+- Device status: `adb devices` found no connected device. No install or launch was attempted.
+
 ## Gemstone Visual Prototype v1
 
 - File: `gem-visual-prototype-v1.apk`
