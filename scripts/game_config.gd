@@ -2,12 +2,19 @@ class_name GameConfig
 extends RefCounted
 
 const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
-## The table is deliberately inset: the surrounding crystal alcove is visible
-## on every supported portrait viewport. These are also the live physics bounds.
-const BOARD_LEFT := 58.0
-const BOARD_RIGHT := 662.0
+## Authoritative table layout. The supplied table is a trapezoid, so the same
+## rail model is consumed by Sprite2D placement, collision containment, drag
+## clamps, launcher spawn, and danger-line drawing.
+const TABLE_TEXTURE_CENTER := Vector2(360.0, 650.0)
+const TABLE_TEXTURE_SIZE := Vector2(1024.0, 1536.0)
+const BOARD_LEFT := 0.0
+const BOARD_RIGHT := 720.0
 const BOARD_TOP := 224.0
 const BOARD_BOTTOM := 1080.0
+const TABLE_INNER_LEFT_TOP := 129.0
+const TABLE_INNER_RIGHT_TOP := 594.0
+const TABLE_INNER_LEFT_BOTTOM := 0.0
+const TABLE_INNER_RIGHT_BOTTOM := 720.0
 const DANGER_LINE_Y := 926.0
 const LAUNCH_Y := 1008.0
 const PIECE_RADIUS := 42.0
@@ -108,3 +115,15 @@ static func gem_color(level: int) -> Color:
 		4: return Color("2e83e6")
 		5: return Color("c8efff")
 		_: return Color.WHITE
+
+static func table_interpolation(y_position: float) -> float:
+	return inverse_lerp(BOARD_TOP, BOARD_BOTTOM, clampf(y_position, BOARD_TOP, BOARD_BOTTOM))
+
+static func table_left_at(y_position: float) -> float:
+	return lerpf(TABLE_INNER_LEFT_TOP, TABLE_INNER_LEFT_BOTTOM, table_interpolation(y_position))
+
+static func table_right_at(y_position: float) -> float:
+	return lerpf(TABLE_INNER_RIGHT_TOP, TABLE_INNER_RIGHT_BOTTOM, table_interpolation(y_position))
+
+static func table_playable_width_at(y_position: float) -> float:
+	return table_right_at(y_position) - table_left_at(y_position)

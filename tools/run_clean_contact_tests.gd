@@ -4,6 +4,7 @@ const GemPieceType = preload("res://scripts/gem_piece.gd")
 const SimulationType = preload("res://scripts/board_simulation.gd")
 const MergeType = preload("res://scripts/merge_service.gd")
 const GemVisualsType = preload("res://scripts/gem_visuals.gd")
+const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GameScene = preload("res://scenes/Game.tscn")
 var failures: Array[String] = []
 
@@ -33,6 +34,8 @@ func _init() -> void:
 	_test_hud_layout_and_pointer_safety()
 	_test_sound_and_haptics_feedback_routing()
 	_test_inset_table_and_viewport_safety()
+	_test_asset_mapping_and_clean_diamond()
+	_test_table_layout_physics_alignment()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -157,11 +160,11 @@ func _test_frame_step_stability() -> void:
 func _test_border_containment() -> void:
 	var simulation := SimulationType.new()
 	var merger := MergeType.new()
-	var piece := _piece(1, 1, Vector2(GameConfig.BOARD_LEFT + 40.0, GameConfig.BOARD_TOP + 40.0))
+	var piece := _piece(1, 1, Vector2(GameConfig.table_left_at(GameConfig.BOARD_TOP + 40.0) + 40.0, GameConfig.BOARD_TOP + 40.0))
 	piece.velocity = Vector2(-900.0, -900.0)
 	var items: Array[GemPiece] = [piece]
 	for frame in range(180): simulation.step(items, 1.0 / 60.0, merger)
-	_assert(piece.position.x >= GameConfig.BOARD_LEFT + piece.radius and piece.position.x <= GameConfig.BOARD_RIGHT - piece.radius, "Side containment must remain valid during a wall shot")
+	_assert(piece.position.x >= GameConfig.table_left_at(piece.position.y) + piece.radius and piece.position.x <= GameConfig.table_right_at(piece.position.y) - piece.radius, "Side containment must remain valid during a wall shot")
 	_assert(piece.position.y >= GameConfig.BOARD_TOP + piece.radius and piece.position.y <= GameConfig.BOARD_BOTTOM - piece.radius, "Top/bottom containment must remain valid during a wall shot")
 
 func _test_launcher_spawn_lifecycle() -> void:
@@ -287,7 +290,7 @@ func _test_visual_layout_bounds() -> void:
 func _test_portrait_board_bounds_and_scale() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:
 		var scale: float = minf(portrait_size.x / GameConfig.VIEWPORT_SIZE.x, portrait_size.y / GameConfig.VIEWPORT_SIZE.y)
-		_assert(GameConfig.BOARD_LEFT * scale >= 0.0 and GameConfig.BOARD_RIGHT * scale <= portrait_size.x, "Board must fit every supported portrait width")
+		_assert(GameConfig.table_left_at(GameConfig.BOARD_TOP) * scale >= 0.0 and GameConfig.table_right_at(GameConfig.BOARD_TOP) * scale <= portrait_size.x, "Table rail model must fit every supported portrait width")
 		_assert(GameConfig.BOARD_TOP * scale >= GameConfig.HUD_RECT.end.y * scale and GameConfig.BOARD_BOTTOM * scale <= portrait_size.y, "Board must remain below HUD and inside every supported portrait height")
 		_assert(GameConfig.PIECE_RADIUS * 2.0 <= (GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT) * 0.20, "Gem scale must leave horizontal cluster room")
 
@@ -301,7 +304,7 @@ func _test_merge_momentum_is_bounded_and_contained() -> void:
 	var result := merger.resolve([first, second], 100)
 	var upgraded: GemPiece = result.pieces[0]
 	_assert(upgraded.velocity.length() <= GameConfig.MERGE_MAX_SPAWN_SPEED + 0.01, "Upgraded-gem momentum must remain bounded")
-	_assert(upgraded.position.x >= GameConfig.BOARD_LEFT + upgraded.radius and upgraded.position.x <= GameConfig.BOARD_RIGHT - upgraded.radius and upgraded.position.y >= GameConfig.BOARD_TOP + upgraded.radius and upgraded.position.y <= GameConfig.BOARD_BOTTOM - upgraded.radius, "Upgraded gem must spawn inside board bounds")
+	_assert(upgraded.position.x >= GameConfig.table_left_at(upgraded.position.y) + upgraded.radius and upgraded.position.x <= GameConfig.table_right_at(upgraded.position.y) - upgraded.radius and upgraded.position.y >= GameConfig.BOARD_TOP + upgraded.radius and upgraded.position.y <= GameConfig.BOARD_BOTTOM - upgraded.radius, "Upgraded gem must spawn inside table rail bounds")
 
 func _test_progression_hud_snapshot_and_queue() -> void:
 	var controller = GameScene.instantiate()
@@ -384,10 +387,29 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(sound_setting and vibration_setting, "Sound and vibration must default to enabled")
 
 func _test_inset_table_and_viewport_safety() -> void:
-	_assert(GameConfig.BOARD_LEFT >= 48.0 and GameConfig.VIEWPORT_SIZE.x - GameConfig.BOARD_RIGHT >= 48.0, "Table must leave visible crystal background at both sides")
+	_assert(GameConfig.TABLE_TEXTURE_CENTER == GameConfig.VIEWPORT_SIZE * 0.5 + Vector2(0.0, 10.0), "Supplied table texture must use its documented authoritative placement")
+	_assert(GameConfig.table_left_at(GameConfig.BOARD_TOP) > 0.0 and GameConfig.table_right_at(GameConfig.BOARD_TOP) < GameConfig.VIEWPORT_SIZE.x, "Top rail must leave background visible at both sides")
 	_assert(GameConfig.BOARD_TOP - GameConfig.HUD_RECT.end.y >= 48.0, "Table must leave a visible background gap below HUD")
-	_assert(GameConfig.VIEWPORT_SIZE.y - GameConfig.BOARD_BOTTOM >= 160.0, "Table must leave a visible decorative background/launcher margin below")
 	_assert(GameConfig.DANGER_LINE_Y > GameConfig.BOARD_TOP and GameConfig.DANGER_LINE_Y < GameConfig.BOARD_BOTTOM and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y and GameConfig.LAUNCH_Y < GameConfig.BOARD_BOTTOM, "Danger line and launcher must remain inside physical table bounds")
+
+func _test_asset_mapping_and_clean_diamond() -> void:
+	var expected := ["pearl.png", "ruby.png", "emerald.png", "sapphire.png", "diamond.png"]
+	for level in range(1, 6):
+		var path := AssetCatalogType.gem_resource_path(level)
+		_assert(path.ends_with(expected[level - 1]), "Gem level %d must use the supplied runtime %s texture" % [level, expected[level - 1]])
+		_assert(ResourceLoader.exists(path), "Gem level %d runtime texture must exist" % level)
+	_assert(AssetCatalogType.DIAMOND_CLEAN.resource_path.ends_with("diamond.png"), "Diamond must map to the documented clean derived runtime asset")
+	_assert(ResourceLoader.exists(AssetCatalogType.TROPICAL_BACKGROUND.resource_path) and ResourceLoader.exists(AssetCatalogType.CORAL_TABLE.resource_path), "Background and table runtime textures must exist")
+
+func _test_table_layout_physics_alignment() -> void:
+	for y in [GameConfig.BOARD_TOP, GameConfig.DANGER_LINE_Y, GameConfig.LAUNCH_Y, GameConfig.BOARD_BOTTOM]:
+		var left := GameConfig.table_left_at(y)
+		var right := GameConfig.table_right_at(y)
+		_assert(left < right and right - left >= GameConfig.PIECE_RADIUS * 2.0, "Authoritative table rails must leave room for a gem at y=%d" % y)
+	var launch_left := GameConfig.table_left_at(GameConfig.LAUNCH_Y) + GameConfig.PIECE_RADIUS
+	var launch_right := GameConfig.table_right_at(GameConfig.LAUNCH_Y) - GameConfig.PIECE_RADIUS
+	_assert(360.0 >= launch_left and 360.0 <= launch_right, "Launcher spawn must remain inside visible table surface")
+	_assert(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) < GameConfig.table_right_at(GameConfig.DANGER_LINE_Y), "Dynamic danger line must span the same authoritative table surface")
 
 func _event_count(events: Array, event_name: String) -> int:
 	var total := 0

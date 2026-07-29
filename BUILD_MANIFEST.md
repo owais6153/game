@@ -1,5 +1,15 @@
 # Build Manifest
 
+## Asset Integration — Background, Table, and Gems v1
+
+- File: `asset-integration-background-table-gems-v1.apk`
+- Path: `D:\Owais\game\build\android\asset-integration-background-table-gems-v1.apk`
+- Size: 70,457,131 bytes
+- Modified: 2026-07-29 10:24:35 +05:00
+- Source commit/tag: recorded in the immediate provenance documentation follow-up after the requested feature commit and tag.
+- Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug APK physically verified.
+- Device status: `adb devices -l` found no connected device. No install or launch was attempted.
+
 ## Reference Table + Gem Audio v1
 
 - File: `reference-table-gem-audio-v1.apk`

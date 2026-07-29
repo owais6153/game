@@ -10,6 +10,14 @@
 
 Gem Merge Rebuild is a lightweight, portrait 2D Godot game. The intended visual theme is precious stones: Pearl (L1), Ruby (L2), Emerald (L3), Sapphire (L4), and Diamond (L5). The current milestone deliberately uses built-in circles and drawing only; final gemstone artwork, UI, sound, scoring, win/fail, persistence, ads, menus, levels, analytics, and backend are deferred.
 
+## Supplied art integration v1
+
+- Source art is preserved under `assets/`; only named copies under `assets/runtime/` are loaded by gameplay.
+- `AssetCatalog` is presentation-only: L1 Pearl, L2 Ruby, L3 Emerald, L4 Sapphire, L5 clean Diamond. `GemSpriteLayer` uses Sprite2D for live pieces; `GemVisuals` uses the same catalog for HUD previews and merge ghosts.
+- The background is a full-screen Sprite2D and cannot intercept game input. The table is a Sprite2D at `GameConfig.TABLE_TEXTURE_CENTER`.
+- Never derive collision shapes from artwork. The circular `GemPiece.radius`, current-step physical contact capture, merge rules, score, danger timers, and launcher lifecycle remain authoritative.
+- The table is trapezoidal. Always use `GameConfig.table_left_at(y)` / `table_right_at(y)` for any new rail-sensitive presentation or gameplay coordinate; do not reintroduce a mismatched visual rectangle.
+
 ## Current gameplay loop
 
 An empty board begins with exactly one launcher piece beneath the visual-only danger line. The player drags it horizontally and releases to send it straight upward. `BoardSimulation` advances movement, constrains the side/top borders, captures real contacts before separation, and resolves overlap. `ContactMergeService` accepts only valid same-level contact candidates. The controller waits for motion, merging, and presentation to finish, then advances the current/next queue exactly once and creates the next launcher.

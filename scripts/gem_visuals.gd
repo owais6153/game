@@ -1,6 +1,8 @@
 class_name GemVisuals
 extends RefCounted
 
+const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
+
 # Rendering-only gem kit. It deliberately accepts position/radius/level values
 # and has no reference to simulation state, collision, or merge candidates.
 
@@ -10,14 +12,11 @@ static func draw_shadow(canvas: CanvasItem, position: Vector2, radius: float, al
 	canvas.draw_circle(position + Vector2(3.0, 5.0), radius * 0.78, Color(0.01, 0.02, 0.04, alpha * 0.64))
 
 static func draw_gem(canvas: CanvasItem, level: int, position: Vector2, radius: float, alpha: float = 1.0, scale: float = 1.0) -> void:
-	var gem_radius := radius * scale
-	match level:
-		1: _draw_pearl(canvas, position, gem_radius, alpha)
-		2: _draw_ruby(canvas, position, gem_radius, alpha)
-		3: _draw_emerald(canvas, position, gem_radius, alpha)
-		4: _draw_sapphire(canvas, position, gem_radius, alpha)
-		5: _draw_diamond(canvas, position, gem_radius, alpha)
-		_: _draw_pearl(canvas, position, gem_radius, alpha)
+	var texture := AssetCatalogType.gem_texture(level)
+	var longest_side := maxf(texture.get_size().x, texture.get_size().y)
+	var draw_scale := (radius * 2.0 * AssetCatalogType.visual_scale(level) * scale) / longest_side
+	var size := texture.get_size() * draw_scale
+	canvas.draw_texture_rect(texture, Rect2(position - size * 0.5, size), false, Color(1.0, 1.0, 1.0, alpha))
 
 static func visual_style_name(level: int) -> String:
 	match level:

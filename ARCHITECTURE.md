@@ -9,6 +9,8 @@
 - `scripts/merge_service.gd`: isolated contact validation, deterministic consumption, immediate upgraded spawn, and local contact-only chain resolution.
 - `scripts/game_controller.gd`: launcher queue, pointer input, explicit one-shot lifecycle state machine, minimal HUD, rendering, and presentation-only merge effect lifecycle.
 - `scripts/gem_visuals.gd`: rendering-only procedural Pearl/Ruby/Emerald/Sapphire/Diamond shapes, shadows, highlights, and visual-style mapping. It cannot change simulation state.
+- `scripts/asset_catalog.gd`: presentation-only mapping from gem level to supplied runtime texture and visual normalization scale.
+- `scripts/gem_sprite_layer.gd`: Sprite2D synchronization layer for live gems. It reads entities and never writes simulation data.
 - `scripts/hud_renderer.gd`: rendering-only HUD and progression-strip drawing. It consumes `GameController.hud_snapshot()` and cannot mutate controller or simulation state.
 - `tools/run_clean_contact_tests.gd`: headless integration coverage of the actual simulation → contact → merge path.
 
@@ -37,6 +39,10 @@ Danger state is controller-owned and keyed by piece ID. It is cleared immediatel
 ## Reference table + crystal audio v1
 
 `GameConfig` owns the inset table geometry used by both renderer and simulation. `BoardSimulation` publishes presentation-only typed `gem`/`wall` impact telemetry; `AudioFeedbackService` synthesizes original inharmonic crystal cues from that telemetry and confirmed controller events. Neither path may influence collision, merge, score, lifecycle, or outcomes.
+
+## Supplied asset layout v1
+
+`GameConfig` owns the one authoritative trapezoid table layout: texture center/size, top and bottom inner rail anchors, `table_left_at(y)`, and `table_right_at(y)`. `GameController` places the background/table Sprite2D nodes and draws the dynamic danger line from this model. `BoardSimulation` uses the same functions for rail containment, while launcher dragging uses them for clamping. `GemSpriteLayer` maps only the already-authoritative `GemPiece` position/level/radius to textures; no artwork feeds back to simulation.
 
 `AudioFeedbackService` owns lightweight procedural tone routing, reusable-player limits, and per-event cooldowns. `HapticsService` owns platform vibration calls and safely records editor/headless requests without calling a vibrator. `BoardSimulation` exposes impact strengths only; `GameController` routes eligible impacts and confirmed merge/chain/result events. Neither feedback service belongs in the simulation or merge service. All feedback constants live in `GameConfig`.
 

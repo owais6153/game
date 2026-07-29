@@ -20,8 +20,8 @@ func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) ->
 			_resolve_pair(first, pieces[second_index], merger)
 
 func _resolve_bounds(piece: GemPiece) -> void:
-	var left := GameConfig.BOARD_LEFT + piece.radius
-	var right := GameConfig.BOARD_RIGHT - piece.radius
+	var left := GameConfig.table_left_at(piece.position.y) + piece.radius
+	var right := GameConfig.table_right_at(piece.position.y) - piece.radius
 	var top := GameConfig.BOARD_TOP + piece.radius
 	var bottom := GameConfig.BOARD_BOTTOM - piece.radius
 	if piece.position.x < left:

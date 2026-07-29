@@ -27,6 +27,13 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - The danger line is never a collision or movement clamp.
 - Unobstructed gems hit the top border, stay inside the board, and settle.
 
+## Supplied background, table, and gem assets v1
+
+- A supplied tropical background fills the fixed portrait design canvas without distortion and remains presentation-only.
+- A supplied transparent coral table is centered over the background. The playable surface is a calibrated trapezoid: its top inner rail is `x=129..594` at `y=224`, widening to `x=0..720` at `y=1080`.
+- Side/top containment, launch spawn, horizontal drag clamp, and the dynamic danger line use this same centralized table model. This is coordinate alignment only; merge, collision response, scoring, chain, queue, win, and fail rules remain unchanged.
+- Live pieces use Sprite2D textures mapped exactly as Pearl (L1), Ruby (L2), Emerald (L3), Sapphire (L4), Diamond (L5). The Emerald remains visually rectangular but physically circular. Diamond uses the documented clean derived runtime texture.
+
 ## Gems and merge rules
 
 - L1 Pearl → L2 Ruby → L3 Emerald → L4 Sapphire → L5 Diamond.

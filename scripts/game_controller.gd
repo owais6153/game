@@ -4,6 +4,8 @@ const GemVisualsType = preload("res://scripts/gem_visuals.gd")
 const HudRendererType = preload("res://scripts/hud_renderer.gd")
 const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.gd")
 const HapticsServiceType = preload("res://scripts/haptics_service.gd")
+const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
+const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -22,6 +24,7 @@ var failed := false
 var ready_delay_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
+var gem_sprite_layer: GemSpriteLayer
 
 # A completed shot can pass through each state only once. This prevents the
 # settled-board condition from spawning a launcher again on every frame.
@@ -35,10 +38,12 @@ enum LauncherState {
 var launcher_state: LauncherState = LauncherState.SPAWNING_NEXT
 
 func _ready() -> void:
+	_setup_asset_presentation()
 	audio_feedback = AudioFeedbackServiceType.new()
 	haptics_feedback = HapticsServiceType.new()
 	add_child(audio_feedback)
 	_advance_launcher_lifecycle()
+	gem_sprite_layer.sync_gems(pieces)
 	queue_redraw()
 
 func _process(delta: float) -> void:
@@ -63,6 +68,7 @@ func _process(delta: float) -> void:
 		if launcher_state != LauncherState.READY_TO_AIM:
 			launcher_state = LauncherState.RESOLVING
 	_advance_launcher_lifecycle(delta)
+	gem_sprite_layer.sync_gems(pieces)
 	queue_redraw()
 
 func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
@@ -150,7 +156,7 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 func move_active_to(x_position: float) -> void:
 	var active := get_active_piece()
 	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
-		active.position.x = clampf(x_position, GameConfig.BOARD_LEFT + active.radius, GameConfig.BOARD_RIGHT - active.radius)
+		active.position.x = clampf(x_position, GameConfig.table_left_at(active.position.y) + active.radius, GameConfig.table_right_at(active.position.y) - active.radius)
 
 func launch_active_piece() -> void:
 	var active := get_active_piece()
@@ -202,6 +208,24 @@ func restart() -> void:
 	launcher_state = LauncherState.SPAWNING_NEXT
 	ready_delay_elapsed = 0.0
 	_advance_launcher_lifecycle()
+	if gem_sprite_layer != null:
+		gem_sprite_layer.sync_gems(pieces)
+
+func _setup_asset_presentation() -> void:
+	var background := Sprite2D.new()
+	background.texture = AssetCatalogType.TROPICAL_BACKGROUND
+	background.position = GameConfig.VIEWPORT_SIZE * 0.5
+	background.scale = Vector2(GameConfig.VIEWPORT_SIZE.x / background.texture.get_size().x, GameConfig.VIEWPORT_SIZE.y / background.texture.get_size().y)
+	background.z_index = -20
+	add_child(background)
+	var table := Sprite2D.new()
+	table.texture = AssetCatalogType.CORAL_TABLE
+	table.position = GameConfig.TABLE_TEXTURE_CENTER
+	table.z_index = -10
+	add_child(table)
+	gem_sprite_layer = GemSpriteLayerType.new()
+	gem_sprite_layer.z_index = 10
+	add_child(gem_sprite_layer)
 
 func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 	var resolution_multiplier := 1
@@ -263,26 +287,15 @@ func _route_collision_feedback() -> void:
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:
-	_draw_crystal_atmosphere()
-	# All geometry below is presentation-only; BoardSimulation keeps the same bounds.
-	draw_rect(Rect2(GameConfig.BOARD_LEFT - 18.0, GameConfig.BOARD_TOP - 18.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 36.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 36.0), Color("0a1622", 0.72), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT - 13.0, GameConfig.BOARD_TOP - 13.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 26.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 26.0), Color("3d2d31"), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT - 8.0, GameConfig.BOARD_TOP - 8.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT + 16.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP + 16.0), Color("c79b51"), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP), Color("163b38"), true)
-	draw_rect(Rect2(GameConfig.BOARD_LEFT + 15.0, GameConfig.BOARD_TOP + 15.0, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT - 30.0, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP - 30.0), Color("6cae83", 0.52), false, 2.0)
-	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Color("f6d77e"), 5.0)
-	draw_line(Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
-	draw_line(Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
-	draw_dashed_line(Vector2(GameConfig.BOARD_LEFT + 8.0, GameConfig.DANGER_LINE_Y), Vector2(GameConfig.BOARD_RIGHT - 8.0, GameConfig.DANGER_LINE_Y), Color("f6bb42"), 3.0, 12.0)
+	# The supplied artwork is drawn by Sprite2D nodes. This dynamic line is kept
+	# above the clean table art so it always shares the authoritative rail bounds.
+	draw_dashed_line(Vector2(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) + 8.0, GameConfig.DANGER_LINE_Y), Vector2(GameConfig.table_right_at(GameConfig.DANGER_LINE_Y) - 8.0, GameConfig.DANGER_LINE_Y), Color("f6bb42"), 3.0, 12.0)
 	var font := ThemeDB.fallback_font
 	HudRendererType.draw(self, hud_snapshot(), font)
 	# Draw the non-physical source ghosts first. The new simulated gem is then
 	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
 	for presentation in merge_presentations:
 		_draw_merge_presentation(presentation)
-	for piece in pieces:
-		GemVisualsType.draw_shadow(self, piece.position, piece.radius)
-		GemVisualsType.draw_gem(self, piece.level, piece.position, piece.radius)
 	if won or failed:
 		_draw_result_overlay(font)
 
