@@ -1,5 +1,11 @@
 # Architecture
 
+## Visual-physics calibration v1
+
+- `assets/runtime/gems_calibrated/` contains alpha-trimmed derived textures; originals and earlier runtime sources remain preserved.
+- `GameConfig.gem_collision_radius(level)` is the collision-radius authority. `GemSpriteLayer` maps each trimmed visual box onto that simple calibrated body; textures never decide merge eligibility.
+- `BoardSimulation` attaches a confirmed contact point to gem/wall impact telemetry. `GameController` forwards that telemetry to audio and, only when F8 debug is enabled, renders temporary contact markers.
+
 ## Clean Contact Merge v1
 
 - `scripts/game_config.gd`: board dimensions, physics tuning, gem labels/colors.

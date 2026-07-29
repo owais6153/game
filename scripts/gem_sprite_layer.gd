@@ -23,11 +23,13 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		var texture := AssetCatalogType.gem_texture(piece.level)
 		sprite.texture = texture
 		sprite.position = piece.position
-		var longest_side := maxf(texture.get_size().x, texture.get_size().y)
-		var size_scale := (piece.radius * 2.0 * AssetCatalogType.visual_scale(piece.level)) / longest_side
-		sprite.scale = Vector2.ONE * size_scale
-		# Emerald deliberately stays rectangular and centered; no collision shape
-		# is derived from any sprite silhouette.
+		# The runtime images are alpha-trimmed to their main bodies. Independent
+		# axis scales map that visible box to this piece's calibrated simple body,
+		# preventing a fixed full-texture rectangle from creating invisible gaps.
+		var collider_diameter := piece.radius * 2.0
+		sprite.scale = Vector2(collider_diameter / texture.get_size().x, collider_diameter / texture.get_size().y)
+		# Emerald and Diamond retain simple stable circular bodies; their artwork
+		# remains presentation-only and never defines merge eligibility.
 		sprite.visible = true
 	for id in _sprites.keys():
 		if not live_ids.has(id):

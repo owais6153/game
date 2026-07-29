@@ -11,13 +11,19 @@ const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
 const BOARD_TOP := 224.0
 const BOARD_BOTTOM := 1080.0
-const TABLE_INNER_LEFT_TOP := 129.0
-const TABLE_INNER_RIGHT_TOP := 594.0
+## Shallower top anchors match the calibrated runtime table derivative and the
+## tropical camera better than the original aggressive trapezoid.
+const TABLE_INNER_LEFT_TOP := 90.0
+const TABLE_INNER_RIGHT_TOP := 630.0
 const TABLE_INNER_LEFT_BOTTOM := 0.0
 const TABLE_INNER_RIGHT_BOTTOM := 720.0
 const DANGER_LINE_Y := 926.0
 const LAUNCH_Y := 1008.0
+## Largest gameplay radius. Individual values are calibrated to the visible
+## main body of the alpha-trimmed runtime texture for each gem level.
 const PIECE_RADIUS := 42.0
+const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0}
+const VISIBLE_CONTACT_TOLERANCE := 1.0
 # Gameplay balance v1 — all feel values live here. Keep simulation delta-based.
 # The default/range notes are the approved safe tuning envelope for this prototype.
 const DRAG_HIT_RADIUS_MULTIPLIER := 1.8 # default 1.8; safe 1.5–2.0
@@ -30,7 +36,7 @@ const BOTTOM_WALL_RESTITUTION := 0.08 # approved parity range 0.06–0.12
 const COLLISION_RESTITUTION := 0.34 # equal-mass normal impulse; approved parity range 0.28–0.42
 const COLLISION_TANGENTIAL_FRICTION := 0.18 # contact-only rolling resistance; approved range 0.12–0.24
 const MAX_PIECE_SPEED := 1200.0 # containment guard; preserves natural launch/collision speed
-const CONTACT_EPSILON := 1.5
+const CONTACT_EPSILON := 0.75
 const SEPARATION_EPSILON := 0.10 # smaller correction avoids visible collision snapping
 const MERGE_PRESENTATION_DURATION := 0.18 # shorter total presentation reduces dead time
 const MERGE_SOURCE_PULL_DURATION := 0.11 # source convergence remains visible but soft
@@ -106,6 +112,9 @@ static func gem_name(level: int) -> String:
 		4: return "Sapphire"
 		5: return "Diamond"
 		_: return "Unknown"
+
+static func gem_collision_radius(level: int) -> float:
+	return float(GEM_COLLISION_RADIUS.get(level, PIECE_RADIUS))
 
 static func gem_color(level: int) -> Color:
 	match level:

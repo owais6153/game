@@ -34,6 +34,12 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Side/top containment, launch spawn, horizontal drag clamp, and the dynamic danger line use this same centralized table model. This is coordinate alignment only; merge, collision response, scoring, chain, queue, win, and fail rules remain unchanged.
 - Live pieces use Sprite2D textures mapped exactly as Pearl (L1), Ruby (L2), Emerald (L3), Sapphire (L4), Diamond (L5). The Emerald remains visually rectangular but physically circular. Diamond uses the documented clean derived runtime texture.
 
+## Visual-physics calibration v1
+
+- The calibrated table derivative deliberately relaxes the original top convergence. Its inner surface uses `x=90..630` at `y=224`, widening to `x=0..720` at `y=1080`; rendering, rails, spawn, drag clamps, and danger line use this same authority.
+- Gameplay textures are non-destructive alpha-trimmed runtime copies. Pearl/Ruby/Sapphire use 42 px circles; Emerald uses a stable 32 px circle; Diamond uses a 33 px circle that excludes decorative sparkle/halo content.
+- Contact tolerance is 0.75 design px. Sound is routed only from a confirmed physical contact impulse, carrying the same contact point shown by developer debug diagnostics. Merge sound remains tied to confirmed merge execution.
+
 ## Gems and merge rules
 
 - L1 Pearl → L2 Ruby → L3 Emerald → L4 Sapphire → L5 Diamond.

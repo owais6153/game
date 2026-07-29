@@ -22,6 +22,8 @@ All source files below were supplied by the user in `assets/` and remain untouch
 | `assets/runtime/gems/emerald.png` | `Generated image 7.png` | trimmed transparent outer padding; longest side capped at 512 px | L3 Emerald; its rectangular composition stays centered. |
 | `assets/runtime/gems/sapphire.png` | `Generated image 8.png` | trimmed transparent outer padding; longest side capped at 512 px | L4 Sapphire. |
 | `assets/runtime/gems/diamond.png` | `Generated image 9.png` | trimmed transparent outer padding, then a transparent diamond-silhouette mask removed the large outer/lower glow from the runtime copy | L5 Diamond. The source is not altered. |
+| `assets/runtime/gems_calibrated/*.png` | corresponding `assets/runtime/gems/*.png` | alpha >=32 body bounds trimmed with a 2 px anti-alias rim | v1 calibrated live runtime sprites; source and prior runtime copies remain untouched. |
+| `assets/runtime/table/coral_table_calibrated.png` | `assets/runtime/table/coral_table.png` | non-destructive projective correction that widens only the upper playfield | shallower table convergence for the tropical background camera. |
 
 The supplied gem originals have genuine alpha at their corners. The runtime gems retain alpha; no checkerboard, gray plate, or opaque rectangular background is used. Godot imports use the project’s Android ETC2/ASTC support with alpha-border fixing and no mipmaps, appropriate for these compact mobile sprites.
 
@@ -29,10 +31,10 @@ The supplied gem originals have genuine alpha at their corners. The runtime gems
 
 The table texture is a 1024×1536 transparent asset centered at `(360, 650)` in the fixed 720×1280 design canvas. Its visible inner rail anchors were measured and encoded once in `GameConfig`:
 
-- top rail / inner surface: `y=224`, `x=129..594`
+- top rail / inner surface: `y=224`, `x=90..630`
 - bottom surface: `y=1080`, `x=0..720`
 - side rails: linear interpolation between those anchors
 - danger line: `y=926`, dynamically drawn from the same rail functions
 - launcher: `y=1008`, horizontally clamped by the same rail functions
 
-The renderer, launcher clamp, spawn point, bounds simulation, and danger-line drawing consume this one layout model. The gem collision radius remains the existing `42 px`; art never determines collision geometry.
+The renderer, launcher clamp, spawn point, bounds simulation, and danger-line drawing consume this one layout model. Calibrated simple gem radii are Pearl/Ruby/Sapphire `42 px`, Emerald `32 px`, and Diamond `33 px`; the art mapping remains presentation-only.

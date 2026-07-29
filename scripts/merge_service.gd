@@ -54,7 +54,7 @@ func _resolve_cycle(pieces: Array[GemPiece], candidates: Array[ContactPair], nex
 		remove_ids[first.id] = true; remove_ids[second.id] = true
 		first.consumed = true; second.consumed = true
 		var midpoint := (first.position + second.position) * 0.5
-		var upgraded := GemPiece.new(id_cursor, first.level + 1, midpoint, first.radius)
+		var upgraded := GemPiece.new(id_cursor, first.level + 1, midpoint, GameConfig.gem_collision_radius(first.level + 1))
 		# Bounded source momentum keeps the merge connected to the impact without
 		# changing contact-only eligibility or allowing a cluster escape.
 		upgraded.velocity = ((first.velocity + second.velocity) * 0.5 * GameConfig.MERGE_MOMENTUM_TRANSFER).limit_length(GameConfig.MERGE_MAX_SPAWN_SPEED)

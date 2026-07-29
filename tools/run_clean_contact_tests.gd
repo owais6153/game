@@ -36,6 +36,9 @@ func _init() -> void:
 	_test_inset_table_and_viewport_safety()
 	_test_asset_mapping_and_clean_diamond()
 	_test_table_layout_physics_alignment()
+	_test_visible_collision_calibration()
+	_test_calibrated_wall_contacts()
+	_test_collision_audio_uses_confirmed_contact()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -45,7 +48,7 @@ func _init() -> void:
 		quit(1)
 
 func _piece(id: int, level: int, at_position: Vector2) -> GemPiece:
-	return GemPieceType.new(id, level, at_position, GameConfig.PIECE_RADIUS)
+	return GemPieceType.new(id, level, at_position, GameConfig.gem_collision_radius(level))
 
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
@@ -410,6 +413,48 @@ func _test_table_layout_physics_alignment() -> void:
 	var launch_right := GameConfig.table_right_at(GameConfig.LAUNCH_Y) - GameConfig.PIECE_RADIUS
 	_assert(360.0 >= launch_left and 360.0 <= launch_right, "Launcher spawn must remain inside visible table surface")
 	_assert(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) < GameConfig.table_right_at(GameConfig.DANGER_LINE_Y), "Dynamic danger line must span the same authoritative table surface")
+
+func _test_visible_collision_calibration() -> void:
+	var expected := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0}
+	for level in range(1, 6):
+		var radius := GameConfig.gem_collision_radius(level)
+		_assert(is_equal_approx(radius, float(expected[level])), "Gem level %d must use documented calibrated collision radius" % level)
+		_assert(radius <= GameConfig.PIECE_RADIUS, "Visible alpha calibration must never inflate a gem collider")
+		_assert(ResourceLoader.exists(AssetCatalogType.gem_resource_path(level)), "Each calibrated gem texture must exist")
+	var pearl_a := _piece(1, 1, Vector2(300, 500))
+	var pearl_b := _piece(2, 1, Vector2(300 + pearl_a.radius * 2.0 + GameConfig.VISIBLE_CONTACT_TOLERANCE, 500))
+	_assert(pearl_a.position.distance_to(pearl_b.position) - (pearl_a.radius + pearl_b.radius) <= GameConfig.VISIBLE_CONTACT_TOLERANCE, "Pearl visible first-contact tolerance must remain within one design pixel")
+	var diamond := _piece(3, 5, Vector2(500, 500))
+	_assert(diamond.radius < GameConfig.PIECE_RADIUS, "Diamond collider must exclude removed sparkle/halo padding")
+
+func _test_calibrated_wall_contacts() -> void:
+	var simulation := SimulationType.new()
+	var merger := MergeType.new()
+	for level in range(1, 6):
+		var piece := _piece(level, level, Vector2(GameConfig.table_left_at(600.0) + 1.0, 600.0))
+		piece.velocity = Vector2(-300.0, 0.0)
+		var items: Array[GemPiece] = [piece]
+		simulation.step(items, 1.0 / 60.0, merger)
+		_assert(piece.position.x >= GameConfig.table_left_at(piece.position.y) + piece.radius - GameConfig.VISIBLE_CONTACT_TOLERANCE, "Level %d must touch the calibrated left rail without penetrating" % level)
+		var right_piece := _piece(level + 10, level, Vector2(GameConfig.table_right_at(600.0) - 1.0, 600.0))
+		right_piece.velocity = Vector2(300.0, 0.0)
+		var right_items: Array[GemPiece] = [right_piece]
+		simulation.step(right_items, 1.0 / 60.0, merger)
+		_assert(right_piece.position.x <= GameConfig.table_right_at(right_piece.position.y) - right_piece.radius + GameConfig.VISIBLE_CONTACT_TOLERANCE, "Level %d must touch the calibrated right rail without penetrating" % level)
+
+func _test_collision_audio_uses_confirmed_contact() -> void:
+	var simulation := SimulationType.new()
+	var merger := MergeType.new()
+	var first := _piece(1, 1, Vector2(300, 500))
+	var second := _piece(2, 1, Vector2(300 + first.radius + GameConfig.gem_collision_radius(1) + GameConfig.CONTACT_EPSILON + 2.0, 500))
+	first.velocity = Vector2(500, 0)
+	var no_contact: Array[GemPiece] = [first, second]
+	simulation.step(no_contact, 0.0, merger)
+	_assert(simulation.consume_collision_impacts().is_empty(), "Collision audio telemetry must not fire before calibrated physical contact")
+	second.position.x = first.position.x + first.radius + second.radius
+	simulation.step(no_contact, 0.0, merger)
+	var impacts := simulation.consume_collision_impacts()
+	_assert(impacts.any(func(impact: Dictionary): return String(impact.get("kind", "")) == "gem" and impact.has("position")), "Gem audio telemetry must be emitted from the confirmed contact point")
 
 func _event_count(events: Array, event_name: String) -> int:
 	var total := 0

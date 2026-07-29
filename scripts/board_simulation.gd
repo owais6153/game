@@ -25,19 +25,19 @@ func _resolve_bounds(piece: GemPiece) -> void:
 	var top := GameConfig.BOARD_TOP + piece.radius
 	var bottom := GameConfig.BOARD_BOTTOM - piece.radius
 	if piece.position.x < left:
-		_record_wall_impact(absf(piece.velocity.x))
+		_record_wall_impact(absf(piece.velocity.x), Vector2(left - piece.radius, piece.position.y))
 		piece.position.x = left
 		piece.velocity.x = abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	elif piece.position.x > right:
-		_record_wall_impact(absf(piece.velocity.x))
+		_record_wall_impact(absf(piece.velocity.x), Vector2(right + piece.radius, piece.position.y))
 		piece.position.x = right
 		piece.velocity.x = -abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	if piece.position.y < top:
-		_record_wall_impact(absf(piece.velocity.y))
+		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, top - piece.radius))
 		piece.position.y = top
 		piece.velocity.y = abs(piece.velocity.y) * GameConfig.TOP_WALL_RESTITUTION
 	elif piece.position.y > bottom:
-		_record_wall_impact(absf(piece.velocity.y))
+		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, bottom + piece.radius))
 		piece.position.y = bottom
 		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION
 
@@ -59,7 +59,8 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 		_resolve_bounds(second)
 	var relative_speed := (second.velocity - first.velocity).dot(normal)
 	if relative_speed < 0.0:
-		_collision_impacts.append({"kind": "gem", "strength": absf(relative_speed)})
+		var contact_point := first.position + normal * first.radius
+		_collision_impacts.append({"kind": "gem", "strength": absf(relative_speed), "position": contact_point})
 		var impulse := -relative_speed * GameConfig.COLLISION_RESTITUTION
 		first.velocity -= normal * impulse
 		second.velocity += normal * impulse
@@ -73,9 +74,9 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	first.velocity = first.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 	second.velocity = second.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 
-func _record_wall_impact(strength: float) -> void:
+func _record_wall_impact(strength: float, contact_position: Vector2) -> void:
 	if strength > 0.0:
-		_collision_impacts.append({"kind": "wall", "strength": strength})
+		_collision_impacts.append({"kind": "wall", "strength": strength, "position": contact_position})
 
 func consume_collision_impacts() -> Array[Dictionary]:
 	var result := _collision_impacts.duplicate()

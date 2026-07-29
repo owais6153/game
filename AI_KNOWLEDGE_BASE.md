@@ -18,6 +18,13 @@ Gem Merge Rebuild is a lightweight, portrait 2D Godot game. The intended visual 
 - Never derive collision shapes from artwork. The circular `GemPiece.radius`, current-step physical contact capture, merge rules, score, danger timers, and launcher lifecycle remain authoritative.
 - The table is trapezoidal. Always use `GameConfig.table_left_at(y)` / `table_right_at(y)` for any new rail-sensitive presentation or gameplay coordinate; do not reintroduce a mismatched visual rectangle.
 
+## Visual-physics calibration v1
+
+- Use `assets/runtime/gems_calibrated/`, never alter user-source artwork. Final runtime boxes are Pearl 421x477, Ruby 448x476, Emerald 368x474, Sapphire 476x483, Diamond 460x368.
+- Collider radii are deliberately level-specific: 42/42/32/42/33 for Pearl through Diamond. Do not revert to one 42 px collider or derive complex polygons from artwork.
+- Keep `CONTACT_EPSILON` at 0.75 px unless a dedicated calibration task supplies evidence. Contact sound must route from `BoardSimulation` confirmed impact records, never proximity/broad-phase checks.
+- F8 enables rails/collider/contact debug only in desktop/editor inspection. It must remain off by default and must never change simulation state.
+
 ## Current gameplay loop
 
 An empty board begins with exactly one launcher piece beneath the visual-only danger line. The player drags it horizontally and releases to send it straight upward. `BoardSimulation` advances movement, constrains the side/top borders, captures real contacts before separation, and resolves overlap. `ContactMergeService` accepts only valid same-level contact candidates. The controller waits for motion, merging, and presentation to finish, then advances the current/next queue exactly once and creates the next launcher.

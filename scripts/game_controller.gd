@@ -25,6 +25,10 @@ var ready_delay_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
 var gem_sprite_layer: GemSpriteLayer
+## Developer-only inspection aid. F8 toggles it in editor/desktop builds; it
+## starts disabled and has no input or gameplay authority on Android.
+var debug_calibration_enabled := false
+var debug_contact_points: Array[Dictionary] = []
 
 # A completed shot can pass through each state only once. This prevents the
 # settled-board condition from spawning a launcher again on every frame.
@@ -47,6 +51,9 @@ func _ready() -> void:
 	queue_redraw()
 
 func _process(delta: float) -> void:
+	for marker in debug_contact_points:
+		marker.age = float(marker.get("age", 0.0)) + delta
+	debug_contact_points = debug_contact_points.filter(func(marker: Dictionary) -> bool: return float(marker.get("age", 0.0)) < 0.45)
 	if won or failed:
 		_update_merge_presentations(delta)
 		queue_redraw()
@@ -117,6 +124,10 @@ func hud_snapshot() -> Dictionary:
 	}
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F8:
+		debug_calibration_enabled = not debug_calibration_enabled
+		queue_redraw()
+		return
 	if event is InputEventScreenTouch:
 		_handle_pointer(event.position, event.pressed)
 	elif event is InputEventScreenDrag and dragging:
@@ -171,7 +182,7 @@ func spawn_active_piece() -> bool:
 	# Idempotent for a lifecycle cycle: an existing launcher is never replaced.
 	if get_active_piece() != null:
 		return false
-	var piece := GemPiece.new(next_piece_id, next_level, Vector2(360.0, GameConfig.LAUNCH_Y), GameConfig.PIECE_RADIUS)
+	var piece := GemPiece.new(next_piece_id, next_level, Vector2(360.0, GameConfig.LAUNCH_Y), GameConfig.gem_collision_radius(next_level))
 	next_piece_id += 1
 	piece.is_active_launcher = true
 	pieces.append(piece)
@@ -278,6 +289,8 @@ func _update_merge_presentations(delta: float) -> void:
 
 func _route_collision_feedback() -> void:
 	for impact in simulation.consume_collision_impacts():
+		if debug_calibration_enabled and impact.has("position"):
+			debug_contact_points.append({"position": impact.position, "age": 0.0})
 		var kind := String(impact.get("kind", "gem"))
 		var strength := float(impact.get("strength", 0.0))
 		if kind == "wall":
@@ -298,6 +311,24 @@ func _draw() -> void:
 		_draw_merge_presentation(presentation)
 	if won or failed:
 		_draw_result_overlay(font)
+	if debug_calibration_enabled:
+		_draw_calibration_debug(font)
+
+func _draw_calibration_debug(font: Font) -> void:
+	var left_top := Vector2(GameConfig.table_left_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP)
+	var right_top := Vector2(GameConfig.table_right_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP)
+	var left_bottom := Vector2(GameConfig.table_left_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM)
+	var right_bottom := Vector2(GameConfig.table_right_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM)
+	draw_polyline(PackedVector2Array([left_top, right_top, right_bottom, left_bottom, left_top]), Color("ff5ccd"), 2.0)
+	for piece in pieces:
+		if piece.consumed:
+			continue
+		draw_arc(piece.position, piece.radius, 0.0, TAU, 32, Color("ffdd55"), 1.5)
+		draw_line(piece.position - Vector2(5.0, 0.0), piece.position + Vector2(5.0, 0.0), Color("ffdd55"), 1.0)
+		draw_line(piece.position - Vector2(0.0, 5.0), piece.position + Vector2(0.0, 5.0), Color("ffdd55"), 1.0)
+	for marker in debug_contact_points:
+		draw_circle(marker.position, 4.0, Color("ff5ccd"))
+	draw_string(font, Vector2(24.0, 190.0), "CALIBRATION DEBUG (F8): rails / colliders / contacts", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("ffdd55"))
 
 func _draw_crystal_atmosphere() -> void:
 	# Lightweight procedural depth: only flat primitives, no shader/blur/particles.

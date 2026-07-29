@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`reference-table-gem-audio-v1` (in progress): contained crystal-table composition and original procedural gem/glass audio. Gameplay rules remain unchanged; see `REFERENCE_TABLE_GEM_AUDIO_V1_REPORT.md`.
+`visual-physics-calibration-v1`: calibrated table perspective, visible gem contact bounds, and confirmed-contact audio routing. See `VISUAL_PHYSICS_CALIBRATION_V1_REPORT.md`.
 
 ## Commands
 
