@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Sound + Haptics v1 has been exported and is awaiting final Git provenance recording. It adds procedural one-shot sound, mobile-safe haptic routing, and session-only `S`/`V` controls. All gameplay rules are preserved. See `SOUND_HAPTICS_V1_REPORT.md`.
+**Phase:** Sound + Haptics v1 delivered at source commit `5245163722e2c34f86657aa25483f47d96e7fdfa`, tagged `sound-haptics-v1`. It adds procedural one-shot sound, mobile-safe haptic routing, and session-only `S`/`V` controls. All gameplay rules are preserved. The standalone APK is `build/android/sound-haptics-v1.apk` (27,744,897 bytes, 2026-07-29 07:59:11 +05:00); `adb devices -l` found no connected device. See `SOUND_HAPTICS_V1_REPORT.md`.
 
 **Phase:** Progression HUD v1 delivered at source commit `2dc007575457fec112acabc51b7d6dcfb9f06462`, tagged `progression-hud-v1`. It adds presentation-only current/next gem previews, a compact Diamond-target progression strip, and a simplified luxury HUD. It does not change physics, contact merge eligibility, chains, score rules, launcher lifecycle, danger handling, outcomes, or restart. The standalone APK is `build/android/progression-hud-v1.apk` (27,732,265 bytes, 2026-07-29 07:42:27 +05:00); no phone was connected for device testing.
 

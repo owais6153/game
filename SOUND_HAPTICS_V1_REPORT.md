@@ -33,7 +33,12 @@
 
 ## Validation / delivery
 
-To be updated after the Android export and Git tag are completed in this same milestone.
+- Godot 4.6.3 parse/import/headless validation passed.
+- Full headless controller/simulation/feedback suite passed: `CLEAN_CONTACT_TESTS: PASS`.
+- Standalone Android export passed and `build/android/sound-haptics-v1.apk` was physically verified.
+- APK: `D:\Owais\game\build\android\sound-haptics-v1.apk` — 27,744,897 bytes — 2026-07-29 07:59:11 +05:00.
+- Milestone source commit/tag: `5245163722e2c34f86657aa25483f47d96e7fdfa` / `sound-haptics-v1`.
+- `adb devices -l` found no connected device; installation and launch were not attempted.
 
 ## Phone checklist
 

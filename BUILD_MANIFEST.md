@@ -6,9 +6,10 @@
 - Path: `D:\Owais\game\build\android\sound-haptics-v1.apk`
 - Size: 27,744,897 bytes
 - Modified: 2026-07-29 07:59:11 +05:00
-- Source commit/tag: pending final milestone commit.
+- Source commit: `5245163722e2c34f86657aa25483f47d96e7fdfa` (`feat: add gameplay sound and haptic feedback`)
+- Tag: `sound-haptics-v1`
 - Validation: Godot 4.6.3 headless test suite passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and the APK file was physically verified.
-- Device status: pending `adb devices -l` check.
+- Device status: `adb devices -l` found no connected device. No install or launch was attempted.
 
 ## Progression HUD v1
 
