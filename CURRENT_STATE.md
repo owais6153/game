@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Physics and pacing parity v1 is in validation. It begins from the clean `gameplay-balance-v1` baseline and changes only documented centralized feel values plus bounded tangential contact resistance and merge momentum handoff. Merge eligibility, chains, launcher lifecycle, score, win/fail, restart, and gem mapping remain unchanged. The final commit/tag/APK provenance is recorded in `BUILD_MANIFEST.md` and `PHYSICS_PACING_PARITY_V1_REPORT.md`.
+**Phase:** Physics and pacing parity v1 delivered at source commit `3bba78f32f3994ff4d9b103cac3f8a2fd983e44b`, tagged `physics-pacing-parity-v1`. It changes only documented centralized feel values plus bounded tangential contact resistance and merge momentum handoff. Merge eligibility, chains, launcher lifecycle, score, win/fail, restart, and gem mapping remain unchanged. The standalone APK is `build/android/physics-pacing-parity-v1.apk` (27,728,010 bytes, 2026-07-29 07:25:11 +05:00); no phone was connected for device testing.
 
 **Prior verified baseline:** Gameplay balance v1 delivered at source commit `4bb5469456bf23480b569a15b9c44c7692e30257`, tagged `gameplay-balance-v1`. It centralizes delta-based launch, damping, settling, collision, border, presentation, chain-display, and next-launcher pacing values without changing gameplay rules. No phone was connected for device testing.
 

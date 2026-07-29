@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Physics and Pacing Parity v1
+
+- File: `physics-pacing-parity-v1.apk`
+- Path: `D:\Owais\game\build\android\physics-pacing-parity-v1.apk`
+- Size: 27,728,010 bytes
+- Modified: 2026-07-29 07:25:11 +05:00
+- Source commit: `3bba78f32f3994ff4d9b103cac3f8a2fd983e44b` (`chore: tune physics and pacing toward reference`)
+- Tag: `physics-pacing-parity-v1`
+- Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and the requested APK file was physically verified.
+- Device status: `adb devices -l` found no connected device. No install or launch was attempted.
+
 ## Gem Visual Refinement v1
 
 - File: `gem-visual-refinement-v1.apk`

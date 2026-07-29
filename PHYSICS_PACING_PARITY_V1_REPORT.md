@@ -39,10 +39,11 @@ The headless controller/simulation suite exercises: top shot, side-wall containm
 
 ## Validation and delivery
 
-- Godot parse/import validation: pending final export validation.
+- Godot 4.6.3 parse/import validation: passed.
 - Headless suite: passed after parity changes (`CLEAN_CONTACT_TESTS: PASS`).
-- Android standalone APK: pending export at `build/android/physics-pacing-parity-v1.apk`.
-- Device status: no device claim until `adb` confirms a real device.
+- Android standalone APK: `D:\Owais\game\build\android\physics-pacing-parity-v1.apk`, 27,728,010 bytes, modified 2026-07-29 07:25:11 +05:00.
+- Source commit/tag: `3bba78f32f3994ff4d9b103cac3f8a2fd983e44b` / `physics-pacing-parity-v1`.
+- Device status: `adb devices -l` found no connected device; no install or launch was attempted.
 
 ## Remaining differences and phone checklist
 
