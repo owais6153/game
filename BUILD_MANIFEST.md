@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Progression HUD v1
+
+- File: `progression-hud-v1.apk`
+- Path: `D:\Owais\game\build\android\progression-hud-v1.apk`
+- Size: 27,732,265 bytes
+- Modified: 2026-07-29 07:42:27 +05:00
+- Source commit: `2dc007575457fec112acabc51b7d6dcfb9f06462` (`feat: add gem progression preview and clean HUD`)
+- Tag: `progression-hud-v1`
+- Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and the requested APK file was physically verified.
+- Device status: `adb devices -l` found no connected device. No install or launch was attempted.
+
 ## Physics and Pacing Parity v1
 
 - File: `physics-pacing-parity-v1.apk`

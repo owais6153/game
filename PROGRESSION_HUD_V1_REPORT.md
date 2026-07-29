@@ -29,7 +29,9 @@ Safe-bound regression coverage verifies 720x1280, 1080x1920, 1080x2400, 1440x320
 
 - Godot parse/import validation: passed.
 - Headless controller/simulation suite: passed (`CLEAN_CONTACT_TESTS: PASS`).
-- Android export, APK details, commit, tag, and device status: recorded after the delivery build completes.
+- Android export: passed. `build/android/progression-hud-v1.apk` exists at 27,732,265 bytes, modified 2026-07-29 07:42:27 +05:00.
+- Source commit/tag: `2dc007575457fec112acabc51b7d6dcfb9f06462` / `progression-hud-v1`.
+- Device status: `adb devices -l` found no connected device; installation and launch were not attempted.
 
 ## Known limitations / phone checklist
 
