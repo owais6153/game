@@ -1,5 +1,17 @@
 # Build Manifest
 
+## 18-Gem Chain v1
+
+- File: `18-gem-chain-v1.apk`
+- Path: `D:\Owais\game\build\android\18-gem-chain-v1.apk`
+- Size: 106,113,431 bytes
+- Modified: 2026-07-30 04:37:06 +05:00
+- SHA-256: `177E5F12A1E951DE32092801EA91B0354BD1969A1E9C69D30EFB1263AC05200F`
+- Source commit: `13d9f24bf88e86ff0b887251e3964c29bd23eec4` (`feat: add isolated 18-gem merge chain`)
+- Tag: `18-gem-chain-v1`
+- Validation: Godot 4.6.3 parse/import validation, `CLEAN_CONTACT_TESTS: PASS`, and `GEM18_CHAIN_TESTS: PASS`.
+- Device status: no device connected; no install or launch claimed.
+
 ## Visual Sequencing + Contact v2 — export blocked
 
 - Requested file: `build/android/visual-sequencing-contact-v2.apk`

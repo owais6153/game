@@ -27,6 +27,13 @@
 - Focused tier suite: `GEM18_CHAIN_TESTS: PASS` (18 textures, deterministic mapping, L1→L18 adjacent upgrades, terminal L18, different/distant rejection, shadows, table/target invariants).
 - No Android device was connected; no device install or launch is claimed.
 
+## Delivery
+
+- APK: `D:\Owais\game\build\android\18-gem-chain-v1.apk`
+- Size: 106,113,431 bytes; built 2026-07-30 04:37:06 +05:00.
+- SHA-256: `177E5F12A1E951DE32092801EA91B0354BD1969A1E9C69D30EFB1263AC05200F`.
+- Source commit/tag: `13d9f24bf88e86ff0b887251e3964c29bd23eec4` / `18-gem-chain-v1`.
+
 ## Scope statement
 
 No multi-target gameplay, level configurations, target progression, unlimited-shot redesign, perspective scaling, Y sorting, table changes, HUD redesign, menus, saves, boosters, ads, analytics, or backend changes were included.
