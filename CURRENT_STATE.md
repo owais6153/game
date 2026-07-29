@@ -1,6 +1,6 @@
 # Current State
 
-**Phase:** Gameplay balance v1 is delivered from verified visual-refinement baseline `14d5de194e60dedf23c29e8c401e8c8b47e761a6` / `gem-visual-refinement-v1`. It centralizes delta-based launch, damping, settling, collision, border, presentation, chain-display, and next-launcher pacing values without changing gameplay rules. `gameplay-balance-v1` will identify the gameplay source commit in `BUILD_MANIFEST.md`; no phone was connected for device testing.
+**Phase:** Gameplay balance v1 delivered at source commit `4bb5469456bf23480b569a15b9c44c7692e30257`, tagged `gameplay-balance-v1`. It centralizes delta-based launch, damping, settling, collision, border, presentation, chain-display, and next-launcher pacing values without changing gameplay rules. No phone was connected for device testing.
 
 ## Do Not Regress
 

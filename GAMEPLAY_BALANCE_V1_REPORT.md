@@ -48,6 +48,8 @@ Headless observations: deterministic contact, distant/cross-level rejection, con
 - File: `D:\Owais\game\build\android\gameplay-balance-v1.apk`
 - Size: 27,728,010 bytes
 - Modified: 2026-07-29 06:45:13 +05:00
+- Source commit: `4bb5469456bf23480b569a15b9c44c7692e30257` (`chore: tune gameplay physics and pacing`)
+- Tag: `gameplay-balance-v1`
 - Device status: no device connected; not installed or launched.
 
 ## Known limitations

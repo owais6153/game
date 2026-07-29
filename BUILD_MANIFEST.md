@@ -17,7 +17,7 @@
 - Path: `D:\\Owais\\game\\build\\android\\gameplay-balance-v1.apk`
 - Size: 27,728,010 bytes
 - Modified: 2026-07-29 06:45:13 +05:00
-- Source commit: recorded by the `gameplay-balance-v1` tag.
+- Source commit: `4bb5469456bf23480b569a15b9c44c7692e30257` (`chore: tune gameplay physics and pacing`)
 - Tag: `gameplay-balance-v1`
 - Validation: Godot 4.6.3 parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); standalone Android debug export completed and APK existence was verified.
 - Device status: `adb devices -l` found no connected device. No install or launch was attempted.
