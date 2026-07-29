@@ -1,7 +1,10 @@
 class_name BoardSimulation
 extends RefCounted
 
+var _collision_impacts: Array[float] = []
+
 func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) -> void:
+	_collision_impacts.clear()
 	for piece in pieces:
 		if piece.consumed or not piece.is_moving():
 			continue
@@ -51,6 +54,7 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 		_resolve_bounds(second)
 	var relative_speed := (second.velocity - first.velocity).dot(normal)
 	if relative_speed < 0.0:
+		_collision_impacts.append(absf(relative_speed))
 		var impulse := -relative_speed * GameConfig.COLLISION_RESTITUTION
 		first.velocity -= normal * impulse
 		second.velocity += normal * impulse
@@ -63,3 +67,8 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	second.velocity -= tangential_impulse
 	first.velocity = first.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 	second.velocity = second.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
+
+func consume_collision_impacts() -> Array[float]:
+	var result := _collision_impacts.duplicate()
+	_collision_impacts.clear()
+	return result

@@ -31,6 +31,7 @@ func _init() -> void:
 	_test_merge_momentum_is_bounded_and_contained()
 	_test_progression_hud_snapshot_and_queue()
 	_test_hud_layout_and_pointer_safety()
+	_test_sound_and_haptics_feedback_routing()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -321,6 +322,68 @@ func _test_hud_layout_and_pointer_safety() -> void:
 		_assert(GameConfig.HUD_RECT.end.x * scale <= portrait_size.x and GameConfig.HUD_RECT.end.y * scale <= GameConfig.BOARD_TOP * scale, "HUD must stay in safe bounds for representative portrait sizes")
 		_assert(GameConfig.PROGRESSION_START_X + GameConfig.PROGRESSION_STEP_X * 4.0 + 18.0 <= GameConfig.RESTART_RECT.position.x, "Progression preview must remain compact beside restart")
 	_assert(not GameConfig.HUD_RECT.intersects(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP)), "HUD/progression drawing must not intercept board drag space")
+
+func _test_sound_and_haptics_feedback_routing() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	controller.haptics_feedback.allow_platform_vibration = false
+	controller.audio_feedback.clear_trace()
+	controller.haptics_feedback.clear_trace()
+	controller.launch_active_piece()
+	_assert(_event_count(controller.audio_feedback.emitted_events, "launch") == 1, "Enabled launch must emit one audio event")
+	_assert(_event_count(controller.haptics_feedback.emitted_events, "launch") == 1, "Enabled launch must emit one haptic event")
+	controller.audio_feedback.clear_trace()
+	controller.simulation._collision_impacts.append(GameConfig.COLLISION_SOUND_THRESHOLD - 1.0)
+	controller._route_collision_feedback()
+	_assert(controller.audio_feedback.emitted_events.is_empty(), "Sub-threshold collision must not emit audio")
+	controller.simulation._collision_impacts.append(GameConfig.COLLISION_SOUND_THRESHOLD + 100.0)
+	controller._route_collision_feedback()
+	controller.simulation._collision_impacts.append(GameConfig.COLLISION_SOUND_THRESHOLD + 100.0)
+	controller._route_collision_feedback()
+	_assert(_event_count(controller.audio_feedback.emitted_events, "collision") == 1, "Collision audio must be throttled")
+	controller.audio_feedback.clear_trace()
+	controller.haptics_feedback.clear_trace()
+	var merge_events: Array[Dictionary] = [{"level": 2, "depth": 0}, {"level": 3, "depth": 1}]
+	controller._apply_confirmed_merge_events(merge_events)
+	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_2") == 1 and _event_count(controller.audio_feedback.emitted_events, "merge_3") == 1, "Confirmed merges must route level-specific audio")
+	_assert(_event_count(controller.audio_feedback.emitted_events, "chain") == 1, "A chain step must emit one chain accent")
+	_assert(_event_count(controller.haptics_feedback.emitted_events, "merge") == 2 and _event_count(controller.haptics_feedback.emitted_events, "chain") == 1, "Confirmed direct and chain merges must use distinct haptics")
+	controller.audio_feedback.clear_trace()
+	controller.haptics_feedback.clear_trace()
+	var win_events: Array[Dictionary] = [{"level": 5, "depth": 0}, {"level": 5, "depth": 0}]
+	controller._apply_confirmed_merge_events(win_events)
+	_assert(_event_count(controller.audio_feedback.emitted_events, "win") == 1 and _event_count(controller.haptics_feedback.emitted_events, "win") == 1, "Win feedback must fire exactly once")
+	var fail_controller = GameScene.instantiate()
+	fail_controller._ready()
+	fail_controller.haptics_feedback.allow_platform_vibration = false
+	fail_controller.audio_feedback.clear_trace()
+	fail_controller.haptics_feedback.clear_trace()
+	var danger := _piece(900, 1, Vector2(300, GameConfig.DANGER_LINE_Y + 20.0))
+	fail_controller.pieces.append(danger)
+	for frame in range(50): fail_controller._process(1.0 / 60.0)
+	_assert(_event_count(fail_controller.audio_feedback.emitted_events, "fail") == 1 and _event_count(fail_controller.haptics_feedback.emitted_events, "fail") == 1, "Fail feedback must fire exactly once")
+	var settings_controller = GameScene.instantiate()
+	settings_controller._ready()
+	settings_controller.haptics_feedback.allow_platform_vibration = false
+	var sound_setting := bool(settings_controller.audio_feedback.enabled)
+	var vibration_setting := bool(settings_controller.haptics_feedback.enabled)
+	settings_controller._handle_pointer(GameConfig.SOUND_TOGGLE_RECT.get_center(), true)
+	settings_controller._handle_pointer(GameConfig.VIBRATION_TOGGLE_RECT.get_center(), true)
+	_assert(not settings_controller.audio_feedback.enabled and not settings_controller.haptics_feedback.enabled, "Settings toggles must disable feedback independently")
+	settings_controller.audio_feedback.clear_trace()
+	settings_controller.haptics_feedback.clear_trace()
+	settings_controller.restart()
+	settings_controller.launch_active_piece()
+	_assert(settings_controller.audio_feedback.emitted_events.is_empty() and settings_controller.haptics_feedback.emitted_events.is_empty(), "Disabled feedback must never alter gameplay or emit output")
+	_assert(not settings_controller.audio_feedback.enabled and not settings_controller.haptics_feedback.enabled, "Restart must preserve current-session settings")
+	_assert(sound_setting and vibration_setting, "Sound and vibration must default to enabled")
+
+func _event_count(events: Array, event_name: String) -> int:
+	var total := 0
+	for event in events:
+		if event == event_name:
+			total += 1
+	return total
 
 func _active_launcher_count(items: Array[GemPiece]) -> int:
 	var count := 0

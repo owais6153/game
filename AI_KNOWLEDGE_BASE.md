@@ -1,5 +1,11 @@
 # AI Knowledge Base
 
+## Sound + Haptics v1 update
+
+- Never call audio or `Input.vibrate_handheld` directly from simulation, merge, score, or HUD drawing code. Route confirmed events through `AudioFeedbackService` / `HapticsService` in `GameController`.
+- Collision feedback must use `BoardSimulation.consume_collision_impacts()` and the central threshold/cooldown values. Do not add feedback to overlap separation.
+- `SOUND_HAPTICS_V1_REPORT.md` records the event map and phone test checklist. Settings are session-only by design until the later save milestone.
+
 ## Project at a glance
 
 Gem Merge Rebuild is a lightweight, portrait 2D Godot game. The intended visual theme is precious stones: Pearl (L1), Ruby (L2), Emerald (L3), Sapphire (L4), and Diamond (L5). The current milestone deliberately uses built-in circles and drawing only; final gemstone artwork, UI, sound, scoring, win/fail, persistence, ads, menus, levels, analytics, and backend are deferred.

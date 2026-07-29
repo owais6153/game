@@ -12,6 +12,7 @@ static func draw(controller: CanvasItem, snapshot: Dictionary, font: Font) -> vo
 	_draw_queue_preview(controller, GameConfig.NEXT_PREVIEW_RECT, int(snapshot.next_level), "NEXT", font)
 	_draw_progression(controller, int(snapshot.target_level), int(snapshot.highest_level), font)
 	_draw_restart(controller, font)
+	_draw_feedback_toggles(controller, bool(snapshot.sound_enabled), bool(snapshot.vibration_enabled), font)
 
 static func _draw_panel(controller: CanvasItem, rect: Rect2, fill: Color, border: Color) -> void:
 	controller.draw_rect(rect, fill, true)
@@ -47,3 +48,13 @@ static func _draw_restart(controller: CanvasItem, font: Font) -> void:
 	controller.draw_rect(GameConfig.RESTART_RECT, Color("5a3f68"), true)
 	controller.draw_rect(GameConfig.RESTART_RECT, Color("d8b46d"), false, 2.0)
 	controller.draw_string(font, GameConfig.RESTART_RECT.position + Vector2(16.0, 33.0), "Restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color.WHITE)
+
+static func _draw_feedback_toggles(controller: CanvasItem, sound_enabled: bool, vibration_enabled: bool, font: Font) -> void:
+	_draw_toggle(controller, GameConfig.SOUND_TOGGLE_RECT, "S", sound_enabled, font)
+	_draw_toggle(controller, GameConfig.VIBRATION_TOGGLE_RECT, "V", vibration_enabled, font)
+
+static func _draw_toggle(controller: CanvasItem, rect: Rect2, label: String, enabled: bool, font: Font) -> void:
+	var fill := Color("285b4c") if enabled else Color("46364d")
+	controller.draw_rect(rect, fill, true)
+	controller.draw_rect(rect, Color("d8b46d"), false, 1.0)
+	controller.draw_string(font, rect.position + Vector2(17.0, 20.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)

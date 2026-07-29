@@ -2,6 +2,8 @@ extends Node2D
 
 const GemVisualsType = preload("res://scripts/gem_visuals.gd")
 const HudRendererType = preload("res://scripts/hud_renderer.gd")
+const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.gd")
+const HapticsServiceType = preload("res://scripts/haptics_service.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -18,6 +20,8 @@ var danger_timers: Dictionary = {}
 var won := false
 var failed := false
 var ready_delay_elapsed := 0.0
+var audio_feedback: Node
+var haptics_feedback: RefCounted
 
 # A completed shot can pass through each state only once. This prevents the
 # settled-board condition from spawning a launcher again on every frame.
@@ -31,6 +35,9 @@ enum LauncherState {
 var launcher_state: LauncherState = LauncherState.SPAWNING_NEXT
 
 func _ready() -> void:
+	audio_feedback = AudioFeedbackServiceType.new()
+	haptics_feedback = HapticsServiceType.new()
+	add_child(audio_feedback)
 	_advance_launcher_lifecycle()
 	queue_redraw()
 
@@ -40,6 +47,7 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		return
 	simulation.step(pieces, delta, merge_service)
+	_route_collision_feedback()
 	var result := merge_service.resolve(pieces, next_piece_id)
 	pieces = result.pieces
 	next_piece_id = result.next_id
@@ -98,6 +106,8 @@ func hud_snapshot() -> Dictionary:
 		"shot_count": shot_count,
 		"target_level": GameConfig.TARGET_LEVEL,
 		"highest_level": highest_level,
+		"sound_enabled": audio_feedback.enabled if audio_feedback != null else true,
+		"vibration_enabled": haptics_feedback.enabled,
 	}
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -116,7 +126,17 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 			restart()
 		return
 	if pressed:
+		if GameConfig.SOUND_TOGGLE_RECT.has_point(pointer):
+			audio_feedback.enabled = not audio_feedback.enabled
+			audio_feedback.emit_event("button")
+			return
+		if GameConfig.VIBRATION_TOGGLE_RECT.has_point(pointer):
+			haptics_feedback.enabled = not haptics_feedback.enabled
+			if haptics_feedback.enabled:
+				haptics_feedback.emit_event("launch")
+			return
 		if GameConfig.RESTART_RECT.has_point(pointer):
+			audio_feedback.emit_event("button")
 			restart()
 			return
 		var active := get_active_piece()
@@ -136,6 +156,8 @@ func launch_active_piece() -> void:
 	var active := get_active_piece()
 	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
 		active.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
+		audio_feedback.emit_event("launch")
+		haptics_feedback.emit_event("launch")
 		shot_count += 1
 		launcher_state = LauncherState.SHOT_IN_FLIGHT
 
@@ -190,10 +212,17 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		# Chain resolution remains immediate and deterministic; this only staggers its visuals.
 		merge_event.elapsed = -float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
 		merge_presentations.append(merge_event)
+		audio_feedback.emit_event("merge_%d" % result_level)
+		haptics_feedback.emit_event("merge")
+		if int(merge_event.get("depth", 0)) > 0:
+			audio_feedback.emit_event("chain")
+			haptics_feedback.emit_event("chain")
 		if result_level == GameConfig.TARGET_LEVEL and not won:
 			won = true
 			active_piece_id = -1
 			launcher_state = LauncherState.RESOLVING
+			audio_feedback.emit_event("win")
+			haptics_feedback.emit_event("win")
 		resolution_multiplier += 1
 
 func _update_danger_timers(delta: float) -> void:
@@ -209,6 +238,8 @@ func _update_danger_timers(delta: float) -> void:
 				failed = true
 				active_piece_id = -1
 				launcher_state = LauncherState.RESOLVING
+				audio_feedback.emit_event("fail")
+				haptics_feedback.emit_event("fail")
 				return
 		else:
 			danger_timers.erase(piece.id)
@@ -220,6 +251,11 @@ func _update_merge_presentations(delta: float) -> void:
 	for presentation in merge_presentations:
 		presentation.elapsed += delta
 	merge_presentations = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed < GameConfig.MERGE_PRESENTATION_DURATION)
+
+func _route_collision_feedback() -> void:
+	for impact in simulation.consume_collision_impacts():
+		if impact >= GameConfig.COLLISION_SOUND_THRESHOLD:
+			audio_feedback.emit_event("collision", clampf(impact / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, GameConfig.VIEWPORT_SIZE), Color("0d101b"))

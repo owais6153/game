@@ -33,3 +33,4 @@ Before inspecting or editing project files, every future agent must read, in thi
 - Do not touch files outside `D:\Owais\game` without explicit approval.
 - Gameplay-feel work must change only centralized `GameConfig` tuning values unless the task explicitly authorizes a behavior change. Record before/after values, safe ranges, and test evidence in the task report.
 - For balancing milestones, preserve delta-based simulation and add coverage for timing, settling, containment, launcher pacing, and danger grace behavior.
+- For feedback work, keep audio and haptics behind dedicated services; route only confirmed controller events and update `SOUND_HAPTICS_V1_REPORT.md` plus the central `GameConfig` event constants.

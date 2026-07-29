@@ -2,6 +2,13 @@
 
 ## Scope
 
+## Sound and haptics v1
+
+- Feedback is presentation-only and subscribes to confirmed controller events; it never changes simulation, collision, merge eligibility, chains, score, launcher lifecycle, danger timing, outcomes, or reset.
+- Short procedural tones cover launch, meaningful collision, level-specific merges, chains, win, fail, and button taps. Collision feedback requires a relative impact of at least 170 px/s and is throttled.
+- Android haptics use light launch, medium direct merge, stronger chain, success win, and distinct failure feedback. Non-mobile/editor runs safely skip the platform vibration call.
+- Compact `S` (sound) and `V` (vibration) HUD controls default to On and are retained for the current session, including Replay/Retry. Persistence is deferred.
+
 This milestone implements one complete prototype level loop. It has scoring, a Diamond target, danger-line failure, and replay/retry. Sound, persistence, menus, ads, final art, and progression remain out of scope.
 
 ## Board and input

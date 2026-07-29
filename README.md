@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`progression-hud-v1`: adds a compact Pearl-to-Diamond evolution strip plus visual current/next queue cards and a cleaner luxury HUD. This is presentation-only: merge, physics, queue, danger, score, win, and reset rules are unchanged.
+`sound-haptics-v1`: adds lightweight procedural gameplay sound and mobile haptic routing with session-only `S`/`V` settings. Gameplay rules remain unchanged.
 
 ## Commands
 
