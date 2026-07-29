@@ -34,4 +34,9 @@ All cues are 22,050 Hz procedural output, limited to three concurrent voices, co
 
 ## Delivery
 
-Validation, export provenance, commit, and tag are completed only after the Godot checks and APK export succeed.
+- Godot 4.6.3 headless editor parse/import validation: passed.
+- Headless controller/simulation/feedback suite: passed (`CLEAN_CONTACT_TESTS: PASS`).
+- Standalone signed debug APK: `D:\Owais\game\build\android\reference-table-gem-audio-v1.apk`, 27,748,993 bytes, modified 2026-07-29 08:29:58 +05:00.
+- Source commit/tag: `d2e99213f01005ba08ff1f9bd50a98ac11a967c7` / `reference-table-gem-audio-v1`.
+- The ADB query did not complete in this session; no device installation/launch was attempted.
+- Remaining difference: the composition and sonic character are deliberately original and procedural rather than copied from the reference; subjective phone loudness and haptic feel remain the manual checklist items.

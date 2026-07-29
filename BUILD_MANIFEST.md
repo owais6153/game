@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Reference Table + Gem Audio v1
+
+- File: `reference-table-gem-audio-v1.apk`
+- Path: `D:\Owais\game\build\android\reference-table-gem-audio-v1.apk`
+- Size: 27,748,993 bytes
+- Modified: 2026-07-29 08:29:58 +05:00
+- Source commit: `d2e99213f01005ba08ff1f9bd50a98ac11a967c7` (`feat: match reference table composition and gem audio`)
+- Tag: `reference-table-gem-audio-v1`
+- Validation: Godot 4.6.3 headless editor parse/import validation passed; `tools/run_clean_contact_tests.gd` passed (`CLEAN_CONTACT_TESTS: PASS`); signed standalone Android debug export completed and the APK file was physically verified.
+- Device status: ADB query did not complete in this session; no install or launch was attempted.
+
 ## Sound + Haptics v1
 
 - File: `sound-haptics-v1.apk`
