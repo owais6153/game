@@ -29,6 +29,8 @@ func _init() -> void:
 	_test_visual_layout_bounds()
 	_test_portrait_board_bounds_and_scale()
 	_test_merge_momentum_is_bounded_and_contained()
+	_test_progression_hud_snapshot_and_queue()
+	_test_hud_layout_and_pointer_safety()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -298,6 +300,27 @@ func _test_merge_momentum_is_bounded_and_contained() -> void:
 	var upgraded: GemPiece = result.pieces[0]
 	_assert(upgraded.velocity.length() <= GameConfig.MERGE_MAX_SPAWN_SPEED + 0.01, "Upgraded-gem momentum must remain bounded")
 	_assert(upgraded.position.x >= GameConfig.BOARD_LEFT + upgraded.radius and upgraded.position.x <= GameConfig.BOARD_RIGHT - upgraded.radius and upgraded.position.y >= GameConfig.BOARD_TOP + upgraded.radius and upgraded.position.y <= GameConfig.BOARD_BOTTOM - upgraded.radius, "Upgraded gem must spawn inside board bounds")
+
+func _test_progression_hud_snapshot_and_queue() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var first: Dictionary = controller.hud_snapshot()
+	_assert(int(first.current_level) == 1 and int(first.next_level) == 2, "HUD previews must match the initial current/next queue")
+	_assert(int(first.target_level) == 5, "HUD target highlight must remain Diamond (L5)")
+	controller.launch_active_piece()
+	for frame in range(200): controller._process(1.0 / 60.0)
+	var after_shot: Dictionary = controller.hud_snapshot()
+	_assert(int(after_shot.current_level) == 2 and int(after_shot.next_level) == 1, "HUD queue preview must advance exactly once after a shot cycle")
+	controller.restart()
+	var after_restart: Dictionary = controller.hud_snapshot()
+	_assert(int(after_restart.current_level) == 1 and int(after_restart.next_level) == 2 and int(after_restart.score) == 0, "Restart must reset HUD and queue previews")
+
+func _test_hud_layout_and_pointer_safety() -> void:
+	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:
+		var scale: float = portrait_size.x / GameConfig.VIEWPORT_SIZE.x
+		_assert(GameConfig.HUD_RECT.end.x * scale <= portrait_size.x and GameConfig.HUD_RECT.end.y * scale <= GameConfig.BOARD_TOP * scale, "HUD must stay in safe bounds for representative portrait sizes")
+		_assert(GameConfig.PROGRESSION_START_X + GameConfig.PROGRESSION_STEP_X * 4.0 + 18.0 <= GameConfig.RESTART_RECT.position.x, "Progression preview must remain compact beside restart")
+	_assert(not GameConfig.HUD_RECT.intersects(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP)), "HUD/progression drawing must not intercept board drag space")
 
 func _active_launcher_count(items: Array[GemPiece]) -> int:
 	var count := 0

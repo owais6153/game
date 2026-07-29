@@ -159,6 +159,10 @@ There is exactly one active launcher while the game is ready for input. Launcher
 
 ## Physics and pacing parity v1
 
+## Progression HUD v1
+
+`HudRenderer` is a presentation-only helper. It receives `GameController.hud_snapshot()` (current level, next level, score, chain multiplier, shots, target level, highest live level) and draws the compact queue cards plus the Pearl-to-Diamond strip. Do not put queue advancement, target logic, drag input, or simulation state in this renderer. `GameConfig` owns its visual rectangles; their values must never enter board/collision math.
+
 The active reference comparison files are intentionally local and ignored by Git: `WhatsApp Video 2026-07-28 at 2.47.02 AM.mp4` (target) and `WhatsApp Video 2026-07-29 at 6.53.59 AM.mp4` (current build). Do not commit, rename, or treat them as game assets.
 
 | Feel value | Parity default | Guardrail | Notes |

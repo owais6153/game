@@ -73,3 +73,10 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Collision response has lower normal restitution plus symmetric tangential contact resistance. It only affects physical sliding/settling; it does not create attraction or inspect gem levels.
 - An upgraded gem receives a bounded 35% average-source-momentum handoff (maximum 260 px/s), then immediately returns to normal board physics. The presentation remains visual-only.
 - Presentation/launcher waits are shorter: 0.18 s merge presentation, 0.05 s chain visual stagger, then a 0.04 s readiness delay only after resolution is complete.
+
+## Progression preview and HUD v1
+
+- The HUD is presentation-only and reads a single controller snapshot; it has no authority over queue advancement, score, chain, launcher lifecycle, or outcomes.
+- Current and next gems are compact procedural previews with concise labels. They always display the controller's actual active/next levels.
+- A compact top-edge evolution strip shows Pearl -> Ruby -> Emerald -> Sapphire -> Diamond. Diamond (L5) is the current target and is highlighted; the highest live gem may be brighter as run feedback.
+- Score, chain multiplier, shot count, restart, queue previews, and target progression fit above the fixed board. The overlay uses the same jewelry-panel treatment and retains the existing Replay/Retry behavior.

@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`gameplay-balance-v1`: centralized mobile-feel tuning improves launch responsiveness, collision settling, chain readability, and next-shot rhythm. The merge, collision eligibility, queue cardinality, danger, score, win, and reset rules are unchanged.
+`progression-hud-v1`: adds a compact Pearl-to-Diamond evolution strip plus visual current/next queue cards and a cleaner luxury HUD. This is presentation-only: merge, physics, queue, danger, score, win, and reset rules are unchanged.
 
 ## Commands
 

@@ -27,6 +27,7 @@ Before inspecting or editing project files, every future agent must read, in thi
 - Make one mechanic change per task whenever practical.
 - Do not perform broad refactors or retuning without explicit user approval.
 - Rendering-only work must stay outside the simulation, merge-service, launcher, and collision paths. Keep procedural visuals in dedicated drawing helpers and add a mapping test whenever gem-level artwork changes.
+- HUD/progression work must read controller snapshots only. It must not duplicate queue/progression rules, create input handlers over the board, or alter simulation coordinates.
 - For any level-loop work, test the controller path for confirmed-event score handling, overlay spawn blocking, danger-timer exemptions, and full reset in addition to the existing movement/merge/lifecycle suite.
 - Do not claim success without passing relevant tests and confirming a standalone APK exists.
 - Do not touch files outside `D:\Owais\game` without explicit approval.

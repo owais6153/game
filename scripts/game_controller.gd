@@ -1,6 +1,7 @@
 extends Node2D
 
 const GemVisualsType = preload("res://scripts/gem_visuals.gd")
+const HudRendererType = preload("res://scripts/hud_renderer.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -81,6 +82,23 @@ func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
 
 func lifecycle_name() -> String:
 	return LauncherState.keys()[launcher_state]
+
+## Presentation data only. UI code reads this snapshot and never owns game rules.
+func hud_snapshot() -> Dictionary:
+	var active := get_active_piece()
+	var highest_level := 1
+	for piece in pieces:
+		if not piece.consumed:
+			highest_level = maxi(highest_level, piece.level)
+	return {
+		"current_level": active.level if active != null else next_level,
+		"next_level": next_level,
+		"score": score,
+		"chain_multiplier": chain_multiplier,
+		"shot_count": shot_count,
+		"target_level": GameConfig.TARGET_LEVEL,
+		"highest_level": highest_level,
+	}
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
@@ -216,18 +234,7 @@ func _draw() -> void:
 	draw_line(Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_TOP), Vector2(GameConfig.BOARD_RIGHT, GameConfig.BOARD_BOTTOM), Color("d3a74c"), 5.0)
 	draw_dashed_line(Vector2(GameConfig.BOARD_LEFT + 8.0, GameConfig.DANGER_LINE_Y), Vector2(GameConfig.BOARD_RIGHT - 8.0, GameConfig.DANGER_LINE_Y), Color("f6bb42"), 3.0, 12.0)
 	var font := ThemeDB.fallback_font
-	var active := get_active_piece()
-	var current_label := GameConfig.gem_name(active.level) if active != null else "Resolving"
-	draw_rect(GameConfig.HUD_RECT, Color("211b2d"), true)
-	draw_rect(GameConfig.HUD_RECT, Color("c6a65a"), false, 2.0)
-	draw_rect(GameConfig.HUD_PRIMARY_RECT, Color("171927"), true)
-	draw_string(font, Vector2(54.0, 65.0), "CURRENT  %s" % current_label.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("fff4d5"))
-	draw_string(font, Vector2(54.0, 102.0), "NEXT  %s" % GameConfig.gem_name(next_level).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("d7e9df"))
-	draw_string(font, Vector2(258.0, 102.0), "SHOTS  %d" % shot_count, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("d7e9df"))
-	draw_string(font, Vector2(54.0, 126.0), "SCORE  %d   x%d CHAIN   TARGET: DIAMOND" % [score, chain_multiplier], HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("ffe6a1"))
-	draw_rect(GameConfig.RESTART_RECT, Color("5a3f68"), true)
-	draw_rect(GameConfig.RESTART_RECT, Color("d8b46d"), false, 2.0)
-	draw_string(font, Vector2(542.0, 94.0), "Restart", HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color.WHITE)
+	HudRendererType.draw(self, hud_snapshot(), font)
 	# Draw the non-physical source ghosts first. The new simulated gem is then
 	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
 	for presentation in merge_presentations:
