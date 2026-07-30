@@ -60,7 +60,10 @@ func _resolve_cycle(pieces: Array[GemPiece], candidates: Array[ContactPair], nex
 		upgraded.velocity = ((first.velocity + second.velocity) * 0.5 * GameConfig.MERGE_MOMENTUM_TRANSFER).limit_length(GameConfig.MERGE_MAX_SPAWN_SPEED)
 		id_cursor += 1
 		spawned.append(upgraded)
-		events.append({"first_position": first.position, "second_position": second.position, "midpoint": midpoint, "level": upgraded.level, "depth": depth})
+		# This immutable event is consumed by presentation and scoring only. Keeping
+		# the resolved metadata here lets development tests verify the full result
+		# contract without giving rendering any authority over merge rules.
+		events.append({"first_position": first.position, "second_position": second.position, "midpoint": midpoint, "level": upgraded.level, "depth": depth, "source_ids": [first.id, second.id], "result_id": upgraded.id, "result_radius": upgraded.radius, "result_texture_path": AssetCatalog.gem_resource_path(upgraded.level), "result_visual_scale": float(GameConfig.GEM_VISUAL_BODY_SCALE.get(upgraded.level, 1.0)), "result_shadow_offset": GameConfig.GEM_SHADOW_OFFSET.get(upgraded.level, Vector2.ZERO), "result_shadow_opacity": float(GameConfig.GEM_SHADOW_OPACITY.get(upgraded.level, 0.0))})
 	var remaining: Array[GemPiece] = []
 	for piece in pieces:
 		if not remove_ids.has(piece.id): remaining.append(piece)
