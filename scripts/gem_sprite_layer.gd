@@ -5,6 +5,8 @@ const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 
 var _sprites: Dictionary = {}
 var _shadows: Dictionary = {}
+var _piece_visual_roots: Dictionary = {}
+var _visual_containers: Dictionary = {}
 ## Last synchronized tier for each live piece. Appearance work is done once on
 ## creation/merge-tier change; the frame path only moves existing sprites.
 var _appearance_levels: Dictionary = {}
@@ -19,16 +21,27 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		live_ids[piece.id] = true
 		var sprite: Sprite2D = _sprites.get(piece.id)
 		if sprite == null:
+			# The root mirrors the simulation position but stays at constant scale.
+			# Its child owns every perspective-only visual transform.
+			var piece_visual_root := Node2D.new()
+			piece_visual_root.name = "PieceVisualRoot_%d" % piece.id
+			piece_visual_root.scale = Vector2.ONE
+			add_child(piece_visual_root)
+			_piece_visual_roots[piece.id] = piece_visual_root
+			var visual := Node2D.new()
+			visual.name = "Visual"
+			piece_visual_root.add_child(visual)
+			_visual_containers[piece.id] = visual
 			var shadow := Sprite2D.new()
 			shadow.texture = AssetCatalogType.GEM_SOFT_SHADOW
 			shadow.centered = true
 			shadow.z_index = 0
-			add_child(shadow)
+			visual.add_child(shadow)
 			_shadows[piece.id] = shadow
 			sprite = Sprite2D.new()
 			sprite.centered = true
 			sprite.z_index = 1
-			add_child(sprite)
+			visual.add_child(sprite)
 			_sprites[piece.id] = sprite
 			_appearance_levels.erase(piece.id)
 		if _appearance_levels.get(piece.id, -1) != piece.level:
@@ -40,11 +53,17 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 			sprite.scale = Vector2(visual_diameter / texture.get_size().x, visual_diameter / texture.get_size().y)
 			var shadow: Sprite2D = _shadows.get(piece.id)
 			var body_diameter := piece.radius * 2.0
-			shadow.position = piece.position + GameConfig.GEM_SHADOW_OFFSET.get(piece.level, Vector2(4.0, 7.0))
+			shadow.position = GameConfig.GEM_SHADOW_OFFSET.get(piece.level, Vector2(4.0, 7.0))
 			shadow.scale = Vector2(body_diameter * GameConfig.GEM_SHADOW_WIDTH_MULTIPLIER / shadow.texture.get_size().x, body_diameter * GameConfig.GEM_SHADOW_HEIGHT_MULTIPLIER / shadow.texture.get_size().y)
 			shadow.modulate = Color(1.0, 1.0, 1.0, float(GameConfig.GEM_SHADOW_OPACITY.get(piece.level, 0.4)))
 			_appearance_levels[piece.id] = piece.level
-		sprite.position = piece.position
+		var piece_visual_root: Node2D = _piece_visual_roots.get(piece.id)
+		var visual: Node2D = _visual_containers.get(piece.id)
+		piece_visual_root.position = piece.position
+		piece_visual_root.scale = Vector2.ONE
+		piece_visual_root.z_index = GameConfig.gem_visual_z_index(piece.id, piece.position.y)
+		visual.scale = Vector2.ONE * GameConfig.gem_perspective_scale_at(piece.position.y)
+		sprite.position = Vector2.ZERO
 		# Overlay state must never replace or dim a live gem texture. This layer
 		# owns the exact texture/modulate values for every sync.
 		sprite.modulate = Color.WHITE
@@ -52,31 +71,42 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		# remains presentation-only and never defines merge eligibility.
 		sprite.visible = true
 		var shadow: Sprite2D = _shadows.get(piece.id)
-		shadow.position = piece.position + GameConfig.GEM_SHADOW_OFFSET.get(piece.level, Vector2(4.0, 7.0))
+		shadow.position = GameConfig.GEM_SHADOW_OFFSET.get(piece.level, Vector2(4.0, 7.0))
 		shadow.visible = true
 	for id in _sprites.keys():
 		if not live_ids.has(id):
 			var stale: Sprite2D = _sprites[id]
-			stale.queue_free()
+			var stale_root: Node2D = _piece_visual_roots.get(id)
+			if stale_root != null:
+				stale_root.queue_free()
+			else:
+				stale.queue_free()
 			_sprites.erase(id)
+			_piece_visual_roots.erase(id)
+			_visual_containers.erase(id)
 			_appearance_levels.erase(id)
-			var stale_shadow: Sprite2D = _shadows.get(id)
-			if stale_shadow != null:
-				stale_shadow.queue_free()
-				_shadows.erase(id)
+			_shadows.erase(id)
 
 func clear() -> void:
 	for sprite in _sprites.values():
-		sprite.queue_free()
+		var root: Node2D = _piece_visual_roots.get(_sprites.find_key(sprite))
+		if root != null:
+			root.queue_free()
+		else:
+			sprite.queue_free()
 	_sprites.clear()
+	_piece_visual_roots.clear()
+	_visual_containers.clear()
 	_appearance_levels.clear()
-	for shadow in _shadows.values():
-		shadow.queue_free()
 	_shadows.clear()
 
 func shadow_bounds(piece_id: int) -> Rect2:
 	var shadow: Sprite2D = _shadows.get(piece_id)
 	if shadow == null or shadow.texture == null:
 		return Rect2()
-	var size := shadow.texture.get_size() * shadow.scale
-	return Rect2(shadow.position - size * 0.5, size)
+	var root: Node2D = _piece_visual_roots.get(piece_id)
+	var visual: Node2D = _visual_containers.get(piece_id)
+	var perspective := visual.scale.x if visual != null else 1.0
+	var position := root.position + shadow.position * perspective if root != null else shadow.position
+	var size := shadow.texture.get_size() * shadow.scale * perspective
+	return Rect2(position - size * 0.5, size)

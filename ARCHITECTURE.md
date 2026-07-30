@@ -88,3 +88,6 @@ Danger state is controller-owned and keyed by piece ID. It is cleared immediatel
 ## New table and shadow separation v1
 
 `AssetCatalog.NEW_TABLE` loads `new_table_v1.png`; `GameConfig` owns its render scale and every rail. `GemSpriteLayer` pairs a clean body Sprite2D with a separate soft-shadow Sprite2D for each simulation ID. The shadow map cannot reach `BoardSimulation` or `ContactMergeService`; collider and audio truth remain the existing `GemPiece.radius` and confirmed narrow-phase impacts.
+# Perspective table view v1
+
+`GameConfig` owns both the authoritative table landmarks and rendering-only perspective helpers. `GemSpriteLayer` mirrors each `GemPiece` through a constant-scale `PieceVisualRoot`, then applies the bounded depth transform to its child `Visual` container. Sprite and separate shadow are children of that container; only its numeric scale and the root z-index are updated during sync. `BoardSimulation`, `GemPiece`, collision radii, merge services, and controller lifecycle do not read perspective values.

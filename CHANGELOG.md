@@ -107,3 +107,8 @@
 - Replaced the active table with the newly supplied table and centralized its measured UI-reference layout in `GameConfig`.
 - Replaced live gem artwork with non-destructive body-only derivatives; added independent presentation-only soft shadows.
 - Added regression coverage that shadow proximity cannot trigger collision/merge behavior and that the old table is not active.
+# Perspective Table View v1
+
+- Lowered the shared table/gameplay composition to reveal more background above the table while keeping rails, launcher, danger line, drag clamps, and collision bounds aligned.
+- Added bounded presentation-only gem perspective (`0.90..1.05`) and stable table-local-Y depth ordering with separate shadows under each gem.
+- Added regression coverage proving collider/root scale constancy, bounded monotonic visual scale, stable depth ordering, and shared table landmark alignment.

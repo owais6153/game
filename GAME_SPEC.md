@@ -120,3 +120,9 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Current and next gems are compact procedural previews with concise labels. They always display the controller's actual active/next levels.
 - A compact top-edge evolution strip shows Pearl -> Ruby -> Emerald -> Sapphire -> Diamond. Diamond (L5) is the current target and is highlighted; the highest live gem may be brighter as run feedback.
 - Score, chain multiplier, shot count, restart, queue previews, and target progression fit above the fixed board. The overlay uses the same jewelry-panel treatment and retains the existing Replay/Retry behavior.
+
+## Perspective table view v1
+
+- The approved table composition is lowered as one shared layout: table image center `(360, 770)`, board `y=340..1152`, danger line `y=970`, and launcher `y=1068`. Rails, collision containment, drag clamps, spawn, and danger drawing retain their shared `GameConfig` authority.
+- Gems use presentation-only depth scaling from normalized table-local Y: `0.90` at the back/top to `1.05` at the front/bottom. The simulation piece, collision radius, velocity, and physics root remain constant.
+- Each gem has a constant-scale visual root and a child visual container for sprite and separate shadow. Stable depth ordering is based on table-local Y, with the piece ID / creation order as the equal-Y tie rule. No visual node is reparented or allocated after creation.

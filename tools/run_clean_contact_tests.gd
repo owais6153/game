@@ -37,6 +37,7 @@ func _init() -> void:
 	_test_inset_table_and_viewport_safety()
 	_test_asset_mapping_and_clean_diamond()
 	_test_table_layout_physics_alignment()
+	_test_perspective_view_presentation()
 	_test_visible_collision_calibration()
 	_test_calibrated_wall_contacts()
 	_test_collision_audio_uses_confirmed_contact()
@@ -416,10 +417,10 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(sound_setting and vibration_setting, "Sound and vibration must default to enabled")
 
 func _test_inset_table_and_viewport_safety() -> void:
-	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 730.0), "New table must use its documented normalized reference placement")
+	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 770.0), "New table must use its approved lower reference placement")
 	_assert(is_equal_approx(GameConfig.TABLE_TEXTURE_RENDER_SCALE.x, 720.0 / 920.0) and is_equal_approx(GameConfig.TABLE_TEXTURE_RENDER_SCALE.y, 956.0 / 810.0), "New table scale must preserve documented UI-reference proportions")
 	_assert(GameConfig.table_left_at(GameConfig.BOARD_TOP) > 0.0 and GameConfig.table_right_at(GameConfig.BOARD_TOP) < GameConfig.VIEWPORT_SIZE.x, "Top rail must leave background visible at both sides")
-	_assert(GameConfig.BOARD_TOP - GameConfig.HUD_RECT.end.y >= 48.0, "Table must leave a visible background gap below HUD")
+	_assert(GameConfig.BOARD_TOP - GameConfig.HUD_RECT.end.y >= 48.0, "Lower table must leave a visible environment gap below HUD")
 	_assert(GameConfig.DANGER_LINE_Y > GameConfig.BOARD_TOP and GameConfig.DANGER_LINE_Y < GameConfig.BOARD_BOTTOM and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y and GameConfig.LAUNCH_Y < GameConfig.BOARD_BOTTOM, "Danger line and launcher must remain inside physical table bounds")
 
 func _test_asset_mapping_and_clean_diamond() -> void:
@@ -440,6 +441,35 @@ func _test_table_layout_physics_alignment() -> void:
 	var launch_right := GameConfig.table_right_at(GameConfig.LAUNCH_Y) - GameConfig.PIECE_RADIUS
 	_assert(360.0 >= launch_left and 360.0 <= launch_right, "Launcher spawn must remain inside visible table surface")
 	_assert(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) < GameConfig.table_right_at(GameConfig.DANGER_LINE_Y), "Dynamic danger line must span the same authoritative table surface")
+
+func _test_perspective_view_presentation() -> void:
+	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP), GameConfig.GEM_PERSPECTIVE_SCALE_BACK), "Back-table gem visual scale must use the configured minimum")
+	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_BOTTOM), GameConfig.GEM_PERSPECTIVE_SCALE_FRONT), "Front-table gem visual scale must use the configured maximum")
+	_assert(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP) < GameConfig.gem_perspective_scale_at(GameConfig.BOARD_BOTTOM), "Perspective scale must increase monotonically toward the front")
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var back := _piece(101, 1, Vector2(360.0, GameConfig.BOARD_TOP + 80.0))
+	var front := _piece(102, 1, Vector2(360.0, GameConfig.BOARD_BOTTOM - 80.0))
+	var back_radius := back.radius
+	var front_radius := front.radius
+	controller.pieces.clear()
+	controller.pieces.append(back)
+	controller.pieces.append(front)
+	controller.gem_sprite_layer.sync_gems(controller.pieces)
+	var back_root: Node2D = controller.gem_sprite_layer._piece_visual_roots[back.id]
+	var front_root: Node2D = controller.gem_sprite_layer._piece_visual_roots[front.id]
+	var back_visual: Node2D = controller.gem_sprite_layer._visual_containers[back.id]
+	var front_visual: Node2D = controller.gem_sprite_layer._visual_containers[front.id]
+	_assert(back_root.scale == Vector2.ONE and front_root.scale == Vector2.ONE, "Physics-mirroring roots must retain constant scale")
+	_assert(is_equal_approx(back.radius, back_radius) and is_equal_approx(front.radius, front_radius), "Perspective must not resize collision radii")
+	_assert(back_visual.scale.x >= GameConfig.GEM_PERSPECTIVE_SCALE_BACK and back_visual.scale.x <= GameConfig.GEM_PERSPECTIVE_SCALE_FRONT and front_visual.scale.x >= GameConfig.GEM_PERSPECTIVE_SCALE_BACK and front_visual.scale.x <= GameConfig.GEM_PERSPECTIVE_SCALE_FRONT, "Visual scale must remain within bounded perspective range")
+	_assert(front_visual.scale.x > back_visual.scale.x, "Front gem must render larger than back gem")
+	_assert(front_root.z_index > back_root.z_index, "Front gem must render over back gem")
+	var tie_a := GameConfig.gem_visual_z_index(12, 700.0)
+	var tie_b := GameConfig.gem_visual_z_index(13, 700.0)
+	_assert(tie_b > tie_a, "Stable piece IDs must deterministically break equal-Y depth ties")
+	_assert(GameConfig.table_left_at(GameConfig.LAUNCH_Y) < 360.0 and GameConfig.table_right_at(GameConfig.LAUNCH_Y) > 360.0, "Shared table transform must keep the moved launcher within physical rails")
+	controller.queue_free()
 
 func _test_visible_collision_calibration() -> void:
 	var expected := GameConfig.GEM_COLLISION_RADIUS

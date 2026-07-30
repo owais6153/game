@@ -179,7 +179,7 @@ func _test_controller_merge_score_and_launcher_guard() -> void:
 	controller.queue_free()
 
 func _test_fixed_table_config() -> void:
-	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 730.0), "Table placement must remain baseline-equivalent")
+	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 770.0), "Table placement must use the approved lower composition")
 	_assert(GameConfig.TABLE_INNER_LEFT_TOP == 178.0 and GameConfig.TABLE_INNER_RIGHT_TOP == 542.0, "Table rail config must remain baseline-equivalent")
 	_assert(GameConfig.TARGET_LEVEL == 5, "Baseline target flow must remain unchanged")
 
@@ -196,7 +196,8 @@ func _test_motion_regression_guards() -> void:
 	_assert(not catalog_source.contains("var texture := load(") and not catalog_source.contains("ResourceLoader.load("), "Asset catalog must never load textures during gameplay")
 	_assert(not sprite_layer_source.contains("_process") and not sprite_layer_source.contains("_physics_process"), "Sprite layer must not own a per-frame processing callback")
 	_assert(not sprite_layer_source.contains("_alpha_bounds"), "Sprite layer must not calculate alpha bounds during gameplay")
-	_assert(not sprite_layer_source.contains("perspective") and not sprite_layer_source.contains("table_interpolation"), "18-gem sprite layer must not add perspective or Y scaling")
+	_assert(sprite_layer_source.contains("gem_perspective_scale_at") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use the bounded presentation-only perspective and stable depth ordering")
+	_assert(not sprite_layer_source.contains("ResourceLoader.load("), "Perspective path must not load resources during gameplay")
 	# Exact motion profile from new-table-shadow-contact-fix-v1; catalog size is
 	# the only allowed physics-related extension.
 	_assert(GameConfig.GEM_COLLISION_RADIUS[1] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[3] == 33.0 and GameConfig.GEM_COLLISION_RADIUS[8] == 32.0, "Reordered tiers must retain their asset-calibrated collider values")
