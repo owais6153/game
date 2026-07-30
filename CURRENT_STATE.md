@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** Gameplay HUD + Sequential Targets v1. `AssetCatalog.gem_entry` is the presentation identity source for all 18 gems. Level 1 has unlimited launches and sequential Jade (L3), then Aquamarine (L4) targets. Final victory waits for the target collection animation. Table, rails, perspective scaling, colliders, motion, and contact merging are unchanged. APK: `build/android/gameplay-hud-sequential-targets-v1.apk`. See `reports/GAMEPLAY_HUD_SEQUENTIAL_TARGETS_V1_REPORT.md`.
+
 **Current delivery:** `restored-working-table-rails-v1.apk` restores the historically proven `new-table-shadow-contact-fix-v1` table-interpolated side containment and launcher clamp. Its source rail geometry is translated exactly `+116px` in Y to the retained bottom-aligned table. The later perpendicular slanted-line resolver and its competing launcher limit system are removed. See `reports/RESTORED_WORKING_TABLE_RAILS_V1_REPORT.md`.
 
 **Current delivery:** `physical-rails-match-table-v1.apk` is the standalone rail-only build. The visible table and deterministic physical rails share exact design-space anchors: left `(171.4, 413.0) → (40.7, 1226.0)` and right `(547.8, 413.0) → (680.1, 1226.0)`. Slanted circle-to-line containment replaces the old vertical X clamp during normal motion. See `reports/PHYSICAL_RAILS_MATCH_TABLE_V1_REPORT.md`.

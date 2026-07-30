@@ -1,8 +1,8 @@
 class_name LevelConfig
 extends RefCounted
 
-## Small data boundary for the first level. It deliberately models one level
-## only; level selection, persistence, and multi-target support are deferred.
+## Small data boundary for the first level. Targets are sequential: one card is
+## active, then its collected result advances the queue after animation.
 static func level_1() -> Dictionary:
 	return {
 		"id": "level_1",
@@ -14,11 +14,9 @@ static func level_1() -> Dictionary:
 		# The deterministic 2:1 sequence is intentional for the introductory
 		# level: it follows the declared weights without unlucky queue streaks.
 		"launcher_sequence": [1, 1, 2],
-		# Two L4 Sapphires need twelve Pearl-equivalent launches with the
-		# deterministic L1/L1/L2 queue. This is a meaningful introductory
-		# objective without allowing a one- or two-shot lucky finish.
-		"target_tier": 4,
-		"target_quantity": 2,
+		# Unlimited launches are still bounded by the existing danger-line fail.
+		# This first sequence teaches L3, then asks the player to reach L4.
+		"target_sequence": [{"tier": 3, "quantity": 1}, {"tier": 4, "quantity": 1}],
 		"starting_board": [],
 	}
 

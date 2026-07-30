@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Gameplay HUD + Sequential Targets v1](GAMEPLAY_HUD_SEQUENTIAL_TARGETS_V1_REPORT.md)
+
 - [Restored Working Table Rails v1](RESTORED_WORKING_TABLE_RAILS_V1_REPORT.md)
 
 - [Physical Rails Match Table v1](PHYSICAL_RAILS_MATCH_TABLE_V1_REPORT.md)

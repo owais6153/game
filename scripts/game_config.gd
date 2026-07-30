@@ -144,8 +144,7 @@ static func merge_score_for_result_level(level: int) -> int:
 	return int(MERGE_SCORE_BY_RESULT_LEVEL.get(level, 0))
 
 static func gem_name(level: int) -> String:
-	const NAMES := ["Pearl", "Obsidian", "Jade", "Aquamarine", "Peridot", "Pink Tourmaline", "Ruby", "Sapphire", "Emerald", "Watermelon Tourmaline", "Morganite", "Garnet", "Amethyst", "Citrine", "Orange Sapphire", "Royal Sapphire", "Diamond", "Blue Diamond"]
-	return NAMES[level - 1] if level >= 1 and level <= NAMES.size() else "Unknown"
+	return AssetCatalog.gem_name(level)
 
 static func gem_collision_radius(level: int) -> float:
 	return float(GEM_COLLISION_RADIUS.get(level, PIECE_RADIUS))

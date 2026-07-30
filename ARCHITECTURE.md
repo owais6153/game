@@ -1,5 +1,11 @@
 # Architecture
 
+## HUD and sequential targets v1
+
+- `AssetCatalog.gem_entry(tier)` is the sole presentation identity source for IDs, names, textures, and calibration references.
+- `GameController.hud_snapshot()` is controller-owned; `HudRenderer` is presentation-only.
+- `LevelConfig.target_sequence` is one visible target at a time. A confirmed merge result completes presentation, collects to HUD, then advances or qualifies victory.
+
 ## Restored working table rails v1
 
 `GameConfig.table_left_at(y)` and `table_right_at(y)` are again the sole authoritative side-bound model. `BoardSimulation._resolve_bounds()` and `GameController.move_active_to()` use the same interpolation plus the live gem radius. The table artwork remains at `(360, 846)` and the proven historical rail landmarks are translated by its exact `+116px` Y offset. The F8 overlay reads those identical interpolation functions; `tools/capture_rail_debug.gd` is a development-only evidence harness and has no runtime scene reference.

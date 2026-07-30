@@ -1,5 +1,12 @@
 # Changelog
 
+## Gameplay HUD + Sequential Targets v1
+
+- Added authoritative 18-tier catalog entries for every gem ID, display name, texture, and calibration reference.
+- Rebuilt the gameplay HUD using current controller state; the production shot counter is removed.
+- Level 1 now has unlimited launches and sequential Jade (L3), then Aquamarine (L4) targets. The danger-line failure rule is unchanged.
+- Target result collection now completes its merge presentation, travels to the HUD, and only then advances or presents final victory.
+
 ## Restored Working Table Rails v1
 
 - Restored the table-interpolated rail containment and launcher clamp from the verified `new-table-shadow-contact-fix-v1` source instead of retaining the later perpendicular slanted-line rail solver.

@@ -1,5 +1,11 @@
 # AI Knowledge Base
 
+## HUD and sequential target rules
+
+- Never add a parallel gem icon/name mapping; use `AssetCatalog.gem_entry` everywhere.
+- Launches are unlimited. The legacy `shot_count` field stays zero for test compatibility and is not gameplay/UI state.
+- Event order is confirmed merge, result creation, merge presentation, collection animation, then next target or win overlay.
+
 ## Restored rail baseline (read before any table/rail change)
 
 The approved current rail behavior is the table-interpolated implementation from historical commit `0b562d5` (`new-table-shadow-contact-fix-v1`), translated by exactly `+116px` in Y for the bottom-aligned table. Do not reintroduce `_resolve_slanted_rail()`, rail normal helpers, separate rail colliders, or normal-movement side clamps. `BoardSimulation._resolve_bounds()` and `GameController.move_active_to()` must both use `table_left_at(y)` / `table_right_at(y)` with the live gem radius. Before changing this area, read `reports/RESTORED_WORKING_TABLE_RAILS_V1_REPORT.md` and inspect the three development-only overlay captures under `reports/restored-working-table-rails-v1/`.

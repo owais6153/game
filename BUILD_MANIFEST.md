@@ -1,5 +1,14 @@
 # Build Manifest
 
+## Gameplay HUD + Sequential Targets v1
+
+- File: `gameplay-hud-sequential-targets-v1.apk`
+- Path: `build/android/gameplay-hud-sequential-targets-v1.apk`
+- Size: `100,750,262 bytes`
+- Modified: `2026-07-30 14:11:00 +05:00`
+- SHA-256: `EDC72A77D57289443AC2B45935B4A39DB453C7B2E2A167669FAAA59B7F948D46`
+- Baseline: `d0c0e33558068f8c81307a32a0432d8dd766d23b`; device not connected.
+
 ## Restored Working Table Rails v1
 
 - File: `restored-working-table-rails-v1.apk`

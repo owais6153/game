@@ -17,10 +17,13 @@ var level_config: Dictionary = LevelConfigType.level_1()
 var next_level := 1
 var next_queue_index := 0
 var target_progress := 0
+var target_index := 0
 var counted_target_result_ids: Dictionary = {}
 ## Results count only after their own merge presentation has completed.
 var pending_target_presentations: Dictionary = {}
 var active_piece_id := -1
+# Retained as a zero-only legacy diagnostic field for existing test harnesses.
+# It is not incremented, displayed, or used as a gameplay limit.
 var shot_count := 0
 var dragging := false
 var merge_presentations: Array[Dictionary] = []
@@ -32,6 +35,8 @@ var win_qualified := false
 var win_presented := false
 var win_hold_elapsed := 0.0
 var failed := false
+var collection_in_progress := false
+var target_collection: Dictionary = {}
 var ready_delay_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
@@ -85,6 +90,7 @@ func _process(delta: float) -> void:
 	next_piece_id = result.next_id
 	_apply_confirmed_merge_events(result.presentation_events)
 	_update_merge_presentations(delta)
+	_update_target_collection(delta)
 	_update_danger_timers(delta)
 	if win_qualified or failed:
 		gem_sprite_layer.sync_gems(pieces)
@@ -100,6 +106,8 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
+	if collection_in_progress:
+		return
 	match launcher_state:
 		LauncherState.SHOT_IN_FLIGHT:
 			if all_pieces_settled():
@@ -133,14 +141,16 @@ func hud_snapshot() -> Dictionary:
 		if not piece.consumed:
 			highest_level = maxi(highest_level, piece.level)
 	return {
+		"level_number": 1,
 		"current_level": active.level if active != null else next_level,
 		"next_level": next_level,
 		"score": score,
 		"chain_multiplier": chain_multiplier,
-		"shot_count": shot_count,
-		"target_level": int(level_config.target_tier),
+		"target_level": active_target_tier(),
 		"target_progress": target_progress,
-		"target_quantity": int(level_config.target_quantity),
+		"target_quantity": active_target_quantity(),
+		"target_index": target_index,
+		"target_total": target_sequence().size(),
 		"highest_level": highest_level,
 		"sound_enabled": audio_feedback.enabled if audio_feedback != null else true,
 		"vibration_enabled": haptics_feedback.enabled,
@@ -179,13 +189,16 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 			audio_feedback.emit_event("button")
 			restart()
 			return
+		if collection_in_progress:
+			return
 		var active := get_active_piece()
 		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and pointer.distance_to(active.position) <= active.radius * GameConfig.DRAG_HIT_RADIUS_MULTIPLIER:
 			dragging = true
 			move_active_to(pointer.x)
 	elif dragging:
 		dragging = false
-		launch_active_piece()
+		if not collection_in_progress:
+			launch_active_piece()
 
 func move_active_to(x_position: float) -> void:
 	var active := get_active_piece()
@@ -198,7 +211,6 @@ func launch_active_piece() -> void:
 		active.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 		audio_feedback.emit_event("launch")
 		haptics_feedback.emit_event("launch")
-		shot_count += 1
 		launcher_state = LauncherState.SHOT_IN_FLIGHT
 
 func spawn_active_piece() -> bool:
@@ -222,7 +234,7 @@ func get_active_piece() -> GemPiece:
 
 func all_pieces_settled() -> bool:
 	for piece in pieces:
-		if piece.is_moving():
+		if not piece.consumed and piece.is_moving():
 			return false
 	return true
 
@@ -233,9 +245,9 @@ func restart() -> void:
 	next_piece_id = 1
 	_configure_level_1()
 	active_piece_id = -1
-	shot_count = 0
 	score = 0
 	target_progress = 0
+	target_index = 0
 	counted_target_result_ids.clear()
 	pending_target_presentations.clear()
 	chain_multiplier = 1
@@ -245,6 +257,8 @@ func restart() -> void:
 	win_presented = false
 	win_hold_elapsed = 0.0
 	failed = false
+	collection_in_progress = false
+	_cancel_target_collection()
 	dragging = false
 	launcher_state = LauncherState.SPAWNING_NEXT
 	ready_delay_elapsed = 0.0
@@ -290,7 +304,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if int(merge_event.get("depth", 0)) > 0:
 			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
-		if result_level == int(level_config.target_tier):
+		if result_level == active_target_tier():
 			var result_id := int(merge_event.get("result_id", -1))
 			if result_id >= 0 and not counted_target_result_ids.has(result_id):
 				pending_target_presentations[result_id] = true
@@ -301,6 +315,21 @@ func _configure_level_1() -> void:
 	merge_service.max_result_level = int(level_config.active_tier_max)
 	next_queue_index = 0
 	next_level = LevelConfigType.initial_launcher_level(level_config)
+
+func target_sequence() -> Array:
+	return level_config.get("target_sequence", []) as Array
+
+func active_target() -> Dictionary:
+	var sequence := target_sequence()
+	if target_index < 0 or target_index >= sequence.size():
+		return {}
+	return sequence[target_index] as Dictionary
+
+func active_target_tier() -> int:
+	return int(active_target().get("tier", 1))
+
+func active_target_quantity() -> int:
+	return int(active_target().get("quantity", 1))
 
 func _update_danger_timers(delta: float) -> void:
 	var live_ids: Dictionary = {}
@@ -336,11 +365,82 @@ func _update_merge_presentations(delta: float) -> void:
 			pending_target_presentations.erase(result_id)
 			if not counted_target_result_ids.has(result_id):
 				counted_target_result_ids[result_id] = true
-				target_progress += 1
-				_qualify_win_if_target_complete()
+				_begin_target_collection(result_id)
+
+func _begin_target_collection(result_id: int) -> void:
+	if collection_in_progress or result_id < 0:
+		return
+	var result_piece: GemPiece = null
+	for piece in pieces:
+		if piece.id == result_id and not piece.consumed:
+			result_piece = piece
+			break
+	if result_piece == null:
+		return
+	# The actual confirmed merge result has already finished its presentation.
+	# Remove it from physics before its separate collection visual travels to HUD.
+	result_piece.consumed = true
+	collection_in_progress = true
+	active_piece_id = -1
+	launcher_state = LauncherState.RESOLVING
+	var sprite := Sprite2D.new()
+	var entry := AssetCatalogType.gem_entry(result_piece.level)
+	sprite.texture = entry.texture
+	sprite.position = result_piece.position
+	var diameter := result_piece.radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(result_piece.level, 1.0))
+	sprite.scale = Vector2(diameter / sprite.texture.get_size().x, diameter / sprite.texture.get_size().y)
+	# Godot canvas z is bounded; this stays above the live gem layer (10)
+	# without exceeding the engine's maximum canvas z range.
+	sprite.z_index = 4090
+	gem_sprite_layer.add_child(sprite)
+	target_collection = {"result_id": result_id, "level": result_piece.level, "sprite": sprite, "start": result_piece.position, "elapsed": 0.0}
+
+func _update_target_collection(delta: float) -> void:
+	if not collection_in_progress:
+		return
+	var sprite: Sprite2D = target_collection.get("sprite")
+	if sprite == null:
+		_finish_target_collection()
+		return
+	var elapsed := float(target_collection.get("elapsed", 0.0)) + delta
+	target_collection.elapsed = elapsed
+	var duration := 0.48
+	var t := clampf(elapsed / duration, 0.0, 1.0)
+	var eased := 1.0 - pow(1.0 - t, 3.0)
+	var start: Vector2 = target_collection.start
+	var destination := Vector2(463.0, 64.0)
+	sprite.position = start.lerp(destination, eased)
+	var pop := 1.0 + sin(clampf(t * 2.0, 0.0, 1.0) * PI) * 0.20
+	# Keep a deterministic base scale instead of accumulating the pop each frame.
+	var level := int(target_collection.level)
+	var base_diameter := GameConfig.gem_collision_radius(level) * GameConfig.gem_perspective_scale_at(start.y) * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(level, 1.0))
+	sprite.scale = Vector2(base_diameter / sprite.texture.get_size().x, base_diameter / sprite.texture.get_size().y) * pop
+	sprite.modulate = Color(1.0, 1.0, 1.0, 1.0 - t)
+	if t >= 1.0:
+		_finish_target_collection()
+
+func _finish_target_collection() -> void:
+	var sprite: Sprite2D = target_collection.get("sprite")
+	if sprite != null:
+		sprite.queue_free()
+	target_collection.clear()
+	collection_in_progress = false
+	target_progress += 1
+	if target_progress < active_target_quantity():
+		return
+	target_index += 1
+	target_progress = 0
+	if target_index >= target_sequence().size():
+		_qualify_win_if_target_complete()
+
+func _cancel_target_collection() -> void:
+	var sprite: Sprite2D = target_collection.get("sprite")
+	if sprite != null:
+		sprite.queue_free()
+	target_collection.clear()
 
 func _qualify_win_if_target_complete() -> void:
-	if target_progress < int(level_config.target_quantity) or win_qualified:
+	if target_index < target_sequence().size() or win_qualified:
 		return
 	won = true
 	win_qualified = true

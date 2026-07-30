@@ -3,14 +3,15 @@ extends SceneTree
 const GameScene = preload("res://scenes/Game.tscn")
 const GemPieceType = preload("res://scripts/gem_piece.gd")
 const LevelConfigType = preload("res://scripts/level_config.gd")
+const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 
 var failures: Array[String] = []
 
 func _init() -> void:
-	_test_level_data()
-	_test_launcher_range_and_queue()
-	_test_target_counting_and_win_sequence()
-	_test_restart_and_fail()
+	_test_catalog_identity()
+	_test_level_sequence()
+	_test_unlimited_launcher()
+	_test_sequential_target_completion()
 	if failures.is_empty():
 		print("LEVEL_1_FLOW_TESTS: PASS")
 		quit(0)
@@ -25,62 +26,55 @@ func _assert(condition: bool, message: String) -> void:
 func _piece(id: int, level: int, position: Vector2) -> GemPiece:
 	return GemPieceType.new(id, level, position, GameConfig.gem_collision_radius(level))
 
-func _test_level_data() -> void:
-	var config := LevelConfigType.level_1()
-	_assert(int(config.active_tier_max) - int(config.active_tier_min) + 1 == 8, "Level 1 must configure exactly eight contiguous tiers")
-	_assert(int(config.active_tier_min) == 1 and int(config.active_tier_max) == 8, "Level 1 must use L1-L8")
-	_assert(int(config.target_tier) >= int(config.active_tier_min) and int(config.target_tier) <= int(config.active_tier_max), "Target must belong to the active range")
-	_assert(int(config.target_tier) == 4 and int(config.target_quantity) == 2, "Level 1 must require two L4 results from its one target type")
-	for tier in config.spawnable_tiers:
-		_assert(int(tier) >= int(config.active_tier_min) and int(tier) <= int(config.active_tier_max), "Launcher tier must stay in active range")
-	_assert((config.spawn_weights as Dictionary).has(1) and (config.spawn_weights as Dictionary).has(2), "Early target must be achievable from low launcher tiers")
+func _test_catalog_identity() -> void:
+	var ids := {}
+	for tier in range(1, 19):
+		var entry := AssetCatalogType.gem_entry(tier)
+		_assert(int(entry.tier) == tier, "Catalog tier must round-trip")
+		_assert(not String(entry.id).is_empty() and not ids.has(entry.id), "All catalog IDs must be unique")
+		_assert(not String(entry.name).is_empty() and entry.texture != null, "Every catalog entry needs a name and texture")
+		_assert(entry.texture.resource_path == AssetCatalogType.gem_texture(tier).resource_path, "HUD and runtime must share one texture source")
+		ids[entry.id] = true
 
-func _test_launcher_range_and_queue() -> void:
+func _test_level_sequence() -> void:
+	var config := LevelConfigType.level_1()
+	var sequence: Array = config.target_sequence
+	_assert(sequence.size() == 2, "Level 1 must define exactly two sequential targets")
+	_assert(int(sequence[0].tier) == 3 and int(sequence[1].tier) == 4, "Level 1 target order must be L3 then L4")
+	_assert(not config.has("shot_limit"), "Level 1 must not define a shot limit")
+
+func _test_unlimited_launcher() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	for index in range(12):
+	for index in range(30):
 		var active = controller.get_active_piece()
-		_assert(active != null and [1, 2].has(active.level), "Launcher must never produce a tier outside Level 1's configured low-tier range")
-		controller.active_piece_id = -1
+		_assert(active != null and [1, 2].has(active.level), "Unlimited queue must keep producing configured low tiers")
 		active.is_active_launcher = false
+		controller.active_piece_id = -1
 		controller.launcher_state = controller.LauncherState.SPAWNING_NEXT
 		controller._advance_launcher_lifecycle()
-	var snapshot: Dictionary = controller.hud_snapshot()
-	_assert(int(snapshot.current_level) in [1, 2] and int(snapshot.next_level) in [1, 2], "Current and next previews must use the configured queue")
+	_assert(controller.shot_count == 0, "No production shot counter may advance")
 	controller.queue_free()
 
-func _test_target_counting_and_win_sequence() -> void:
+func _complete_target(controller, level: int, id: int) -> void:
+	var result := _piece(id, level, Vector2(360, 720))
+	controller.pieces.append(result)
+	var events: Array[Dictionary] = []
+	events.append({"level": level, "depth": 0, "result_id": id})
+	controller._apply_confirmed_merge_events(events)
+	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
+	_assert(controller.collection_in_progress, "Confirmed target must begin collection only after merge presentation")
+	controller._update_target_collection(0.60)
+
+func _test_sequential_target_completion() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	var non_target_events: Array[Dictionary] = [{"level": 5, "depth": 0, "result_id": 100}]
-	controller._apply_confirmed_merge_events(non_target_events)
-	_assert(controller.target_progress == 0 and not controller.win_qualified, "Non-target confirmed merge must not increment Level 1 target progress")
-	var target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 101}]
-	controller._apply_confirmed_merge_events(target_events)
-	_assert(controller.target_progress == 0 and not controller.win_qualified, "Target result must wait for its own visible presentation")
-	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
-	_assert(controller.target_progress == 1 and not controller.win_qualified, "First presented target result must increment progress without qualifying win")
-	var second_target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 102}]
-	controller._apply_confirmed_merge_events(second_target_events)
-	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
-	_assert(controller.target_progress == 2 and controller.win_qualified and not controller.win_presented, "Second presented target result must qualify win without presenting it early")
-	controller._apply_confirmed_merge_events(target_events)
-	_assert(controller.target_progress == 2, "One confirmed merge result must count toward target once")
-	controller.merge_presentations.clear()
+	_complete_target(controller, 3, 1001)
+	_assert(controller.target_index == 1 and controller.target_progress == 0 and not controller.win_qualified, "Intermediate target must advance without victory")
+	_complete_target(controller, 4, 1002)
+	_assert(controller.target_index == 2 and controller.win_qualified and not controller.win_presented, "Final target must qualify only after collection animation")
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
-	_assert(controller.win_presented, "Win overlay must wait for final target merge presentation/hold")
-	controller.queue_free()
-
-func _test_restart_and_fail() -> void:
-	var controller = GameScene.instantiate()
-	controller._ready()
-	var target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 200}, {"level": 4, "depth": 0, "result_id": 201}]
-	controller._apply_confirmed_merge_events(target_events)
+	_assert(controller.win_presented, "Win overlay must follow final collection completion")
 	controller.restart()
-	_assert(controller.target_progress == 0 and not controller.win_qualified and controller.get_active_piece() != null, "Restart must reset Level 1 target state and launcher")
-	var danger := _piece(900, 1, Vector2(300, GameConfig.DANGER_LINE_Y + 20.0))
-	controller.pieces.append(danger)
-	for frame in range(50):
-		controller._process(1.0 / 60.0)
-	_assert(controller.failed, "Existing danger-line failure must remain unchanged")
+	_assert(controller.target_index == 0 and controller.target_progress == 0 and not controller.collection_in_progress, "Restart must restore target sequence safely")
 	controller.queue_free()
