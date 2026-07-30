@@ -1,5 +1,11 @@
 # Changelog
 
+## Pre-Shared-Perspective Restored v1
+
+- Reverted the pushed shared-projection and final-win-sequencing change (`2c7114c`) without rewriting Git history.
+- Restored the exact pre-task source state from `70733c0`, retaining the approved visible-touch milestone at `3316d2d` / `visible-touch-table-alignment-fix-v1`.
+- Removed only the reverted task's generated source, screenshots, report, and APK artifacts; no replacement gameplay or perspective change was added.
+
 ## Visible-Touch Table Alignment Fix v1
 
 - Removed the Y-based gem perspective multiplier and the uncalibrated tier-growth multiplier from live gem presentation. Both made a fixed collider start contact before a rendered gem body visually touched.

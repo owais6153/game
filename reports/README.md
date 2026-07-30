@@ -1,5 +1,6 @@
 # Milestone reports
 
+- [Last-task rollback](LAST_TASK_ROLLBACK_REPORT.md)
 - [Visible-Touch Table Alignment Fix v1](VISIBLE_TOUCH_TABLE_ALIGNMENT_FIX_V1_REPORT.md)
 
 ## Latest repair

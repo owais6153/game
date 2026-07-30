@@ -1,5 +1,17 @@
 # Build Manifest
 
+## Pre-Shared-Perspective Restored v1
+
+- File: `pre-shared-perspective-restored.apk`
+- Path: `D:\Owais\game\build\android\pre-shared-perspective-restored.apk`
+- Size: `99,204,339` bytes
+- Modified: `2026-07-30 12:03:14 +05:00`
+- SHA-256: `56EE18332CCFC0D96CE6D5E895D97558A3143F5FDDF77F9B0C2F665B8921CE6C`
+- Restored source: exact pre-task tree at `70733c0`; rollback commit `97b6bc355172c3f1df394a85b9bc63f6fb376290` reverts `2c7114c`.
+- Tag: `pre-shared-perspective-restored-v1`
+- Validation: Godot 4.6.3 headless parse/import; `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. APK is non-empty and ZIP validation found `AndroidManifest.xml`, `classes.dex`, and `lib/arm64-v8a/libgodot_android.so`.
+- Device status: no connected device; installation and launch are not claimed.
+
 ## Level 1 Balance v1
 
 - File: `level-1-balance-v1.apk`
