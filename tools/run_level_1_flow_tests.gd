@@ -58,12 +58,10 @@ func _test_target_counting_and_win_sequence() -> void:
 	var target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 101}]
 	controller._apply_confirmed_merge_events(target_events)
 	_assert(controller.target_progress == 0 and not controller.win_qualified, "Target result must wait for its own visible presentation")
-	controller._mark_result_first_frame_visible(101)
 	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
 	_assert(controller.target_progress == 1 and not controller.win_qualified, "First presented target result must increment progress without qualifying win")
 	var second_target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 102}]
 	controller._apply_confirmed_merge_events(second_target_events)
-	controller._mark_result_first_frame_visible(102)
 	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
 	_assert(controller.target_progress == 2 and controller.win_qualified and not controller.win_presented, "Second presented target result must qualify win without presenting it early")
 	controller._apply_confirmed_merge_events(target_events)

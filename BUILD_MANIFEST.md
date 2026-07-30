@@ -195,16 +195,6 @@
 
 Every APK record includes its filename, path, size, modified timestamp, source commit, tag, validation, and device status.
 
-## Shared Perspective + Win Sequence Fix v1
-
-- File: `shared-perspective-win-sequence-fix-v1.apk`
-- Path: `D:\\Owais\\game\\build\\android\\shared-perspective-win-sequence-fix-v1.apk`
-- Size: `99,803,756` bytes
-- Modified: `2026-07-30 11:49:30 +05:00`
-- SHA-256: `2E8F7344D27942A382F6A4A7165EDE7A6F7280F9717820CF54F1E306B9401463`
-- Validation: Godot parse/import; clean-contact, 18-gem, Level 1, and motion suites; APK ZIP has `AndroidManifest.xml` and `classes.dex`.
-- Device status: no device connected; not installed or launched.
-
 ## Clean Contact Merge v2 — Chain Polish
 
 - File: `clean-contact-merge-v2-chain-polish.apk`

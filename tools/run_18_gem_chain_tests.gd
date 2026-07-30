@@ -179,8 +179,8 @@ func _test_controller_merge_score_and_launcher_guard() -> void:
 	controller.queue_free()
 
 func _test_fixed_table_config() -> void:
-	_assert(GameConfig.TABLE_TEXTURE_CENTER == GameConfig.LOGICAL_TABLE_SIZE * 0.5, "Table must be centered in the shared logical gameplay viewport")
-	_assert(GameConfig.PROJECTED_TABLE_BOTTOM_LEFT.y >= GameConfig.VIEWPORT_SIZE.y - 12.0 and GameConfig.PROJECTED_TABLE_TOP_LEFT.x > 0.0, "Projection must bottom-anchor the table and expose background at the back")
+	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 846.0), "Table placement must use the complete bottom-anchored composition")
+	_assert(GameConfig.TABLE_INNER_LEFT_TOP == 205.0 and GameConfig.TABLE_INNER_RIGHT_TOP == 515.0, "Table rail config must share the complete reference-aligned transform")
 	_assert(GameConfig.TARGET_LEVEL == 5, "Baseline target flow must remain unchanged")
 
 func _test_motion_regression_guards() -> void:

@@ -1,9 +1,5 @@
 # AI Knowledge Base
 
-## Shared projection rule
-
-Never reintroduce per-gem Y scaling, gem-only screen offsets, or runtime collider scaling. Perspective belongs exclusively to `ProjectedGameplayWorld` plus `SharedTableProjection`.
-
 ## 18-gem progression validation v1
 
 The current approved base is `18-gem-order-v1`. Run `tools/run_18_gem_chain_tests.gd` for all 17 upgrades and safety guards; use `tools/manual_merge_harness.gd` only as a development command-line helper. It must never be added to `Game.tscn`, autoloads, Android runtime input, or a production UI. Preserve current-step contact capture, pair de-duplication, consumed-source lock, local-chain behavior, terminal L18, and cached texture access.
