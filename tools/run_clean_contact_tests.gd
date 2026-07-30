@@ -334,15 +334,15 @@ func _test_progression_hud_snapshot_and_queue() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
 	var first: Dictionary = controller.hud_snapshot()
-	_assert(int(first.current_level) == 1 and int(first.next_level) == 2, "HUD previews must match the initial current/next queue")
+	_assert(int(first.current_level) == 1 and int(first.next_level) == 1, "HUD previews must match Level 1's deterministic opening queue")
 	_assert(int(first.target_level) == 5, "HUD target highlight must remain Diamond (L5)")
 	controller.launch_active_piece()
 	for frame in range(200): controller._process(1.0 / 60.0)
 	var after_shot: Dictionary = controller.hud_snapshot()
-	_assert(int(after_shot.current_level) == 2 and int(after_shot.next_level) == 1, "HUD queue preview must advance exactly once after a shot cycle")
+	_assert(int(after_shot.current_level) == 1 and int(after_shot.next_level) == 2, "HUD queue preview must advance exactly once after a shot cycle")
 	controller.restart()
 	var after_restart: Dictionary = controller.hud_snapshot()
-	_assert(int(after_restart.current_level) == 1 and int(after_restart.next_level) == 2 and int(after_restart.score) == 0, "Restart must reset HUD and queue previews")
+	_assert(int(after_restart.current_level) == 1 and int(after_restart.next_level) == 1 and int(after_restart.score) == 0, "Restart must reset Level 1 HUD and queue previews")
 
 func _test_hud_layout_and_pointer_safety() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:

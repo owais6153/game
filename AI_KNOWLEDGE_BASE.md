@@ -12,6 +12,10 @@ The repository was deliberately restored to `new-table-shadow-contact-fix-v1` be
 
 Never use `load()`/`ResourceLoader.load()` from `AssetCatalog.gem_texture()` or `GemSpriteLayer.sync_gems()`. Runtime textures are preloaded and must remain at or below a 256 px long edge. The layer may update sprite/shadow positions per frame, but texture assignment, scale calculation, alpha processing, and physics-body radius changes are creation/tier-change work only. Read `18_GEM_MOTION_SMOOTHNESS_FIX_V1_REPORT.md` before any 18-gem rendering change.
 
+## Level 1 flow v1
+
+Read `LEVEL_1_FLOW_V1_REPORT.md` before changing the default game flow. `LevelConfig.level_1()` is the only authority for Level 1's L1-L8 active range, L1/L2 launcher sequence, and one L5 target. Target progress may be updated only inside `GameController._apply_confirmed_merge_events()` from a unique merge `result_id`; never derive it from the board, queue previews, launcher pieces, debug helpers, or restore state. Keep the full 18-tier merge-service default for development tests; the controller applies the normal-play cap from level data.
+
 ## Sound + Haptics v1 update
 
 - Never call audio or `Input.vibrate_handheld` directly from simulation, merge, score, or HUD drawing code. Route confirmed events through `AudioFeedbackService` / `HapticsService` in `GameController`.

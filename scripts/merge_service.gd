@@ -2,6 +2,9 @@ class_name ContactMergeService
 extends RefCounted
 
 var _candidates: Array[ContactPair] = []
+## Defaults to the full approved catalog. A level may lower this presentation
+## exposure cap without changing the global L1-L18 merge contract or physics.
+var max_result_level := GameConfig.MAX_GEM_LEVEL
 
 func capture_contact(first: GemPiece, second: GemPiece) -> void:
 	# Captured in the current simulation step before overlap separation.
@@ -48,7 +51,7 @@ func _resolve_cycle(pieces: Array[GemPiece], candidates: Array[ContactPair], nex
 		var first: GemPiece = by_id.get(candidate.first_id)
 		var second: GemPiece = by_id.get(candidate.second_id)
 		if first == null or second == null or consumed.has(first.id) or consumed.has(second.id): continue
-		if first.level != second.level or first.level >= GameConfig.MAX_GEM_LEVEL: continue
+		if first.level != second.level or first.level >= max_result_level: continue
 		if first.position.distance_to(second.position) > first.radius + second.radius + GameConfig.CONTACT_EPSILON: continue
 		consumed[first.id] = true; consumed[second.id] = true
 		remove_ids[first.id] = true; remove_ids[second.id] = true

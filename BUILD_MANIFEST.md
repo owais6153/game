@@ -236,3 +236,13 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Tag: `18-gem-progression-tested-v1`
 - Validation: Godot 4.6.3 import/parse, `GEM18_CHAIN_TESTS`, `CLEAN_CONTACT_TESTS`, development harness L14 four-step chain, L18 terminal path, and APK ZIP checks passed.
 - Device status: no phone was connected; installation, visual manual checks, and device performance are not claimed.
+# Level 1 Flow v1
+
+- File: `level-1-flow-v1.apk`
+- Path: `D:\\Owais\\game\\build\\android\\level-1-flow-v1.apk`
+- Size: `99,200,243` bytes
+- Modified: `2026-07-30 09:12:13 +05:00`
+- SHA-256: `E7BDBBE6D1158F113F705980602A769DA64078194A61780E45D6AA4156616D9B`
+- Source commit: recorded by the `level-1-flow-v1` milestone commit and tag.
+- Validation: Godot 4.6.3 parse/import plus `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, and `LEVEL_1_FLOW_TESTS` passed. APK/ZIP structure contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: no phone was connected; installation and launch were not attempted.

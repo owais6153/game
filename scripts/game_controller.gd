@@ -7,12 +7,17 @@ const HapticsServiceType = preload("res://scripts/haptics_service.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
 const ResultOverlayLayerType = preload("res://scripts/result_overlay_layer.gd")
+const LevelConfigType = preload("res://scripts/level_config.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
 var merge_service := ContactMergeService.new()
 var next_piece_id := 1
+var level_config: Dictionary = LevelConfigType.level_1()
 var next_level := 1
+var next_queue_index := 0
+var target_progress := 0
+var counted_target_result_ids: Dictionary = {}
 var active_piece_id := -1
 var shot_count := 0
 var dragging := false
@@ -47,6 +52,7 @@ enum LauncherState {
 var launcher_state: LauncherState = LauncherState.SPAWNING_NEXT
 
 func _ready() -> void:
+	_configure_level_1()
 	_setup_asset_presentation()
 	audio_feedback = AudioFeedbackServiceType.new()
 	haptics_feedback = HapticsServiceType.new()
@@ -130,7 +136,9 @@ func hud_snapshot() -> Dictionary:
 		"score": score,
 		"chain_multiplier": chain_multiplier,
 		"shot_count": shot_count,
-		"target_level": GameConfig.TARGET_LEVEL,
+		"target_level": int(level_config.target_tier),
+		"target_progress": target_progress,
+		"target_quantity": int(level_config.target_quantity),
 		"highest_level": highest_level,
 		"sound_enabled": audio_feedback.enabled if audio_feedback != null else true,
 		"vibration_enabled": haptics_feedback.enabled,
@@ -200,7 +208,8 @@ func spawn_active_piece() -> bool:
 	piece.is_active_launcher = true
 	pieces.append(piece)
 	active_piece_id = piece.id
-	next_level = 2 if next_level == 1 else 1
+	next_queue_index += 1
+	next_level = LevelConfigType.launcher_level_at(level_config, next_queue_index)
 	return true
 
 func get_active_piece() -> GemPiece:
@@ -220,10 +229,12 @@ func restart() -> void:
 	merge_service.clear()
 	merge_presentations.clear()
 	next_piece_id = 1
-	next_level = 1
+	_configure_level_1()
 	active_piece_id = -1
 	shot_count = 0
 	score = 0
+	target_progress = 0
+	counted_target_result_ids.clear()
 	chain_multiplier = 1
 	danger_timers.clear()
 	won = false
@@ -276,7 +287,13 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if int(merge_event.get("depth", 0)) > 0:
 			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
-		if result_level == GameConfig.TARGET_LEVEL and not win_qualified:
+		if result_level == int(level_config.target_tier):
+			var result_id := int(merge_event.get("result_id", -1))
+			if result_id < 0 or not counted_target_result_ids.has(result_id):
+				target_progress += 1
+				if result_id >= 0:
+					counted_target_result_ids[result_id] = true
+		if target_progress >= int(level_config.target_quantity) and not win_qualified:
 			won = true
 			win_qualified = true
 			win_presented = false
@@ -284,6 +301,12 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			active_piece_id = -1
 			launcher_state = LauncherState.RESOLVING
 		resolution_multiplier += 1
+
+func _configure_level_1() -> void:
+	level_config = LevelConfigType.level_1()
+	merge_service.max_result_level = int(level_config.active_tier_max)
+	next_queue_index = 0
+	next_level = LevelConfigType.initial_launcher_level(level_config)
 
 func _update_danger_timers(delta: float) -> void:
 	var live_ids: Dictionary = {}

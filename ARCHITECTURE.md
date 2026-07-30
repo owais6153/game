@@ -48,6 +48,10 @@ Presentation stays in the controller and `GemVisuals`; merge rules have no drawi
 
 Danger state is controller-owned and keyed by piece ID. It is cleared immediately when a piece becomes active, moves, merges/disappears, or leaves the lower forbidden zone. Win/fail freeze input and launcher advancement; `restart()` owns the single complete reset path used by Restart, Replay, and Retry.
 
+## Isolated Level 1 flow v1
+
+`scripts/level_config.gd` is the smallest level-data boundary: it supplies the one default level's active tier range, low-tier weighted deterministic launcher sequence, target tier, target quantity, and empty starting board. `GameController` consumes that configuration for launcher queueing, target snapshots, unique confirmed-result counting, and the normal-play merge cap. `ContactMergeService.max_result_level` defaults to the full catalog maximum, so development tools and the L1-L18 regression suite retain their complete contract. No level-selection, progression, persistence, multi-target, or economy framework is present.
+
 ## Merge data flow
 
 `BoardSimulation` captures physical contact → `ContactMergeService` commits immediate simulation changes and emits presentation events → `GameController` advances effect timers → drawing renders non-physical source ghosts, ring, glow, and pulse. Only a just-spawned gem can seed a chain, and all chain cycles are capped at 6.
