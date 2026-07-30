@@ -73,7 +73,7 @@
 - Added Android ETC2/ASTC texture-import support through `[rendering/textures/vram_compression] import_etc2_astc=true` in `project.godot`.
 - Exported and package-validated the standalone blank Android baseline APK.
 
-## New table + shadow separation v1 (in progress)
+## New table + shadow separation v1
 
 - Replaced the active table with the newly supplied table and centralized its measured UI-reference layout in `GameConfig`.
 - Replaced live gem artwork with non-destructive body-only derivatives; added independent presentation-only soft shadows.
