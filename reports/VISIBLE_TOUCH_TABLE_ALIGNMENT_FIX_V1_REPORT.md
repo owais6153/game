@@ -26,4 +26,11 @@ Urgent regression repair only. No new level, target, UI, balance, save, progress
 
 ## APK
 
-This section is completed after the fresh Android export, ZIP validation, SHA-256 calculation, Git commit/tag, and push verification.
+- File: `build/android/visible-touch-table-alignment-fix-v1.apk`
+- Size: `99,204,339` bytes
+- Modified: `2026-07-30 11:02:43 +05:00`
+- SHA-256: `63238FE064B48BC57ECBBCD1EE522C17347C86CE5B96F57A71B764F00B5AE5DC`
+- Source commit: `3316d2dcdebde9528885c882b2de385c26862c66` (`fix: restore visible-touch collision and table alignment`)
+- Tag: `visible-touch-table-alignment-fix-v1`
+- ZIP validation: passed; `AndroidManifest.xml`, `classes.dex`, and arm64-v8a entries are present.
+- Device status: no Android device was connected; installation and launch are not claimed.

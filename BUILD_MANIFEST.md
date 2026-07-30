@@ -279,3 +279,14 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Source baseline: `845a113` (`perspective-table-view-v1`); final source commit and tag follow this manifest update.
 - Validation: Godot parse/import; `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. Fresh APK exists, is non-zero, and its ZIP contains `AndroidManifest.xml` and `classes.dex`.
 - Device status: no connected device; no installation or launch claimed.
+# Visible-Touch Table Alignment Fix v1
+
+- File: `visible-touch-table-alignment-fix-v1.apk`
+- Path: `D:\Owais\game\build\android\visible-touch-table-alignment-fix-v1.apk`
+- Size: `99,204,339` bytes
+- Modified: `2026-07-30 11:02:43 +05:00`
+- SHA-256: `63238FE064B48BC57ECBBCD1EE522C17347C86CE5B96F57A71B764F00B5AE5DC`
+- Source commit: `3316d2dcdebde9528885c882b2de385c26862c66` (`fix: restore visible-touch collision and table alignment`)
+- Tag: `visible-touch-table-alignment-fix-v1`
+- Validation: Godot 4.6.3 headless parse/import; `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. APK is non-empty and ZIP validation found `AndroidManifest.xml`, `classes.dex`, and arm64-v8a entries.
+- Device status: no connected Android device; installation and launch were not attempted.
