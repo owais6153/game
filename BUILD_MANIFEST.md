@@ -1,5 +1,17 @@
 # Build Manifest
 
+## 18-Gem Size & Collision Fix v1
+
+- File: `18-gem-size-collision-fix-v1.apk`
+- Path: `D:\Owais\game\build\android\18-gem-size-collision-fix-v1.apk`
+- Size: `99,187,450` bytes
+- Modified: `2026-07-30 08:30:36 +05:00`
+- SHA-256: `391A97C53874B783AE00A835F3A3C07EB6D75340686556B18E3B8C42999F7D8D`
+- Source commit: `fc71e2dad781134948d1962dfe2a49ad0b6521fe` (`fix: calibrate 18-gem sizes and collisions`)
+- Tag: `18-gem-size-collision-fix-v1`
+- Validation: Godot 4.6.3 import/parse validation; `CLEAN_CONTACT_TESTS: PASS`; `GEM18_CHAIN_TESTS: PASS`; `MOTION_PROFILE: PASS`; APK exists, is non-empty, and its ZIP contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: no connected Android device; no install or launch claimed.
+
 ## 18-Gem Motion Smoothness Fix v1 — export blocked
 
 - Requested file: `build/android/18-gem-motion-smoothness-fix-v1.apk`.

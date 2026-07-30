@@ -3,6 +3,7 @@
 ## Scope and baseline
 
 - Approved motion baseline: `18-gem-motion-smoothness-fix-v1` / `6953b4095b8924096a7d71445771cecbc893e30d`.
+- Calibration source commit: `fc71e2dad781134948d1962dfe2a49ad0b6521fe` (`fix: calibrate 18-gem sizes and collisions`).
 - This milestone changes only presentation asset trimming, visual-body mapping, and visual-only shadow placement for the 18 existing gem tiers.
 - The original source PNGs under `assets/gems/` and the earlier `assets/runtime/gems18/tier_*.png` files remain unchanged.
 - Motion/physics constants were not changed: launch speed, damping, restitution, friction, solver, timestep, velocity limits, sleep/settle thresholds, merge timing, and simulation circle radii are byte-for-byte unchanged from the approved motion build.
