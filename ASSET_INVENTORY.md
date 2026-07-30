@@ -4,6 +4,8 @@
 
 The user-selected source originals are preserved in `assets/gems/`. Their deterministic L1-L18 mapping, SHA-256 checksums, and source filenames are in `assets/runtime/gems18/source-gems-sha256.json`. Non-destructive alpha-trimmed derivatives are in `assets/runtime/gems18/tier_01.png` through `tier_18.png`, with bounds and crop details in `normalization_manifest.json`. The original Moonstone source has an opaque exterior; only its runtime derivative receives a circular body mask. Existing `gem_soft_shadow.png` remains a separate presentation-only layer.
 
+For the motion smoothness fix, every 18-gem runtime derivative is additionally capped at a 256 px longest side after alpha trimming. This replaces only `assets/runtime/gems18/`; no supplied source asset was changed. These runtime textures are preloaded once by `AssetCatalog` and are never loaded, cropped, or resized during gameplay.
+
 All source files below were supplied by the user in `assets/` and remain untouched. Runtime copies are intentionally separate in `assets/runtime/`.
 
 | Source folder | Files | Format / dimensions | Alpha | This milestone |

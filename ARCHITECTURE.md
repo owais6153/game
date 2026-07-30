@@ -4,6 +4,8 @@
 
 `AssetCatalog` maps presentation textures only. `GameConfig.MAX_GEM_LEVEL` is the sole catalog bound consumed by `ContactMergeService`; it does not alter launcher generation, target flow, table geometry, or rendering depth. Per-tier collider values are fixed board-space data and shadows remain presentation-only.
 
+For the 18-tier catalog, `AssetCatalog.GEM_TIER_TEXTURES` preloads each mobile-sized runtime texture exactly once. `GemSpriteLayer` performs tier-dependent texture, scale, and shadow setup only at piece creation/tier change; its frame sync only copies simulation positions into sprites. Texture loading, alpha analysis, collider resizing, perspective scaling, and shadow generation are forbidden in the frame path.
+
 ## Visual-physics calibration v1
 
 - `assets/runtime/gems_calibrated/` contains alpha-trimmed derived textures; originals and earlier runtime sources remain preserved.

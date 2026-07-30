@@ -4,6 +4,10 @@
 
 The repository was deliberately restored to `new-table-shadow-contact-fix-v1` before the 18-gem work. Do not reintroduce multi-target levels, unlimited-shot rules, perspective scaling, Y sorting, table changes, or HUD redesign when working on this catalog. Read `18_GEM_CHAIN_V1_REPORT.md` and preserve `assets/gems/` originals; modify only runtime derivatives if asset work is required.
 
+## 18-gem motion guard
+
+Never use `load()`/`ResourceLoader.load()` from `AssetCatalog.gem_texture()` or `GemSpriteLayer.sync_gems()`. Runtime textures are preloaded and must remain at or below a 256 px long edge. The layer may update sprite/shadow positions per frame, but texture assignment, scale calculation, alpha processing, and physics-body radius changes are creation/tier-change work only. Read `18_GEM_MOTION_SMOOTHNESS_FIX_V1_REPORT.md` before any 18-gem rendering change.
+
 ## Sound + Haptics v1 update
 
 - Never call audio or `Input.vibrate_handheld` directly from simulation, merge, score, or HUD drawing code. Route confirmed events through `AudioFeedbackService` / `HapticsService` in `GameController`.

@@ -1,5 +1,12 @@
 # Build Manifest
 
+## 18-Gem Motion Smoothness Fix v1 — export blocked
+
+- Requested file: `build/android/18-gem-motion-smoothness-fix-v1.apk`.
+- Source commit: the commit tagged `18-gem-motion-smoothness-fix-v1` (`fix: restore smooth motion for 18-gem build`).
+- Validation: Godot 4.6.3 import/parse validation; `CLEAN_CONTACT_TESTS: PASS`; `GEM18_CHAIN_TESTS: PASS`; `MOTION_PROFILE: PASS`.
+- Export status: blocked by Godot 4.6.3's existing command-line Android filename validation bug; it rejected valid explicit and preset `.apk` paths before compilation. No output APK was created and no device testing is claimed.
+
 ## 18-Gem Chain v1
 
 - File: `18-gem-chain-v1.apk`

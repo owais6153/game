@@ -8,6 +8,10 @@ const MANIFEST_PATH := "res://assets/runtime/gems18/normalization_manifest.json"
 const SOURCE_PREFIX := "ChatGPT Image Jul 29, 2026, 11_"
 const ALPHA_THRESHOLD := 20
 const PADDING := 2
+## A gem renders at roughly 68–108 design pixels. 256 px is ample for a
+## portrait mobile screen while avoiding the 500–866 px source textures being
+## uploaded as large GPU resources for every catalog tier.
+const MAX_RUNTIME_DIMENSION := 256
 
 func _init() -> void:
 	var files: Array[String] = []
@@ -51,13 +55,19 @@ func _init() -> void:
 			return
 		var crop := _padded(bounds, image.get_size())
 		var runtime := image.get_region(crop)
+		var cropped_size := runtime.get_size()
+		var longest_side := maxi(runtime.get_width(), runtime.get_height())
+		if longest_side > MAX_RUNTIME_DIMENSION:
+			var scale_factor := float(MAX_RUNTIME_DIMENSION) / float(longest_side)
+			var resized_size := Vector2i(maxi(1, roundi(runtime.get_width() * scale_factor)), maxi(1, roundi(runtime.get_height() * scale_factor)))
+			runtime.resize(resized_size.x, resized_size.y, Image.INTERPOLATE_LANCZOS)
 		var runtime_path := "%s/tier_%02d.png" % [OUTPUT_DIR, index + 1]
 		var save_error := runtime.save_png(runtime_path)
 		if save_error != OK:
 			push_error("Could not save %s" % runtime_path)
 			quit(1)
 			return
-		entries.append({"tier": index + 1, "source": source_path, "runtime": runtime_path, "source_size": [image.get_width(), image.get_height()], "alpha_bounds": [bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y], "runtime_size": [runtime.get_width(), runtime.get_height()], "processing": "RGBA8 alpha-body trim with 2px anti-alias padding; no internal facets/highlights altered; separate runtime shadow remains presentation-only."})
+		entries.append({"tier": index + 1, "source": source_path, "runtime": runtime_path, "source_size": [image.get_width(), image.get_height()], "alpha_bounds": [bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y], "cropped_size": [cropped_size.x, cropped_size.y], "runtime_size": [runtime.get_width(), runtime.get_height()], "processing": "RGBA8 alpha-body trim with 2px anti-alias padding, then downscaled to a 256px maximum side for mobile runtime; no internal facets/highlights altered; separate runtime shadow remains presentation-only."})
 	var manifest := JSON.stringify({"version": 1, "alpha_threshold": ALPHA_THRESHOLD, "padding": PADDING, "entries": entries}, "\t")
 	var manifest_file := FileAccess.open(MANIFEST_PATH, FileAccess.WRITE)
 	manifest_file.store_string(manifest + "\n")

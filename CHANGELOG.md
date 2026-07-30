@@ -6,6 +6,12 @@
 - Added a deterministic 18-tier source/runtime asset catalog and L1→L18 contact-merge bounds; L18 is terminal.
 - Preserved baseline table, HUD, launcher flow, target, physics, score, fail/win, pause, restart, sound, and haptics behavior.
 
+## 18-Gem Motion Smoothness Fix v1
+
+- Removed per-frame dynamic tier texture loading; all 18 runtime textures are now preloaded once and cached.
+- Reduced non-destructive runtime gem derivatives to a maximum 256 px long edge for mobile rendering.
+- Restored the baseline fixed collision bodies and motion constants; merge presentation remains visual-only.
+
 ## Unreleased
 
 - Delayed victory presentation until the spawned Diamond has synchronized and completed its merge pulse; qualification still blocks any launcher/spawn immediately.
