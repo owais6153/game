@@ -1,5 +1,9 @@
 # AI Knowledge Base
 
+## Restored rail baseline (read before any table/rail change)
+
+The approved current rail behavior is the table-interpolated implementation from historical commit `0b562d5` (`new-table-shadow-contact-fix-v1`), translated by exactly `+116px` in Y for the bottom-aligned table. Do not reintroduce `_resolve_slanted_rail()`, rail normal helpers, separate rail colliders, or normal-movement side clamps. `BoardSimulation._resolve_bounds()` and `GameController.move_active_to()` must both use `table_left_at(y)` / `table_right_at(y)` with the live gem radius. Before changing this area, read `reports/RESTORED_WORKING_TABLE_RAILS_V1_REPORT.md` and inspect the three development-only overlay captures under `reports/restored-working-table-rails-v1/`.
+
 ## Physical rail guard
 
 The custom deterministic solver has no `StaticBody2D` or `CollisionShape2D` rail nodes. Do not add them. The two physical walls are the slanted lines in `GameConfig`: left `(171.4, 413.0) → (40.7, 1226.0)`, right `(547.8, 413.0) → (680.1, 1226.0)`. `BoardSimulation._resolve_slanted_rail()` is the only normal-movement rail resolver. Never restore `table_left_at(y) + radius` / `table_right_at(y) - radius` clamps for moving pieces: that approximation creates visible drift on the trapezoid. Keep F8 diagnostics development-only and read `reports/PHYSICAL_RAILS_MATCH_TABLE_V1_REPORT.md` before a rail or table-art change.

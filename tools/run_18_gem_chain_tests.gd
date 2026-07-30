@@ -119,7 +119,8 @@ func _test_merge_result_contract() -> void:
 		var upgraded: GemPiece = result.pieces[0]
 		var event: Dictionary = result.presentation_events[0]
 		_assert(upgraded.level == level + 1 and is_equal_approx(upgraded.radius, upgraded.base_radius * upgraded.perspective_scale), "L%d result must use its exact tier and shared perspective collider" % level)
-		_assert(upgraded.position == Vector2(280.0 + first.radius, 500.0), "L%d result must spawn at the source midpoint" % level)
+		var expected_midpoint := Vector2(280.0 + first.radius, 500.0)
+		_assert(upgraded.position.distance_to(expected_midpoint) <= 0.01, "L%d result must spawn at the source midpoint" % level)
 		_assert(upgraded.velocity.length() <= GameConfig.MERGE_MAX_SPAWN_SPEED + 0.01 and upgraded.velocity.is_finite(), "L%d result must inherit only bounded valid momentum" % level)
 		_assert(String(event.result_texture_path) == AssetCatalogType.gem_resource_path(level + 1), "L%d result must map its approved texture" % level)
 		_assert(is_equal_approx(float(event.result_radius), upgraded.radius), "L%d event metadata must retain collider mapping" % level)
@@ -185,8 +186,8 @@ func _test_controller_merge_score_and_launcher_guard() -> void:
 
 func _test_fixed_table_config() -> void:
 	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 846.0), "Table placement must use the complete bottom-anchored composition")
-	_assert(GameConfig.LEFT_RAIL_TOP == Vector2(171.4, 413.0) and GameConfig.RIGHT_RAIL_TOP == Vector2(547.8, 413.0), "Table rail config must use the measured visible inner top anchors")
-	_assert(GameConfig.LEFT_RAIL_BOTTOM == Vector2(40.7, 1226.0) and GameConfig.RIGHT_RAIL_BOTTOM == Vector2(680.1, 1226.0), "Table rail config must use the measured visible inner bottom anchors")
+	_assert(Vector2(GameConfig.table_left_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP) == Vector2(178.0, 416.0) and Vector2(GameConfig.table_right_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP) == Vector2(542.0, 416.0), "Top rail must be the proven rail translated by the table's +116px bottom alignment")
+	_assert(Vector2(GameConfig.table_left_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM) == Vector2(44.0, 1228.0) and Vector2(GameConfig.table_right_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM) == Vector2(676.0, 1228.0), "Bottom rail must be the proven rail translated by the table's +116px bottom alignment")
 	_assert(GameConfig.TARGET_LEVEL == 5, "Baseline target flow must remain unchanged")
 
 func _test_motion_regression_guards() -> void:

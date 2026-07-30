@@ -1,5 +1,9 @@
 # Architecture
 
+## Restored working table rails v1
+
+`GameConfig.table_left_at(y)` and `table_right_at(y)` are again the sole authoritative side-bound model. `BoardSimulation._resolve_bounds()` and `GameController.move_active_to()` use the same interpolation plus the live gem radius. The table artwork remains at `(360, 846)` and the proven historical rail landmarks are translated by its exact `+116px` Y offset. The F8 overlay reads those identical interpolation functions; `tools/capture_rail_debug.gd` is a development-only evidence harness and has no runtime scene reference.
+
 ## Physical rails match table v1
 
 `GameConfig.LEFT_RAIL_TOP`, `LEFT_RAIL_BOTTOM`, `RIGHT_RAIL_TOP`, and `RIGHT_RAIL_BOTTOM` are the rail source of truth. `BoardSimulation._resolve_slanted_rail()` resolves each gem by its perpendicular distance to the appropriate physical line and uses the gem's live perspective-scaled radius. `GameController.move_active_to()` derives drag limits from the same line normals. The F8-only diagnostic overlay draws those exact vectors; it has no simulation authority and is disabled by default.

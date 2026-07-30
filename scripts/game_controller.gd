@@ -190,7 +190,7 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 func move_active_to(x_position: float) -> void:
 	var active := get_active_piece()
 	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
-		active.position.x = clampf(x_position, GameConfig.left_rail_center_limit_at(active.position.y, active.radius), GameConfig.right_rail_center_limit_at(active.position.y, active.radius))
+		active.position.x = clampf(x_position, GameConfig.table_left_at(active.position.y) + active.radius, GameConfig.table_right_at(active.position.y) - active.radius)
 
 func launch_active_piece() -> void:
 	var active := get_active_piece()
@@ -387,11 +387,12 @@ func _draw() -> void:
 		_draw_calibration_debug(font)
 
 func _draw_calibration_debug(font: Font) -> void:
-	var left_top := GameConfig.LEFT_RAIL_TOP
-	var right_top := GameConfig.RIGHT_RAIL_TOP
-	var left_bottom := GameConfig.LEFT_RAIL_BOTTOM
-	var right_bottom := GameConfig.RIGHT_RAIL_BOTTOM
-	# These are the exact same endpoints the deterministic physical solver reads.
+	var left_top := Vector2(GameConfig.table_left_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP)
+	var right_top := Vector2(GameConfig.table_right_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP)
+	var left_bottom := Vector2(GameConfig.table_left_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM)
+	var right_bottom := Vector2(GameConfig.table_right_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM)
+	# These table-interpolated endpoints are the exact same geometry the solver
+	# and launcher clamp read. F8 remains desktop/editor-only and off by default.
 	draw_line(left_top, left_bottom, Color("ff3fc7"), 4.0)
 	draw_line(right_top, right_bottom, Color("42dcff"), 4.0)
 	draw_line(left_top, right_top, Color("ffdd55"), 1.5)

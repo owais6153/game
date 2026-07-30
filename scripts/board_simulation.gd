@@ -30,8 +30,21 @@ func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) ->
 			_resolve_pair(first, pieces[second_index], merger)
 
 func _resolve_bounds(piece: GemPiece) -> void:
+	# This is the proven `new-table-shadow-contact-fix-v1` containment model.
+	# It is intentionally the only side-bound authority: the same table
+	# interpolation also drives the visual debug rails and launcher clamp.
+	var left := GameConfig.table_left_at(piece.position.y) + piece.radius
+	var right := GameConfig.table_right_at(piece.position.y) - piece.radius
 	var top := GameConfig.BOARD_TOP + piece.radius
 	var bottom := GameConfig.BOARD_BOTTOM - piece.radius
+	if piece.position.x < left:
+		_record_wall_impact(absf(piece.velocity.x), Vector2(left - piece.radius, piece.position.y))
+		piece.position.x = left
+		piece.velocity.x = abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
+	elif piece.position.x > right:
+		_record_wall_impact(absf(piece.velocity.x), Vector2(right + piece.radius, piece.position.y))
+		piece.position.x = right
+		piece.velocity.x = -abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	if piece.position.y < top:
 		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, top - piece.radius))
 		piece.position.y = top
@@ -40,21 +53,6 @@ func _resolve_bounds(piece: GemPiece) -> void:
 		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, bottom + piece.radius))
 		piece.position.y = bottom
 		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION
-	_resolve_slanted_rail(piece, GameConfig.LEFT_RAIL_TOP, GameConfig.left_rail_inward_normal())
-	_resolve_slanted_rail(piece, GameConfig.RIGHT_RAIL_TOP, GameConfig.right_rail_inward_normal())
-
-func _resolve_slanted_rail(piece: GemPiece, rail_origin: Vector2, inward_normal: Vector2) -> void:
-	# A circle is tangent to a slanted rail at its perpendicular distance, not
-	# at `rail_x + radius`. This is the physical counterpart of the visible rail.
-	var inward_distance := (piece.position - rail_origin).dot(inward_normal)
-	if inward_distance >= piece.radius:
-		return
-	var correction := piece.radius - inward_distance
-	piece.position += inward_normal * correction
-	var normal_velocity := piece.velocity.dot(inward_normal)
-	if normal_velocity < 0.0:
-		_record_wall_impact(absf(normal_velocity), piece.position - inward_normal * piece.radius)
-		piece.velocity -= inward_normal * normal_velocity * (1.0 + GameConfig.SIDE_WALL_RESTITUTION)
 
 func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeService) -> void:
 	var offset := second.position - first.position

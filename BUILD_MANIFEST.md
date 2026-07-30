@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Restored Working Table Rails v1
+
+- File: `restored-working-table-rails-v1.apk`
+- Path: `D:\Owais\game\build\android\restored-working-table-rails-v1.apk`
+- Size: `100,750,262 bytes`
+- Modified: `2026-07-30 13:37:45 +05:00`
+- SHA-256: `96A6BD76DDC1574208B74730E8F857A12AB729A77437B6CADABF8ED951C8948A`
+- Historical source restored: `0b562d5b85b0b4d0330ecd10da3f832408949ad9` (`new-table-shadow-contact-fix-v1`); delivery tag: `restored-working-table-rails-v1`.
+- Validation: Godot 4.6.3 parse/import; `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. APK structure was verified.
+- Device status: no phone connected; not installed or launched on-device.
+
 ## Physical Rails Match Table v1
 
 - File: `physical-rails-match-table-v1.apk`

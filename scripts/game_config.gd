@@ -5,28 +5,24 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.
-## New table composition measured directly from `new_table_v1.png` after its
-## render transform is applied. The four points below are the *inner felt-edge*
-## landmarks, not estimates from a rectangular board. They are the single source
-## for table artwork diagnostics, rail containment, and launcher limits.
-## Every gameplay landmark below is expressed in this same design space.
+## Proven table rail model from `new-table-shadow-contact-fix-v1`, translated
+## by the exact +116 px Y delta used when the table artwork was bottom-aligned.
+## These points remain the sole source for rendering diagnostics, containment,
+## launcher limits, and the danger-line width.
 const TABLE_TEXTURE_CENTER := Vector2(360.0, 846.0)
 const TABLE_TEXTURE_SIZE := Vector2(920.0, 810.0)
 const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7826087, 1.1802469)
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
-const BOARD_TOP := 413.0
-const BOARD_BOTTOM := 1226.0
-const TABLE_INNER_LEFT_TOP := 171.4
-const TABLE_INNER_LEFT_BOTTOM := 40.7
-const TABLE_INNER_RIGHT_TOP := 547.8
-const TABLE_INNER_RIGHT_BOTTOM := 680.1
-const LEFT_RAIL_TOP := Vector2(TABLE_INNER_LEFT_TOP, BOARD_TOP)
-const LEFT_RAIL_BOTTOM := Vector2(TABLE_INNER_LEFT_BOTTOM, BOARD_BOTTOM)
-const RIGHT_RAIL_TOP := Vector2(TABLE_INNER_RIGHT_TOP, BOARD_TOP)
-const RIGHT_RAIL_BOTTOM := Vector2(TABLE_INNER_RIGHT_BOTTOM, BOARD_BOTTOM)
-const DANGER_LINE_Y := 1035.0
-const LAUNCH_Y := 1138.0
+const TABLE_BOTTOM_ALIGNMENT_DELTA_Y := 116.0
+const BOARD_TOP := 416.0
+const BOARD_BOTTOM := 1228.0
+const TABLE_INNER_LEFT_TOP := 178.0
+const TABLE_INNER_LEFT_BOTTOM := 44.0
+const TABLE_INNER_RIGHT_TOP := 542.0
+const TABLE_INNER_RIGHT_BOTTOM := 676.0
+const DANGER_LINE_Y := 1046.0
+const LAUNCH_Y := 1144.0
 ## Largest gameplay radius. Individual values are calibrated to the visible
 ## main body of the alpha-trimmed runtime texture for each gem level.
 const PIECE_RADIUS := 42.0
@@ -186,22 +182,3 @@ static func table_right_at(y_position: float) -> float:
 
 static func table_playable_width_at(y_position: float) -> float:
 	return table_right_at(y_position) - table_left_at(y_position)
-
-## The custom solver uses these physical rail lines directly.  Their normals
-## point into the playable felt.  Keeping this here prevents a visual rail,
-## launcher clamp, and physical boundary from drifting apart again.
-static func left_rail_inward_normal() -> Vector2:
-	var direction := LEFT_RAIL_BOTTOM - LEFT_RAIL_TOP
-	return Vector2(direction.y, -direction.x).normalized()
-
-static func right_rail_inward_normal() -> Vector2:
-	var direction := RIGHT_RAIL_BOTTOM - RIGHT_RAIL_TOP
-	return Vector2(-direction.y, direction.x).normalized()
-
-static func left_rail_center_limit_at(y_position: float, radius: float) -> float:
-	var normal := left_rail_inward_normal()
-	return table_left_at(y_position) + radius / normal.x
-
-static func right_rail_center_limit_at(y_position: float, radius: float) -> float:
-	var normal := right_rail_inward_normal()
-	return table_right_at(y_position) + radius / normal.x

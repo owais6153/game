@@ -1,5 +1,11 @@
 # Changelog
 
+## Restored Working Table Rails v1
+
+- Restored the table-interpolated rail containment and launcher clamp from the verified `new-table-shadow-contact-fix-v1` source instead of retaining the later perpendicular slanted-line rail solver.
+- Applied only the table's exact `+116px` bottom-alignment translation to the proven rail, launcher, and danger-line geometry.
+- Added development-only visual proof captures that read the same rail data as the live solver; the diagnostic is disabled by default in the APK.
+
 ## Physical Rails Match Table v1
 
 - Replaced the old `rail_x + radius` side containment approximation with true circle-to-slanted-line containment using the measured inner felt edges of `new_table_v1.png`.
