@@ -1,5 +1,11 @@
 # Changelog
 
+## Physical Rails Match Table v1
+
+- Replaced the old `rail_x + radius` side containment approximation with true circle-to-slanted-line containment using the measured inner felt edges of `new_table_v1.png`.
+- The four anchors now drive physical rails, launcher drag limits, and the F8 development-only rail overlay.
+- No merge, motion, table-position, scoring, target, UI, audio/haptics, launcher-lifecycle, or result-flow rule changed.
+
 ## Table Perspective Matched Physics v1
 
 - Packaged and independently revalidated the existing matched perspective/physics/rail implementation as a fresh standalone APK.

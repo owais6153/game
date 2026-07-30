@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Physical Rails Match Table v1
+
+- File: `physical-rails-match-table-v1.apk`
+- Path: `D:\Owais\game\build\android\physical-rails-match-table-v1.apk`
+- Size: `99,938,473 bytes`
+- Modified: `2026-07-30 13:09:53 +05:00`
+- SHA-256: `3B22B7DB5ADCA350FEA4D69CAD7E910407297B8AD8361C18BDCC541E4075B1D5`
+- Source commit/tag: recorded by this milestone after final commit.
+- Validation: Godot 4.6.3 headless regression suite and motion profile passed; APK ZIP structure verified.
+- Device status: no phone connected; not installed or launched on-device.
+
 ## Matched Perspective Physics Scale v1
 
 - File: `matched-perspective-physics-scale-v1.apk`

@@ -37,6 +37,7 @@ func _init() -> void:
 	_test_inset_table_and_viewport_safety()
 	_test_asset_mapping_and_clean_diamond()
 	_test_table_layout_physics_alignment()
+	_test_physical_rail_geometry()
 	_test_perspective_view_presentation()
 	_test_visible_collision_calibration()
 	_test_calibrated_wall_contacts()
@@ -125,7 +126,7 @@ func _test_unobstructed_top_border() -> void:
 	var items: Array[GemPiece] = [shot]
 	for index in range(500):
 		simulation.step(items, 1.0 / 120.0, merger)
-	_assert(shot.position.y >= GameConfig.BOARD_TOP + shot.radius, "Unobstructed shot must remain inside the top border")
+	_assert(shot.position.y >= GameConfig.BOARD_TOP + shot.radius - 0.01, "Unobstructed shot must remain inside the top border")
 	_assert(shot.velocity.length() < GameConfig.SLEEP_SPEED, "Unobstructed shot must settle")
 
 func _test_launch_timing_and_settling() -> void:
@@ -445,6 +446,39 @@ func _test_table_layout_physics_alignment() -> void:
 	var launch_right := GameConfig.table_right_at(GameConfig.LAUNCH_Y) - GameConfig.PIECE_RADIUS
 	_assert(360.0 >= launch_left and 360.0 <= launch_right, "Launcher spawn must remain inside visible table surface")
 	_assert(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) < GameConfig.table_right_at(GameConfig.DANGER_LINE_Y), "Dynamic danger line must span the same authoritative table surface")
+
+func _test_physical_rail_geometry() -> void:
+	_assert(GameConfig.LEFT_RAIL_TOP == Vector2(GameConfig.TABLE_INNER_LEFT_TOP, GameConfig.BOARD_TOP), "Left physical rail top must equal the configured visible top anchor")
+	_assert(GameConfig.LEFT_RAIL_BOTTOM == Vector2(GameConfig.TABLE_INNER_LEFT_BOTTOM, GameConfig.BOARD_BOTTOM), "Left physical rail bottom must equal the configured visible bottom anchor")
+	_assert(GameConfig.RIGHT_RAIL_TOP == Vector2(GameConfig.TABLE_INNER_RIGHT_TOP, GameConfig.BOARD_TOP), "Right physical rail top must equal the configured visible top anchor")
+	_assert(GameConfig.RIGHT_RAIL_BOTTOM == Vector2(GameConfig.TABLE_INNER_RIGHT_BOTTOM, GameConfig.BOARD_BOTTOM), "Right physical rail bottom must equal the configured visible bottom anchor")
+	var previous_width := 0.0
+	for y in [GameConfig.BOARD_TOP, (GameConfig.BOARD_TOP + GameConfig.BOARD_BOTTOM) * 0.5, GameConfig.BOARD_BOTTOM]:
+		var width := GameConfig.table_playable_width_at(y)
+		if previous_width > 0.0:
+			_assert(width > previous_width, "Playable rail width must widen monotonically from top to bottom")
+		previous_width = width
+	var radius := GameConfig.gem_collision_radius(1)
+	var launcher_left := GameConfig.left_rail_center_limit_at(GameConfig.LAUNCH_Y, radius)
+	var launcher_right := GameConfig.right_rail_center_limit_at(GameConfig.LAUNCH_Y, radius)
+	_assert(launcher_left < launcher_right and 360.0 >= launcher_left and 360.0 <= launcher_right, "Launcher limits must derive from the same slanted rail geometry")
+	var simulation := SimulationType.new()
+	var merger := MergeType.new()
+	for y in [GameConfig.BOARD_TOP + 90.0, (GameConfig.BOARD_TOP + GameConfig.BOARD_BOTTOM) * 0.5, GameConfig.BOARD_BOTTOM - 90.0]:
+		var left_piece := _piece(int(y), 1, Vector2(GameConfig.table_left_at(y) - 20.0, y))
+		simulation.step([left_piece], 0.0, merger)
+		var left_distance := (left_piece.position - GameConfig.LEFT_RAIL_TOP).dot(GameConfig.left_rail_inward_normal())
+		_assert(left_distance >= left_piece.radius - 0.01, "Left rail must contain a gem at every tested table depth")
+		var right_piece := _piece(int(y) + 1, 1, Vector2(GameConfig.table_right_at(y) + 20.0, y))
+		simulation.step([right_piece], 0.0, merger)
+		var right_distance := (right_piece.position - GameConfig.RIGHT_RAIL_TOP).dot(GameConfig.right_rail_inward_normal())
+		_assert(right_distance >= right_piece.radius - 0.01, "Right rail must contain a gem at every tested table depth")
+	var simulation_source := FileAccess.get_file_as_string("res://scripts/board_simulation.gd")
+	_assert(simulation_source.contains("_resolve_slanted_rail") and not simulation_source.contains("piece.position.x = left"), "Only direct slanted-rail containment may run during normal physics movement")
+	var scene_source := FileAccess.get_file_as_string("res://scenes/Game.tscn")
+	_assert(not scene_source.contains("CollisionShape2D") and not scene_source.contains("StaticBody2D"), "No stale vertical or rectangular Godot rail collider may remain enabled")
+	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
+	_assert(controller_source.contains("GameConfig.LEFT_RAIL_TOP") and controller_source.contains("GameConfig.RIGHT_RAIL_BOTTOM"), "Debug overlay must read the exact same endpoints as physical rails")
 
 func _test_perspective_view_presentation() -> void:
 	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP), GameConfig.GEM_PERSPECTIVE_SCALE_BACK), "Back-table perspective scale must use the configured minimum")

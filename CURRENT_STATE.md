@@ -1,5 +1,7 @@
 # Current State
 
+**Current delivery:** `physical-rails-match-table-v1.apk` is the standalone rail-only build. The visible table and deterministic physical rails share exact design-space anchors: left `(171.4, 413.0) → (40.7, 1226.0)` and right `(547.8, 413.0) → (680.1, 1226.0)`. Slanted circle-to-line containment replaces the old vertical X clamp during normal motion. See `reports/PHYSICAL_RAILS_MATCH_TABLE_V1_REPORT.md`.
+
 **Current delivery:** `table-perspective-matched-physics-v1.apk` is a fresh standalone export of the matched perspective/physics implementation. Gems use the same 0.85–1.00 table-depth scale for their rendered root, shadow, and deterministic simulation radius; rail containment uses the scaled live radius. Source behavior remains commit `25fac1f`; see `reports/TABLE_PERSPECTIVE_MATCHED_PHYSICS_V1_REPORT.md`.
 
 **Current milestone:** Matched Perspective Physics Scale v1. Gems use one table-local-Y scale (`0.85` at the back to `1.00` at the front) for both their visual root and simulation radius. Rails, collision, contact-only merges, and shadows use that same live geometry. APK: `build/android/matched-perspective-physics-scale-v1.apk`. See `reports/MATCHED_PERSPECTIVE_PHYSICS_SCALE_V1_REPORT.md`.

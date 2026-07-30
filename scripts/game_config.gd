@@ -5,25 +5,26 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.
-## New table composition measured from the supplied UI reference at 941x1672
-## and normalized onto the 720x1280 design viewport. The table is deliberately
-## held lower to expose the tropical environment above it. Its outer image
-## occupies y=292..1248; its physical inner rails occupy y=340..1152.
+## New table composition measured directly from `new_table_v1.png` after its
+## render transform is applied. The four points below are the *inner felt-edge*
+## landmarks, not estimates from a rectangular board. They are the single source
+## for table artwork diagnostics, rail containment, and launcher limits.
 ## Every gameplay landmark below is expressed in this same design space.
 const TABLE_TEXTURE_CENTER := Vector2(360.0, 846.0)
 const TABLE_TEXTURE_SIZE := Vector2(920.0, 810.0)
 const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7826087, 1.1802469)
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
-const BOARD_TOP := 390.0
-const BOARD_BOTTOM := 1218.0
-## These rails are sampled from the new table's visible inner coral edge after
-## applying TABLE_TEXTURE_RENDER_SCALE. Rendering and physics read this one
-## model so body-to-rail contact aligns with the art.
-const TABLE_INNER_LEFT_TOP := 205.0
-const TABLE_INNER_RIGHT_TOP := 515.0
-const TABLE_INNER_LEFT_BOTTOM := 18.0
-const TABLE_INNER_RIGHT_BOTTOM := 702.0
+const BOARD_TOP := 413.0
+const BOARD_BOTTOM := 1226.0
+const TABLE_INNER_LEFT_TOP := 171.4
+const TABLE_INNER_LEFT_BOTTOM := 40.7
+const TABLE_INNER_RIGHT_TOP := 547.8
+const TABLE_INNER_RIGHT_BOTTOM := 680.1
+const LEFT_RAIL_TOP := Vector2(TABLE_INNER_LEFT_TOP, BOARD_TOP)
+const LEFT_RAIL_BOTTOM := Vector2(TABLE_INNER_LEFT_BOTTOM, BOARD_BOTTOM)
+const RIGHT_RAIL_TOP := Vector2(TABLE_INNER_RIGHT_TOP, BOARD_TOP)
+const RIGHT_RAIL_BOTTOM := Vector2(TABLE_INNER_RIGHT_BOTTOM, BOARD_BOTTOM)
 const DANGER_LINE_Y := 1035.0
 const LAUNCH_Y := 1138.0
 ## Largest gameplay radius. Individual values are calibrated to the visible
@@ -185,3 +186,22 @@ static func table_right_at(y_position: float) -> float:
 
 static func table_playable_width_at(y_position: float) -> float:
 	return table_right_at(y_position) - table_left_at(y_position)
+
+## The custom solver uses these physical rail lines directly.  Their normals
+## point into the playable felt.  Keeping this here prevents a visual rail,
+## launcher clamp, and physical boundary from drifting apart again.
+static func left_rail_inward_normal() -> Vector2:
+	var direction := LEFT_RAIL_BOTTOM - LEFT_RAIL_TOP
+	return Vector2(direction.y, -direction.x).normalized()
+
+static func right_rail_inward_normal() -> Vector2:
+	var direction := RIGHT_RAIL_BOTTOM - RIGHT_RAIL_TOP
+	return Vector2(-direction.y, direction.x).normalized()
+
+static func left_rail_center_limit_at(y_position: float, radius: float) -> float:
+	var normal := left_rail_inward_normal()
+	return table_left_at(y_position) + radius / normal.x
+
+static func right_rail_center_limit_at(y_position: float, radius: float) -> float:
+	var normal := right_rail_inward_normal()
+	return table_right_at(y_position) + radius / normal.x

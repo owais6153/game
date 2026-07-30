@@ -190,7 +190,7 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 func move_active_to(x_position: float) -> void:
 	var active := get_active_piece()
 	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
-		active.position.x = clampf(x_position, GameConfig.table_left_at(active.position.y) + active.radius, GameConfig.table_right_at(active.position.y) - active.radius)
+		active.position.x = clampf(x_position, GameConfig.left_rail_center_limit_at(active.position.y, active.radius), GameConfig.right_rail_center_limit_at(active.position.y, active.radius))
 
 func launch_active_piece() -> void:
 	var active := get_active_piece()
@@ -387,11 +387,18 @@ func _draw() -> void:
 		_draw_calibration_debug(font)
 
 func _draw_calibration_debug(font: Font) -> void:
-	var left_top := Vector2(GameConfig.table_left_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP)
-	var right_top := Vector2(GameConfig.table_right_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP)
-	var left_bottom := Vector2(GameConfig.table_left_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM)
-	var right_bottom := Vector2(GameConfig.table_right_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM)
-	draw_polyline(PackedVector2Array([left_top, right_top, right_bottom, left_bottom, left_top]), Color("ff5ccd"), 2.0)
+	var left_top := GameConfig.LEFT_RAIL_TOP
+	var right_top := GameConfig.RIGHT_RAIL_TOP
+	var left_bottom := GameConfig.LEFT_RAIL_BOTTOM
+	var right_bottom := GameConfig.RIGHT_RAIL_BOTTOM
+	# These are the exact same endpoints the deterministic physical solver reads.
+	draw_line(left_top, left_bottom, Color("ff3fc7"), 4.0)
+	draw_line(right_top, right_bottom, Color("42dcff"), 4.0)
+	draw_line(left_top, right_top, Color("ffdd55"), 1.5)
+	draw_line(left_bottom, right_bottom, Color("ffdd55"), 1.5)
+	for anchor in [left_top, left_bottom, right_top, right_bottom]:
+		draw_circle(anchor, 6.0, Color("ffffff"))
+		draw_circle(anchor, 3.0, Color("171725"))
 	for piece in pieces:
 		if piece.consumed:
 			continue
@@ -403,7 +410,7 @@ func _draw_calibration_debug(font: Font) -> void:
 			draw_rect(shadow_rect, Color("8ad7ff", 0.65), false, 1.0)
 	for marker in debug_contact_points:
 		draw_circle(marker.position, 4.0, Color("ff5ccd"))
-	draw_string(font, Vector2(24.0, 190.0), "CALIBRATION DEBUG (F8): rails / colliders / contacts", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("ffdd55"))
+	draw_string(font, Vector2(24.0, 190.0), "RAIL DEBUG (F8): exact physical lines / anchors / colliders / contacts", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("ffdd55"))
 
 func _draw_crystal_atmosphere() -> void:
 	# Lightweight procedural depth: only flat primitives, no shader/blur/particles.

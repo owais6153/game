@@ -1,5 +1,9 @@
 # Architecture
 
+## Physical rails match table v1
+
+`GameConfig.LEFT_RAIL_TOP`, `LEFT_RAIL_BOTTOM`, `RIGHT_RAIL_TOP`, and `RIGHT_RAIL_BOTTOM` are the rail source of truth. `BoardSimulation._resolve_slanted_rail()` resolves each gem by its perpendicular distance to the appropriate physical line and uses the gem's live perspective-scaled radius. `GameController.move_active_to()` derives drag limits from the same line normals. The F8-only diagnostic overlay draws those exact vectors; it has no simulation authority and is disabled by default.
+
 ## Matched perspective physics scale v1
 
 `GemPiece` owns an immutable calibrated `base_radius`, a shared `perspective_scale`, and a live `radius = base_radius * perspective_scale`. `BoardSimulation` updates this from authoritative table-local Y before bounds, pair contact, separation, and merge capture. `GemSpriteLayer` applies the same scale only to the whole visual root; its calibrated body/shadow children add no independent depth transform. This project uses a custom deterministic solver rather than `RigidBody2D`, so each gem's scalar radius is independent and no shared collision-shape resource is changed at runtime.

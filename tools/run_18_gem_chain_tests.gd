@@ -185,7 +185,8 @@ func _test_controller_merge_score_and_launcher_guard() -> void:
 
 func _test_fixed_table_config() -> void:
 	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 846.0), "Table placement must use the complete bottom-anchored composition")
-	_assert(GameConfig.TABLE_INNER_LEFT_TOP == 205.0 and GameConfig.TABLE_INNER_RIGHT_TOP == 515.0, "Table rail config must share the complete reference-aligned transform")
+	_assert(GameConfig.LEFT_RAIL_TOP == Vector2(171.4, 413.0) and GameConfig.RIGHT_RAIL_TOP == Vector2(547.8, 413.0), "Table rail config must use the measured visible inner top anchors")
+	_assert(GameConfig.LEFT_RAIL_BOTTOM == Vector2(40.7, 1226.0) and GameConfig.RIGHT_RAIL_BOTTOM == Vector2(680.1, 1226.0), "Table rail config must use the measured visible inner bottom anchors")
 	_assert(GameConfig.TARGET_LEVEL == 5, "Baseline target flow must remain unchanged")
 
 func _test_motion_regression_guards() -> void:

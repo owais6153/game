@@ -1,5 +1,9 @@
 # AI Knowledge Base
 
+## Physical rail guard
+
+The custom deterministic solver has no `StaticBody2D` or `CollisionShape2D` rail nodes. Do not add them. The two physical walls are the slanted lines in `GameConfig`: left `(171.4, 413.0) → (40.7, 1226.0)`, right `(547.8, 413.0) → (680.1, 1226.0)`. `BoardSimulation._resolve_slanted_rail()` is the only normal-movement rail resolver. Never restore `table_left_at(y) + radius` / `table_right_at(y) - radius` clamps for moving pieces: that approximation creates visible drift on the trapezoid. Keep F8 diagnostics development-only and read `reports/PHYSICAL_RAILS_MATCH_TABLE_V1_REPORT.md` before a rail or table-art change.
+
 ## Matched perspective physics scale v1
 
 For table-depth perspective, never scale a gem sprite independently. Use `GemPiece.apply_perspective_scale()` and `GameConfig.gem_perspective_scale_at(y)` so the visual root, separate shadow, live collision radius, rail containment, pair contact, and merge eligibility share one scale. The custom solver has no `CollisionShape2D` resources; do not introduce shared shape mutation or frame-time alpha/texture work.
