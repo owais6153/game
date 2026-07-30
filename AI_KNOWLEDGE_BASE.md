@@ -218,6 +218,10 @@ For L1-L18, use `assets/runtime/gems18/calibrated/` only through `AssetCatalog.G
 
 ## New table + shadow separation v1
 
+## 18-gem final order v1
+
+`AssetCatalog.GEM_TIER_SOURCE_INDEX` is the sole tier-to-artwork authority: do not infer an asset from its old `tier_XX.png` filename. A catalog reorder must move the matching `GEM_COLLISION_RADIUS` and shadow metadata with the artwork, then update the exact-order test. The final order and names are documented in `18_GEM_ORDER_V1_REPORT.md`; gameplay still merges numeric levels only.
+
 - The active table is `AssetCatalog.NEW_TABLE`, not the old coral derivative. Its visual scale and physical rail coordinates are centralized in `GameConfig`.
 - Live gems load from `assets/runtime/gems_body_v2/`. Former calibrated textures remain source/provenance only. Never allow shadows, glows, sparkles, or transparent padding to influence `GemPiece.radius`.
 - `GemSpriteLayer._shadows` is presentation-only. Shadow overlap is not a physical contact and cannot trigger merge, sound, score, or wall handling. F8 shows shadow bounds in cyan and remains disabled by default.

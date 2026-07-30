@@ -1,5 +1,17 @@
 # Build Manifest
 
+## 18-Gem Order v1
+
+- File: `18-gem-order-v1.apk`
+- Path: `D:\Owais\game\build\android\18-gem-order-v1.apk`
+- Size: `99,187,450` bytes
+- Modified: `2026-07-30 08:43:05 +05:00`
+- SHA-256: `95E2279F9BE8DD762FCE196A86D0B6301CDE9001711E3B5AF2E25747AAF62752`
+- Source commit: `3d7bb2e8b3d03dcf0bf7f2bb49cea9685cdcd194` (`chore: finalize 18-gem progression order`)
+- Baseline tag: `18-gem-size-collision-fix-v1`
+- Validation: Godot 4.6.3 headless import/parse; `CLEAN_CONTACT_TESTS: PASS`; `GEM18_CHAIN_TESTS: PASS`; `MOTION_PROFILE: PASS`; APK exists, is non-empty, and its ZIP contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: no connected Android device; no install or launch claimed.
+
 ## 18-Gem Size & Collision Fix v1
 
 - File: `18-gem-size-collision-fix-v1.apk`

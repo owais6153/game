@@ -1,5 +1,11 @@
 # Changelog
 
+## 18-Gem Order v1
+
+- Locked the final L1–L18 asset order and display names without changing any supplied gem asset.
+- Remapped calibrated colliders and visual-only shadow metadata with their original assets, preserving all motion and contact calibration.
+- Added exact-order, unique-path, label, merge-chain, and terminal-tier regression coverage.
+
 ## 18-Gem Size & Collision Fix v1
 
 - Added alpha-calibrated, non-destructive runtime derivatives for all 18 gem bodies and retained every original asset.
