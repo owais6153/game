@@ -34,6 +34,8 @@ The project-root supplied video was confirmed present. This environment has no v
 - Size: `99,208,435` bytes.
 - Modified: `2026-07-30 12:26:21 +05:00`.
 - SHA-256: `FD9FCF41EE8580F63D1DD8887FFB29FDFF769B0C8E71F47B0A7AA139B2087C23`.
+- Source commit: `25fac1fa0ae9e8939b7daa618cb02df12054eb83` (`fix: match perspective scaling with gem physics`).
+- Tag: `matched-perspective-physics-scale-v1`.
 - Fresh standalone debug export completed through Godot's Android preset. ZIP validation found `AndroidManifest.xml` and `classes.dex`.
 - Device status: no device was connected; no phone installation or launch is claimed.
 
