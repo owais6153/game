@@ -10,22 +10,29 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## held lower to expose the tropical environment above it. Its outer image
 ## occupies y=292..1248; its physical inner rails occupy y=340..1152.
 ## Every gameplay landmark below is expressed in this same design space.
-const TABLE_TEXTURE_CENTER := Vector2(360.0, 846.0)
-const TABLE_TEXTURE_SIZE := Vector2(920.0, 810.0)
-const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7826087, 1.1802469)
+## Simulation runs in this rectangular, unprojected table space. The renderer
+## maps it once to PROJECTED_TABLE_*; no individual gem receives perspective.
+const LOGICAL_TABLE_SIZE := Vector2(720.0, 828.0)
+const PROJECTED_TABLE_TOP_LEFT := Vector2(164.0, 344.0)
+const PROJECTED_TABLE_TOP_RIGHT := Vector2(556.0, 344.0)
+const PROJECTED_TABLE_BOTTOM_LEFT := Vector2(0.0, 1274.0)
+const PROJECTED_TABLE_BOTTOM_RIGHT := Vector2(720.0, 1274.0)
+const TABLE_TEXTURE_CENTER := LOGICAL_TABLE_SIZE * 0.5
+const TABLE_TEXTURE_SIZE := LOGICAL_TABLE_SIZE
+const TABLE_TEXTURE_RENDER_SCALE := Vector2.ONE
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
-const BOARD_TOP := 390.0
-const BOARD_BOTTOM := 1218.0
+const BOARD_TOP := 0.0
+const BOARD_BOTTOM := 828.0
 ## These rails are sampled from the new table's visible inner coral edge after
 ## applying TABLE_TEXTURE_RENDER_SCALE. Rendering and physics read this one
 ## model so body-to-rail contact aligns with the art.
-const TABLE_INNER_LEFT_TOP := 205.0
-const TABLE_INNER_RIGHT_TOP := 515.0
-const TABLE_INNER_LEFT_BOTTOM := 18.0
-const TABLE_INNER_RIGHT_BOTTOM := 702.0
-const DANGER_LINE_Y := 1035.0
-const LAUNCH_Y := 1138.0
+const TABLE_INNER_LEFT_TOP := 0.0
+const TABLE_INNER_RIGHT_TOP := 720.0
+const TABLE_INNER_LEFT_BOTTOM := 0.0
+const TABLE_INNER_RIGHT_BOTTOM := 720.0
+const DANGER_LINE_Y := 645.0
+const LAUNCH_Y := 748.0
 ## Largest gameplay radius. Individual values are calibrated to the visible
 ## main body of the alpha-trimmed runtime texture for each gem level.
 const PIECE_RADIUS := 42.0

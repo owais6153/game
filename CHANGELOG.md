@@ -1,5 +1,10 @@
 # Changelog
 
+## Shared Perspective + Win Sequence Fix v1
+
+- Replaced per-gem depth scaling and gem-only projection offsets with one shared SubViewport-to-Polygon2D gameplay projection.
+- Added inverse screen-to-logical input mapping and deterministic result-first-frame win sequencing.
+
 ## Visible-Touch Table Alignment Fix v1
 
 - Removed the Y-based gem perspective multiplier and the uncalibrated tier-growth multiplier from live gem presentation. Both made a fixed collider start contact before a rendered gem body visually touched.

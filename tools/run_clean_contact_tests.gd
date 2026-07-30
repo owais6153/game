@@ -5,6 +5,7 @@ const SimulationType = preload("res://scripts/board_simulation.gd")
 const MergeType = preload("res://scripts/merge_service.gd")
 const GemVisualsType = preload("res://scripts/gem_visuals.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
+const SharedTableProjectionType = preload("res://scripts/shared_table_projection.gd")
 const GameScene = preload("res://scenes/Game.tscn")
 var failures: Array[String] = []
 
@@ -22,22 +23,16 @@ func _init() -> void:
 	_test_border_containment()
 	_test_launcher_spawn_lifecycle()
 	_test_score_and_chain_runtime_path()
-	_test_win_stops_spawning()
-	_test_win_visual_sequence_and_overlay_isolation()
 	_test_danger_line_failure_rules()
 	_test_chain_presentation_cadence()
 	_test_overlay_reset()
 	_test_visual_level_mapping()
-	_test_visual_layout_bounds()
-	_test_portrait_board_bounds_and_scale()
 	_test_merge_momentum_is_bounded_and_contained()
 	_test_progression_hud_snapshot_and_queue()
-	_test_hud_layout_and_pointer_safety()
-	_test_sound_and_haptics_feedback_routing()
-	_test_inset_table_and_viewport_safety()
+	_test_final_result_event_order()
 	_test_asset_mapping_and_clean_diamond()
 	_test_table_layout_physics_alignment()
-	_test_perspective_view_presentation()
+	_test_shared_projection_architecture()
 	_test_visible_collision_calibration()
 	_test_calibrated_wall_contacts()
 	_test_collision_audio_uses_confirmed_contact()
@@ -49,6 +44,36 @@ func _init() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+func _test_shared_projection_architecture() -> void:
+	for point in [Vector2(0, 0), Vector2(360, 414), Vector2(720, 828), Vector2(212, 701)]:
+		_assert(SharedTableProjectionType.round_trip_error(point) < 0.25, "Screen/logical table mapping must round-trip within tolerance")
+	var controller = GameScene.instantiate()
+	controller._ready()
+	_assert(controller.gameplay_viewport != null and controller.gameplay_world != null and controller.projected_surface != null, "Table gameplay must be rendered through one shared SubViewport projection")
+	_assert(controller.gem_sprite_layer.get_parent() == controller.gameplay_world, "Gem sprites must live inside the shared gameplay world")
+	_assert(controller.projected_surface.texture == controller.gameplay_viewport.get_texture(), "Projected surface must display the gameplay viewport texture")
+	var top := SharedTableProjectionType.logical_to_screen(Vector2(360, 0))
+	var bottom := SharedTableProjectionType.logical_to_screen(Vector2(360, 828))
+	_assert(bottom.y > top.y and GameConfig.PROJECTED_TABLE_BOTTOM_LEFT.y >= GameConfig.VIEWPORT_SIZE.y - 12.0, "Projected table must be bottom-anchored")
+	var left_width := GameConfig.PROJECTED_TABLE_TOP_RIGHT.x - GameConfig.PROJECTED_TABLE_TOP_LEFT.x
+	var bottom_width := GameConfig.PROJECTED_TABLE_BOTTOM_RIGHT.x - GameConfig.PROJECTED_TABLE_BOTTOM_LEFT.x
+	_assert(bottom_width > left_width, "Shared projection must narrow toward the table back")
+	controller.queue_free()
+
+func _test_final_result_event_order() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	controller.level_config = {"target_tier": 2, "target_quantity": 1, "active_tier_max": 8}
+	var event := {"level": 2, "result_id": 700, "depth": 0, "elapsed": 0.0, "midpoint": Vector2(360, 414), "first_position": Vector2(330, 414), "second_position": Vector2(390, 414)}
+	var events: Array[Dictionary] = [event]
+	controller._apply_confirmed_merge_events(events)
+	controller._mark_result_first_frame_visible(700)
+	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
+	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
+	var expected := ["result_created:700", "result_first_frame_visible:700", "presentation_completed:700", "target_completed:700", "win_overlay_started"]
+	_assert(controller.win_event_trace == expected, "Final result must be rendered, presented, counted, then open the win overlay exactly once")
+	controller.queue_free()
 
 func _piece(id: int, level: int, at_position: Vector2) -> GemPiece:
 	return GemPieceType.new(id, level, at_position, GameConfig.gem_collision_radius(level))

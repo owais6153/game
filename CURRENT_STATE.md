@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** Shared Perspective + Win Sequence Fix v1. The logical table world is rendered once through a shared SubViewport projection; no live gem has Y-based scaling or screen-space offsets. APK: `build/android/shared-perspective-win-sequence-fix-v1.apk`. See `reports/SHARED_PERSPECTIVE_WIN_SEQUENCE_FIX_V1_REPORT.md`.
+
 **Current milestone:** Visible-Touch Table Alignment Fix v1 at commit `3316d2dcdebde9528885c882b2de385c26862c66`, tagged `visible-touch-table-alignment-fix-v1`. This is a narrow repair on top of `complete-perspective-view-variety-v1`: live gems no longer use dynamic Y perspective or uncalibrated tier scaling. Their fixed approved body textures, fixed colliders, sprite roots, shadows, and physics positions remain aligned in the same shared table-local coordinate system. The table artwork retains its bottom-anchored perspective and stable Y/ID draw ordering remains active. APK: `build/android/visible-touch-table-alignment-fix-v1.apk`. See `reports/VISIBLE_TOUCH_TABLE_ALIGNMENT_FIX_V1_REPORT.md`.
 
 **Current milestone:** Level 1 Balance v1 builds from the approved `level-1-flow-v1` baseline. It preserves Level 1's L1-L8 range, L1/L1/L2 queue, empty start, no shot cap, overflow failure, motion, colliders, merge rules, table, and HUD. The sole target type is now two confirmed merge-created L4 Sapphires; the deterministic minimum is twelve Pearl-equivalent launches. See `reports/LEVEL_1_BALANCE_V1_REPORT.md`.

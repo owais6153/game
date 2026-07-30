@@ -1,5 +1,9 @@
 # Architecture
 
+## Shared projected gameplay world v1
+
+`ProjectedGameplayWorld` owns all table-world pixels in a logical table rectangle. `SharedTableProjection` owns logical/screen conversion. `GameController` displays the SubViewport through one `Polygon2D`; individual pieces never apply perspective, projection, or Y scale.
+
 ## 18-gem progression validation harness v1
 
 `tools/manual_merge_harness.gd` is development-only CLI support, not a gameplay node. It creates contact-valid GemPiece pairs through `ContactMergeService` and is excluded from production by having no scene, autoload, export-preset, or input reference. `ContactMergeService` now includes immutable result metadata (source IDs, result ID, texture path, collider, visual scale, shadow mapping) with confirmed events. The controller consumes only its existing level/depth fields; the metadata cannot influence physics, merge eligibility, score, lifecycle, or rendering decisions.

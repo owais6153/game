@@ -38,4 +38,6 @@ This folder contains the project’s historical milestone reports. New milestone
 - [18-Gem Chain v1](18_GEM_CHAIN_V1_REPORT.md)
 # Latest report
 
+- [Shared Perspective + Win Sequence Fix v1](SHARED_PERSPECTIVE_WIN_SEQUENCE_FIX_V1_REPORT.md)
+
 - [Complete Perspective View & Variety v1](COMPLETE_PERSPECTIVE_VIEW_VARIETY_V1_REPORT.md)

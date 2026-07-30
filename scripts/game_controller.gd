@@ -8,6 +8,8 @@ const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
 const ResultOverlayLayerType = preload("res://scripts/result_overlay_layer.gd")
 const LevelConfigType = preload("res://scripts/level_config.gd")
+const SharedTableProjectionType = preload("res://scripts/shared_table_projection.gd")
+const ProjectedGameplayWorldType = preload("res://scripts/projected_gameplay_world.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -37,6 +39,11 @@ var audio_feedback: Node
 var haptics_feedback: RefCounted
 var gem_sprite_layer: GemSpriteLayer
 var result_overlay
+var gameplay_viewport: SubViewport
+var gameplay_world: Node2D
+var projected_surface: Polygon2D
+var result_visibility_pending: Dictionary = {}
+var win_event_trace: Array[String] = []
 ## Developer-only inspection aid. F8 toggles it in editor/desktop builds; it
 ## starts disabled and has no input or gameplay authority on Android.
 var debug_calibration_enabled := false
@@ -60,7 +67,7 @@ func _ready() -> void:
 	haptics_feedback = HapticsServiceType.new()
 	add_child(audio_feedback)
 	_advance_launcher_lifecycle()
-	gem_sprite_layer.sync_gems(pieces)
+	gameplay_world.sync_gems(pieces)
 	queue_redraw()
 
 func _process(delta: float) -> void:
@@ -69,12 +76,12 @@ func _process(delta: float) -> void:
 	debug_contact_points = debug_contact_points.filter(func(marker: Dictionary) -> bool: return float(marker.get("age", 0.0)) < 0.45)
 	if failed:
 		_update_merge_presentations(delta)
-		gem_sprite_layer.sync_gems(pieces)
+		gameplay_world.sync_gems(pieces)
 		queue_redraw()
 		return
 	if win_qualified:
 		_update_merge_presentations(delta)
-		gem_sprite_layer.sync_gems(pieces)
+		gameplay_world.sync_gems(pieces)
 		_update_win_presentation(delta)
 		queue_redraw()
 		return
@@ -87,7 +94,7 @@ func _process(delta: float) -> void:
 	_update_merge_presentations(delta)
 	_update_danger_timers(delta)
 	if win_qualified or failed:
-		gem_sprite_layer.sync_gems(pieces)
+		gameplay_world.sync_gems(pieces)
 		queue_redraw()
 		return
 	if result.merge_count > 0:
@@ -96,7 +103,8 @@ func _process(delta: float) -> void:
 		if launcher_state != LauncherState.READY_TO_AIM:
 			launcher_state = LauncherState.RESOLVING
 	_advance_launcher_lifecycle(delta)
-	gem_sprite_layer.sync_gems(pieces)
+	gameplay_world.sync_gems(pieces)
+	_schedule_first_visible_results()
 	queue_redraw()
 
 func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
@@ -154,11 +162,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		_handle_pointer(event.position, event.pressed)
 	elif event is InputEventScreenDrag and dragging:
-		move_active_to(event.position.x)
+		move_active_to(SharedTableProjectionType.screen_to_logical(event.position).x)
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		_handle_pointer(event.position, event.pressed)
 	elif event is InputEventMouseMotion and dragging:
-		move_active_to(event.position.x)
+		move_active_to(SharedTableProjectionType.screen_to_logical(event.position).x)
 
 func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 	if win_presented or failed:
@@ -179,10 +187,11 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 			audio_feedback.emit_event("button")
 			restart()
 			return
-		var active := get_active_piece()
-		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and pointer.distance_to(active.position) <= active.radius * GameConfig.DRAG_HIT_RADIUS_MULTIPLIER:
-			dragging = true
-			move_active_to(pointer.x)
+	var active := get_active_piece()
+	var logical_pointer := SharedTableProjectionType.screen_to_logical(pointer)
+	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and logical_pointer.distance_to(active.position) <= active.radius * GameConfig.DRAG_HIT_RADIUS_MULTIPLIER:
+		dragging = true
+		move_active_to(logical_pointer.x)
 	elif dragging:
 		dragging = false
 		launch_active_piece()
@@ -238,6 +247,8 @@ func restart() -> void:
 	target_progress = 0
 	counted_target_result_ids.clear()
 	pending_target_presentations.clear()
+	result_visibility_pending.clear()
+	win_event_trace.clear()
 	chain_multiplier = 1
 	danger_timers.clear()
 	won = false
@@ -250,7 +261,7 @@ func restart() -> void:
 	ready_delay_elapsed = 0.0
 	_advance_launcher_lifecycle()
 	if gem_sprite_layer != null:
-		gem_sprite_layer.sync_gems(pieces)
+		gameplay_world.sync_gems(pieces)
 	if result_overlay != null:
 		result_overlay.dismiss()
 
@@ -261,15 +272,21 @@ func _setup_asset_presentation() -> void:
 	background.scale = Vector2(GameConfig.VIEWPORT_SIZE.x / background.texture.get_size().x, GameConfig.VIEWPORT_SIZE.y / background.texture.get_size().y)
 	background.z_index = -20
 	add_child(background)
-	var table := Sprite2D.new()
-	table.texture = AssetCatalogType.NEW_TABLE
-	table.position = GameConfig.TABLE_TEXTURE_CENTER
-	table.scale = GameConfig.TABLE_TEXTURE_RENDER_SCALE
-	table.z_index = -10
-	add_child(table)
-	gem_sprite_layer = GemSpriteLayerType.new()
-	gem_sprite_layer.z_index = 10
-	add_child(gem_sprite_layer)
+	gameplay_viewport = SubViewport.new()
+	gameplay_viewport.size = Vector2i(GameConfig.LOGICAL_TABLE_SIZE)
+	gameplay_viewport.transparent_bg = true
+	gameplay_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(gameplay_viewport)
+	gameplay_world = ProjectedGameplayWorldType.new()
+	gameplay_viewport.add_child(gameplay_world)
+	gameplay_world.setup(self)
+	gem_sprite_layer = gameplay_world.gems
+	projected_surface = Polygon2D.new()
+	projected_surface.polygon = PackedVector2Array([GameConfig.PROJECTED_TABLE_TOP_LEFT, GameConfig.PROJECTED_TABLE_TOP_RIGHT, GameConfig.PROJECTED_TABLE_BOTTOM_RIGHT, GameConfig.PROJECTED_TABLE_BOTTOM_LEFT])
+	projected_surface.uv = PackedVector2Array([Vector2.ZERO, Vector2(GameConfig.LOGICAL_TABLE_SIZE.x, 0.0), GameConfig.LOGICAL_TABLE_SIZE, Vector2(0.0, GameConfig.LOGICAL_TABLE_SIZE.y)])
+	projected_surface.texture = gameplay_viewport.get_texture()
+	projected_surface.z_index = 0
+	add_child(projected_surface)
 	var overlay_canvas := CanvasLayer.new()
 	overlay_canvas.layer = 10
 	add_child(overlay_canvas)
@@ -294,6 +311,8 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			var result_id := int(merge_event.get("result_id", -1))
 			if result_id >= 0 and not counted_target_result_ids.has(result_id):
 				pending_target_presentations[result_id] = true
+				result_visibility_pending[result_id] = true
+				win_event_trace.append("result_created:%d" % result_id)
 		resolution_multiplier += 1
 
 func _configure_level_1() -> void:
@@ -333,11 +352,30 @@ func _update_merge_presentations(delta: float) -> void:
 	for presentation in completed:
 		var result_id := int(presentation.get("result_id", -1))
 		if pending_target_presentations.has(result_id):
-			pending_target_presentations.erase(result_id)
-			if not counted_target_result_ids.has(result_id):
-				counted_target_result_ids[result_id] = true
-				target_progress += 1
-				_qualify_win_if_target_complete()
+			if result_visibility_pending.has(result_id):
+				merge_presentations.append(presentation)
+				continue
+			_finalize_target_result(result_id)
+
+func _schedule_first_visible_results() -> void:
+	for result_id in result_visibility_pending.keys():
+		call_deferred("_mark_result_first_frame_visible", int(result_id))
+
+func _mark_result_first_frame_visible(result_id: int) -> void:
+	if not result_visibility_pending.has(result_id):
+		return
+	result_visibility_pending.erase(result_id)
+	win_event_trace.append("result_first_frame_visible:%d" % result_id)
+
+func _finalize_target_result(result_id: int) -> void:
+	pending_target_presentations.erase(result_id)
+	if counted_target_result_ids.has(result_id):
+		return
+	counted_target_result_ids[result_id] = true
+	win_event_trace.append("presentation_completed:%d" % result_id)
+	target_progress += 1
+	win_event_trace.append("target_completed:%d" % result_id)
+	_qualify_win_if_target_complete()
 
 func _qualify_win_if_target_complete() -> void:
 	if target_progress < int(level_config.target_quantity) or win_qualified:
@@ -357,6 +395,7 @@ func _update_win_presentation(delta: float) -> void:
 	win_hold_elapsed += delta
 	if win_hold_elapsed >= GameConfig.WIN_PRESENTATION_HOLD:
 		win_presented = true
+		win_event_trace.append("win_overlay_started")
 		result_overlay.present(true, score)
 		audio_feedback.emit_event("win")
 		haptics_feedback.emit_event("win")
@@ -374,15 +413,8 @@ func _route_collision_feedback() -> void:
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:
-	# The supplied artwork is drawn by Sprite2D nodes. This dynamic line is kept
-	# above the clean table art so it always shares the authoritative rail bounds.
-	draw_dashed_line(Vector2(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) + 8.0, GameConfig.DANGER_LINE_Y), Vector2(GameConfig.table_right_at(GameConfig.DANGER_LINE_Y) - 8.0, GameConfig.DANGER_LINE_Y), Color("f6bb42"), 3.0, 12.0)
 	var font := ThemeDB.fallback_font
 	HudRendererType.draw(self, hud_snapshot(), font)
-	# Draw the non-physical source ghosts first. The new simulated gem is then
-	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
-	for presentation in merge_presentations:
-		_draw_merge_presentation(presentation)
 	if debug_calibration_enabled:
 		_draw_calibration_debug(font)
 
@@ -418,7 +450,7 @@ func _draw_crystal_atmosphere() -> void:
 		draw_polyline(points + PackedVector2Array([points[0]]), Color("e8ca7d", 0.42), 1.0)
 	draw_rect(Rect2(0.0, 174.0, 720.0, 4.0), Color("d8b86a", 0.22), true)
 
-func _draw_merge_presentation(presentation: Dictionary) -> void:
+func draw_merge_presentation_in_world(world: CanvasItem, presentation: Dictionary) -> void:
 	var t: float = clampf(presentation.elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)
 	var pull_t: float = clampf(presentation.elapsed / GameConfig.MERGE_SOURCE_PULL_DURATION, 0.0, 1.0)
 	var midpoint: Vector2 = presentation.midpoint
@@ -426,14 +458,14 @@ func _draw_merge_presentation(presentation: Dictionary) -> void:
 	var source_alpha := 1.0 - pull_t
 	for source_position in [presentation.first_position, presentation.second_position]:
 		var position: Vector2 = source_position.lerp(midpoint, pull_t * 0.72)
-		GemVisualsType.draw_gem(self, presentation.level - 1, position, GameConfig.PIECE_RADIUS, source_alpha, source_scale)
+		GemVisualsType.draw_gem(world, presentation.level - 1, position, GameConfig.PIECE_RADIUS, source_alpha, source_scale)
 	var ring_alpha := 1.0 - t
 	var ring_color := GameConfig.gem_color(presentation.level).lightened(0.35)
 	ring_color.a = ring_alpha
-	draw_arc(midpoint, GameConfig.PIECE_RADIUS * (1.0 + t * 1.15), 0.0, TAU, 28, ring_color, 3.0)
+	world.draw_arc(midpoint, GameConfig.PIECE_RADIUS * (1.0 + t * 1.15), 0.0, TAU, 28, ring_color, 3.0)
 	# Ease the visual pulse only; presentation never affects live gem geometry.
 	var eased_t := 1.0 - pow(1.0 - t, 3.0)
 	var pulse := 1.0 + sin(eased_t * PI) * (GameConfig.MERGE_PULSE_SCALE - 1.0)
 	var glow := GameConfig.gem_color(presentation.level)
 	glow.a = (1.0 - t) * 0.35
-	draw_circle(midpoint, GameConfig.PIECE_RADIUS * pulse, glow)
+	world.draw_circle(midpoint, GameConfig.PIECE_RADIUS * pulse, glow)
