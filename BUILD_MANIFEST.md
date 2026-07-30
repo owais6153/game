@@ -243,6 +243,7 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Size: `99,200,243` bytes
 - Modified: `2026-07-30 09:12:13 +05:00`
 - SHA-256: `E7BDBBE6D1158F113F705980602A769DA64078194A61780E45D6AA4156616D9B`
-- Source commit: recorded by the `level-1-flow-v1` milestone commit and tag.
+- Source commit: `4ad1d51e09e0efce75d6842b0310880095ad349c` (`feat: add isolated level 1 flow`).
+- Tag: `level-1-flow-v1`.
 - Validation: Godot 4.6.3 parse/import plus `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, and `LEVEL_1_FLOW_TESTS` passed. APK/ZIP structure contains `AndroidManifest.xml` and `classes.dex`.
 - Device status: no phone was connected; installation and launch were not attempted.

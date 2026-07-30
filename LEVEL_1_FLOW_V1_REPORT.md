@@ -43,6 +43,8 @@ L5 is reachable from the allowed low tiers through the verified merge ladder and
 
 ## APK delivery
 
+- Source commit: `4ad1d51e09e0efce75d6842b0310880095ad349c` (`feat: add isolated level 1 flow`).
+- Milestone tag: `level-1-flow-v1`.
 - Path: `build/android/level-1-flow-v1.apk`
 - Size: `99,200,243` bytes.
 - Modified: `2026-07-30 09:12:13 +05:00`.
