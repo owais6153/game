@@ -269,3 +269,13 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - SHA-256: `D4BDC9598A28DD5EEB494974215DD617DCDC6EDA9DDC341A93505732D4D77CEC`
 - Validation: Godot parse/import, clean-contact, 18-gem chain, Level 1 flow, and motion profile passed. APK ZIP structure verified (`AndroidManifest.xml`, `classes.dex`).
 - Device status: no device connected; not installed/tested on-device.
+# Complete Perspective View & Variety v1
+
+- File: `complete-perspective-view-variety-v1.apk`
+- Path: `D:\Owais\game\build\android\complete-perspective-view-variety-v1.apk`
+- Size: `99,204,339` bytes
+- Modified: `2026-07-30 10:41:40 +05:00`
+- SHA-256: `577F4E90610DD5A03CA849F890F65806DC75D6BE39BF4DF52569C95E478DABB9`
+- Source baseline: `845a113` (`perspective-table-view-v1`); final source commit and tag follow this manifest update.
+- Validation: Godot parse/import; `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. Fresh APK exists, is non-zero, and its ZIP contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: no connected device; no installation or launch claimed.

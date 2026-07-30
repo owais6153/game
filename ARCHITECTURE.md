@@ -91,3 +91,6 @@ Danger state is controller-owned and keyed by piece ID. It is cleared immediatel
 # Perspective table view v1
 
 `GameConfig` owns both the authoritative table landmarks and rendering-only perspective helpers. `GemSpriteLayer` mirrors each `GemPiece` through a constant-scale `PieceVisualRoot`, then applies the bounded depth transform to its child `Visual` container. Sprite and separate shadow are children of that container; only its numeric scale and the root z-index are updated during sync. `BoardSimulation`, `GemPiece`, collision radii, merge services, and controller lifecycle do not read perspective values.
+# Complete perspective view & variety v1
+
+`GameConfig` owns table landmarks, depth math, tier display scales, and z-order. `GemSpriteLayer` consumes these presentation-only values while `BoardSimulation` continues using unscaled `GemPiece` geometry. `GameController` owns deferred target completion so overlay presentation cannot race the merge result.

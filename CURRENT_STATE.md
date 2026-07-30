@@ -84,3 +84,6 @@ The verified spawn-lifecycle source is commit `53306bf1f9d96fbb6918380657dd611ed
 # Current milestone: Perspective Table View v1
 
 Delivered from build source commit `5125a4c238d1c9963cad8d185d68491910892623` and tagged `perspective-table-view-v1`. The standalone APK is `build/android/perspective-table-view-v1.apk`; see `reports/PERSPECTIVE_TABLE_VIEW_V1_REPORT.md`. It changes only shared lower table/view composition, bounded visual-only Y perspective, and stable front/back ordering. Level 1 targets/balance, launcher queue/weights, gem order, collision radii, merge rules, score, danger failure, sounds, haptics, and all tier intrinsic sizes remain unchanged.
+# Current milestone: Complete Perspective View & Variety v1
+
+The project now uses a fully bottom-anchored table transform with perspective-only gem depth, fixed tier presentation growth, stable Y/ID occlusion, varied Level 1 source silhouettes, and result-presented target counting. Simulation and calibrated colliders remain unchanged. See `reports/COMPLETE_PERSPECTIVE_VIEW_VARIETY_V1_REPORT.md`.

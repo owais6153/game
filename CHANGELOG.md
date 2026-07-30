@@ -112,3 +112,8 @@
 - Lowered the shared table/gameplay composition to reveal more background above the table while keeping rails, launcher, danger line, drag clamps, and collision bounds aligned.
 - Added bounded presentation-only gem perspective (`0.90..1.05`) and stable table-local-Y depth ordering with separate shadows under each gem.
 - Added regression coverage proving collider/root scale constancy, bounded monotonic visual scale, stable depth ordering, and shared table landmark alignment.
+# Complete Perspective View & Variety v1
+
+- Bottom-anchored the shared table, rails, launcher, danger line, and collision model as one reference-aligned composition.
+- Added visual-only tier growth, stronger depth perspective, stable front/back occlusion, and Level 1 silhouette variety.
+- Deferred target completion until its merge result has visibly completed presentation, preventing the win overlay from hiding the final gem.

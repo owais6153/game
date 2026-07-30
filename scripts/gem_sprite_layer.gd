@@ -62,7 +62,7 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		piece_visual_root.position = piece.position
 		piece_visual_root.scale = Vector2.ONE
 		piece_visual_root.z_index = GameConfig.gem_visual_z_index(piece.id, piece.position.y)
-		visual.scale = Vector2.ONE * GameConfig.gem_perspective_scale_at(piece.position.y)
+		visual.scale = Vector2.ONE * GameConfig.gem_visual_scale_at(piece.level, piece.position.y)
 		sprite.position = Vector2.ZERO
 		# Overlay state must never replace or dim a live gem texture. This layer
 		# owns the exact texture/modulate values for every sync.

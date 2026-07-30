@@ -10,22 +10,22 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## held lower to expose the tropical environment above it. Its outer image
 ## occupies y=292..1248; its physical inner rails occupy y=340..1152.
 ## Every gameplay landmark below is expressed in this same design space.
-const TABLE_TEXTURE_CENTER := Vector2(360.0, 770.0)
+const TABLE_TEXTURE_CENTER := Vector2(360.0, 846.0)
 const TABLE_TEXTURE_SIZE := Vector2(920.0, 810.0)
 const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7826087, 1.1802469)
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
-const BOARD_TOP := 340.0
-const BOARD_BOTTOM := 1152.0
+const BOARD_TOP := 390.0
+const BOARD_BOTTOM := 1218.0
 ## These rails are sampled from the new table's visible inner coral edge after
 ## applying TABLE_TEXTURE_RENDER_SCALE. Rendering and physics read this one
 ## model so body-to-rail contact aligns with the art.
-const TABLE_INNER_LEFT_TOP := 178.0
-const TABLE_INNER_RIGHT_TOP := 542.0
-const TABLE_INNER_LEFT_BOTTOM := 44.0
-const TABLE_INNER_RIGHT_BOTTOM := 676.0
-const DANGER_LINE_Y := 970.0
-const LAUNCH_Y := 1068.0
+const TABLE_INNER_LEFT_TOP := 205.0
+const TABLE_INNER_RIGHT_TOP := 515.0
+const TABLE_INNER_LEFT_BOTTOM := 18.0
+const TABLE_INNER_RIGHT_BOTTOM := 702.0
+const DANGER_LINE_Y := 1035.0
+const LAUNCH_Y := 1138.0
 ## Largest gameplay radius. Individual values are calibrated to the visible
 ## main body of the alpha-trimmed runtime texture for each gem level.
 const PIECE_RADIUS := 42.0
@@ -54,8 +54,10 @@ const VISIBLE_CONTACT_TOLERANCE := 2.0
 ## Perspective is strictly presentation-only. It is calculated from table-local
 ## Y and is applied to GemSpriteLayer's Visual node, never to GemPiece data,
 ## physics roots, colliders, or simulation constants.
-const GEM_PERSPECTIVE_SCALE_BACK := 0.90
-const GEM_PERSPECTIVE_SCALE_FRONT := 1.05
+const GEM_PERSPECTIVE_SCALE_BACK := 0.82
+const GEM_PERSPECTIVE_SCALE_FRONT := 1.10
+## Presentation-only tier growth. Physical radii remain fixed calibrated data.
+const GEM_TIER_BASE_SCALE := {1: 0.94, 2: 0.95, 3: 0.97, 4: 1.00, 5: 1.02, 6: 1.10, 7: 1.15, 8: 1.20, 9: 1.22, 10: 1.24, 11: 1.26, 12: 1.28, 13: 1.30, 14: 1.32, 15: 1.34, 16: 1.36, 17: 1.38, 18: 1.40}
 ## CanvasItem z-index is bounded by Godot. Eight stable tie slots are enough
 ## for the visually indistinguishable equal-Y bucket; creation order remains
 ## the stable fallback for IDs that share a slot.
@@ -167,6 +169,9 @@ static func table_interpolation(y_position: float) -> float:
 
 static func gem_perspective_scale_at(y_position: float) -> float:
 	return lerpf(GEM_PERSPECTIVE_SCALE_BACK, GEM_PERSPECTIVE_SCALE_FRONT, table_interpolation(y_position))
+
+static func gem_visual_scale_at(level: int, y_position: float) -> float:
+	return float(GEM_TIER_BASE_SCALE.get(level, 1.0)) * gem_perspective_scale_at(y_position)
 
 static func gem_visual_z_index(piece_id: int, y_position: float) -> int:
 	# Larger local Y is closer to the player and must draw above smaller local Y.

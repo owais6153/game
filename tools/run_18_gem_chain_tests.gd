@@ -6,7 +6,7 @@ const SimulationType = preload("res://scripts/board_simulation.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 
 const EXPECTED_SOURCE_INDEX := {
-	1: 16, 2: 4, 3: 5, 4: 8, 5: 2, 6: 7, 7: 1, 8: 3, 9: 11,
+	1: 2, 2: 7, 3: 4, 4: 8, 5: 1, 6: 3, 7: 5, 8: 16, 9: 11,
 	10: 9, 11: 6, 12: 10, 13: 14, 14: 15, 15: 18, 16: 12, 17: 13, 18: 17,
 }
 const EXPECTED_NAMES := ["Pearl", "Obsidian", "Jade", "Aquamarine", "Peridot", "Pink Tourmaline", "Ruby", "Sapphire", "Emerald", "Watermelon Tourmaline", "Morganite", "Garnet", "Amethyst", "Citrine", "Orange Sapphire", "Royal Sapphire", "Diamond", "Blue Diamond"]
@@ -179,8 +179,8 @@ func _test_controller_merge_score_and_launcher_guard() -> void:
 	controller.queue_free()
 
 func _test_fixed_table_config() -> void:
-	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 770.0), "Table placement must use the approved lower composition")
-	_assert(GameConfig.TABLE_INNER_LEFT_TOP == 178.0 and GameConfig.TABLE_INNER_RIGHT_TOP == 542.0, "Table rail config must remain baseline-equivalent")
+	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 846.0), "Table placement must use the complete bottom-anchored composition")
+	_assert(GameConfig.TABLE_INNER_LEFT_TOP == 205.0 and GameConfig.TABLE_INNER_RIGHT_TOP == 515.0, "Table rail config must share the complete reference-aligned transform")
 	_assert(GameConfig.TARGET_LEVEL == 5, "Baseline target flow must remain unchanged")
 
 func _test_motion_regression_guards() -> void:
@@ -196,7 +196,7 @@ func _test_motion_regression_guards() -> void:
 	_assert(not catalog_source.contains("var texture := load(") and not catalog_source.contains("ResourceLoader.load("), "Asset catalog must never load textures during gameplay")
 	_assert(not sprite_layer_source.contains("_process") and not sprite_layer_source.contains("_physics_process"), "Sprite layer must not own a per-frame processing callback")
 	_assert(not sprite_layer_source.contains("_alpha_bounds"), "Sprite layer must not calculate alpha bounds during gameplay")
-	_assert(sprite_layer_source.contains("gem_perspective_scale_at") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use the bounded presentation-only perspective and stable depth ordering")
+	_assert(sprite_layer_source.contains("gem_visual_scale_at") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use the bounded presentation-only perspective and stable depth ordering")
 	_assert(not sprite_layer_source.contains("ResourceLoader.load("), "Perspective path must not load resources during gameplay")
 	# Exact motion profile from new-table-shadow-contact-fix-v1; catalog size is
 	# the only allowed physics-related extension.

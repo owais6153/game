@@ -30,3 +30,6 @@ This folder contains the project’s historical milestone reports. New milestone
 - [Gem Visual Prototype v1](GEM_VISUAL_PROTOTYPE_V1_REPORT.md)
 - [Gem Visual Refinement v1](GEM_VISUAL_REFINEMENT_V1_REPORT.md)
 - [18-Gem Chain v1](18_GEM_CHAIN_V1_REPORT.md)
+# Latest report
+
+- [Complete Perspective View & Variety v1](COMPLETE_PERSPECTIVE_VIEW_VARIETY_V1_REPORT.md)

@@ -239,3 +239,8 @@ For L1-L18, use `assets/runtime/gems18/calibrated/` only through `AssetCatalog.G
 - `GemSpriteLayer` uses a constant-scale `PieceVisualRoot` plus child `Visual` container. Change the child only; never scale the root.
 - Depth order comes from `GameConfig.gem_visual_z_index(piece_id, table_y)`. It uses normalized table-local Y and stable ID tie handling. Do not reparent sprites during play.
 - Table image position and all playable landmarks must move together through `GameConfig`; do not introduce isolated visual offsets.
+# Complete Perspective View & Variety v1 guardrails
+
+- `GameConfig.gem_visual_scale_at()` combines static tier scale and visual perspective. Apply it only to `GemSpriteLayer`'s `Visual` child, never the simulation root or collider.
+- Keep the table image, rails, launcher, drag clamp, spawn, and danger line in the shared `GameConfig` table transform.
+- Target merge IDs enter `pending_target_presentations`; only `_update_merge_presentations()` may count them and qualify victory.

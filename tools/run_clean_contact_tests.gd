@@ -236,6 +236,7 @@ func _test_win_stops_spawning() -> void:
 	controller.pieces.append(_piece(302, 3, Vector2(460, 500)))
 	controller.pieces.append(_piece(303, 3, Vector2(520, 500)))
 	controller._process(0.0)
+	controller._process(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
 	_assert(controller.won, "Creating both target Sapphires must trigger win exactly once")
 	_assert(controller.win_qualified and not controller.win_presented, "Second Sapphire must qualify the win before its overlay is presented")
 	var count: int = controller.pieces.size()
@@ -250,6 +251,7 @@ func _test_win_visual_sequence_and_overlay_isolation() -> void:
 	controller.pieces.append(_piece(312, 3, Vector2(460, 500)))
 	controller.pieces.append(_piece(313, 3, Vector2(520, 500)))
 	controller._process(0.0)
+	controller._process(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
 	_assert(controller.pieces.filter(func(piece: GemPiece): return piece.level == 4).size() >= 2, "Both target Sapphires must exist in simulation immediately after confirmed merges")
 	_assert(not controller.win_presented, "Win overlay must wait for the final Sapphire merge presentation")
 	controller.gem_sprite_layer.sync_gems(controller.pieces)
@@ -417,8 +419,8 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(sound_setting and vibration_setting, "Sound and vibration must default to enabled")
 
 func _test_inset_table_and_viewport_safety() -> void:
-	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 770.0), "New table must use its approved lower reference placement")
-	_assert(is_equal_approx(GameConfig.TABLE_TEXTURE_RENDER_SCALE.x, 720.0 / 920.0) and is_equal_approx(GameConfig.TABLE_TEXTURE_RENDER_SCALE.y, 956.0 / 810.0), "New table scale must preserve documented UI-reference proportions")
+	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 846.0), "Table must be genuinely bottom-anchored to the approved reference composition")
+	_assert(GameConfig.BOARD_BOTTOM >= 1210.0 and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y, "Shared board, launcher, and danger geometry must follow the bottom-anchored table")
 	_assert(GameConfig.table_left_at(GameConfig.BOARD_TOP) > 0.0 and GameConfig.table_right_at(GameConfig.BOARD_TOP) < GameConfig.VIEWPORT_SIZE.x, "Top rail must leave background visible at both sides")
 	_assert(GameConfig.BOARD_TOP - GameConfig.HUD_RECT.end.y >= 48.0, "Lower table must leave a visible environment gap below HUD")
 	_assert(GameConfig.DANGER_LINE_Y > GameConfig.BOARD_TOP and GameConfig.DANGER_LINE_Y < GameConfig.BOARD_BOTTOM and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y and GameConfig.LAUNCH_Y < GameConfig.BOARD_BOTTOM, "Danger line and launcher must remain inside physical table bounds")
@@ -462,9 +464,10 @@ func _test_perspective_view_presentation() -> void:
 	var front_visual: Node2D = controller.gem_sprite_layer._visual_containers[front.id]
 	_assert(back_root.scale == Vector2.ONE and front_root.scale == Vector2.ONE, "Physics-mirroring roots must retain constant scale")
 	_assert(is_equal_approx(back.radius, back_radius) and is_equal_approx(front.radius, front_radius), "Perspective must not resize collision radii")
-	_assert(back_visual.scale.x >= GameConfig.GEM_PERSPECTIVE_SCALE_BACK and back_visual.scale.x <= GameConfig.GEM_PERSPECTIVE_SCALE_FRONT and front_visual.scale.x >= GameConfig.GEM_PERSPECTIVE_SCALE_BACK and front_visual.scale.x <= GameConfig.GEM_PERSPECTIVE_SCALE_FRONT, "Visual scale must remain within bounded perspective range")
+	_assert(is_equal_approx(back_visual.scale.x, GameConfig.gem_visual_scale_at(back.level, back.position.y)) and is_equal_approx(front_visual.scale.x, GameConfig.gem_visual_scale_at(front.level, front.position.y)), "Visual scale must combine static tier growth with bounded perspective")
 	_assert(front_visual.scale.x > back_visual.scale.x, "Front gem must render larger than back gem")
 	_assert(front_root.z_index > back_root.z_index, "Front gem must render over back gem")
+	_assert(GameConfig.GEM_TIER_BASE_SCALE[6] > GameConfig.GEM_TIER_BASE_SCALE[5] and GameConfig.GEM_TIER_BASE_SCALE[7] > GameConfig.GEM_TIER_BASE_SCALE[6] and GameConfig.GEM_TIER_BASE_SCALE[8] > GameConfig.GEM_TIER_BASE_SCALE[7], "L6/L7/L8 must have visible progressive presentation size")
 	var tie_a := GameConfig.gem_visual_z_index(12, 700.0)
 	var tie_b := GameConfig.gem_visual_z_index(13, 700.0)
 	_assert(tie_b > tie_a, "Stable piece IDs must deterministically break equal-Y depth ties")

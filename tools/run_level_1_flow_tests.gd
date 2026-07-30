@@ -57,10 +57,13 @@ func _test_target_counting_and_win_sequence() -> void:
 	_assert(controller.target_progress == 0 and not controller.win_qualified, "Non-target confirmed merge must not increment Level 1 target progress")
 	var target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 101}]
 	controller._apply_confirmed_merge_events(target_events)
-	_assert(controller.target_progress == 1 and not controller.win_qualified, "First confirmed target result must increment progress without qualifying win")
+	_assert(controller.target_progress == 0 and not controller.win_qualified, "Target result must wait for its own visible presentation")
+	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
+	_assert(controller.target_progress == 1 and not controller.win_qualified, "First presented target result must increment progress without qualifying win")
 	var second_target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 102}]
 	controller._apply_confirmed_merge_events(second_target_events)
-	_assert(controller.target_progress == 2 and controller.win_qualified and not controller.win_presented, "Second confirmed target result must qualify win without presenting it early")
+	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
+	_assert(controller.target_progress == 2 and controller.win_qualified and not controller.win_presented, "Second presented target result must qualify win without presenting it early")
 	controller._apply_confirmed_merge_events(target_events)
 	_assert(controller.target_progress == 2, "One confirmed merge result must count toward target once")
 	controller.merge_presentations.clear()

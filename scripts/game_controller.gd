@@ -18,6 +18,8 @@ var next_level := 1
 var next_queue_index := 0
 var target_progress := 0
 var counted_target_result_ids: Dictionary = {}
+## Results count only after their own merge presentation has completed.
+var pending_target_presentations: Dictionary = {}
 var active_piece_id := -1
 var shot_count := 0
 var dragging := false
@@ -235,6 +237,7 @@ func restart() -> void:
 	score = 0
 	target_progress = 0
 	counted_target_result_ids.clear()
+	pending_target_presentations.clear()
 	chain_multiplier = 1
 	danger_timers.clear()
 	won = false
@@ -289,17 +292,8 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			haptics_feedback.emit_event("chain")
 		if result_level == int(level_config.target_tier):
 			var result_id := int(merge_event.get("result_id", -1))
-			if result_id < 0 or not counted_target_result_ids.has(result_id):
-				target_progress += 1
-				if result_id >= 0:
-					counted_target_result_ids[result_id] = true
-		if target_progress >= int(level_config.target_quantity) and not win_qualified:
-			won = true
-			win_qualified = true
-			win_presented = false
-			win_hold_elapsed = 0.0
-			active_piece_id = -1
-			launcher_state = LauncherState.RESOLVING
+			if result_id >= 0 and not counted_target_result_ids.has(result_id):
+				pending_target_presentations[result_id] = true
 		resolution_multiplier += 1
 
 func _configure_level_1() -> void:
@@ -334,7 +328,26 @@ func _update_danger_timers(delta: float) -> void:
 func _update_merge_presentations(delta: float) -> void:
 	for presentation in merge_presentations:
 		presentation.elapsed += delta
+	var completed: Array[Dictionary] = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed >= GameConfig.MERGE_PRESENTATION_DURATION)
 	merge_presentations = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed < GameConfig.MERGE_PRESENTATION_DURATION)
+	for presentation in completed:
+		var result_id := int(presentation.get("result_id", -1))
+		if pending_target_presentations.has(result_id):
+			pending_target_presentations.erase(result_id)
+			if not counted_target_result_ids.has(result_id):
+				counted_target_result_ids[result_id] = true
+				target_progress += 1
+				_qualify_win_if_target_complete()
+
+func _qualify_win_if_target_complete() -> void:
+	if target_progress < int(level_config.target_quantity) or win_qualified:
+		return
+	won = true
+	win_qualified = true
+	win_presented = false
+	win_hold_elapsed = 0.0
+	active_piece_id = -1
+	launcher_state = LauncherState.RESOLVING
 
 func _update_win_presentation(delta: float) -> void:
 	# The Diamond must have been synchronized and its merge pulse completed
