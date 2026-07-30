@@ -22,9 +22,8 @@ static func _draw_panel(controller: CanvasItem, rect: Rect2, fill: Color, border
 
 static func _draw_score_block(controller: CanvasItem, snapshot: Dictionary, font: Font) -> void:
 	var rect := GameConfig.SCORE_PANEL_RECT
-	_draw_panel(controller, rect, Color("fff8ea"), Color("f6b07f"))
-	controller.draw_string(font, rect.position + Vector2(20.0, 22.0), "SCORE", HORIZONTAL_ALIGNMENT_CENTER, rect.size.x - 40.0, 13, Color("e85d50"))
-	controller.draw_string(font, rect.position + Vector2(16.0, 59.0), str(int(snapshot.score)), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x - 32.0, 27, Color("5b351e"))
+	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, rect, AssetCatalogType.HUD_SCORE_PANEL_REGION)
+	controller.draw_string(font, rect.position + Vector2(16.0, 61.0), str(int(snapshot.score)), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x - 32.0, 27, Color("5b351e"))
 
 static func _draw_progression(controller: CanvasItem, snapshot: Dictionary, font: Font) -> void:
 	var start := Vector2(264.0, 58.0)
@@ -39,15 +38,13 @@ static func _draw_progression(controller: CanvasItem, snapshot: Dictionary, font
 	controller.draw_string(font, Vector2(264.0, 97.0), "LEVEL %d" % int(snapshot.level_number), HORIZONTAL_ALIGNMENT_CENTER, 192.0, 11, Color("8e5f39"))
 
 static func _draw_queue_preview(controller: CanvasItem, rect: Rect2, level: int, label: String, font: Font) -> void:
-	_draw_panel(controller, rect, Color("fff8ea"), Color("f6b07f"))
+	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, rect, AssetCatalogType.HUD_NEXT_PANEL_REGION)
 	var entry := AssetCatalogType.gem_entry(level)
-	controller.draw_texture_rect(entry.texture, Rect2(rect.position + Vector2(7.0, 8.0), Vector2(34.0, 34.0)), false)
-	controller.draw_string(font, Vector2(rect.position.x + 46.0, rect.position.y + 18.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("e85d50"))
-	controller.draw_string(font, Vector2(rect.position.x + 46.0, rect.position.y + 39.0), String(entry.name), HORIZONTAL_ALIGNMENT_LEFT, rect.size.x - 52.0, 13, Color("5b351e"))
+	controller.draw_texture_rect(entry.texture, Rect2(rect.get_center() - Vector2(28.0, 4.0), Vector2(56.0, 56.0)), false)
 
 static func _draw_target(controller: CanvasItem, snapshot: Dictionary, font: Font) -> void:
 	var rect := GameConfig.TARGET_PANEL_RECT
-	_draw_panel(controller, rect, Color("fff8ea"), Color("f6b07f"))
+	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, rect, AssetCatalogType.HUD_WHITE_PANEL_REGION)
 	var entry := AssetCatalogType.gem_entry(int(snapshot.target_level))
 	controller.draw_texture_rect(entry.texture, Rect2(rect.position + Vector2(8.0, 21.0), Vector2(34.0, 34.0)), false)
 	controller.draw_string(font, rect.position + Vector2(48.0, 20.0), "TARGET %d/%d" % [int(snapshot.target_index) + 1, int(snapshot.target_total)], HORIZONTAL_ALIGNMENT_LEFT, 78.0, 10, Color("e85d50"))

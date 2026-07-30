@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Supplied HUD Art + L7/L8 Balance v1](SUPPLIED_HUD_L7_L8_BALANCE_V1_REPORT.md)
+
 - [Identity, UI, Unlimited Play & Target Balance Fix v1](IDENTITY_UI_UNLIMITED_TARGET_BALANCE_FIX_V1_REPORT.md)
 
 - [Gameplay HUD + Sequential Targets v1](GAMEPLAY_HUD_SEQUENTIAL_TARGETS_V1_REPORT.md)

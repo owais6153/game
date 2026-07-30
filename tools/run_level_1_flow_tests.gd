@@ -41,7 +41,8 @@ func _test_level_sequence() -> void:
 	var config := LevelConfigType.level_1()
 	var sequence: Array = config.target_sequence
 	_assert(sequence.size() == 2, "Level 1 must define exactly two sequential targets")
-	_assert(int(sequence[0].tier) == 3 and int(sequence[0].quantity) == 2 and int(sequence[1].tier) == 4 and int(sequence[1].quantity) == 2, "Level 1 must require two L3 then two L4 targets")
+	_assert(int(sequence[0].tier) == 7 and int(sequence[0].quantity) == 1 and int(sequence[1].tier) == 8 and int(sequence[1].quantity) == 1, "Level 1 must require exactly L7 then L8")
+	_assert((config.spawnable_tiers as Array).size() == 4 and (config.launcher_sequence as Array).size() >= 8, "Level 1 needs controlled low-tier variety rather than a straight-line L1/L1 loop")
 	_assert(not config.has("shot_limit"), "Level 1 must not define a shot limit")
 
 func _test_unlimited_launcher() -> void:
@@ -49,7 +50,7 @@ func _test_unlimited_launcher() -> void:
 	controller._ready()
 	for index in range(30):
 		var active = controller.get_active_piece()
-		_assert(active != null and [1, 2].has(active.level), "Unlimited queue must keep producing configured low tiers")
+		_assert(active != null and [1, 2, 3, 4].has(active.level), "Unlimited queue must keep producing configured low tiers")
 		active.is_active_launcher = false
 		controller.active_piece_id = -1
 		controller.launcher_state = controller.LauncherState.SPAWNING_NEXT
@@ -70,14 +71,10 @@ func _complete_target(controller, level: int, id: int) -> void:
 func _test_sequential_target_completion() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	_complete_target(controller, 3, 1001)
-	_assert(controller.target_index == 0 and controller.target_progress == 1, "First L3 must increment progress without advancing target")
-	_complete_target(controller, 3, 1002)
-	_assert(controller.target_index == 1 and controller.target_progress == 0 and not controller.win_qualified, "Second L3 must advance to L4 without victory")
-	_complete_target(controller, 4, 1003)
-	_assert(controller.target_index == 1 and controller.target_progress == 1, "First L4 must increment progress without victory")
-	_complete_target(controller, 4, 1004)
-	_assert(controller.target_index == 2 and controller.win_qualified and not controller.win_presented, "Second L4 must qualify only after collection animation")
+	_complete_target(controller, 7, 1001)
+	_assert(controller.target_index == 1 and controller.target_progress == 0 and not controller.win_qualified, "Collected L7 must advance to the L8 target without victory")
+	_complete_target(controller, 8, 1002)
+	_assert(controller.target_index == 2 and controller.win_qualified and not controller.win_presented, "Collected L8 must qualify only after collection animation")
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(controller.win_presented, "Win overlay must follow final collection completion")
 	controller.restart()

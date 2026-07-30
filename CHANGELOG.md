@@ -1,5 +1,11 @@
 # Changelog
 
+## Supplied HUD Art + L7/L8 Balance v1
+
+- Replaced the hand-drawn SCORE and NEXT HUD panels with direct regions from the supplied button sheet.
+- Changed Level 1 to exactly two sequential targets: L7, then L8.
+- Replaced the repeating L1/L1/L2 launcher sequence with a controlled mixed L1-L4 cycle to make straight-line play less automatic.
+
 ## Identity, UI, Unlimited Play & Target Balance Fix v1
 
 - Corrected the 18-tier runtime texture order so each approved gem name and icon resolve to the same catalog identity.

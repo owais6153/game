@@ -9,16 +9,15 @@ static func level_1() -> Dictionary:
 		"name": "First Facets",
 		"active_tier_min": 1,
 		"active_tier_max": 8,
-		"spawnable_tiers": [1, 2],
-		"spawn_weights": {1: 2, 2: 1},
-		# The deterministic 2:1 sequence is intentional for the introductory
-		# level: it follows the declared weights without unlucky queue streaks.
-		"launcher_sequence": [1, 1, 2],
+		"spawnable_tiers": [1, 2, 3, 4],
+		"spawn_weights": {1: 4, 2: 3, 3: 2, 4: 1},
+		# A controlled mixed bag retains learnable difficulty while preventing the
+		# former repeated same-line L1/L1 pattern from auto-solving the targets.
+		"launcher_sequence": [1, 2, 1, 3, 2, 1, 4, 2, 3, 1],
 		# Unlimited launches are still bounded by the existing danger-line fail.
-		# Two sequential objectives demand 24 Pearl-equivalents in the best case.
-		# This keeps the level short enough to learn, but prevents a three-shot win
-		# or a single unattended straight-line stack from reliably clearing it.
-		"target_sequence": [{"tier": 3, "quantity": 2}, {"tier": 4, "quantity": 2}],
+		# Exactly two sequential objectives: create L7, collect it, then create L8
+		# from two more L7 results. The mixed low-tier bag makes placement matter.
+		"target_sequence": [{"tier": 7, "quantity": 1}, {"tier": 8, "quantity": 1}],
 		"starting_board": [],
 	}
 
