@@ -419,9 +419,9 @@ func _test_inset_table_and_viewport_safety() -> void:
 	_assert(GameConfig.DANGER_LINE_Y > GameConfig.BOARD_TOP and GameConfig.DANGER_LINE_Y < GameConfig.BOARD_BOTTOM and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y and GameConfig.LAUNCH_Y < GameConfig.BOARD_BOTTOM, "Danger line and launcher must remain inside physical table bounds")
 
 func _test_asset_mapping_and_clean_diamond() -> void:
-	for level in range(1, 6):
+	for level in range(1, GameConfig.MAX_GEM_LEVEL + 1):
 		var path := AssetCatalogType.gem_resource_path(level)
-		_assert(path.ends_with("tier_%02d.png" % level), "Gem level %d must use its normalized supplied texture" % level)
+		_assert(path.ends_with("tier_%02d.png" % AssetCatalogType.GEM_TIER_SOURCE_INDEX[level]), "Gem level %d must use its approved reordered supplied texture" % level)
 		_assert(ResourceLoader.exists(path), "Gem level %d runtime texture must exist" % level)
 	_assert(ResourceLoader.exists(AssetCatalogType.TROPICAL_BACKGROUND.resource_path) and ResourceLoader.exists(AssetCatalogType.NEW_TABLE.resource_path), "Background and newly supplied table runtime textures must exist")
 	_assert(AssetCatalogType.NEW_TABLE.resource_path.ends_with("new_table_v1.png"), "Old coral table must not remain active")
@@ -439,7 +439,7 @@ func _test_table_layout_physics_alignment() -> void:
 
 func _test_visible_collision_calibration() -> void:
 	var expected := GameConfig.GEM_COLLISION_RADIUS
-	for level in range(1, 6):
+	for level in range(1, GameConfig.MAX_GEM_LEVEL + 1):
 		var radius := GameConfig.gem_collision_radius(level)
 		_assert(is_equal_approx(radius, float(expected[level])), "Gem level %d must use documented calibrated collision radius" % level)
 		_assert(radius > 0.0, "Visible alpha calibration must retain a positive gem collider")
@@ -447,13 +447,13 @@ func _test_visible_collision_calibration() -> void:
 	var pearl_a := _piece(1, 1, Vector2(300, 500))
 	var pearl_b := _piece(2, 1, Vector2(300 + pearl_a.radius * 2.0 + GameConfig.VISIBLE_CONTACT_TOLERANCE, 500))
 	_assert(pearl_a.position.distance_to(pearl_b.position) - (pearl_a.radius + pearl_b.radius) <= GameConfig.VISIBLE_CONTACT_TOLERANCE, "Pearl visible first-contact tolerance must remain within one design pixel")
-	var diamond := _piece(3, 5, Vector2(500, 500))
-	_assert(diamond.radius < GameConfig.PIECE_RADIUS, "Diamond collider must exclude removed sparkle/halo padding")
+	var jade := _piece(3, 3, Vector2(500, 500))
+	_assert(jade.radius < GameConfig.PIECE_RADIUS, "Reordered Jade collider must retain its calibrated body-only radius")
 
 func _test_calibrated_wall_contacts() -> void:
 	var simulation := SimulationType.new()
 	var merger := MergeType.new()
-	for level in range(1, 6):
+	for level in range(1, GameConfig.MAX_GEM_LEVEL + 1):
 		var piece := _piece(level, level, Vector2(GameConfig.table_left_at(600.0) + 1.0, 600.0))
 		piece.velocity = Vector2(-300.0, 0.0)
 		var items: Array[GemPiece] = [piece]

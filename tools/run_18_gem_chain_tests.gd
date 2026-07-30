@@ -5,6 +5,12 @@ const MergeType = preload("res://scripts/merge_service.gd")
 const SimulationType = preload("res://scripts/board_simulation.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 
+const EXPECTED_SOURCE_INDEX := {
+	1: 16, 2: 4, 3: 5, 4: 8, 5: 2, 6: 7, 7: 1, 8: 3, 9: 11,
+	10: 9, 11: 6, 12: 10, 13: 14, 14: 15, 15: 18, 16: 12, 17: 13, 18: 17,
+}
+const EXPECTED_NAMES := ["Pearl", "Obsidian", "Jade", "Aquamarine", "Peridot", "Pink Tourmaline", "Ruby", "Sapphire", "Emerald", "Watermelon Tourmaline", "Morganite", "Garnet", "Amethyst", "Citrine", "Orange Sapphire", "Royal Sapphire", "Diamond", "Blue Diamond"]
+
 var failures: Array[String] = []
 
 func _init() -> void:
@@ -38,10 +44,15 @@ func _resolve(items: Array[GemPiece]) -> Dictionary:
 
 func _test_catalog_and_textures() -> void:
 	_assert(GameConfig.MAX_GEM_LEVEL == 18, "Catalog must have exactly 18 tiers")
+	_assert(AssetCatalogType.GEM_TIER_SOURCE_INDEX == EXPECTED_SOURCE_INDEX, "Catalog order must match the final approved source-asset order")
+	_assert(EXPECTED_NAMES.size() == GameConfig.MAX_GEM_LEVEL, "Final gem names must cover all tiers")
+	var paths := {}
 	for level in range(1, GameConfig.MAX_GEM_LEVEL + 1):
-		_assert(GameConfig.gem_name(level) != "Unknown", "Tier %d must have a deterministic name" % level)
+		_assert(GameConfig.gem_name(level) == EXPECTED_NAMES[level - 1], "Tier %d must have its final display name" % level)
 		var path := AssetCatalogType.gem_resource_path(level)
-		_assert(path.ends_with("tier_%02d.png" % level), "Tier %d must map to its own normalized texture" % level)
+		_assert(path.ends_with("tier_%02d.png" % EXPECTED_SOURCE_INDEX[level]), "Tier %d must map to its approved visual asset" % level)
+		_assert(not paths.has(path), "Each catalog tier must map to one unique visual asset")
+		paths[path] = true
 		_assert(ResourceLoader.exists(path), "Tier %d texture must load" % level)
 		_assert(GameConfig.gem_collision_radius(level) > 0.0, "Tier %d needs a positive body collider" % level)
 		_assert(GameConfig.GEM_VISUAL_BODY_SCALE.has(level), "Tier %d needs an asset-prepared visual body scale" % level)
@@ -64,7 +75,7 @@ func _test_calibrated_body_manifest() -> void:
 		_assert(body.size() == 4 and body[2] > 0 and body[3] > 0, "Tier %d needs a positive measured visible body" % level)
 		_assert(texture_size.size() == 2 and texture_size[0] <= 256 and texture_size[1] <= 256, "Tier %d calibrated runtime texture must stay mobile-sized" % level)
 		_assert(str(entry.get("runtime_texture", "")).contains("/calibrated/tier_%02d.png" % level), "Tier %d must use its calibrated derivative" % level)
-		_assert(AssetCatalogType.gem_resource_path(level).contains("/calibrated/tier_%02d.png" % level), "Tier %d catalog must preload the calibrated derivative" % level)
+		_assert(AssetCatalogType.gem_resource_path(level).contains("/calibrated/tier_%02d.png" % EXPECTED_SOURCE_INDEX[level]), "Tier %d catalog must preload its approved calibrated derivative" % level)
 
 func _test_adjacent_merges() -> void:
 	for level in range(1, GameConfig.MAX_GEM_LEVEL):
@@ -108,7 +119,7 @@ func _test_motion_regression_guards() -> void:
 	_assert(not sprite_layer_source.contains("perspective") and not sprite_layer_source.contains("table_interpolation"), "18-gem sprite layer must not add perspective or Y scaling")
 	# Exact motion profile from new-table-shadow-contact-fix-v1; catalog size is
 	# the only allowed physics-related extension.
-	_assert(GameConfig.GEM_COLLISION_RADIUS[1] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[2] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[3] == 32.0 and GameConfig.GEM_COLLISION_RADIUS[4] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[5] == 33.0, "Baseline collider values must be restored exactly")
+	_assert(GameConfig.GEM_COLLISION_RADIUS[1] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[3] == 33.0 and GameConfig.GEM_COLLISION_RADIUS[8] == 32.0, "Reordered tiers must retain their asset-calibrated collider values")
 	_assert(is_equal_approx(GameConfig.LAUNCH_SPEED, 1160.0) and is_equal_approx(GameConfig.VELOCITY_DAMPING_PER_SECOND, 235.0) and is_equal_approx(GameConfig.COLLISION_RESTITUTION, 0.34) and is_equal_approx(GameConfig.COLLISION_TANGENTIAL_FRICTION, 0.18), "Baseline motion constants must remain unchanged")
 	var flight_piece := _piece(99, 7, Vector2(360.0, 700.0))
 	var radius_before := flight_piece.radius

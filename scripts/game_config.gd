@@ -33,7 +33,7 @@ const PIECE_RADIUS := 42.0
 ## Catalog expansion does not change physics scale: tiers 6–18 use the
 ## baseline default radius until a separately scoped design/balance task says
 ## otherwise. These are fixed for a piece's entire lifetime.
-const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0, 6: 42.0, 7: 42.0, 8: 42.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0}
+const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 33.0, 4: 42.0, 5: 42.0, 6: 42.0, 7: 42.0, 8: 32.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0}
 ## Runtime visual-body expansion maps the opaque gem body to the stable
 ## simple collider; it is a visual calibration only.
 ## Body-only textures are trimmed independently from their former baked
@@ -44,8 +44,8 @@ const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0, 6: 4
 const GEM_VISUAL_BODY_SCALE := {1: 1.008, 2: 1.008, 3: 1.008, 4: 1.008, 5: 1.008, 6: 1.008, 7: 1.008, 8: 1.008, 9: 1.008, 10: 1.008, 11: 1.008, 12: 1.008, 13: 1.008, 14: 1.008, 15: 1.008, 16: 1.008, 17: 1.008, 18: 1.008}
 ## Presentation-only lower shadows. All 18 tiers use the same calibrated
 ## placement so a shadow cannot be mistaken for a physical body or contact.
-const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 18.0), 4: Vector2(5.0, 23.0), 5: Vector2(4.0, 19.0), 6: Vector2(5.0, 23.0), 7: Vector2(5.0, 23.0), 8: Vector2(5.0, 23.0), 9: Vector2(5.0, 23.0), 10: Vector2(5.0, 23.0), 11: Vector2(5.0, 23.0), 12: Vector2(5.0, 23.0), 13: Vector2(5.0, 23.0), 14: Vector2(5.0, 23.0), 15: Vector2(5.0, 23.0), 16: Vector2(5.0, 23.0), 17: Vector2(5.0, 23.0), 18: Vector2(5.0, 23.0)}
-const GEM_SHADOW_OPACITY := {1: 0.42, 2: 0.40, 3: 0.38, 4: 0.40, 5: 0.34, 6: 0.36, 7: 0.36, 8: 0.36, 9: 0.36, 10: 0.36, 11: 0.36, 12: 0.36, 13: 0.36, 14: 0.36, 15: 0.36, 16: 0.36, 17: 0.36, 18: 0.36}
+const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 19.0), 4: Vector2(5.0, 23.0), 5: Vector2(5.0, 23.0), 6: Vector2(5.0, 23.0), 7: Vector2(5.0, 23.0), 8: Vector2(4.0, 18.0), 9: Vector2(5.0, 23.0), 10: Vector2(5.0, 23.0), 11: Vector2(5.0, 23.0), 12: Vector2(5.0, 23.0), 13: Vector2(5.0, 23.0), 14: Vector2(5.0, 23.0), 15: Vector2(5.0, 23.0), 16: Vector2(5.0, 23.0), 17: Vector2(5.0, 23.0), 18: Vector2(5.0, 23.0)}
+const GEM_SHADOW_OPACITY := {1: 0.36, 2: 0.40, 3: 0.34, 4: 0.36, 5: 0.40, 6: 0.36, 7: 0.42, 8: 0.38, 9: 0.36, 10: 0.36, 11: 0.36, 12: 0.36, 13: 0.36, 14: 0.36, 15: 0.36, 16: 0.36, 17: 0.36, 18: 0.36}
 const GEM_SHADOW_WIDTH_MULTIPLIER := 0.96
 const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.43
 const VISIBLE_CONTACT_TOLERANCE := 2.0
@@ -135,7 +135,7 @@ static func merge_score_for_result_level(level: int) -> int:
 	return int(MERGE_SCORE_BY_RESULT_LEVEL.get(level, 0))
 
 static func gem_name(level: int) -> String:
-	const NAMES := ["Pearl", "Ruby", "Emerald", "Sapphire", "Diamond", "Amethyst", "Topaz", "Opal", "Garnet", "Aquamarine", "Citrine", "Tourmaline", "Peridot", "Tanzanite", "Spinel", "Moonstone", "Alexandrite", "Black Diamond"]
+	const NAMES := ["Pearl", "Obsidian", "Jade", "Aquamarine", "Peridot", "Pink Tourmaline", "Ruby", "Sapphire", "Emerald", "Watermelon Tourmaline", "Morganite", "Garnet", "Amethyst", "Citrine", "Orange Sapphire", "Royal Sapphire", "Diamond", "Blue Diamond"]
 	return NAMES[level - 1] if level >= 1 and level <= NAMES.size() else "Unknown"
 
 static func gem_collision_radius(level: int) -> float:
