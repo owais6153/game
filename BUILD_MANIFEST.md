@@ -370,3 +370,15 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Tag: `identity-ui-unlimited-target-balance-fix-v1`
 - Validation: Godot 4.6.3 parse/import; clean contact, 18-gem chain, Level 1 flow, and motion profile suites passed. The fresh APK ZIP contains `AndroidManifest.xml` and `classes.dex`.
 - Device status: no connected Android device; installation and launch were not attempted.
+
+# Supplied HUD Art + L7/L8 Balance v1
+
+- File: `supplied-hud-l7-l8-balance-v1.apk`
+- Path: `D:\\Owais\\game\\build\\android\\supplied-hud-l7-l8-balance-v1.apk`
+- Size: `100,754,358` bytes
+- Modified: `2026-07-30 22:00:03 +05:00`
+- SHA-256: `1989D1258C86B46E19B085438F2EC52D9F24D3391100F35679972C9FCC967A63`
+- Source commit: `b0fddc5` (`fix: use supplied HUD art and rebalance level one`)
+- Tag: `supplied-hud-l7-l8-balance-v1`
+- Validation: Godot parse/import; clean contact, 18-gem chain, Level 1 flow, and motion profile checks passed. Fresh APK export succeeded.
+- Device status: no connected Android device; installation and launch were not attempted.
