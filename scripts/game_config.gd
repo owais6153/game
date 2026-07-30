@@ -38,9 +38,14 @@ const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 32.0, 4: 42.0, 5: 33.0, 6: 4
 ## simple collider; it is a visual calibration only.
 ## Body-only textures are trimmed independently from their former baked
 ## shadows/glows. Their scale maps visible body edges directly to colliders.
-const GEM_VISUAL_BODY_SCALE := {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0, 13: 1.0, 14: 1.0, 15: 1.0, 16: 1.0, 17: 1.0, 18: 1.0}
-const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 18.0), 4: Vector2(5.0, 23.0), 5: Vector2(4.0, 19.0)}
-const GEM_SHADOW_OPACITY := {1: 0.42, 2: 0.40, 3: 0.38, 4: 0.40, 5: 0.34}
+## Derived at asset-preparation time from the solid alpha body. The tiny
+## expansion maps the visible body edge to its existing fixed circle collider;
+## it does not resize a piece or alter simulation values during play.
+const GEM_VISUAL_BODY_SCALE := {1: 1.008, 2: 1.008, 3: 1.008, 4: 1.008, 5: 1.008, 6: 1.008, 7: 1.008, 8: 1.008, 9: 1.008, 10: 1.008, 11: 1.008, 12: 1.008, 13: 1.008, 14: 1.008, 15: 1.008, 16: 1.008, 17: 1.008, 18: 1.008}
+## Presentation-only lower shadows. All 18 tiers use the same calibrated
+## placement so a shadow cannot be mistaken for a physical body or contact.
+const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 18.0), 4: Vector2(5.0, 23.0), 5: Vector2(4.0, 19.0), 6: Vector2(5.0, 23.0), 7: Vector2(5.0, 23.0), 8: Vector2(5.0, 23.0), 9: Vector2(5.0, 23.0), 10: Vector2(5.0, 23.0), 11: Vector2(5.0, 23.0), 12: Vector2(5.0, 23.0), 13: Vector2(5.0, 23.0), 14: Vector2(5.0, 23.0), 15: Vector2(5.0, 23.0), 16: Vector2(5.0, 23.0), 17: Vector2(5.0, 23.0), 18: Vector2(5.0, 23.0)}
+const GEM_SHADOW_OPACITY := {1: 0.42, 2: 0.40, 3: 0.38, 4: 0.40, 5: 0.34, 6: 0.36, 7: 0.36, 8: 0.36, 9: 0.36, 10: 0.36, 11: 0.36, 12: 0.36, 13: 0.36, 14: 0.36, 15: 0.36, 16: 0.36, 17: 0.36, 18: 0.36}
 const GEM_SHADOW_WIDTH_MULTIPLIER := 0.96
 const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.43
 const VISIBLE_CONTACT_TOLERANCE := 2.0

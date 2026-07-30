@@ -1,5 +1,11 @@
 # Changelog
 
+## 18-Gem Size & Collision Fix v1
+
+- Added alpha-calibrated, non-destructive runtime derivatives for all 18 gem bodies and retained every original asset.
+- Mapped only the calibrated presentation textures to existing fixed circle colliders; no motion or gameplay constants changed.
+- Extended the existing separate visual-shadow calibration to every tier and added regression coverage for the calibrated asset manifest.
+
 ## 18-Gem Chain v1
 
 - Rolled back to the verified `new-table-shadow-contact-fix-v1` baseline before making this isolated change.

@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** 18-Gem Size & Collision Fix v1. All 18 gem runtime textures now use alpha-trimmed calibrated derivatives with a fixed visual-to-collider mapping and separate visual-only shadows. The approved `18-gem-motion-smoothness-fix-v1` movement profile, collision radii, merge rules, table, UI, target flow, score, launcher, outcomes, sound, and haptics are unchanged. See `18_GEM_SIZE_COLLISION_FIX_V1_REPORT.md`.
+
 **Phase:** 18-Gem Motion Smoothness Fix v1, tagged `18-gem-motion-smoothness-fix-v1`. The 18-tier chain remains intact, while the smooth `new-table-shadow-contact-fix-v1` motion profile is restored: textures are cached at initialization, runtime derivatives are capped at 256 px, sprite appearance work is not repeated each frame, and Pearl–Diamond collision bodies match the baseline exactly. See `18_GEM_MOTION_SMOOTHNESS_FIX_V1_REPORT.md`. No level, multi-target, perspective, table, HUD, launcher, score, sound, haptics, win/fail, or gameplay-design change is present. Android export remains blocked by the documented Godot CLI filename bug; no APK is claimed.
 
 **In progress:** Visual Sequencing + Perspective + Contact Calibration v2. The baseline is clean commit `8fdebd4` / tag `visual-physics-calibration-v1`. This milestone separates `win_qualified` from `win_presented`, moves result UI into `ResultOverlayLayer`, adjusts upper table anchors to `58..662`, and calibrates the visual gem body independently from stable simple colliders. It is awaiting its final APK export, manifest record, commit, and tag.

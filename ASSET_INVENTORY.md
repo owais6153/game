@@ -49,6 +49,14 @@ The renderer, launcher clamp, spawn point, bounds simulation, and danger-line dr
 - `assets/runtime/table/shallow_table.gdshader`: non-destructive runtime table-perspective correction. It expands upper texture rows without replacing `coral_table_calibrated.png` or any supplied table source.
 - Gem source/runtime files are unchanged. `GEM_VISUAL_BODY_SCALE` supplies the final body-to-collider visual calibration at render time.
 
+## 18-gem calibrated runtime derivatives v1
+
+| Purpose | Preserved source/runtime input | Active runtime asset | Audit |
+| --- | --- | --- | --- |
+| L1-L18 solid gem body | `assets/gems/` originals and `assets/runtime/gems18/tier_*.png` normalization inputs | `assets/runtime/gems18/calibrated/tier_*.png` | Alpha threshold 128, one-pixel antialias padding, max 256px, no shadow/glow used for physics. |
+
+`assets/runtime/gems18/calibrated/calibration_manifest.json` contains the measured visible-body bounds for all 18 tiers. The runtime copies are presentation-only; circle radii continue to live in `GameConfig`.
+
 ## New table + shadow separation v1
 
 | Purpose | Preserved source | Active runtime asset | Audit |

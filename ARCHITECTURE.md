@@ -6,6 +6,10 @@
 
 For the 18-tier catalog, `AssetCatalog.GEM_TIER_TEXTURES` preloads each mobile-sized runtime texture exactly once. `GemSpriteLayer` performs tier-dependent texture, scale, and shadow setup only at piece creation/tier change; its frame sync only copies simulation positions into sprites. Texture loading, alpha analysis, collider resizing, perspective scaling, and shadow generation are forbidden in the frame path.
 
+## 18-gem body calibration v1
+
+`tools/calibrate_18_gem_bodies.gd` is the only alpha-analysis path for the 18-tier catalog. It creates `assets/runtime/gems18/calibrated/` derivatives and the accompanying data manifest before runtime. `AssetCatalog` preloads those derivatives; `GameConfig` supplies the fixed display-body mapping and visual-only shadow offsets. `GemPiece.radius`, `BoardSimulation`, and `ContactMergeService` remain unaware of PNG bounds and shadows.
+
 ## Visual-physics calibration v1
 
 - `assets/runtime/gems_calibrated/` contains alpha-trimmed derived textures; originals and earlier runtime sources remain preserved.

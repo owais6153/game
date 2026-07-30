@@ -9,6 +9,7 @@ var failures: Array[String] = []
 
 func _init() -> void:
 	_test_catalog_and_textures()
+	_test_calibrated_body_manifest()
 	_test_adjacent_merges()
 	_test_terminal_tier()
 	_test_rejections_and_shadows()
@@ -43,6 +44,27 @@ func _test_catalog_and_textures() -> void:
 		_assert(path.ends_with("tier_%02d.png" % level), "Tier %d must map to its own normalized texture" % level)
 		_assert(ResourceLoader.exists(path), "Tier %d texture must load" % level)
 		_assert(GameConfig.gem_collision_radius(level) > 0.0, "Tier %d needs a positive body collider" % level)
+		_assert(GameConfig.GEM_VISUAL_BODY_SCALE.has(level), "Tier %d needs an asset-prepared visual body scale" % level)
+		_assert(GameConfig.GEM_SHADOW_OFFSET.has(level) and GameConfig.GEM_SHADOW_OPACITY.has(level), "Tier %d needs a separate calibrated visual shadow" % level)
+
+func _test_calibrated_body_manifest() -> void:
+	var path := "res://assets/runtime/gems18/calibrated/calibration_manifest.json"
+	_assert(FileAccess.file_exists(path), "Calibrated 18-gem body manifest must exist")
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	_assert(parsed is Dictionary, "Calibrated body manifest must parse")
+	if not parsed is Dictionary:
+		return
+	var entries: Array = parsed.get("entries", [])
+	_assert(entries.size() == GameConfig.MAX_GEM_LEVEL, "Calibrated body manifest must include all 18 tiers")
+	for entry in entries:
+		var level := int(entry.get("tier", 0))
+		var body: Array = entry.get("visible_body_bounds", [])
+		var texture_size: Array = entry.get("texture_size", [])
+		_assert(level >= 1 and level <= GameConfig.MAX_GEM_LEVEL, "Calibrated manifest tier must be valid")
+		_assert(body.size() == 4 and body[2] > 0 and body[3] > 0, "Tier %d needs a positive measured visible body" % level)
+		_assert(texture_size.size() == 2 and texture_size[0] <= 256 and texture_size[1] <= 256, "Tier %d calibrated runtime texture must stay mobile-sized" % level)
+		_assert(str(entry.get("runtime_texture", "")).contains("/calibrated/tier_%02d.png" % level), "Tier %d must use its calibrated derivative" % level)
+		_assert(AssetCatalogType.gem_resource_path(level).contains("/calibrated/tier_%02d.png" % level), "Tier %d catalog must preload the calibrated derivative" % level)
 
 func _test_adjacent_merges() -> void:
 	for level in range(1, GameConfig.MAX_GEM_LEVEL):

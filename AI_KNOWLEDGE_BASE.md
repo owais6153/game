@@ -212,6 +212,10 @@ For Diamond wins, never present the overlay directly from confirmed merge handli
 
 Visible contact is calibrated through `GEM_COLLISION_RADIUS`, `GEM_VISUAL_BODY_SCALE`, `CONTACT_EPSILON`, and `SEPARATION_EPSILON` in `GameConfig`. Do not change one without updating the focused contact tests and report.
 
+# 18-gem size and collision calibration v1
+
+For L1-L18, use `assets/runtime/gems18/calibrated/` only through `AssetCatalog.GEM_TIER_TEXTURES`. These assets were measured once by `tools/calibrate_18_gem_bodies.gd`; do not load source files, read alpha pixels, resize colliders, or calculate texture bounds while the game is running. `GEM_VISUAL_BODY_SCALE` and the per-tier shadow maps are presentation-only. Their circle radii remain stable in `GEM_COLLISION_RADIUS`; changes to them require the calibration report and `run_18_gem_chain_tests.gd` coverage.
+
 ## New table + shadow separation v1
 
 - The active table is `AssetCatalog.NEW_TABLE`, not the old coral derivative. Its visual scale and physical rail coordinates are centralized in `GameConfig`.
