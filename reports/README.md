@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Identity, UI, Unlimited Play & Target Balance Fix v1](IDENTITY_UI_UNLIMITED_TARGET_BALANCE_FIX_V1_REPORT.md)
+
 - [Gameplay HUD + Sequential Targets v1](GAMEPLAY_HUD_SEQUENTIAL_TARGETS_V1_REPORT.md)
 
 - [Restored Working Table Rails v1](RESTORED_WORKING_TABLE_RAILS_V1_REPORT.md)

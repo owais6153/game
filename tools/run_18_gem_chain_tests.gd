@@ -6,7 +6,7 @@ const SimulationType = preload("res://scripts/board_simulation.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 
 const EXPECTED_SOURCE_INDEX := {
-	1: 2, 2: 7, 3: 4, 4: 8, 5: 1, 6: 3, 7: 5, 8: 16, 9: 11,
+	1: 16, 2: 4, 3: 5, 4: 8, 5: 2, 6: 7, 7: 1, 8: 3, 9: 11,
 	10: 9, 11: 6, 12: 10, 13: 14, 14: 15, 15: 18, 16: 12, 17: 13, 18: 17,
 }
 const EXPECTED_NAMES := ["Pearl", "Obsidian", "Jade", "Aquamarine", "Peridot", "Pink Tourmaline", "Ruby", "Sapphire", "Emerald", "Watermelon Tourmaline", "Morganite", "Garnet", "Amethyst", "Citrine", "Orange Sapphire", "Royal Sapphire", "Diamond", "Blue Diamond"]

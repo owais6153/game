@@ -19,21 +19,22 @@ const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_sof
 ## indices, not gameplay levels: all calibrated per-asset body/shadow settings
 ## remain attached to the same artwork after the catalog reorder.
 const GEM_TIER_SOURCE_INDEX := {
-	# L1-L8 deliberately alternate oval, horizontal, cushion, pear, round,
-	# square, slender, and diamond-like supplied silhouettes.
-	1: 2, 2: 7, 3: 4, 4: 8, 5: 1, 6: 3, 7: 5, 8: 16, 9: 11,
+	# Authoritative user-approved L1-L18 order. These source indices and the
+	# matching runtime textures must move together; labels never infer identity
+	# from the tier alone.
+	1: 16, 2: 4, 3: 5, 4: 8, 5: 2, 6: 7, 7: 1, 8: 3, 9: 11,
 	10: 9, 11: 6, 12: 10, 13: 14, 14: 15, 15: 18, 16: 12, 17: 13, 18: 17,
 }
 
 const GEM_TIER_TEXTURES := {
-	1: preload("res://assets/runtime/gems18/calibrated/tier_02.png"),
-	2: preload("res://assets/runtime/gems18/calibrated/tier_07.png"),
-	3: preload("res://assets/runtime/gems18/calibrated/tier_04.png"),
+	1: preload("res://assets/runtime/gems18/calibrated/tier_16.png"),
+	2: preload("res://assets/runtime/gems18/calibrated/tier_04.png"),
+	3: preload("res://assets/runtime/gems18/calibrated/tier_05.png"),
 	4: preload("res://assets/runtime/gems18/calibrated/tier_08.png"),
-	5: preload("res://assets/runtime/gems18/calibrated/tier_01.png"),
-	6: preload("res://assets/runtime/gems18/calibrated/tier_03.png"),
-	7: preload("res://assets/runtime/gems18/calibrated/tier_05.png"),
-	8: preload("res://assets/runtime/gems18/calibrated/tier_16.png"),
+	5: preload("res://assets/runtime/gems18/calibrated/tier_02.png"),
+	6: preload("res://assets/runtime/gems18/calibrated/tier_07.png"),
+	7: preload("res://assets/runtime/gems18/calibrated/tier_01.png"),
+	8: preload("res://assets/runtime/gems18/calibrated/tier_03.png"),
 	9: preload("res://assets/runtime/gems18/calibrated/tier_11.png"),
 	10: preload("res://assets/runtime/gems18/calibrated/tier_09.png"),
 	11: preload("res://assets/runtime/gems18/calibrated/tier_06.png"),

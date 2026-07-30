@@ -3,7 +3,9 @@
 ## HUD and sequential target rules
 
 - Never add a parallel gem icon/name mapping; use `AssetCatalog.gem_entry` everywhere.
-- Launches are unlimited. The legacy `shot_count` field stays zero for test compatibility and is not gameplay/UI state.
+- Launches are unlimited. There is no production `shot_count` field or hidden launcher cap.
+- `AssetCatalog.GEM_TIER_SOURCE_INDEX` and `GEM_TIER_TEXTURES` are an inseparable single mapping: never edit a display name, icon, or source index independently. Run the 18-gem and Level 1 tests after every catalog change.
+- At the start of target collection, remove the result from `GameController.pieces` before creating the fly-to-HUD visual. A collection animation must never retain a simulation entity, danger timer, merge candidate, or board-occupancy entry.
 - Event order is confirmed merge, result creation, merge presentation, collection animation, then next target or win overlay.
 
 ## Restored rail baseline (read before any table/rail change)

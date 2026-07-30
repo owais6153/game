@@ -15,8 +15,10 @@ static func level_1() -> Dictionary:
 		# level: it follows the declared weights without unlucky queue streaks.
 		"launcher_sequence": [1, 1, 2],
 		# Unlimited launches are still bounded by the existing danger-line fail.
-		# This first sequence teaches L3, then asks the player to reach L4.
-		"target_sequence": [{"tier": 3, "quantity": 1}, {"tier": 4, "quantity": 1}],
+		# Two sequential objectives demand 24 Pearl-equivalents in the best case.
+		# This keeps the level short enough to learn, but prevents a three-shot win
+		# or a single unattended straight-line stack from reliably clearing it.
+		"target_sequence": [{"tier": 3, "quantity": 2}, {"tier": 4, "quantity": 2}],
 		"starting_board": [],
 	}
 

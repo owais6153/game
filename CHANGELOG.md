@@ -1,5 +1,12 @@
 # Changelog
 
+## Identity, UI, Unlimited Play & Target Balance Fix v1
+
+- Corrected the 18-tier runtime texture order so each approved gem name and icon resolve to the same catalog identity.
+- Reshaped the gameplay HUD to follow the supplied gameplay reference: score left, progression center, next card right, with the sequential target card outside the table layer.
+- Removed production shot-limit state; danger-line overflow is the only non-win level end.
+- Rebalanced Level 1 to sequential Jade x2 then Aquamarine x2 and removed collected targets from the live simulation before their HUD animation.
+
 ## Gameplay HUD + Sequential Targets v1
 
 - Added authoritative 18-tier catalog entries for every gem ID, display name, texture, and calibration reference.

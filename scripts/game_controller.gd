@@ -22,9 +22,6 @@ var counted_target_result_ids: Dictionary = {}
 ## Results count only after their own merge presentation has completed.
 var pending_target_presentations: Dictionary = {}
 var active_piece_id := -1
-# Retained as a zero-only legacy diagnostic field for existing test harnesses.
-# It is not incremented, displayed, or used as a gameplay limit.
-var shot_count := 0
 var dragging := false
 var merge_presentations: Array[Dictionary] = []
 var score := 0
@@ -378,8 +375,13 @@ func _begin_target_collection(result_id: int) -> void:
 	if result_piece == null:
 		return
 	# The actual confirmed merge result has already finished its presentation.
-	# Remove it from physics before its separate collection visual travels to HUD.
+	# Remove it from the live simulation *before* its separate visual travels to
+	# the HUD. Keeping a consumed RefCounted item in `pieces` used to leave a
+	# stale body available to future contact/occupancy paths.
 	result_piece.consumed = true
+	pieces.erase(result_piece)
+	danger_timers.erase(result_id)
+	merge_service.clear()
 	collection_in_progress = true
 	active_piece_id = -1
 	launcher_state = LauncherState.RESOLVING
@@ -408,7 +410,7 @@ func _update_target_collection(delta: float) -> void:
 	var t := clampf(elapsed / duration, 0.0, 1.0)
 	var eased := 1.0 - pow(1.0 - t, 3.0)
 	var start: Vector2 = target_collection.start
-	var destination := Vector2(463.0, 64.0)
+	var destination := GameConfig.TARGET_PANEL_RECT.get_center() + Vector2(-58.0, 0.0)
 	sprite.position = start.lerp(destination, eased)
 	var pop := 1.0 + sin(clampf(t * 2.0, 0.0, 1.0) * PI) * 0.20
 	# Keep a deterministic base scale instead of accumulating the pop each frame.

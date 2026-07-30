@@ -301,7 +301,7 @@ func _test_overlay_reset() -> void:
 	controller.danger_timers[99] = 1.0
 	controller.restart()
 	_assert(not controller.won and not controller.failed and controller.score == 0 and controller.chain_multiplier == 1, "Replay or Retry must clear outcome, score, and chain state")
-	_assert(controller.danger_timers.is_empty() and controller.shot_count == 0, "Replay or Retry must clear danger timers and shots")
+	_assert(controller.danger_timers.is_empty(), "Replay or Retry must clear danger timers")
 	_assert(controller.pieces.size() == 1 and _active_launcher_count(controller.pieces) == 1, "Replay or Retry must restore empty board plus one launcher")
 
 func _test_visual_level_mapping() -> void:

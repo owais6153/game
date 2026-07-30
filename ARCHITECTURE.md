@@ -5,6 +5,8 @@
 - `AssetCatalog.gem_entry(tier)` is the sole presentation identity source for IDs, names, textures, and calibration references.
 - `GameController.hud_snapshot()` is controller-owned; `HudRenderer` is presentation-only.
 - `LevelConfig.target_sequence` is one visible target at a time. A confirmed merge result completes presentation, collects to HUD, then advances or qualifies victory.
+- `GameController._begin_target_collection()` transfers a target result from simulation to presentation atomically: it erases the result from `pieces`, clears its danger/candidate state, then creates the independent fly-to-HUD sprite.
+- The top HUD follows the approved gameplay reference composition: score panel left, progression strip center, next preview right. `HudRenderer` remains read-only and outside table coordinates.
 
 ## Restored working table rails v1
 

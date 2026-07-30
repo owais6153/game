@@ -88,9 +88,10 @@ const OVERLAY_FADE_DURATION := 0.18
 const RESULT_BACKDROP_OPACITY := 0.48
 const WIN_PRESENTATION_HOLD := 0.32
 ## Rendering-only layout values. These never feed simulation or collision geometry.
-const HUD_RECT := Rect2(20.0, 20.0, 680.0, 142.0)
-const CURRENT_PREVIEW_RECT := Rect2(184.0, 28.0, 118.0, 52.0)
-const NEXT_PREVIEW_RECT := Rect2(310.0, 28.0, 118.0, 52.0)
+const HUD_RECT := Rect2(20.0, 20.0, 680.0, 112.0)
+const SCORE_PANEL_RECT := Rect2(40.0, 28.0, 150.0, 72.0)
+const NEXT_PREVIEW_RECT := Rect2(530.0, 28.0, 150.0, 72.0)
+const TARGET_PANEL_RECT := Rect2(272.0, 108.0, 176.0, 64.0)
 const PROGRESSION_START_X := 448.0
 const PROGRESSION_STEP_X := 27.0
 const PROGRESSION_Y := 54.0
