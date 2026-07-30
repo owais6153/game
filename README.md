@@ -4,7 +4,7 @@ A clean-room Godot 4.6.3 portrait gem-launching merge game.
 
 ## Current milestone
 
-`visual-physics-calibration-v1`: calibrated table perspective, visible gem contact bounds, and confirmed-contact audio routing. See `VISUAL_PHYSICS_CALIBRATION_V1_REPORT.md`.
+`visual-physics-calibration-v1`: calibrated table perspective, visible gem contact bounds, and confirmed-contact audio routing. See `reports/VISUAL_PHYSICS_CALIBRATION_V1_REPORT.md`.
 
 ## Commands
 

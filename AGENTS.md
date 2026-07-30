@@ -22,6 +22,8 @@ Before inspecting or editing project files, every future agent must read, in thi
 - Update `ARCHITECTURE.md` and `AI_KNOWLEDGE_BASE.md` for every architecture or module change.
 - Record every delivered APK in `BUILD_MANIFEST.md`: filename, size, timestamp, commit hash, tag, validation, and device status.
 - Create a task-specific report for every gameplay task.
+- Create every new milestone report under `reports/`; never add a report file to the repository root. Keep `reports/README.md` indexed.
+- After local validation, commit and tag each completed milestone, then push the existing branch and its new tag to the configured GitHub `origin`. Never force-push or replace the origin URL without explicit user authorization.
 - Preserve verified mechanics and their regression tests. Make the smallest scoped change possible; do not change unrelated launcher, board, queue, or collision behavior.
 - Record tests actually run, the standalone APK file existence check, and connected-device status truthfully. Never infer phone testing from a successful export.
 - Make one mechanic change per task whenever practical.
@@ -33,7 +35,7 @@ Before inspecting or editing project files, every future agent must read, in thi
 - Do not touch files outside `D:\Owais\game` without explicit approval.
 - Gameplay-feel work must change only centralized `GameConfig` tuning values unless the task explicitly authorizes a behavior change. Record before/after values, safe ranges, and test evidence in the task report.
 - For balancing milestones, preserve delta-based simulation and add coverage for timing, settling, containment, launcher pacing, and danger grace behavior.
-- For feedback work, keep audio and haptics behind dedicated services; route only confirmed controller events and update `SOUND_HAPTICS_V1_REPORT.md` plus the central `GameConfig` event constants.
+- For feedback work, keep audio and haptics behind dedicated services; route only confirmed controller events and update `reports/SOUND_HAPTICS_V1_REPORT.md` plus the central `GameConfig` event constants.
 - For reference/composition work, table rendering and physics borders must read the same centralized `GameConfig` geometry. For audio work, contact telemetry must identify gem versus wall, use thresholds/cooldowns/concurrency caps, and never feed gameplay decisions. Record source/asset provenance and the manual listening checklist in the task report.
 - For supplied-art integration, preserve originals under `assets/`; create any optimized or trimmed copies only under `assets/runtime/` and document source-to-runtime mappings in `ASSET_INVENTORY.md`. Use one authoritative layout model for table rendering, rails, launcher, drag clamp, spawn limits, and danger line. Artwork must never define physics radius, merge eligibility, or score behavior.
 - For visual-physics calibration, measure alpha bounds before changing collision geometry; keep simple documented colliders in `GameConfig`, trim only non-destructive runtime derivatives, and add a regression that proves contact audio starts from confirmed physical contact. Keep F8 collider/rail/contact diagnostics disabled by default.

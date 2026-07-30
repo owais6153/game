@@ -1,5 +1,17 @@
 # Build Manifest
 
+## Level 1 Balance v1
+
+- File: `level-1-balance-v1.apk`
+- Path: `D:\Owais\game\build\android\level-1-balance-v1.apk`
+- Size: `99,204,339` bytes
+- Modified: `2026-07-30 09:48:03 +05:00`
+- SHA-256: `72883265B690232655C6D62581D4CE3722F8F79007AAF831F83B20E4C576375A`
+- Source baseline: `4ad1d51e09e0efce75d6842b0310880095ad349c` (`level-1-flow-v1`)
+- Tag: `level-1-balance-v1`
+- Validation: Godot 4.6.3 parse/import; `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. APK exists, is non-empty, and its ZIP contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: no connected device; installation and device timing are not claimed.
+
 ## 18-Gem Order v1
 
 - File: `18-gem-order-v1.apk`

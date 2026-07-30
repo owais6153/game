@@ -230,11 +230,13 @@ func _test_score_and_chain_runtime_path() -> void:
 func _test_win_stops_spawning() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	controller.pieces.append(_piece(300, 4, Vector2(300, 500)))
-	controller.pieces.append(_piece(301, 4, Vector2(360, 500)))
+	controller.pieces.append(_piece(300, 3, Vector2(260, 500)))
+	controller.pieces.append(_piece(301, 3, Vector2(320, 500)))
+	controller.pieces.append(_piece(302, 3, Vector2(460, 500)))
+	controller.pieces.append(_piece(303, 3, Vector2(520, 500)))
 	controller._process(0.0)
-	_assert(controller.won, "Creating Diamond must trigger win exactly once")
-	_assert(controller.win_qualified and not controller.win_presented, "Diamond must qualify the win before its overlay is presented")
+	_assert(controller.won, "Creating both target Sapphires must trigger win exactly once")
+	_assert(controller.win_qualified and not controller.win_presented, "Second Sapphire must qualify the win before its overlay is presented")
 	var count: int = controller.pieces.size()
 	for frame in range(120): controller._process(1.0 / 60.0)
 	_assert(controller.pieces.size() == count, "No launcher may spawn after win")
@@ -242,20 +244,22 @@ func _test_win_stops_spawning() -> void:
 func _test_win_visual_sequence_and_overlay_isolation() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	controller.pieces.append(_piece(310, 4, Vector2(300, 500)))
-	controller.pieces.append(_piece(311, 4, Vector2(360, 500)))
+	controller.pieces.append(_piece(310, 3, Vector2(260, 500)))
+	controller.pieces.append(_piece(311, 3, Vector2(320, 500)))
+	controller.pieces.append(_piece(312, 3, Vector2(460, 500)))
+	controller.pieces.append(_piece(313, 3, Vector2(520, 500)))
 	controller._process(0.0)
-	_assert(controller.pieces.any(func(piece: GemPiece): return piece.level == 5), "Diamond must exist in simulation immediately after its confirmed merge")
-	_assert(not controller.win_presented, "Win overlay must wait for Diamond merge presentation")
+	_assert(controller.pieces.filter(func(piece: GemPiece): return piece.level == 4).size() >= 2, "Both target Sapphires must exist in simulation immediately after confirmed merges")
+	_assert(not controller.win_presented, "Win overlay must wait for the final Sapphire merge presentation")
 	controller.gem_sprite_layer.sync_gems(controller.pieces)
-	var diamond_id := -1
+	var sapphire_id := -1
 	for piece in controller.pieces:
-		if piece.level == 5: diamond_id = piece.id
-	var diamond_sprite: Sprite2D = controller.gem_sprite_layer._sprites.get(diamond_id)
-	_assert(diamond_sprite != null and diamond_sprite.texture == AssetCatalogType.gem_texture(5) and diamond_sprite.modulate == Color.WHITE, "Diamond visual must be synchronized unchanged before result UI")
+		if piece.level == 4: sapphire_id = piece.id
+	var sapphire_sprite: Sprite2D = controller.gem_sprite_layer._sprites.get(sapphire_id)
+	_assert(sapphire_sprite != null and sapphire_sprite.texture == AssetCatalogType.gem_texture(4) and sapphire_sprite.modulate == Color.WHITE, "Final Sapphire visual must be synchronized unchanged before result UI")
 	for frame in range(40): controller._process(1.0 / 60.0)
 	_assert(controller.win_presented and controller.result_overlay.visible_result, "Win overlay must present only after merge animation plus celebration hold")
-	_assert(diamond_sprite.texture == AssetCatalogType.gem_texture(5) and diamond_sprite.modulate == Color.WHITE, "Result backdrop must not change Diamond texture or modulation")
+	_assert(sapphire_sprite.texture == AssetCatalogType.gem_texture(4) and sapphire_sprite.modulate == Color.WHITE, "Result backdrop must not change Sapphire texture or modulation")
 
 func _test_danger_line_failure_rules() -> void:
 	var controller = GameScene.instantiate()
@@ -335,7 +339,7 @@ func _test_progression_hud_snapshot_and_queue() -> void:
 	controller._ready()
 	var first: Dictionary = controller.hud_snapshot()
 	_assert(int(first.current_level) == 1 and int(first.next_level) == 1, "HUD previews must match Level 1's deterministic opening queue")
-	_assert(int(first.target_level) == 5, "HUD target highlight must remain Diamond (L5)")
+	_assert(int(first.target_level) == 4, "HUD target highlight must match Level 1 Sapphire target")
 	controller.launch_active_piece()
 	for frame in range(200): controller._process(1.0 / 60.0)
 	var after_shot: Dictionary = controller.hud_snapshot()
@@ -382,7 +386,7 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(_event_count(controller.haptics_feedback.emitted_events, "merge") == 2 and _event_count(controller.haptics_feedback.emitted_events, "chain") == 1, "Confirmed direct and chain merges must use distinct haptics")
 	controller.audio_feedback.clear_trace()
 	controller.haptics_feedback.clear_trace()
-	var win_events: Array[Dictionary] = [{"level": 5, "depth": 0}, {"level": 5, "depth": 0}]
+	var win_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 700}, {"level": 4, "depth": 0, "result_id": 701}]
 	controller._apply_confirmed_merge_events(win_events)
 	for frame in range(40): controller._process(1.0 / 60.0)
 	_assert(_event_count(controller.audio_feedback.emitted_events, "win") == 1 and _event_count(controller.haptics_feedback.emitted_events, "win") == 1, "Win feedback must fire exactly once")

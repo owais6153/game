@@ -14,8 +14,11 @@ static func level_1() -> Dictionary:
 		# The deterministic 2:1 sequence is intentional for the introductory
 		# level: it follows the declared weights without unlucky queue streaks.
 		"launcher_sequence": [1, 1, 2],
-		"target_tier": 5,
-		"target_quantity": 1,
+		# Two L4 Sapphires need twelve Pearl-equivalent launches with the
+		# deterministic L1/L1/L2 queue. This is a meaningful introductory
+		# objective without allowing a one- or two-shot lucky finish.
+		"target_tier": 4,
+		"target_quantity": 2,
 		"starting_board": [],
 	}
 

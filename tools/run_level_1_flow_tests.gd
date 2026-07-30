@@ -30,7 +30,7 @@ func _test_level_data() -> void:
 	_assert(int(config.active_tier_max) - int(config.active_tier_min) + 1 == 8, "Level 1 must configure exactly eight contiguous tiers")
 	_assert(int(config.active_tier_min) == 1 and int(config.active_tier_max) == 8, "Level 1 must use L1-L8")
 	_assert(int(config.target_tier) >= int(config.active_tier_min) and int(config.target_tier) <= int(config.active_tier_max), "Target must belong to the active range")
-	_assert(int(config.target_quantity) == 1, "Level 1 must have exactly one target quantity")
+	_assert(int(config.target_tier) == 4 and int(config.target_quantity) == 2, "Level 1 must require two L4 results from its one target type")
 	for tier in config.spawnable_tiers:
 		_assert(int(tier) >= int(config.active_tier_min) and int(tier) <= int(config.active_tier_max), "Launcher tier must stay in active range")
 	_assert((config.spawn_weights as Dictionary).has(1) and (config.spawn_weights as Dictionary).has(2), "Early target must be achievable from low launcher tiers")
@@ -52,14 +52,17 @@ func _test_launcher_range_and_queue() -> void:
 func _test_target_counting_and_win_sequence() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	var non_target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 100}]
+	var non_target_events: Array[Dictionary] = [{"level": 5, "depth": 0, "result_id": 100}]
 	controller._apply_confirmed_merge_events(non_target_events)
 	_assert(controller.target_progress == 0 and not controller.win_qualified, "Non-target confirmed merge must not increment Level 1 target progress")
-	var target_events: Array[Dictionary] = [{"level": 5, "depth": 0, "result_id": 101}]
+	var target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 101}]
 	controller._apply_confirmed_merge_events(target_events)
-	_assert(controller.target_progress == 1 and controller.win_qualified and not controller.win_presented, "Confirmed target result must increment once and qualify win without presenting it early")
+	_assert(controller.target_progress == 1 and not controller.win_qualified, "First confirmed target result must increment progress without qualifying win")
+	var second_target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 102}]
+	controller._apply_confirmed_merge_events(second_target_events)
+	_assert(controller.target_progress == 2 and controller.win_qualified and not controller.win_presented, "Second confirmed target result must qualify win without presenting it early")
 	controller._apply_confirmed_merge_events(target_events)
-	_assert(controller.target_progress == 1, "One confirmed merge result must count toward target once")
+	_assert(controller.target_progress == 2, "One confirmed merge result must count toward target once")
 	controller.merge_presentations.clear()
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(controller.win_presented, "Win overlay must wait for final target merge presentation/hold")
@@ -68,7 +71,7 @@ func _test_target_counting_and_win_sequence() -> void:
 func _test_restart_and_fail() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	var target_events: Array[Dictionary] = [{"level": 5, "depth": 0, "result_id": 200}]
+	var target_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 200}, {"level": 4, "depth": 0, "result_id": 201}]
 	controller._apply_confirmed_merge_events(target_events)
 	controller.restart()
 	_assert(controller.target_progress == 0 and not controller.win_qualified and controller.get_active_piece() != null, "Restart must reset Level 1 target state and launcher")

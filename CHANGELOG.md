@@ -1,5 +1,11 @@
 # Changelog
 
+## Level 1 Balance v1
+
+- Kept the approved L1-L8 range, empty starting board, L1/L1/L2 launcher queue, unlimited shots, overflow failure, physics, visuals, collision calibration, and merge rules unchanged.
+- Changed the single Level 1 target type from one L5 result to two L4 Sapphire results. This keeps the introductory queue deterministic and makes a clean completion require twelve Pearl-equivalent launches rather than allowing an early lucky finish.
+- Moved historical root-level milestone reports into `reports/`, added its index, and updated core-document references.
+
 ## Level 1 Flow v1
 
 - Added only the data-driven default Level 1 flow: active L1-L8 range, deterministic L1/L1/L2 low-tier launcher sequence, and one L5 Peridot target.

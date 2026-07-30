@@ -6,21 +6,21 @@ The current approved base is `18-gem-order-v1`. Run `tools/run_18_gem_chain_test
 
 ## Current isolated catalog milestone
 
-The repository was deliberately restored to `new-table-shadow-contact-fix-v1` before the 18-gem work. Do not reintroduce multi-target levels, unlimited-shot rules, perspective scaling, Y sorting, table changes, or HUD redesign when working on this catalog. Read `18_GEM_CHAIN_V1_REPORT.md` and preserve `assets/gems/` originals; modify only runtime derivatives if asset work is required.
+The repository was deliberately restored to `new-table-shadow-contact-fix-v1` before the 18-gem work. Do not reintroduce multi-target levels, unlimited-shot rules, perspective scaling, Y sorting, table changes, or HUD redesign when working on this catalog. Read `reports/18_GEM_CHAIN_V1_REPORT.md` and preserve `assets/gems/` originals; modify only runtime derivatives if asset work is required.
 
 ## 18-gem motion guard
 
-Never use `load()`/`ResourceLoader.load()` from `AssetCatalog.gem_texture()` or `GemSpriteLayer.sync_gems()`. Runtime textures are preloaded and must remain at or below a 256 px long edge. The layer may update sprite/shadow positions per frame, but texture assignment, scale calculation, alpha processing, and physics-body radius changes are creation/tier-change work only. Read `18_GEM_MOTION_SMOOTHNESS_FIX_V1_REPORT.md` before any 18-gem rendering change.
+Never use `load()`/`ResourceLoader.load()` from `AssetCatalog.gem_texture()` or `GemSpriteLayer.sync_gems()`. Runtime textures are preloaded and must remain at or below a 256 px long edge. The layer may update sprite/shadow positions per frame, but texture assignment, scale calculation, alpha processing, and physics-body radius changes are creation/tier-change work only. Read `reports/18_GEM_MOTION_SMOOTHNESS_FIX_V1_REPORT.md` before any 18-gem rendering change.
 
 ## Level 1 flow v1
 
-Read `LEVEL_1_FLOW_V1_REPORT.md` before changing the default game flow. `LevelConfig.level_1()` is the only authority for Level 1's L1-L8 active range, L1/L2 launcher sequence, and one L5 target. Target progress may be updated only inside `GameController._apply_confirmed_merge_events()` from a unique merge `result_id`; never derive it from the board, queue previews, launcher pieces, debug helpers, or restore state. Keep the full 18-tier merge-service default for development tests; the controller applies the normal-play cap from level data.
+Read `reports/LEVEL_1_FLOW_V1_REPORT.md` before changing the default game flow. `LevelConfig.level_1()` is the only authority for Level 1's L1-L8 active range, L1/L2 launcher sequence, and one target type. Target progress may be updated only inside `GameController._apply_confirmed_merge_events()` from a unique merge `result_id`; never derive it from the board, queue previews, launcher pieces, debug helpers, or restore state. Keep the full 18-tier merge-service default for development tests; the controller applies the normal-play cap from level data.
 
 ## Sound + Haptics v1 update
 
 - Never call audio or `Input.vibrate_handheld` directly from simulation, merge, score, or HUD drawing code. Route confirmed events through `AudioFeedbackService` / `HapticsService` in `GameController`.
 - Collision feedback must use `BoardSimulation.consume_collision_impacts()` and the central threshold/cooldown values. Do not add feedback to overlap separation.
-- `SOUND_HAPTICS_V1_REPORT.md` records the event map and phone test checklist. Settings are session-only by design until the later save milestone.
+- `reports/SOUND_HAPTICS_V1_REPORT.md` records the event map and phone test checklist. Settings are session-only by design until the later save milestone.
 
 ## Project at a glance
 
@@ -228,7 +228,7 @@ For L1-L18, use `assets/runtime/gems18/calibrated/` only through `AssetCatalog.G
 
 ## 18-gem final order v1
 
-`AssetCatalog.GEM_TIER_SOURCE_INDEX` is the sole tier-to-artwork authority: do not infer an asset from its old `tier_XX.png` filename. A catalog reorder must move the matching `GEM_COLLISION_RADIUS` and shadow metadata with the artwork, then update the exact-order test. The final order and names are documented in `18_GEM_ORDER_V1_REPORT.md`; gameplay still merges numeric levels only.
+`AssetCatalog.GEM_TIER_SOURCE_INDEX` is the sole tier-to-artwork authority: do not infer an asset from its old `tier_XX.png` filename. A catalog reorder must move the matching `GEM_COLLISION_RADIUS` and shadow metadata with the artwork, then update the exact-order test. The final order and names are documented in `reports/18_GEM_ORDER_V1_REPORT.md`; gameplay still merges numeric levels only.
 
 - The active table is `AssetCatalog.NEW_TABLE`, not the old coral derivative. Its visual scale and physical rail coordinates are centralized in `GameConfig`.
 - Live gems load from `assets/runtime/gems_body_v2/`. Former calibrated textures remain source/provenance only. Never allow shadows, glows, sparkles, or transparent padding to influence `GemPiece.radius`.

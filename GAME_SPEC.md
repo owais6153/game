@@ -89,7 +89,7 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - The default playable level is data-driven `First Facets` (`level_1`) in `LevelConfig`.
 - It exposes exactly L1-L8 in normal play. The global L1-L18 catalog and its merge validation remain available outside this level cap.
 - Only L1 and L2 launch, in the deterministic L1, L1, L2 sequence (a conservative 2:1 weighting); no high tier launches are introduced.
-- The one target is one L5 Peridot. Only unique, confirmed merge-result events can increment target progress. Queue previews, launcher spawns, debug pieces, and restored state never count.
+- The one target type is two L4 Sapphires. Only unique, confirmed merge-result events can increment target progress. Queue previews, launcher spawns, debug pieces, and restored state never count.
 - Target qualification blocks launches but preserves the existing merge presentation and victory hold before the result overlay appears. The existing danger-line failure remains unchanged and there is no shot limit.
 
 ## Danger and reset
