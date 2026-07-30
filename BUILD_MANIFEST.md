@@ -5,7 +5,17 @@
 - Requested file: `build/android/18-gem-motion-smoothness-fix-v1.apk`.
 - Source commit: the commit tagged `18-gem-motion-smoothness-fix-v1` (`fix: restore smooth motion for 18-gem build`).
 - Validation: Godot 4.6.3 import/parse validation; `CLEAN_CONTACT_TESTS: PASS`; `GEM18_CHAIN_TESTS: PASS`; `MOTION_PROFILE: PASS`.
-- Export status: blocked by Godot 4.6.3's existing command-line Android filename validation bug; it rejected valid explicit and preset `.apk` paths before compilation. No output APK was created and no device testing is claimed.
+- Export status: delivered as a fresh standalone debug APK using Godot's Android debug-signing path. The previous block was not a filename issue: release export reached signing but had no release keystore, and the earlier session lacked write access to the project cache/output.
+- File: `18-gem-motion-smoothness-fix-v1.apk`
+- Path: `D:\Owais\game\build\android\18-gem-motion-smoothness-fix-v1.apk`
+- Size: `97,688,126` bytes
+- Modified: `2026-07-30 05:35:02 +05:00`
+- SHA-256: `E63CEE8EAA1AC1A6B3954EC2E94238EC76CE744ACEBDB3105B56CD9261518765`
+- Source commit: `6953b4095b8924096a7d71445771cecbc893e30d`
+- Source tag: `18-gem-motion-smoothness-fix-v1` (unchanged)
+- Godot: `4.6.3.stable.official.7d41c59c4`
+- Export preset/method: `Android`; `Godot_v4.6.3-stable_win64_console.exe --headless --path D:\Owais\game --export-debug Android build/android/18-gem-motion-smoothness-fix-v1.apk`
+- Package validation: APK ZIP contains `AndroidManifest.xml`, `classes.dex`, and packaged project assets. No Android phone was connected, so device installation and launch are not claimed.
 
 ## 18-Gem Chain v1
 
