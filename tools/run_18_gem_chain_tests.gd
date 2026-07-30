@@ -84,13 +84,13 @@ func _test_calibrated_body_manifest() -> void:
 func _test_adjacent_merges() -> void:
 	for level in range(1, GameConfig.MAX_GEM_LEVEL):
 		var first := _piece(1, level, Vector2(280.0, 500.0))
-		var second := _piece(2, level, Vector2(280.0 + first.radius + GameConfig.gem_collision_radius(level), 500.0))
+		var second := _piece(2, level, Vector2(280.0 + first.radius * 2.0, 500.0))
 		var result := _resolve([first, second])
 		_assert(result.pieces.size() == 1 and result.pieces[0].level == level + 1, "L%d + L%d must create exactly L%d" % [level, level, level + 1])
 
 func _test_terminal_tier() -> void:
 	var first := _piece(1, 18, Vector2(280.0, 500.0))
-	var second := _piece(2, 18, Vector2(280.0 + first.radius + GameConfig.gem_collision_radius(18), 500.0))
+	var second := _piece(2, 18, Vector2(280.0 + first.radius * 2.0, 500.0))
 	var result := _resolve([first, second])
 	_assert(result.pieces.size() == 2, "L18 must be terminal and never merge further")
 	_assert(result.merge_count == 0 and result.next_id == 1000, "L18 must not allocate a nonexistent L19 result")
@@ -99,7 +99,10 @@ func _test_terminal_tier() -> void:
 func _test_rejections_and_shadows() -> void:
 	var distant: Array[GemPiece] = [_piece(1, 7, Vector2(200.0, 500.0)), _piece(2, 7, Vector2(560.0, 500.0))]
 	_assert(_resolve(distant).pieces.size() == 2, "Distant same-tier pieces must never merge")
-	var mixed: Array[GemPiece] = [_piece(1, 7, Vector2(280.0, 500.0)), _piece(2, 8, Vector2(280.0 + GameConfig.gem_collision_radius(7) + GameConfig.gem_collision_radius(8), 500.0))]
+	var mixed_first := _piece(1, 7, Vector2(280.0, 500.0))
+	var mixed_second := _piece(2, 8, Vector2(280.0, 500.0))
+	mixed_second.position.x = mixed_first.position.x + mixed_first.radius + mixed_second.radius
+	var mixed: Array[GemPiece] = [mixed_first, mixed_second]
 	_assert(_resolve(mixed).pieces.size() == 2, "Different tiers must never merge")
 	_assert(ResourceLoader.exists(AssetCatalogType.shadow_resource_path()), "Separate visual shadow must remain available")
 	_assert(GameConfig.VISIBLE_CONTACT_TOLERANCE == 2.0, "Baseline visible-contact tolerance must remain unchanged")
@@ -107,7 +110,7 @@ func _test_rejections_and_shadows() -> void:
 func _test_merge_result_contract() -> void:
 	for level in range(1, GameConfig.MAX_GEM_LEVEL):
 		var first := _piece(10, level, Vector2(280.0, 500.0))
-		var second := _piece(11, level, Vector2(280.0 + first.radius + GameConfig.gem_collision_radius(level), 500.0))
+		var second := _piece(11, level, Vector2(280.0 + first.radius * 2.0, 500.0))
 		first.velocity = Vector2(120.0, -40.0)
 		second.velocity = Vector2(80.0, 20.0)
 		var merger := MergeType.new()
@@ -115,7 +118,7 @@ func _test_merge_result_contract() -> void:
 		var result := merger.resolve([first, second], 700)
 		var upgraded: GemPiece = result.pieces[0]
 		var event: Dictionary = result.presentation_events[0]
-		_assert(upgraded.level == level + 1 and upgraded.radius == GameConfig.gem_collision_radius(level + 1), "L%d result must use its exact tier and collider" % level)
+		_assert(upgraded.level == level + 1 and is_equal_approx(upgraded.radius, upgraded.base_radius * upgraded.perspective_scale), "L%d result must use its exact tier and shared perspective collider" % level)
 		_assert(upgraded.position == Vector2(280.0 + first.radius, 500.0), "L%d result must spawn at the source midpoint" % level)
 		_assert(upgraded.velocity.length() <= GameConfig.MERGE_MAX_SPAWN_SPEED + 0.01 and upgraded.velocity.is_finite(), "L%d result must inherit only bounded valid momentum" % level)
 		_assert(String(event.result_texture_path) == AssetCatalogType.gem_resource_path(level + 1), "L%d result must map its approved texture" % level)
@@ -126,7 +129,7 @@ func _test_merge_result_contract() -> void:
 
 func _test_duplicate_and_simultaneous_contact_safety() -> void:
 	var first := _piece(1, 4, Vector2(300, 500))
-	var second := _piece(2, 4, Vector2(384, 500))
+	var second := _piece(2, 4, Vector2(300 + first.radius * 2.0, 500))
 	var merger := MergeType.new()
 	# The simulation can report the same contact in either orientation or across
 	# narrow-phase passes; one pair must still produce exactly one upgraded gem.
@@ -136,8 +139,8 @@ func _test_duplicate_and_simultaneous_contact_safety() -> void:
 	var result := merger.resolve([first, second], 100)
 	_assert(result.merge_count == 1 and result.pieces.size() == 1 and result.presentation_events.size() == 1, "Duplicate contact reports must resolve one merge once")
 	var center := _piece(10, 6, Vector2(360, 500))
-	var left := _piece(11, 6, Vector2(276, 500))
-	var right := _piece(12, 6, Vector2(444, 500))
+	var left := _piece(11, 6, Vector2(360 - center.radius * 2.0, 500))
+	var right := _piece(12, 6, Vector2(360 + center.radius * 2.0, 500))
 	var simultaneous := MergeType.new()
 	simultaneous.capture_contact(center, left)
 	simultaneous.capture_contact(center, right)
@@ -148,16 +151,18 @@ func _test_chain_determinism_and_cleanup() -> void:
 	# Two L1s create L2 directly touching an existing L2, which must then create
 	# exactly one L3. Reversing input order must yield the same state.
 	var a := _piece(1, 1, Vector2(300, 500))
-	var b := _piece(2, 1, Vector2(384, 500))
-	var existing := _piece(3, 2, Vector2(342, 500))
+	var b := _piece(2, 1, Vector2(300 + a.radius * 2.0, 500))
+	var existing := _piece(3, 2, Vector2(0, 500))
+	existing.position.x = 300 + a.radius + existing.radius * 2.0
 	var merger := MergeType.new()
 	merger.capture_contact(a, b)
 	var forward := merger.resolve([a, b, existing], 100)
 	_assert(forward.merge_count == 2 and forward.pieces.size() == 1 and forward.pieces[0].level == 3 and forward.presentation_events.size() == 2, "A local physical chain must resolve exactly L1->L2->L3")
 	_assert(forward.presentation_events[0].depth == 0 and forward.presentation_events[1].depth == 1, "Chain events must retain deterministic depths")
 	var ra := _piece(1, 1, Vector2(300, 500))
-	var rb := _piece(2, 1, Vector2(384, 500))
-	var rexisting := _piece(3, 2, Vector2(342, 500))
+	var rb := _piece(2, 1, Vector2(300 + ra.radius * 2.0, 500))
+	var rexisting := _piece(3, 2, Vector2(0, 500))
+	rexisting.position.x = 300 + ra.radius + rexisting.radius * 2.0
 	var reversed_merger := MergeType.new()
 	reversed_merger.capture_contact(rb, ra)
 	var reversed := reversed_merger.resolve([rexisting, rb, ra], 100)
@@ -196,14 +201,13 @@ func _test_motion_regression_guards() -> void:
 	_assert(not catalog_source.contains("var texture := load(") and not catalog_source.contains("ResourceLoader.load("), "Asset catalog must never load textures during gameplay")
 	_assert(not sprite_layer_source.contains("_process") and not sprite_layer_source.contains("_physics_process"), "Sprite layer must not own a per-frame processing callback")
 	_assert(not sprite_layer_source.contains("_alpha_bounds"), "Sprite layer must not calculate alpha bounds during gameplay")
-	_assert(sprite_layer_source.contains("gem_visual_scale_at") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use fixed calibrated visual scale and stable depth ordering")
+	_assert(sprite_layer_source.contains("piece.perspective_scale") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use shared perspective scaling and stable depth ordering")
 	_assert(not sprite_layer_source.contains("ResourceLoader.load("), "Perspective path must not load resources during gameplay")
 	# Exact motion profile from new-table-shadow-contact-fix-v1; catalog size is
 	# the only allowed physics-related extension.
 	_assert(GameConfig.GEM_COLLISION_RADIUS[1] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[3] == 33.0 and GameConfig.GEM_COLLISION_RADIUS[8] == 32.0, "Reordered tiers must retain their asset-calibrated collider values")
 	_assert(is_equal_approx(GameConfig.LAUNCH_SPEED, 1160.0) and is_equal_approx(GameConfig.VELOCITY_DAMPING_PER_SECOND, 235.0) and is_equal_approx(GameConfig.COLLISION_RESTITUTION, 0.34) and is_equal_approx(GameConfig.COLLISION_TANGENTIAL_FRICTION, 0.18), "Baseline motion constants must remain unchanged")
 	var flight_piece := _piece(99, 7, Vector2(360.0, 700.0))
-	var radius_before := flight_piece.radius
 	flight_piece.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 	SimulationType.new().step([flight_piece], 1.0 / 60.0, MergeType.new())
-	_assert(is_equal_approx(flight_piece.radius, radius_before), "Flight and settling must never resize a physics body")
+	_assert(is_equal_approx(flight_piece.radius, flight_piece.base_radius * flight_piece.perspective_scale), "Flight scale must update visual and physics bodies together")

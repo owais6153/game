@@ -6,6 +6,8 @@ var level: int
 var position: Vector2
 var velocity: Vector2 = Vector2.ZERO
 var radius: float
+var base_radius: float
+var perspective_scale: float = 1.0
 var is_active_launcher: bool = false
 var consumed: bool = false
 
@@ -13,7 +15,12 @@ func _init(piece_id: int, piece_level: int, at_position: Vector2, piece_radius: 
 	id = piece_id
 	level = piece_level
 	position = at_position
-	radius = piece_radius
+	base_radius = piece_radius
+	apply_perspective_scale(GameConfig.gem_perspective_scale_at(at_position.y))
+
+func apply_perspective_scale(next_scale: float) -> void:
+	perspective_scale = clampf(next_scale, GameConfig.GEM_PERSPECTIVE_SCALE_BACK, GameConfig.GEM_PERSPECTIVE_SCALE_FRONT)
+	radius = base_radius * perspective_scale
 
 func is_moving() -> bool:
 	return velocity.length() > GameConfig.SLEEP_SPEED

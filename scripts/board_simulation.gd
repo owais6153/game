@@ -7,13 +7,23 @@ var _collision_impacts: Array[Dictionary] = []
 func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) -> void:
 	_collision_impacts.clear()
 	for piece in pieces:
-		if piece.consumed or not piece.is_moving():
+		if piece.consumed:
+			continue
+		if not piece.is_moving():
+			piece.velocity = Vector2.ZERO
+			piece.apply_perspective_scale(GameConfig.gem_perspective_scale_at(piece.position.y))
+			_resolve_bounds(piece)
 			continue
 		piece.position += piece.velocity * delta
 		piece.velocity = piece.velocity.move_toward(Vector2.ZERO, GameConfig.VELOCITY_DAMPING_PER_SECOND * delta)
+		piece.apply_perspective_scale(GameConfig.gem_perspective_scale_at(piece.position.y))
 		_resolve_bounds(piece)
 		if piece.velocity.length() < GameConfig.SLEEP_SPEED:
 			piece.velocity = Vector2.ZERO
+	for piece in pieces:
+		if not piece.consumed:
+			piece.apply_perspective_scale(GameConfig.gem_perspective_scale_at(piece.position.y))
+			_resolve_bounds(piece)
 	for first_index in range(pieces.size()):
 		var first := pieces[first_index]
 		for second_index in range(first_index + 1, pieces.size()):

@@ -1,5 +1,9 @@
 # Architecture
 
+## Matched perspective physics scale v1
+
+`GemPiece` owns an immutable calibrated `base_radius`, a shared `perspective_scale`, and a live `radius = base_radius * perspective_scale`. `BoardSimulation` updates this from authoritative table-local Y before bounds, pair contact, separation, and merge capture. `GemSpriteLayer` applies the same scale only to the whole visual root; its calibrated body/shadow children add no independent depth transform. This project uses a custom deterministic solver rather than `RigidBody2D`, so each gem's scalar radius is independent and no shared collision-shape resource is changed at runtime.
+
 ## 18-gem progression validation harness v1
 
 `tools/manual_merge_harness.gd` is development-only CLI support, not a gameplay node. It creates contact-valid GemPiece pairs through `ContactMergeService` and is excluded from production by having no scene, autoload, export-preset, or input reference. `ContactMergeService` now includes immutable result metadata (source IDs, result ID, texture path, collider, visual scale, shadow mapping) with confirmed events. The controller consumes only its existing level/depth fields; the metadata cannot influence physics, merge eligibility, score, lifecycle, or rendering decisions.

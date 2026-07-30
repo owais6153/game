@@ -1,5 +1,11 @@
 # Changelog
 
+## Matched Perspective Physics Scale v1
+
+- Added one conservative table-local-Y scale (`0.85` back to `1.00` front) shared by each gem's visual root and live simulation radius.
+- Rail containment, collision, contact capture, merge eligibility, and visual body/shadow now use the same per-gem scale, preventing invisible pre-contact gaps while keeping gems aligned to the trapezoid rails.
+- Preserved gameplay rules, table placement, UI, targets, scores, launcher lifecycle, sounds, haptics, and result flow.
+
 ## Pre-Shared-Perspective Restored v1
 
 - Reverted the pushed shared-projection and final-win-sequencing change (`2c7114c`) without rewriting Git history.

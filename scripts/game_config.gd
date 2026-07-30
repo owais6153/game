@@ -51,12 +51,11 @@ const GEM_SHADOW_OPACITY := {1: 0.36, 2: 0.40, 3: 0.34, 4: 0.36, 5: 0.40, 6: 0.3
 const GEM_SHADOW_WIDTH_MULTIPLIER := 0.96
 const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.43
 const VISIBLE_CONTACT_TOLERANCE := 2.0
-## Gem bodies intentionally use one fixed calibrated visual scale for their
-## entire lifetime. The previous Y-based perspective multiplier made sprites
-## smaller/larger than their fixed physics radii, causing invisible contacts.
-## Do not add depth or tier scale here until every visual silhouette has a
-## separately approved, static matching collider calibration.
-const GEM_FIXED_VISUAL_SCALE := 1.0
+## One conservative table-depth scale is shared by every gem's visual root and
+## simulation radius. It keeps rendered contact, rail containment, and merge
+## eligibility in the same coordinate system.
+const GEM_PERSPECTIVE_SCALE_BACK := 0.85
+const GEM_PERSPECTIVE_SCALE_FRONT := 1.00
 ## CanvasItem z-index is bounded by Godot. Eight stable tie slots are enough
 ## for the visually indistinguishable equal-Y bucket; creation order remains
 ## the stable fallback for IDs that share a slot.
@@ -166,8 +165,11 @@ static func gem_color(level: int) -> Color:
 static func table_interpolation(y_position: float) -> float:
 	return inverse_lerp(BOARD_TOP, BOARD_BOTTOM, clampf(y_position, BOARD_TOP, BOARD_BOTTOM))
 
-static func gem_visual_scale_at(_level: int, _y_position: float) -> float:
-	return GEM_FIXED_VISUAL_SCALE
+static func gem_perspective_scale_at(y_position: float) -> float:
+	return lerpf(GEM_PERSPECTIVE_SCALE_BACK, GEM_PERSPECTIVE_SCALE_FRONT, table_interpolation(y_position))
+
+static func gem_visual_scale_at(_level: int, y_position: float) -> float:
+	return gem_perspective_scale_at(y_position)
 
 static func gem_visual_z_index(piece_id: int, y_position: float) -> int:
 	# Larger local Y is closer to the player and must draw above smaller local Y.

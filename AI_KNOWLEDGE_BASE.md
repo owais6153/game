@@ -1,5 +1,9 @@
 # AI Knowledge Base
 
+## Matched perspective physics scale v1
+
+For table-depth perspective, never scale a gem sprite independently. Use `GemPiece.apply_perspective_scale()` and `GameConfig.gem_perspective_scale_at(y)` so the visual root, separate shadow, live collision radius, rail containment, pair contact, and merge eligibility share one scale. The custom solver has no `CollisionShape2D` resources; do not introduce shared shape mutation or frame-time alpha/texture work.
+
 ## 18-gem progression validation v1
 
 The current approved base is `18-gem-order-v1`. Run `tools/run_18_gem_chain_tests.gd` for all 17 upgrades and safety guards; use `tools/manual_merge_harness.gd` only as a development command-line helper. It must never be added to `Game.tscn`, autoloads, Android runtime input, or a production UI. Preserve current-step contact capture, pair de-duplication, consumed-source lock, local-chain behavior, terminal L18, and cached texture access.

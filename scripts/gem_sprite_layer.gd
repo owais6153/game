@@ -50,10 +50,10 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 			sprite.texture = texture
 			# The runtime images are alpha-trimmed to their main bodies. Independent
 			# axis scales map that visible box to this piece's calibrated simple body.
-			var visual_diameter := piece.radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(piece.level, 1.0))
+			var visual_diameter := piece.base_radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(piece.level, 1.0))
 			sprite.scale = Vector2(visual_diameter / texture.get_size().x, visual_diameter / texture.get_size().y)
 			var shadow: Sprite2D = _shadows.get(piece.id)
-			var body_diameter := piece.radius * 2.0
+			var body_diameter := piece.base_radius * 2.0
 			shadow.position = GameConfig.GEM_SHADOW_OFFSET.get(piece.level, Vector2(4.0, 7.0))
 			shadow.scale = Vector2(body_diameter * GameConfig.GEM_SHADOW_WIDTH_MULTIPLIER / shadow.texture.get_size().x, body_diameter * GameConfig.GEM_SHADOW_HEIGHT_MULTIPLIER / shadow.texture.get_size().y)
 			shadow.modulate = Color(1.0, 1.0, 1.0, float(GameConfig.GEM_SHADOW_OPACITY.get(piece.level, 0.4)))
@@ -61,11 +61,11 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		var piece_visual_root: Node2D = _piece_visual_roots.get(piece.id)
 		var visual: Node2D = _visual_containers.get(piece.id)
 		piece_visual_root.position = piece.position
-		piece_visual_root.scale = Vector2.ONE
+		piece_visual_root.scale = Vector2.ONE * piece.perspective_scale
 		piece_visual_root.z_index = GameConfig.gem_visual_z_index(piece.id, piece.position.y)
-		# No Y-based perspective or uncalibrated tier scaling: either would make
-		# the visible solid body diverge from this piece's static collision radius.
-		visual.scale = Vector2.ONE * GameConfig.gem_visual_scale_at(piece.level, piece.position.y)
+		# The root already carries the single shared visual/physics scale. Keep
+		# this child at its calibrated base mapping to avoid double scaling.
+		visual.scale = Vector2.ONE
 		sprite.position = Vector2.ZERO
 		# Overlay state must never replace or dim a live gem texture. This layer
 		# owns the exact texture/modulate values for every sync.
@@ -109,7 +109,7 @@ func shadow_bounds(piece_id: int) -> Rect2:
 		return Rect2()
 	var root: Node2D = _piece_visual_roots.get(piece_id)
 	var visual: Node2D = _visual_containers.get(piece_id)
-	var perspective := visual.scale.x if visual != null else 1.0
+	var perspective := root.scale.x if root != null else 1.0
 	var position := root.position + shadow.position * perspective if root != null else shadow.position
 	var size := shadow.texture.get_size() * shadow.scale * perspective
 	return Rect2(position - size * 0.5, size)

@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Matched Perspective Physics Scale v1
+
+- File: `matched-perspective-physics-scale-v1.apk`
+- Path: `D:\Owais\game\build\android\matched-perspective-physics-scale-v1.apk`
+- Size: `99,208,435` bytes
+- Modified: `2026-07-30 12:26:21 +05:00`
+- SHA-256: `FD9FCF41EE8580F63D1DD8887FFB29FDFF769B0C8E71F47B0A7AA139B2087C23`
+- Baseline: `97b6bc355172c3f1df394a85b9bc63f6fb376290` / `pre-shared-perspective-restored-v1`; final source commit/tag recorded after commit.
+- Validation: Godot 4.6.3 parse/import, `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. APK ZIP validation found `AndroidManifest.xml` and `classes.dex`.
+- Device status: no device connected; no install or launch attempted.
+
 ## Pre-Shared-Perspective Restored v1
 
 - File: `pre-shared-perspective-restored.apk`
