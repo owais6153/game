@@ -1,5 +1,10 @@
 # Changelog
 
+## Table Perspective Matched Physics v1
+
+- Packaged and independently revalidated the existing matched perspective/physics/rail implementation as a fresh standalone APK.
+- No gameplay source changed in this packaging milestone.
+
 ## Matched Perspective Physics Scale v1
 
 - Added one conservative table-local-Y scale (`0.85` back to `1.00` front) shared by each gem's visual root and live simulation radius.

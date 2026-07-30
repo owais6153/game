@@ -42,3 +42,7 @@ This folder contains the project’s historical milestone reports. New milestone
 # Latest report
 
 - [Complete Perspective View & Variety v1](COMPLETE_PERSPECTIVE_VIEW_VARIETY_V1_REPORT.md)
+# Table Perspective Matched Physics v1
+
+- `TABLE_PERSPECTIVE_MATCHED_PHYSICS_V1_REPORT.md` — fresh standalone delivery and validation of the matched table-depth visual/physics scale.
+- `table-perspective-matched-physics-v1/VALIDATION_EVIDENCE.md` — automated contact, rail, scale, and performance evidence.

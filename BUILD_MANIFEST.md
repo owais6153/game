@@ -315,3 +315,14 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Tag: `visible-touch-table-alignment-fix-v1`
 - Validation: Godot 4.6.3 headless parse/import; `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. APK is non-empty and ZIP validation found `AndroidManifest.xml`, `classes.dex`, and arm64-v8a entries.
 - Device status: no connected Android device; installation and launch were not attempted.
+# Table Perspective Matched Physics v1
+
+- File: `table-perspective-matched-physics-v1.apk`
+- Path: `D:\Owais\game\build\android\table-perspective-matched-physics-v1.apk`
+- Size: `99,208,435` bytes
+- Modified: `2026-07-30 12:45:07 +05:00`
+- SHA-256: `B4FCA00607414EAE4A9158B4727515BBD339935AC816C6E48EF38263D7057690`
+- Source behavior: `25fac1fa0ae9e8939b7daa618cb02df12054eb83` (`fix: match perspective scaling with gem physics`)
+- Delivery commit/tag: recorded with this packaging milestone.
+- Validation: Godot 4.6.3 headless parse/import plus `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. APK structure contains `AndroidManifest.xml`, `classes.dex`, and arm64 Godot native code.
+- Device status: no phone connected; no device test claimed.

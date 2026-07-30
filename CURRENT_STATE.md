@@ -1,5 +1,7 @@
 # Current State
 
+**Current delivery:** `table-perspective-matched-physics-v1.apk` is a fresh standalone export of the matched perspective/physics implementation. Gems use the same 0.85–1.00 table-depth scale for their rendered root, shadow, and deterministic simulation radius; rail containment uses the scaled live radius. Source behavior remains commit `25fac1f`; see `reports/TABLE_PERSPECTIVE_MATCHED_PHYSICS_V1_REPORT.md`.
+
 **Current milestone:** Matched Perspective Physics Scale v1. Gems use one table-local-Y scale (`0.85` at the back to `1.00` at the front) for both their visual root and simulation radius. Rails, collision, contact-only merges, and shadows use that same live geometry. APK: `build/android/matched-perspective-physics-scale-v1.apk`. See `reports/MATCHED_PERSPECTIVE_PHYSICS_SCALE_V1_REPORT.md`.
 
 **Current milestone:** Pre-Shared-Perspective Restored v1 at rollback commit `97b6bc355172c3f1df394a85b9bc63f6fb376290`. This normal revert removes only `2c7114c` (`shared-perspective-win-sequence-fix-v1`) and restores the exact code state of pre-task commit `70733c0`, with the working mechanics milestone at `3316d2d` / `visible-touch-table-alignment-fix-v1`. Fresh verification APK: `build/android/pre-shared-perspective-restored.apk`. See `reports/LAST_TASK_ROLLBACK_REPORT.md`.
