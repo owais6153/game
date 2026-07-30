@@ -7,7 +7,8 @@
 - Size: `99,938,473 bytes`
 - Modified: `2026-07-30 13:09:53 +05:00`
 - SHA-256: `3B22B7DB5ADCA350FEA4D69CAD7E910407297B8AD8361C18BDCC541E4075B1D5`
-- Source commit/tag: recorded by this milestone after final commit.
+- Source commit: `4e8d34f3e8ee9d94534810b557e4c6404c32c25f` (`fix: align physical rails with table artwork`).
+- Tag: `physical-rails-match-table-v1`.
 - Validation: Godot 4.6.3 headless regression suite and motion profile passed; APK ZIP structure verified.
 - Device status: no phone connected; not installed or launched on-device.
 
