@@ -1,5 +1,9 @@
 # AI Knowledge Base
 
+## 18-gem progression validation v1
+
+The current approved base is `18-gem-order-v1`. Run `tools/run_18_gem_chain_tests.gd` for all 17 upgrades and safety guards; use `tools/manual_merge_harness.gd` only as a development command-line helper. It must never be added to `Game.tscn`, autoloads, Android runtime input, or a production UI. Preserve current-step contact capture, pair de-duplication, consumed-source lock, local-chain behavior, terminal L18, and cached texture access.
+
 ## Current isolated catalog milestone
 
 The repository was deliberately restored to `new-table-shadow-contact-fix-v1` before the 18-gem work. Do not reintroduce multi-target levels, unlimited-shot rules, perspective scaling, Y sorting, table changes, or HUD redesign when working on this catalog. Read `18_GEM_CHAIN_V1_REPORT.md` and preserve `assets/gems/` originals; modify only runtime derivatives if asset work is required.

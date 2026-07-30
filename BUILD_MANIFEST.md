@@ -225,3 +225,14 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - SHA-256: `B29D90C5E082CFEA0567EA488B831458B8107F15690838BE5F06355139A93A1F`
 - Source commit: `ad1e2d720f615ce326da91ac15b5a303543b15d8` (`build: verify blank Android baseline export`).
 - Tag: `blank-android-baseline-verified`.
+# 18-Gem Progression Tested v1
+
+- File: `18-gem-progression-tested-v1.apk`
+- Path: `D:\Owais\game\build\android\18-gem-progression-tested-v1.apk`
+- Size: `99,195,813` bytes
+- Modified: `2026-07-30 08:55:02 +05:00`
+- SHA-256: `44FB0D04CD65DB1C666A66258E308AE9853D33F26060D4D3C9C6C04B8318559A`
+- Source commit: `306b0c69d3e7f8ecd49887420ea02c67386e61d0` (`test: validate complete 18-gem progression`)
+- Tag: `18-gem-progression-tested-v1`
+- Validation: Godot 4.6.3 import/parse, `GEM18_CHAIN_TESTS`, `CLEAN_CONTACT_TESTS`, development harness L14 four-step chain, L18 terminal path, and APK ZIP checks passed.
+- Device status: no phone was connected; installation, visual manual checks, and device performance are not claimed.

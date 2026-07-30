@@ -1,5 +1,10 @@
 # Changelog
 
+## 18-Gem Progression Tested v1
+
+- Added a development-only command-line merge harness plus focused coverage for every L1-L18 transition, terminal L18, duplicate/simultaneous contacts, deterministic chains, result metadata, source cleanup, launcher safety, score single-counting, and cached runtime resources.
+- Preserved approved motion, collision/sizing calibration, gem order, table, UI, targets, scoring design, queue, feedback, and outcomes.
+
 ## 18-Gem Order v1
 
 - Locked the final L1–L18 asset order and display names without changing any supplied gem asset.

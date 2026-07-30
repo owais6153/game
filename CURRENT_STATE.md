@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** 18-Gem Progression Tested v1 at runtime commit `306b0c69d3e7f8ecd49887420ea02c67386e61d0`. Full L1-L18 upgrade validation passed from approved `18-gem-order-v1`, including terminal L18, contact rejection, duplicate/simultaneous safety, deterministic chains, result metadata, source cleanup, launcher invariant, and cached-resource guards. APK: `build/android/18-gem-progression-tested-v1.apk` (99,195,813 bytes; SHA-256 `44FB0D04CD65DB1C666A66258E308AE9853D33F26060D4D3C9C6C04B8318559A`). No device was connected; phone validation remains pending. See `18_GEM_PROGRESSION_TESTED_V1_REPORT.md`.
+
 **Current milestone:** 18-Gem Order v1. The final deterministic L1–L18 visual progression is recorded in `18_GEM_ORDER_V1_REPORT.md`; `AssetCatalog.GEM_TIER_SOURCE_INDEX` is the only source of tier-to-asset truth. The approved size/collision calibration is preserved per asset after reordering. APK: `build/android/18-gem-order-v1.apk`; runtime source commit `3d7bb2e8b3d03dcf0bf7f2bb49cea9685cdcd194`.
 
 **Current milestone:** 18-Gem Size & Collision Fix v1 at `fc71e2dad781134948d1962dfe2a49ad0b6521fe`. All 18 gem runtime textures now use alpha-trimmed calibrated derivatives with a fixed visual-to-collider mapping and separate visual-only shadows. The approved `18-gem-motion-smoothness-fix-v1` movement profile, collision radii, merge rules, table, UI, target flow, score, launcher, outcomes, sound, and haptics are unchanged. See `18_GEM_SIZE_COLLISION_FIX_V1_REPORT.md`.
