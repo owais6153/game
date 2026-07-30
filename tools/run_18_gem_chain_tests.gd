@@ -196,7 +196,7 @@ func _test_motion_regression_guards() -> void:
 	_assert(not catalog_source.contains("var texture := load(") and not catalog_source.contains("ResourceLoader.load("), "Asset catalog must never load textures during gameplay")
 	_assert(not sprite_layer_source.contains("_process") and not sprite_layer_source.contains("_physics_process"), "Sprite layer must not own a per-frame processing callback")
 	_assert(not sprite_layer_source.contains("_alpha_bounds"), "Sprite layer must not calculate alpha bounds during gameplay")
-	_assert(sprite_layer_source.contains("gem_visual_scale_at") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use the bounded presentation-only perspective and stable depth ordering")
+	_assert(sprite_layer_source.contains("gem_visual_scale_at") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use fixed calibrated visual scale and stable depth ordering")
 	_assert(not sprite_layer_source.contains("ResourceLoader.load("), "Perspective path must not load resources during gameplay")
 	# Exact motion profile from new-table-shadow-contact-fix-v1; catalog size is
 	# the only allowed physics-related extension.

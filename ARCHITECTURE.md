@@ -88,9 +88,9 @@ Danger state is controller-owned and keyed by piece ID. It is cleared immediatel
 ## New table and shadow separation v1
 
 `AssetCatalog.NEW_TABLE` loads `new_table_v1.png`; `GameConfig` owns its render scale and every rail. `GemSpriteLayer` pairs a clean body Sprite2D with a separate soft-shadow Sprite2D for each simulation ID. The shadow map cannot reach `BoardSimulation` or `ContactMergeService`; collider and audio truth remain the existing `GemPiece.radius` and confirmed narrow-phase impacts.
-# Perspective table view v1
+# Visible-touch table alignment v1
 
-`GameConfig` owns both the authoritative table landmarks and rendering-only perspective helpers. `GemSpriteLayer` mirrors each `GemPiece` through a constant-scale `PieceVisualRoot`, then applies the bounded depth transform to its child `Visual` container. Sprite and separate shadow are children of that container; only its numeric scale and the root z-index are updated during sync. `BoardSimulation`, `GemPiece`, collision radii, merge services, and controller lifecycle do not read perspective values.
+`GameConfig` owns the authoritative table landmarks, while `GemSpriteLayer` mirrors each `GemPiece` through a constant-scale `PieceVisualRoot` and a centered fixed-scale `Visual` child. The visual-body scale is fixed for the whole piece lifetime; only position and stable Y/ID z-index change during sync. This prevents a sprite from looking smaller or larger than its immutable collision radius. `BoardSimulation`, `GemPiece`, collision radii, merge services, and controller lifecycle remain independent of table presentation.
 # Complete perspective view & variety v1
 
-`GameConfig` owns table landmarks, depth math, tier display scales, and z-order. `GemSpriteLayer` consumes these presentation-only values while `BoardSimulation` continues using unscaled `GemPiece` geometry. `GameController` owns deferred target completion so overlay presentation cannot race the merge result.
+`GameConfig` owns table landmarks and stable z-order. The prior depth math and tier display scales were removed by the visible-touch repair because they did not have matching static collider calibration. `GameController` owns deferred target completion so overlay presentation cannot race the merge result.

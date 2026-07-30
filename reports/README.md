@@ -1,5 +1,11 @@
 # Milestone reports
 
+- [Visible-Touch Table Alignment Fix v1](VISIBLE_TOUCH_TABLE_ALIGNMENT_FIX_V1_REPORT.md)
+
+## Latest repair
+
+- [Visible-Touch Table Alignment Fix v1](VISIBLE_TOUCH_TABLE_ALIGNMENT_FIX_V1_REPORT.md)
+
 This folder contains the project’s historical milestone reports. New milestone reports must be created here and linked from the relevant core documentation.
 
 ## Current gameplay milestones

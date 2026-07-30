@@ -21,8 +21,9 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		live_ids[piece.id] = true
 		var sprite: Sprite2D = _sprites.get(piece.id)
 		if sprite == null:
-			# The root mirrors the simulation position but stays at constant scale.
-			# Its child owns every perspective-only visual transform.
+			# The root mirrors the simulation position. The child remains at the
+			# same fixed calibrated scale so visual bodies and collision bodies
+			# begin contact at the same moment.
 			var piece_visual_root := Node2D.new()
 			piece_visual_root.name = "PieceVisualRoot_%d" % piece.id
 			piece_visual_root.scale = Vector2.ONE
@@ -62,6 +63,8 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		piece_visual_root.position = piece.position
 		piece_visual_root.scale = Vector2.ONE
 		piece_visual_root.z_index = GameConfig.gem_visual_z_index(piece.id, piece.position.y)
+		# No Y-based perspective or uncalibrated tier scaling: either would make
+		# the visible solid body diverge from this piece's static collision radius.
 		visual.scale = Vector2.ONE * GameConfig.gem_visual_scale_at(piece.level, piece.position.y)
 		sprite.position = Vector2.ZERO
 		# Overlay state must never replace or dim a live gem texture. This layer

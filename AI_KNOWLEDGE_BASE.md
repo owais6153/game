@@ -233,14 +233,14 @@ For L1-L18, use `assets/runtime/gems18/calibrated/` only through `AssetCatalog.G
 - The active table is `AssetCatalog.NEW_TABLE`, not the old coral derivative. Its visual scale and physical rail coordinates are centralized in `GameConfig`.
 - Live gems load from `assets/runtime/gems_body_v2/`. Former calibrated textures remain source/provenance only. Never allow shadows, glows, sparkles, or transparent padding to influence `GemPiece.radius`.
 - `GemSpriteLayer._shadows` is presentation-only. Shadow overlap is not a physical contact and cannot trigger merge, sound, score, or wall handling. F8 shows shadow bounds in cyan and remains disabled by default.
-# Perspective table view v1 guardrails
+# Visible-touch table alignment v1 guardrails
 
-- `GameConfig.gem_perspective_scale_at()` is presentation-only. Never feed it into `GemPiece`, `BoardSimulation`, collision radii, merge eligibility, input math, damping, or bounds.
-- `GemSpriteLayer` uses a constant-scale `PieceVisualRoot` plus child `Visual` container. Change the child only; never scale the root.
+- Dynamic gem perspective and uncalibrated tier scaling are disabled. `GameConfig.gem_visual_scale_at()` must return the fixed approved scale for every level and board Y.
+- `GemSpriteLayer` uses a constant-scale `PieceVisualRoot` plus a centered, fixed-scale `Visual` container. Never scale or offset either node during movement.
 - Depth order comes from `GameConfig.gem_visual_z_index(piece_id, table_y)`. It uses normalized table-local Y and stable ID tie handling. Do not reparent sprites during play.
 - Table image position and all playable landmarks must move together through `GameConfig`; do not introduce isolated visual offsets.
 # Complete Perspective View & Variety v1 guardrails
 
-- `GameConfig.gem_visual_scale_at()` combines static tier scale and visual perspective. Apply it only to `GemSpriteLayer`'s `Visual` child, never the simulation root or collider.
+- The earlier visual-only Y perspective/tier growth has been removed because it created invisible collision gaps. Do not restore it without a separate static per-silhouette collider-calibration milestone.
 - Keep the table image, rails, launcher, drag clamp, spawn, and danger line in the shared `GameConfig` table transform.
 - Target merge IDs enter `pending_target_presentations`; only `_update_merge_presentations()` may count them and qualify victory.

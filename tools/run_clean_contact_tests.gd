@@ -445,9 +445,8 @@ func _test_table_layout_physics_alignment() -> void:
 	_assert(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) < GameConfig.table_right_at(GameConfig.DANGER_LINE_Y), "Dynamic danger line must span the same authoritative table surface")
 
 func _test_perspective_view_presentation() -> void:
-	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP), GameConfig.GEM_PERSPECTIVE_SCALE_BACK), "Back-table gem visual scale must use the configured minimum")
-	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_BOTTOM), GameConfig.GEM_PERSPECTIVE_SCALE_FRONT), "Front-table gem visual scale must use the configured maximum")
-	_assert(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP) < GameConfig.gem_perspective_scale_at(GameConfig.BOARD_BOTTOM), "Perspective scale must increase monotonically toward the front")
+	_assert(is_equal_approx(GameConfig.gem_visual_scale_at(1, GameConfig.BOARD_TOP), GameConfig.GEM_FIXED_VISUAL_SCALE), "Back-table gem scale must retain the fixed calibrated value")
+	_assert(is_equal_approx(GameConfig.gem_visual_scale_at(1, GameConfig.BOARD_BOTTOM), GameConfig.GEM_FIXED_VISUAL_SCALE), "Front-table gem scale must retain the fixed calibrated value")
 	var controller = GameScene.instantiate()
 	controller._ready()
 	var back := _piece(101, 1, Vector2(360.0, GameConfig.BOARD_TOP + 80.0))
@@ -464,10 +463,9 @@ func _test_perspective_view_presentation() -> void:
 	var front_visual: Node2D = controller.gem_sprite_layer._visual_containers[front.id]
 	_assert(back_root.scale == Vector2.ONE and front_root.scale == Vector2.ONE, "Physics-mirroring roots must retain constant scale")
 	_assert(is_equal_approx(back.radius, back_radius) and is_equal_approx(front.radius, front_radius), "Perspective must not resize collision radii")
-	_assert(is_equal_approx(back_visual.scale.x, GameConfig.gem_visual_scale_at(back.level, back.position.y)) and is_equal_approx(front_visual.scale.x, GameConfig.gem_visual_scale_at(front.level, front.position.y)), "Visual scale must combine static tier growth with bounded perspective")
-	_assert(front_visual.scale.x > back_visual.scale.x, "Front gem must render larger than back gem")
+	_assert(is_equal_approx(back_visual.scale.x, GameConfig.GEM_FIXED_VISUAL_SCALE) and is_equal_approx(front_visual.scale.x, GameConfig.GEM_FIXED_VISUAL_SCALE), "Visual scale must remain fixed while a gem moves through the table")
+	_assert(back_visual.position == Vector2.ZERO and front_visual.position == Vector2.ZERO, "Visual containers must remain centered on their physics roots")
 	_assert(front_root.z_index > back_root.z_index, "Front gem must render over back gem")
-	_assert(GameConfig.GEM_TIER_BASE_SCALE[6] > GameConfig.GEM_TIER_BASE_SCALE[5] and GameConfig.GEM_TIER_BASE_SCALE[7] > GameConfig.GEM_TIER_BASE_SCALE[6] and GameConfig.GEM_TIER_BASE_SCALE[8] > GameConfig.GEM_TIER_BASE_SCALE[7], "L6/L7/L8 must have visible progressive presentation size")
 	var tie_a := GameConfig.gem_visual_z_index(12, 700.0)
 	var tie_b := GameConfig.gem_visual_z_index(13, 700.0)
 	_assert(tie_b > tie_a, "Stable piece IDs must deterministically break equal-Y depth ties")
