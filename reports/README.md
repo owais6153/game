@@ -4,6 +4,7 @@ This folder contains the project’s historical milestone reports. New milestone
 
 ## Current gameplay milestones
 
+- [Perspective Table View v1](PERSPECTIVE_TABLE_VIEW_V1_REPORT.md)
 - [Level 1 Flow v1](LEVEL_1_FLOW_V1_REPORT.md)
 - [18-Gem Progression Tested v1](18_GEM_PROGRESSION_TESTED_V1_REPORT.md)
 - [18-Gem Order v1](18_GEM_ORDER_V1_REPORT.md)

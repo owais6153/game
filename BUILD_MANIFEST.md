@@ -259,3 +259,13 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Tag: `level-1-flow-v1`.
 - Validation: Godot 4.6.3 parse/import plus `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, and `LEVEL_1_FLOW_TESTS` passed. APK/ZIP structure contains `AndroidManifest.xml` and `classes.dex`.
 - Device status: no phone was connected; installation and launch were not attempted.
+# Perspective Table View v1
+
+- APK: `build/android/perspective-table-view-v1.apk`
+- Build source commit: `5125a4c238d1c9963cad8d185d68491910892623`
+- Tag: `perspective-table-view-v1`
+- Size: `99,204,339 bytes`
+- Modified: `2026-07-30 10:16:44 +05:00`
+- SHA-256: `D4BDC9598A28DD5EEB494974215DD617DCDC6EDA9DDC341A93505732D4D77CEC`
+- Validation: Godot parse/import, clean-contact, 18-gem chain, Level 1 flow, and motion profile passed. APK ZIP structure verified (`AndroidManifest.xml`, `classes.dex`).
+- Device status: no device connected; not installed/tested on-device.
