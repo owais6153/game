@@ -358,3 +358,15 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Delivery commit/tag: recorded with this packaging milestone.
 - Validation: Godot 4.6.3 headless parse/import plus `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. APK structure contains `AndroidManifest.xml`, `classes.dex`, and arm64 Godot native code.
 - Device status: no phone connected; no device test claimed.
+
+# Identity, UI, Unlimited Play & Target Balance Fix v1
+
+- File: `identity-ui-unlimited-target-balance-fix-v1.apk`
+- Path: `D:\\Owais\\game\\build\\android\\identity-ui-unlimited-target-balance-fix-v1.apk`
+- Size: `100,750,262` bytes
+- Modified: `2026-07-30 21:26:25 +05:00`
+- SHA-256: `DC593E97E3B114A7718B6CFA7DDE08EFCA4BBD5B88FCE4690B8C1CC2BB8F2DA0`
+- Source commit: `463d693` (`fix: correct gem UI targets and unlimited play`)
+- Tag: `identity-ui-unlimited-target-balance-fix-v1`
+- Validation: Godot 4.6.3 parse/import; clean contact, 18-gem chain, Level 1 flow, and motion profile suites passed. The fresh APK ZIP contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: no connected Android device; installation and launch were not attempted.
