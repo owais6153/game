@@ -1,5 +1,11 @@
 # Architecture
 
+## Video-verified bounded launcher handoff v1
+
+- `launcher_handoff_elapsed` separates launcher ownership from simulation motion. A released body keeps normal physics but loses launcher ownership after `GameConfig.LAUNCHER_HANDOFF_DELAY`; queue creation therefore has bounded latency without changing velocity, collision, or settling behavior.
+- Merge resolution may advance the launcher lifecycle only when it consumed the actual active launcher. Unrelated board merges cannot overwrite `SHOT_IN_FLIGHT`. `SPAWNING_NEXT` repairs stale ownership before its single idempotent spawn.
+- Target collection blocks input while preserving launcher ownership. HUD rendering remains snapshot-only; NEXT and GOAL share aspect-preserving contain scaling and supplied source regions.
+
 ## Unlimited launcher runtime recovery v1
 
 - `READY_TO_AIM` verifies that its active body still exists. If it does not, the controller returns to `SPAWNING_NEXT` and creates one configured low-tier launcher. This is a non-terminal recovery path only; danger failure, collection, and win still intentionally block launch generation.

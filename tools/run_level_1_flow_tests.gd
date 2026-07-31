@@ -13,8 +13,10 @@ func _init() -> void:
 	_test_unlimited_launcher()
 	_test_unlimited_launcher_after_restart()
 	_test_unlimited_launcher_while_board_moves()
+	_test_unrelated_merge_during_shot_cannot_deadlock_launcher()
 	_test_unlimited_launcher_through_real_process_loop()
 	_test_missing_active_marker_recovers_without_cap()
+	_test_target_collection_during_shot_preserves_unlimited_flow()
 	_test_restart_hud_control()
 	_test_sequential_target_completion()
 	if failures.is_empty():
@@ -81,14 +83,37 @@ func _test_unlimited_launcher_while_board_moves() -> void:
 	controller._ready()
 	var launched = controller.get_active_piece()
 	controller.launch_active_piece()
-	launched.velocity = Vector2.ZERO
+	launched.velocity = Vector2(220.0, -180.0)
 	var unrelated_moving_piece := _piece(9001, 1, Vector2(360.0, GameConfig.BOARD_TOP + 100.0))
 	unrelated_moving_piece.velocity = Vector2(180.0, 0.0)
 	controller.pieces.append(unrelated_moving_piece)
-	controller._advance_launcher_lifecycle()
+	controller._advance_launcher_lifecycle(GameConfig.LAUNCHER_HANDOFF_DELAY + 0.01)
 	controller._advance_launcher_lifecycle(GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.01)
 	controller._advance_launcher_lifecycle()
 	_assert(controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "A moving board gem must never block the next unlimited launcher")
+	_assert(launched.is_moving() and not launched.is_active_launcher, "The fired gem may keep moving but must become a normal board body after bounded handoff")
+	controller.queue_free()
+
+func _test_unrelated_merge_during_shot_cannot_deadlock_launcher() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var fired = controller.get_active_piece()
+	controller.launch_active_piece()
+	# Force a different pair to merge while the fired launcher remains live.
+	controller.pieces.append(_piece(9001, 2, Vector2(300.0, GameConfig.board_top() + 120.0)))
+	controller.pieces.append(_piece(9002, 2, Vector2(380.0, GameConfig.board_top() + 120.0)))
+	controller._process(1.0 / 60.0)
+	_assert(controller.lifecycle_name() == "SHOT_IN_FLIGHT" and controller.get_active_piece() == fired, "An unrelated merge must not overwrite the in-flight launcher state")
+	var next_ready := false
+	for frame in range(90):
+		controller._process(1.0 / 60.0)
+		var replacement = controller.get_active_piece()
+		if replacement != null and replacement != fired and controller.lifecycle_name() == "READY_TO_AIM":
+			next_ready = true
+			break
+	var active_count: int = controller.pieces.filter(func(piece): return piece.is_active_launcher and not piece.consumed).size()
+	_assert(next_ready, "An unrelated merge during a live shot must still produce the next launcher")
+	_assert(active_count == 1 and not fired.is_active_launcher, "Launcher handoff must leave exactly one active launcher")
 	controller.queue_free()
 
 func _test_unlimited_launcher_through_real_process_loop() -> void:
@@ -133,12 +158,32 @@ func _test_missing_active_marker_recovers_without_cap() -> void:
 		_assert(controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "A missing active marker must regenerate the unlimited launcher")
 	controller.queue_free()
 
+func _test_target_collection_during_shot_preserves_unlimited_flow() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var fired = controller.get_active_piece()
+	controller.launch_active_piece()
+	var target_result := _piece(9100, 7, Vector2(360.0, 720.0))
+	controller.pieces.append(target_result)
+	var events: Array[Dictionary] = [{"level": 7, "depth": 0, "result_id": 9100}]
+	controller._apply_confirmed_merge_events(events)
+	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
+	_assert(controller.collection_in_progress and controller.get_active_piece() == fired, "Target collection must pause without discarding the in-flight launcher marker")
+	controller._update_target_collection(0.60)
+	controller._advance_launcher_lifecycle(GameConfig.LAUNCHER_HANDOFF_DELAY + 0.01)
+	controller._advance_launcher_lifecycle(GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.01)
+	controller._advance_launcher_lifecycle()
+	_assert(controller.get_active_piece() != null and controller.get_active_piece() != fired and controller.lifecycle_name() == "READY_TO_AIM", "Launcher generation must resume after first-target collection")
+	controller.queue_free()
+
 func _test_restart_hud_control() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
 	controller.next_queue_index = 37
+	controller.launcher_handoff_elapsed = 99.0
 	controller._handle_pointer(GameConfig.RESTART_BUTTON_RECT.get_center(), true)
 	_assert(controller.next_queue_index == 1 and controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "Supplied restart icon must reset to one ready unlimited launcher")
+	_assert(is_zero_approx(controller.launcher_handoff_elapsed), "Restart must clear launcher handoff timing without restoring a cap")
 	controller.queue_free()
 
 func _complete_target(controller, level: int, id: int) -> void:
@@ -155,8 +200,10 @@ func _complete_target(controller, level: int, id: int) -> void:
 func _test_sequential_target_completion() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
+	var waiting_launcher = controller.get_active_piece()
 	_complete_target(controller, 7, 1001)
 	_assert(controller.target_index == 1 and controller.target_progress == 0 and not controller.win_qualified, "Collected L7 must advance to the L8 target without victory")
+	_assert(controller.get_active_piece() == waiting_launcher and controller.lifecycle_name() == "READY_TO_AIM", "First target collection must preserve the waiting unlimited launcher")
 	_complete_target(controller, 8, 1002)
 	_assert(controller.target_index == 2 and controller.win_qualified and not controller.win_presented, "Collected L8 must qualify only after collection animation")
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)

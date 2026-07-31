@@ -1,5 +1,11 @@
 # Changelog
 
+## Video-Verified Unlimited Launcher + HUD v1
+
+- Eliminated the permanent launcher deadlock caused by an unrelated merge overwriting `SHOT_IN_FLIGHT` while the fired body remained active.
+- Replaced settlement-dependent handoff with a bounded 0.30-second lane-clearance handoff, preserving simulation motion while guaranteeing continued cyclic launcher generation.
+- Contained NEXT, centered and rebuilt GOAL from supplied art, enlarged settings, and replaced the squashed REPLAY strip with the supplied literal RESTART control.
+
 ## Unlimited Launcher Runtime Proof v1
 
 - Added a self-healing ready-state guard: a non-terminal game that is missing its active launcher regenerates one immediately, without introducing a shot count or cap.

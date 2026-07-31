@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Video-Verified Unlimited Launcher + HUD v1](VIDEO_VERIFIED_UNLIMITED_LAUNCHER_HUD_V1_REPORT.md)
+
 - [Unlimited Launcher Runtime Proof v1](UNLIMITED_LAUNCHER_RUNTIME_PROOF_V1_REPORT.md)
 
 - [Unlimited Launcher + HUD Final Repair v1](UNLIMITED_LAUNCHER_HUD_FINAL_REPAIR_V1_REPORT.md)

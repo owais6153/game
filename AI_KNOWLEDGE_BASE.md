@@ -1,5 +1,12 @@
 # AI Knowledge Base
 
+## Video-verified launcher deadlock guard
+
+- Never use `GemPiece.is_settled()` as the production condition for granting the next launch. A crowded moving body may never sleep. After release, use the bounded centralized handoff delay and demote the fired body without changing its physics.
+- Never force `SHOT_IN_FLIGHT` to `RESOLVING` merely because some board pair merged. Confirm that `get_active_piece()` was consumed first, or the stale active marker will make `spawn_active_piece()` refuse forever.
+- Regression coverage must include an unrelated merge during a moving shot and target collection during a shot; clearing the board between shots cannot prove the crowded runtime path.
+- Restart uses the literal `Generated image 3.png` RESTART asset. No approved circular refresh icon exists; never substitute a BACK arrow. Keep NEXT and GOAL gems centered inside their contain bounds.
+
 ## Unlimited launcher runtime proof
 
 - `READY_TO_AIM` without a live active body is invalid in a non-terminal run. Recover by entering `SPAWNING_NEXT`; never leave the player with no launcher or add a numeric limit as a workaround.

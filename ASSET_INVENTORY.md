@@ -67,3 +67,8 @@ The renderer, launcher clamp, spawn point, bounds simulation, and danger-line dr
 | Shadow | none | `assets/runtime/effects/gem_soft_shadow.png` | Independent low-opacity soft ellipse; excluded from physics. |
 
 All sources remain intact. Live gameplay loads only the new body textures and never uses any shadow/glow pixels to set collision geometry.
+# Video-verified gameplay HUD mapping v1
+
+- `assets/buttons/Generated image 10.png`: SCORE `(632,358,360,232)`, NEXT `(632,610,360,400)`, GOAL blank red header `(46,428,530,142)`, GOAL blank cream body `(38,620,550,190)`, and settings cog `(276,832,180,180)` are sampled directly at runtime; the original is unchanged.
+- `assets/ui/Generated image 3.png`: literal RESTART control `(321,1128,300,100)` is sampled directly at runtime at its native 3:1 aspect ratio; the opaque source original is unchanged and no derivative is created.
+- Asset review found BACK arrows but no circular restart/refresh icon. BACK art is not mapped to restart behavior.

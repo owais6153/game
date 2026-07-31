@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Video-Verified Unlimited Launcher + HUD v1
+
+- File: `video-verified-unlimited-launcher-hud-v1.apk`
+- Path: `D:\Owais\game\build\android\video-verified-unlimited-launcher-hud-v1.apk`
+- Size: `102,335,924 bytes`
+- Modified: `2026-07-31 09:38:41 +05:00`
+- SHA-256: `F171F69976E0B13A8FB82E4329689553BD01C823913C731315FD056DD695782C`
+- Source baseline: `bfbd201` / `unlimited-launcher-runtime-proof-v1`; delivery tag: `video-verified-unlimited-launcher-hud-v1`.
+- Validation: video evidence review; Godot 4.6.3 parse/import; `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, `GEM18_CHAIN_TESTS`, and `MOTION_PROFILE` passed; local HUD render reviewed. APK is nonzero and contains `AndroidManifest.xml`, `classes.dex`, and arm64 Godot native code.
+- Device status: ADB query did not complete; no installation or on-device launch is claimed.
+
 ## Unlimited Launcher Runtime Proof v1
 
 - File: `unlimited-launcher-runtime-proof-v1.apk`

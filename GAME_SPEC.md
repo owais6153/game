@@ -23,7 +23,8 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Dragging changes only its horizontal position, clamped between side borders.
 - Releasing sends it straight upward with negative Y velocity.
 - Launcher lifecycle is `READY_TO_AIM → SHOT_IN_FLIGHT → RESOLVING → SPAWNING_NEXT → READY_TO_AIM`.
-- Exactly one active launcher exists. The next queue advances and one new launcher appears only after the launched piece and all board resolution have settled; idle frames never advance the queue or spawn another piece.
+- Exactly one active launcher exists while ready for input. After release, the fired gem retains launcher ownership for a fixed 0.30-second lane-clearance handoff, then becomes a normal simulation body even if it is still moving. After any presentation gate, the queue advances exactly once and creates one replacement; idle frames never duplicate it.
+- Unrelated board motion or merges must never prevent that replacement. Only danger failure, final victory, and the short target-collection presentation intentionally block generation.
 - The danger line is never a collision or movement clamp.
 - Unobstructed gems hit the top border, stay inside the board, and settle.
 
@@ -53,7 +54,7 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 
 - Simulation removes sources and immediately creates the upgraded gem at the validated midpoint.
 - Presentation draws source ghosts pulling inward for 0.12 s, then a 0.22 s upgraded-gem pulse, glow, and ring. It never affects physics or collision.
-- The next launcher waits for both board settlement and presentation completion.
+- The next launcher never waits for board settlement. It follows the bounded release handoff and any active merge/target presentation gate.
 
 ## Visual sequencing and contact v2
 
@@ -104,7 +105,7 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Launch speed is 1100 px/s with 285 px/s² delta-based damping and a 9 px/s settle threshold. This keeps clear shots immediate while avoiding long post-impact drift.
 - Equal-mass collision restitution is 0.48; side/top/bottom border restitution is 0.20/0.14/0.10. Contact capture and merge eligibility are unchanged.
 - Merge logic resolves immediately and deterministically. Only its visual presentation is staggered by 0.07 s per chain depth; source pull/pulse use 0.10 s/0.20 s.
-- Once board resolution and presentation finish, the next launcher uses a 0.08 s readiness delay. It still spawns exactly once through the existing lifecycle state machine.
+- Once the bounded handoff and presentation gate finish, the next launcher uses the configured readiness delay. It still spawns exactly once through the lifecycle state machine.
 
 ## Physics and pacing parity v1
 

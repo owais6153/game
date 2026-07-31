@@ -38,6 +38,7 @@ var background_sprite: Sprite2D
 var table_sprite: Sprite2D
 var applied_table_offset_y := 0.0
 var ready_delay_elapsed := 0.0
+var launcher_handoff_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
 var gem_sprite_layer: GemSpriteLayer
@@ -100,11 +101,14 @@ func _process(delta: float) -> void:
 		gem_sprite_layer.sync_gems(pieces)
 		queue_redraw()
 		return
-	if result.merge_count > 0:
-		if get_active_piece() == null:
-			active_piece_id = -1
+	if result.merge_count > 0 and get_active_piece() == null:
+		# Only a merge that actually consumed the fired launcher may advance its
+		# lifecycle. An unrelated board merge must never strand a still-active
+		# shot in RESOLVING/SPAWNING_NEXT.
+		active_piece_id = -1
 		if launcher_state != LauncherState.READY_TO_AIM:
 			launcher_state = LauncherState.RESOLVING
+			ready_delay_elapsed = 0.0
 	_advance_launcher_lifecycle(delta)
 	gem_sprite_layer.sync_gems(pieces)
 	queue_redraw()
@@ -122,16 +126,22 @@ func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
 				active_piece_id = -1
 				launcher_state = LauncherState.SPAWNING_NEXT
 		LauncherState.SHOT_IN_FLIGHT:
-			# A crowded board can keep unrelated pieces moving for a long time.
-			# Unlimited play must wait only for the launched gem, never for every
-			# existing board gem to become motionless.
 			var active := get_active_piece()
-			if active == null or active.is_settled():
-				if active != null:
-					active.is_active_launcher = false
+			if active == null:
 				active_piece_id = -1
 				launcher_state = LauncherState.RESOLVING
 				ready_delay_elapsed = 0.0
+				launcher_handoff_elapsed = 0.0
+			else:
+				# Unlimited means bounded replacement time, not "wait until this
+				# body eventually sleeps". Crowded contacts can keep it moving.
+				launcher_handoff_elapsed += delta
+				if launcher_handoff_elapsed >= GameConfig.LAUNCHER_HANDOFF_DELAY:
+					active.is_active_launcher = false
+					active_piece_id = -1
+					launcher_state = LauncherState.RESOLVING
+					ready_delay_elapsed = 0.0
+					launcher_handoff_elapsed = 0.0
 		LauncherState.RESOLVING:
 			if not merge_service.has_pending_candidates() and merge_presentations.is_empty():
 				ready_delay_elapsed += delta
@@ -140,10 +150,18 @@ func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
 			else:
 				ready_delay_elapsed = 0.0
 		LauncherState.SPAWNING_NEXT:
+			# Reaching this state with an active marker means a prior transition
+			# was interrupted. Demote that stale marker instead of deadlocking the
+			# queue forever inside spawn_active_piece().
+			var stale_active := get_active_piece()
+			if stale_active != null:
+				stale_active.is_active_launcher = false
+				active_piece_id = -1
 			if spawn_active_piece():
 				launcher_state = LauncherState.READY_TO_AIM
 				chain_multiplier = 1
 				ready_delay_elapsed = 0.0
+				launcher_handoff_elapsed = 0.0
 
 func lifecycle_name() -> String:
 	return LauncherState.keys()[launcher_state]
@@ -217,6 +235,8 @@ func launch_active_piece() -> void:
 		active.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 		audio_feedback.emit_event("launch")
 		haptics_feedback.emit_event("launch")
+		launcher_handoff_elapsed = 0.0
+		ready_delay_elapsed = 0.0
 		launcher_state = LauncherState.SHOT_IN_FLIGHT
 
 func spawn_active_piece() -> bool:
@@ -237,12 +257,6 @@ func get_active_piece() -> GemPiece:
 		if piece.id == active_piece_id and piece.is_active_launcher and not piece.consumed:
 			return piece
 	return null
-
-func all_pieces_settled() -> bool:
-	for piece in pieces:
-		if not piece.consumed and piece.is_moving():
-			return false
-	return true
 
 func restart() -> void:
 	pieces.clear()
@@ -268,6 +282,7 @@ func restart() -> void:
 	dragging = false
 	launcher_state = LauncherState.SPAWNING_NEXT
 	ready_delay_elapsed = 0.0
+	launcher_handoff_elapsed = 0.0
 	_advance_launcher_lifecycle()
 	if gem_sprite_layer != null:
 		gem_sprite_layer.sync_gems(pieces)
@@ -419,8 +434,10 @@ func _begin_target_collection(result_id: int) -> void:
 	danger_timers.erase(result_id)
 	merge_service.clear()
 	collection_in_progress = true
-	active_piece_id = -1
-	launcher_state = LauncherState.RESOLVING
+	# A replacement launcher may already be waiting at the bottom. Preserve it
+	# while collection temporarily blocks input; clearing its marker here was a
+	# second way to make the game appear to run out of shots.
+	dragging = false
 	var sprite := Sprite2D.new()
 	var entry := AssetCatalogType.gem_entry(result_piece.level)
 	sprite.texture = entry.texture
@@ -484,6 +501,9 @@ func _qualify_win_if_target_complete() -> void:
 	win_qualified = true
 	win_presented = false
 	win_hold_elapsed = 0.0
+	var active := get_active_piece()
+	if active != null:
+		active.is_active_launcher = false
 	active_piece_id = -1
 	launcher_state = LauncherState.RESOLVING
 

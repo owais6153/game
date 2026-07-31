@@ -320,6 +320,14 @@ func _test_visual_layout_bounds() -> void:
 	_assert(GameConfig.SCORE_PANEL_RECT.size.y >= 120.0 and GameConfig.NEXT_PREVIEW_RECT.size.y >= 150.0, "Reference SCORE and NEXT panels must use the large supplied-art composition")
 	_assert(GameConfig.SETTINGS_BUTTON_RECT.position.y >= GameConfig.NEXT_PREVIEW_RECT.end.y, "Settings must not crowd SCORE, progression, or NEXT")
 	_assert(GameConfig.TARGET_PANEL_RECT.position.y > GameConfig.PROGRESSION_Y, "The single active target must remain visually separate from the progression strip")
+	var target_preview_rect := Rect2(GameConfig.TARGET_BODY_RECT.get_center() - GameConfig.TARGET_PREVIEW_BOUNDS * 0.5, GameConfig.TARGET_PREVIEW_BOUNDS)
+	_assert(GameConfig.TARGET_BODY_RECT.encloses(target_preview_rect), "Centered GOAL artwork must fit fully inside the supplied cream body")
+	_assert(GameConfig.TARGET_COLLECTION_DESTINATION.is_equal_approx(GameConfig.TARGET_BODY_RECT.get_center()), "Target collection must finish at the centered GOAL preview")
+	var next_preview_rect := Rect2(GameConfig.NEXT_PREVIEW_RECT.get_center() + Vector2(0.0, 19.0) - Vector2(38.0, 33.0), Vector2(76.0, 66.0))
+	_assert(GameConfig.NEXT_PREVIEW_RECT.encloses(next_preview_rect), "NEXT artwork contain box must stay inside the supplied panel")
+	_assert(GameConfig.SETTINGS_BUTTON_RECT.size.x >= 88.0 and GameConfig.SETTINGS_BUTTON_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x, "Supplied settings control must be large and on-screen")
+	_assert(is_equal_approx(GameConfig.RESTART_BUTTON_RECT.size.aspect(), AssetCatalogType.HUD_RESTART_BUTTON_REGION.size.aspect()), "Supplied RESTART artwork must retain its native aspect ratio")
+	_assert(AssetCatalogType.HUD_RESTART_ART.resource_path.ends_with("Generated image 3.png"), "Gameplay reset must use the supplied literal RESTART control, never a back arrow")
 
 func _test_portrait_board_bounds_and_scale() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:

@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** Video-Verified Unlimited Launcher + HUD v1. The 9:12 user video exposed a real permanent merge/lifecycle deadlock: an unrelated merge could strand a moving active marker in `SPAWNING_NEXT`. Launcher handoff is now bounded to 0.30 seconds and independent of settling; crowded motion and unrelated merges cannot exhaust launches. NEXT/GOAL containment, centered target art, supplied RESTART, and larger settings are verified in a local render. See `reports/VIDEO_VERIFIED_UNLIMITED_LAUNCHER_HUD_V1_REPORT.md`.
+
 **Current milestone:** Unlimited Launcher Runtime Proof v1. The launcher now recovers if its active marker is unexpectedly absent, and the Level 1 test drives forty complete production frame-loop launch cycles to prove continued launcher creation. The L7/L8 GOAL preview uses a larger aspect-preserving contain area; no physics, table, or motion behavior changed. See `reports/UNLIMITED_LAUNCHER_RUNTIME_PROOF_V1_REPORT.md`.
 
 **Current milestone:** Unlimited Launcher + HUD Final Repair v1. A moving non-active board gem can no longer block the next launcher; launches continue indefinitely until danger failure or final L8 completion. The HUD uses supplied REPLAY artwork for restart and a matching red-header/cream-body goal card with contained target artwork. See `reports/UNLIMITED_LAUNCHER_HUD_FINAL_REPAIR_V1_REPORT.md`.

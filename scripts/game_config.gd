@@ -82,7 +82,11 @@ const MERGE_PULSE_SCALE := 1.18 # a compact bounce rather than an oversized pop
 const MERGE_MOMENTUM_TRANSFER := 0.35 # bounded average of source momentum
 const MERGE_MAX_SPAWN_SPEED := 260.0 # prevents an upgrade from shooting through a cluster
 const CHAIN_PRESENTATION_STAGGER := 0.05 # visual cadence only; merge logic remains immediate
-const NEXT_LAUNCHER_READY_DELAY := 0.04 # only after settled board and presentations complete
+const NEXT_LAUNCHER_READY_DELAY := 0.04 # after bounded handoff and any presentation gate
+## A released gem gives the launcher lane time to clear, then becomes a normal
+## simulation body even if contacts keep it moving. This bounds replacement
+## latency on crowded boards without changing any motion or collision value.
+const LAUNCHER_HANDOFF_DELAY := 0.30
 const MERGE_CHAIN_DEPTH_CAP := 6
 const OVERLAY_BUTTON_RECT := Rect2(220.0, 770.0, 280.0, 64.0)
 const OVERLAY_FADE_DURATION := 0.18
@@ -100,16 +104,16 @@ const PROGRESSION_STEP_X := 56.0
 const PROGRESSION_Y := 111.0
 const PROGRESSION_SLOT_RADIUS := 23.0
 const PROGRESSION_PREVIEW_BOUNDS := Vector2(37.0, 37.0)
-const TARGET_PANEL_RECT := Rect2(260.0, 188.0, 200.0, 112.0)
-const TARGET_HEADER_RECT := Rect2(274.0, 188.0, 172.0, 46.0)
-const TARGET_BODY_RECT := Rect2(260.0, 224.0, 200.0, 76.0)
+const TARGET_PANEL_RECT := Rect2(253.0, 188.0, 214.0, 110.0)
+const TARGET_HEADER_RECT := Rect2(262.0, 188.0, 196.0, 52.0)
+const TARGET_BODY_RECT := Rect2(253.0, 222.0, 214.0, 74.0)
 ## The supplied L7/L8 artwork is intentionally allowed to use the generous
 ## cream portion of the GOAL card.  This is a presentation-only contain box:
 ## every source aspect ratio remains intact and no circular mask is applied.
-const TARGET_PREVIEW_BOUNDS := Vector2(62.0, 58.0)
-const RESTART_BUTTON_RECT := Rect2(516.0, 220.0, 110.0, 42.0)
-const SETTINGS_BUTTON_RECT := Rect2(634.0, 208.0, 76.0, 76.0)
-const TARGET_COLLECTION_DESTINATION := Vector2(360.0, 233.0)
+const TARGET_PREVIEW_BOUNDS := Vector2(54.0, 50.0)
+const RESTART_BUTTON_RECT := Rect2(472.0, 231.0, 138.0, 46.0)
+const SETTINGS_BUTTON_RECT := Rect2(620.0, 206.0, 88.0, 88.0)
+const TARGET_COLLECTION_DESTINATION := Vector2(360.0, 259.0)
 const OVERLAY_RECT := Rect2(76.0, 398.0, 568.0, 484.0)
 const SAFE_VISUAL_MARGIN := 24.0
 const TARGET_LEVEL := 5

@@ -13,7 +13,7 @@ const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_sof
 ## Supplied HUD art. Regions are drawn directly from this source sheet so the
 ## game uses the approved art, not recreated panel look-alikes.
 const HUD_BUTTON_SHEET: Texture2D = preload("res://assets/buttons/Generated image 10.png")
-const HUD_REPLAY_ART: Texture2D = preload("res://assets/ui/Generated image 4.png")
+const HUD_RESTART_ART: Texture2D = preload("res://assets/ui/Generated image 3.png")
 const HUD_SCORE_PANEL_REGION := Rect2(632.0, 358.0, 360.0, 232.0)
 const HUD_NEXT_PANEL_REGION := Rect2(632.0, 610.0, 360.0, 400.0)
 const HUD_WHITE_PANEL_REGION := Rect2(38.0, 620.0, 550.0, 190.0)
@@ -22,8 +22,9 @@ const HUD_GOAL_BODY_REGION := Rect2(646.0, 448.0, 340.0, 136.0)
 ## The teal cog is the only gameplay-HUD control. Its source remains the
 ## supplied button sheet; no procedural control artwork is introduced.
 const HUD_SETTINGS_BUTTON_REGION := Rect2(276.0, 832.0, 180.0, 180.0)
-## The supplied REPLAY button is the approved gameplay restart affordance.
-const HUD_RESTART_BUTTON_REGION := Rect2(298.0, 1212.0, 346.0, 104.0)
+## Literal supplied RESTART control from the pause artwork. The source contains
+## no circular restart/refresh icon; arrow regions are BACK and must not be used.
+const HUD_RESTART_BUTTON_REGION := Rect2(321.0, 1128.0, 300.0, 100.0)
 
 ## All gameplay textures are preloaded once. `gem_texture()` is called from the
 ## per-frame sprite synchronization path, so it must be a dictionary lookup,
