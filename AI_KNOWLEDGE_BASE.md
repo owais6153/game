@@ -1,5 +1,10 @@
 # AI Knowledge Base
 
+## Unlimited launcher runtime proof
+
+- `READY_TO_AIM` without a live active body is invalid in a non-terminal run. Recover by entering `SPAWNING_NEXT`; never leave the player with no launcher or add a numeric limit as a workaround.
+- The Level 1 suite must exercise actual `_process()` motion and lifecycle transitions, not only manually assigned launcher states. The GOAL gem preview is a contain box, never a circular crop, and its bounds may be enlarged only within the supplied cream panel.
+
 ## Unlimited launcher non-blocking rule
 
 - Never gate `SPAWNING_NEXT` on `all_pieces_settled()`. Only the fired active gem, pending merge presentation, target collection, win, or danger failure may delay a launcher.

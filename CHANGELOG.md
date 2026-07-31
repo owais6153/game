@@ -1,5 +1,10 @@
 # Changelog
 
+## Unlimited Launcher Runtime Proof v1
+
+- Added a self-healing ready-state guard: a non-terminal game that is missing its active launcher regenerates one immediately, without introducing a shot count or cap.
+- Replaced mocked launcher-only coverage with forty real launch/physics/settle/replacement cycles, and enlarged the aspect-preserving L7/L8 GOAL preview contain area.
+
 ## Unlimited Launcher + HUD Final Repair v1
 
 - Removed the global board-settled gate that could leave a live run without a launcher; next launches now wait only for the fired gem and merge/target presentation state.

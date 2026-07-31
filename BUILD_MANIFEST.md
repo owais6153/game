@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Unlimited Launcher Runtime Proof v1
+
+- File: `unlimited-launcher-runtime-proof-v1.apk`
+- Path: `D:\Owais\game\build\android\unlimited-launcher-runtime-proof-v1.apk`
+- Size: `102,335,924 bytes`
+- Modified: `2026-07-31 08:39:07 +05:00`
+- SHA-256: `FFD9F81B34ECE39C083469A71C1B3A9B421F52DAF73EC2C8E7EA762F2A6C4F46`
+- Source baseline: `8a7bc72` / `unlimited-launcher-hud-final-repair-v1`; delivery tag: `unlimited-launcher-runtime-proof-v1`.
+- Validation: Godot 4.6.3 headless parse/import; `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, `GEM18_CHAIN_TESTS`, and `MOTION_PROFILE` passed. The fresh APK is nonzero and contains `AndroidManifest.xml`, `classes.dex`, and arm64 Godot native code.
+- Device status: no installation or launch attempted in this repair session.
+
 ## Unlimited Launcher + HUD Final Repair v1
 
 - File: `unlimited-launcher-hud-final-repair-v1.apk`

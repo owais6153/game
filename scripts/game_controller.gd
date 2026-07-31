@@ -113,6 +113,14 @@ func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
 	if collection_in_progress:
 		return
 	match launcher_state:
+		LauncherState.READY_TO_AIM:
+			# A live game must never remain in a ready state without a usable
+			# launcher.  Merge resolution normally changes this state itself, but
+			# this recovery also covers an unexpectedly removed active body without
+			# introducing a cap or touching danger/win terminal behavior.
+			if get_active_piece() == null:
+				active_piece_id = -1
+				launcher_state = LauncherState.SPAWNING_NEXT
 		LauncherState.SHOT_IN_FLIGHT:
 			# A crowded board can keep unrelated pieces moving for a long time.
 			# Unlimited play must wait only for the launched gem, never for every

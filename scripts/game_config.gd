@@ -103,7 +103,10 @@ const PROGRESSION_PREVIEW_BOUNDS := Vector2(37.0, 37.0)
 const TARGET_PANEL_RECT := Rect2(260.0, 188.0, 200.0, 112.0)
 const TARGET_HEADER_RECT := Rect2(274.0, 188.0, 172.0, 46.0)
 const TARGET_BODY_RECT := Rect2(260.0, 224.0, 200.0, 76.0)
-const TARGET_PREVIEW_BOUNDS := Vector2(42.0, 42.0)
+## The supplied L7/L8 artwork is intentionally allowed to use the generous
+## cream portion of the GOAL card.  This is a presentation-only contain box:
+## every source aspect ratio remains intact and no circular mask is applied.
+const TARGET_PREVIEW_BOUNDS := Vector2(62.0, 58.0)
 const RESTART_BUTTON_RECT := Rect2(516.0, 220.0, 110.0, 42.0)
 const SETTINGS_BUTTON_RECT := Rect2(634.0, 208.0, 76.0, 76.0)
 const TARGET_COLLECTION_DESTINATION := Vector2(360.0, 233.0)

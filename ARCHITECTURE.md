@@ -1,5 +1,10 @@
 # Architecture
 
+## Unlimited launcher runtime recovery v1
+
+- `READY_TO_AIM` verifies that its active body still exists. If it does not, the controller returns to `SPAWNING_NEXT` and creates one configured low-tier launcher. This is a non-terminal recovery path only; danger failure, collection, and win still intentionally block launch generation.
+- `tools/run_level_1_flow_tests.gd` runs forty real `_process()` launch-to-replacement cycles, retaining only the new ready body between cycles so launcher continuity is measured independently from normal danger-line capacity.
+
 ## Unlimited launcher readiness v1
 
 - `GameController._advance_launcher_lifecycle()` treats only the fired active gem as the readiness gate. Unrelated board motion cannot suppress the next launcher; pending merge and target-collection presentation remain the only intentional temporary blocks.

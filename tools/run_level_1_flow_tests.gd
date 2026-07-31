@@ -13,6 +13,8 @@ func _init() -> void:
 	_test_unlimited_launcher()
 	_test_unlimited_launcher_after_restart()
 	_test_unlimited_launcher_while_board_moves()
+	_test_unlimited_launcher_through_real_process_loop()
+	_test_missing_active_marker_recovers_without_cap()
 	_test_restart_hud_control()
 	_test_sequential_target_completion()
 	if failures.is_empty():
@@ -87,6 +89,48 @@ func _test_unlimited_launcher_while_board_moves() -> void:
 	controller._advance_launcher_lifecycle(GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.01)
 	controller._advance_launcher_lifecycle()
 	_assert(controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "A moving board gem must never block the next unlimited launcher")
+	controller.queue_free()
+
+func _test_unlimited_launcher_through_real_process_loop() -> void:
+	# Drive the production `_process` path instead of changing launcher state
+	# directly. This catches a hidden lifecycle gate that would make a live
+	# build appear to run out of shots despite having no numeric cap.
+	var controller = GameScene.instantiate()
+	controller._ready()
+	for shot_number in range(40):
+		var launched = controller.get_active_piece()
+		_assert(launched != null and controller.lifecycle_name() == "READY_TO_AIM", "Shot %d must start with a ready launcher" % (shot_number + 1))
+		if launched == null:
+			break
+		var launched_id: int = launched.id
+		controller.launch_active_piece()
+		var next_ready := false
+		for frame in range(480):
+			controller._process(1.0 / 60.0)
+			var replacement = controller.get_active_piece()
+			if replacement != null and replacement.id != launched_id and controller.lifecycle_name() == "READY_TO_AIM":
+				next_ready = true
+				break
+		_assert(next_ready and not controller.failed and not controller.win_qualified, "Shot %d must produce another ready launcher through the real process loop" % (shot_number + 1))
+		# Isolate launcher continuity from normal board-capacity/danger pressure.
+		var ready_piece = controller.get_active_piece()
+		if ready_piece != null:
+			controller.pieces.clear()
+			controller.pieces.append(ready_piece)
+			controller.danger_timers.clear()
+	controller.queue_free()
+
+func _test_missing_active_marker_recovers_without_cap() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var initial = controller.get_active_piece()
+	_assert(initial != null, "Recovery test must begin with a ready launcher")
+	if initial != null:
+		initial.is_active_launcher = false
+		controller.active_piece_id = -1
+		controller._advance_launcher_lifecycle()
+		controller._advance_launcher_lifecycle()
+		_assert(controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "A missing active marker must regenerate the unlimited launcher")
 	controller.queue_free()
 
 func _test_restart_hud_control() -> void:

@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** Unlimited Launcher Runtime Proof v1. The launcher now recovers if its active marker is unexpectedly absent, and the Level 1 test drives forty complete production frame-loop launch cycles to prove continued launcher creation. The L7/L8 GOAL preview uses a larger aspect-preserving contain area; no physics, table, or motion behavior changed. See `reports/UNLIMITED_LAUNCHER_RUNTIME_PROOF_V1_REPORT.md`.
+
 **Current milestone:** Unlimited Launcher + HUD Final Repair v1. A moving non-active board gem can no longer block the next launcher; launches continue indefinitely until danger failure or final L8 completion. The HUD uses supplied REPLAY artwork for restart and a matching red-header/cream-body goal card with contained target artwork. See `reports/UNLIMITED_LAUNCHER_HUD_FINAL_REPAIR_V1_REPORT.md`.
 
 **Current milestone:** Portrait Bottom Table + HUD Repair v1. On expanded portrait canvases, one runtime bottom offset moves the table art and every shared table-physics coordinate together; the HUD remains top-anchored. The active GOAL icon uses contain scaling within a larger supplied panel, settings is larger, and the supplied restart control resets to an unlimited ready launcher. See `reports/PORTRAIT_BOTTOM_TABLE_HUD_REPAIR_V1_REPORT.md`.
