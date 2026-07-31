@@ -23,6 +23,10 @@ const TABLE_INNER_RIGHT_TOP := 542.0
 const TABLE_INNER_RIGHT_BOTTOM := 676.0
 const DANGER_LINE_Y := 1046.0
 const LAUNCH_Y := 1144.0
+## Expanded portrait screens keep the HUD top-anchored but move the complete
+## table coordinate system to the physical bottom. This offset is shared by
+## artwork, rails, bounds, spawn, drag, danger, and depth interpolation.
+static var portrait_bottom_offset_y := 0.0
 ## Largest gameplay radius. Individual values are calibrated to the visible
 ## main body of the alpha-trimmed runtime texture for each gem level.
 const PIECE_RADIUS := 42.0
@@ -96,9 +100,10 @@ const PROGRESSION_STEP_X := 56.0
 const PROGRESSION_Y := 111.0
 const PROGRESSION_SLOT_RADIUS := 23.0
 const PROGRESSION_PREVIEW_BOUNDS := Vector2(37.0, 37.0)
-const TARGET_PANEL_RECT := Rect2(258.0, 198.0, 204.0, 70.0)
-const TARGET_PREVIEW_BOUNDS := Vector2(50.0, 50.0)
-const SETTINGS_BUTTON_RECT := Rect2(650.0, 216.0, 48.0, 48.0)
+const TARGET_PANEL_RECT := Rect2(238.0, 194.0, 244.0, 84.0)
+const TARGET_PREVIEW_BOUNDS := Vector2(38.0, 38.0)
+const RESTART_BUTTON_RECT := Rect2(566.0, 212.0, 66.0, 66.0)
+const SETTINGS_BUTTON_RECT := Rect2(642.0, 212.0, 66.0, 66.0)
 const TARGET_COLLECTION_DESTINATION := Vector2(360.0, 233.0)
 const OVERLAY_RECT := Rect2(76.0, 398.0, 568.0, 484.0)
 const SAFE_VISUAL_MARGIN := 24.0
@@ -164,8 +169,26 @@ static func gem_color(level: int) -> Color:
 		5: return Color("c8efff")
 		_: return Color.WHITE
 
+static func configure_portrait_bottom(viewport_height: float) -> void:
+	portrait_bottom_offset_y = maxf(0.0, viewport_height - VIEWPORT_SIZE.y)
+
+static func table_texture_center() -> Vector2:
+	return TABLE_TEXTURE_CENTER + Vector2(0.0, portrait_bottom_offset_y)
+
+static func board_top() -> float:
+	return BOARD_TOP + portrait_bottom_offset_y
+
+static func board_bottom() -> float:
+	return BOARD_BOTTOM + portrait_bottom_offset_y
+
+static func danger_line_y() -> float:
+	return DANGER_LINE_Y + portrait_bottom_offset_y
+
+static func launch_y() -> float:
+	return LAUNCH_Y + portrait_bottom_offset_y
+
 static func table_interpolation(y_position: float) -> float:
-	return inverse_lerp(BOARD_TOP, BOARD_BOTTOM, clampf(y_position, BOARD_TOP, BOARD_BOTTOM))
+	return inverse_lerp(board_top(), board_bottom(), clampf(y_position, board_top(), board_bottom()))
 
 static func gem_perspective_scale_at(y_position: float) -> float:
 	return lerpf(GEM_PERSPECTIVE_SCALE_BACK, GEM_PERSPECTIVE_SCALE_FRONT, table_interpolation(y_position))

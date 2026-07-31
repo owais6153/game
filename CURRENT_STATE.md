@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** Portrait Bottom Table + HUD Repair v1. On expanded portrait canvases, one runtime bottom offset moves the table art and every shared table-physics coordinate together; the HUD remains top-anchored. The active GOAL icon uses contain scaling within a larger supplied panel, settings is larger, and the supplied restart control resets to an unlimited ready launcher. See `reports/PORTRAIT_BOTTOM_TABLE_HUD_REPAIR_V1_REPORT.md`.
+
 **Current milestone:** Reference-Accurate HUD + Unlimited Level 1 v1. SCORE, five-ring progression, NEXT, one active GOAL, and settings use direct approved sheet regions; gem previews use aspect-preserving contain scaling. Level 1 remains exactly L7 then L8 with the controlled L1-L4 mixed bag and unlimited launches before and after restart. Background cover fills 720x1600, 1080x1920, and 1080x2400 without moving table or physics coordinates. See `reports/REFERENCE_ACCURATE_HUD_UNLIMITED_LEVEL1_V1_REPORT.md`.
 
 **Current milestone:** Reference HUD + Unlimited Launches v1. The visible HUD matches the supplied reference composition: SCORE left, gem ladder center, NEXT right; objective counters and Restart/S/V controls are not drawn there. Launches are unlimited—only danger overflow or completing the two sequential objectives ends a run. Expanded portrait aspect handling removes the prior black bars. Table, rails, perspective scaling, colliders, motion, and contact merging are unchanged. See `reports/REFERENCE_HUD_UNLIMITED_V1_REPORT.md`.

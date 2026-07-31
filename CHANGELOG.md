@@ -1,5 +1,11 @@
 # Changelog
 
+## Portrait Bottom Table + HUD Repair v1
+
+- Fixed expanded-portrait layout so the supplied table artwork, rails, collision bounds, launcher, drag clamp, danger line, and perspective interpolation move together to the screen bottom.
+- Enlarged the supplied settings control, added a supplied restart icon with functional reset behavior, and resized the active GOAL card/icon so target artwork remains contained.
+- Added regression coverage for the 1600 px expanded portrait table anchor and HUD restart path; unlimited launcher coverage remains in the Level 1 flow suite.
+
 ## Reference-Accurate HUD + Unlimited Level 1 v1
 
 - Enlarged and repositioned supplied SCORE/NEXT artwork to the reference composition; score typography now has matching visual prominence.

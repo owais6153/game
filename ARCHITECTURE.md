@@ -1,5 +1,11 @@
 # Architecture
 
+## Expanded portrait bottom anchor v1
+
+- `GameConfig.configure_portrait_bottom()` owns the sole runtime Y offset for expanded screens. `table_texture_center()`, `board_top()`, `board_bottom()`, `danger_line_y()`, `launch_y()`, and `table_interpolation()` all derive from it.
+- `GameController._refresh_background_fill()` applies that offset to the table sprite and any live gameplay/presentation positions after a resize; `BoardSimulation`, launcher spawn, drag bounds, danger evaluation, and debug rails read the same GameConfig accessors.
+- The supplied restart region is presentation-only in `HudRenderer`; `GameController._handle_pointer()` is its one input route and delegates to the existing full `restart()` reset.
+
 ## Reference-accurate HUD + portrait fill v1
 
 - `HudRenderer` still consumes only `GameController.hud_snapshot()`. It draws supplied SCORE, NEXT, white GOAL, and settings regions from `AssetCatalog.HUD_BUTTON_SHEET`; it has no launcher, target, or input authority.

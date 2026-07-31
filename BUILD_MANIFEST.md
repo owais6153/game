@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Portrait Bottom Table + HUD Repair v1
+
+- File: `portrait-bottom-table-hud-repair-v1.apk`
+- Path: `D:\Owais\game\build\android\portrait-bottom-table-hud-repair-v1.apk`
+- Size: `101,532,853 bytes`
+- Modified: `2026-07-31 08:03:43 +05:00`
+- SHA-256: `D74BEBEAF5B86CA625A7390564DE139174F4E70169B063BC3226539CE20B8371`
+- Source baseline: `6f7c3ba` / `reference-accurate-hud-unlimited-level1-v1`; delivery tag: `portrait-bottom-table-hud-repair-v1`.
+- Validation: Godot 4.6.3 headless import/parse; `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. The fresh APK is nonzero and its ZIP contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: no installation or launch attempted in this repair session.
+
 ## Reference-Accurate HUD + Unlimited Level 1 v1
 
 - File: `reference-accurate-hud-unlimited-level1-v1.apk`

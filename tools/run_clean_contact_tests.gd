@@ -29,6 +29,7 @@ func _init() -> void:
 	_test_visual_layout_bounds()
 	_test_portrait_board_bounds_and_scale()
 	_test_expanded_portrait_background_cover()
+	_test_expanded_portrait_table_bottom_anchor()
 	_test_merge_momentum_is_bounded_and_contained()
 	_test_inset_table_and_viewport_safety()
 	_test_asset_mapping_and_clean_diamond()
@@ -367,6 +368,14 @@ func _test_expanded_portrait_background_cover() -> void:
 		var covered_size := source_size * cover_scale
 		_assert(covered_size.x >= portrait_size.x and covered_size.y >= portrait_size.y, "Aspect-preserving background cover must leave no black portrait bars")
 
+func _test_expanded_portrait_table_bottom_anchor() -> void:
+	GameConfig.configure_portrait_bottom(1600.0)
+	_assert(is_equal_approx(GameConfig.board_bottom(), 1548.0) and is_equal_approx(GameConfig.launch_y(), 1464.0), "Expanded portrait must move the table bottom and launcher to the physical screen bottom")
+	_assert(is_equal_approx(GameConfig.danger_line_y(), 1366.0) and GameConfig.danger_line_y() < GameConfig.launch_y(), "Danger line must move with the bottom-anchored table")
+	_assert(GameConfig.table_texture_center() == Vector2(360.0, 1166.0), "Supplied table artwork must share the same expanded-portrait offset as physics")
+	_assert(is_equal_approx(GameConfig.table_left_at(GameConfig.board_top()), GameConfig.TABLE_INNER_LEFT_TOP) and is_equal_approx(GameConfig.table_right_at(GameConfig.board_bottom()), GameConfig.TABLE_INNER_RIGHT_BOTTOM), "Rail interpolation must preserve calibrated geometry after bottom anchoring")
+	GameConfig.configure_portrait_bottom(GameConfig.VIEWPORT_SIZE.y)
+
 func _test_sound_and_haptics_feedback_routing() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
@@ -466,7 +475,7 @@ func _test_physical_rail_geometry() -> void:
 	var scene_source := FileAccess.get_file_as_string("res://scenes/Game.tscn")
 	_assert(not scene_source.contains("CollisionShape2D") and not scene_source.contains("StaticBody2D"), "No stale vertical or rectangular Godot rail collider may remain enabled")
 	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
-	_assert(controller_source.contains("GameConfig.table_left_at(GameConfig.BOARD_TOP)") and controller_source.contains("GameConfig.table_right_at(GameConfig.BOARD_BOTTOM)"), "Debug overlay must read the exact same table interpolation as physical rails")
+	_assert(controller_source.contains("GameConfig.table_left_at(board_top)") and controller_source.contains("GameConfig.table_right_at(board_bottom)"), "Debug overlay must read the exact same table interpolation as physical rails")
 
 func _test_perspective_view_presentation() -> void:
 	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP), GameConfig.GEM_PERSPECTIVE_SCALE_BACK), "Back-table perspective scale must use the configured minimum")

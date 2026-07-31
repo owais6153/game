@@ -35,6 +35,8 @@ var failed := false
 var collection_in_progress := false
 var target_collection: Dictionary = {}
 var background_sprite: Sprite2D
+var table_sprite: Sprite2D
+var applied_table_offset_y := 0.0
 var ready_delay_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
@@ -173,6 +175,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		move_active_to(event.position.x)
 
 func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
+	if pressed and GameConfig.RESTART_BUTTON_RECT.has_point(pointer):
+		audio_feedback.emit_event("button")
+		restart()
+		return
 	if win_presented or failed:
 		if pressed and GameConfig.OVERLAY_BUTTON_RECT.has_point(pointer):
 			restart()
@@ -206,7 +212,7 @@ func spawn_active_piece() -> bool:
 	# Idempotent for a lifecycle cycle: an existing launcher is never replaced.
 	if get_active_piece() != null:
 		return false
-	var piece := GemPiece.new(next_piece_id, next_level, Vector2(360.0, GameConfig.LAUNCH_Y), GameConfig.gem_collision_radius(next_level))
+	var piece := GemPiece.new(next_piece_id, next_level, Vector2(360.0, GameConfig.launch_y()), GameConfig.gem_collision_radius(next_level))
 	next_piece_id += 1
 	piece.is_active_launcher = true
 	pieces.append(piece)
@@ -265,7 +271,8 @@ func _setup_asset_presentation() -> void:
 	add_child(background)
 	var table := Sprite2D.new()
 	table.texture = AssetCatalogType.NEW_TABLE
-	table.position = GameConfig.TABLE_TEXTURE_CENTER
+	table_sprite = table
+	table.position = GameConfig.table_texture_center()
 	table.scale = GameConfig.TABLE_TEXTURE_RENDER_SCALE
 	table.z_index = -10
 	add_child(table)
@@ -285,6 +292,21 @@ func _refresh_background_fill() -> void:
 	# supplied background while preserving image proportions; table and
 	# simulation coordinates remain in their fixed design space.
 	var viewport_size := get_viewport_rect().size if is_inside_tree() else GameConfig.VIEWPORT_SIZE
+	GameConfig.configure_portrait_bottom(viewport_size.y)
+	var new_offset := GameConfig.portrait_bottom_offset_y
+	var offset_delta := new_offset - applied_table_offset_y
+	if not is_zero_approx(offset_delta):
+		for piece in pieces:
+			piece.position.y += offset_delta
+		for presentation in merge_presentations:
+			presentation.midpoint.y += offset_delta
+			presentation.first_position.y += offset_delta
+			presentation.second_position.y += offset_delta
+		if collection_in_progress:
+			target_collection.start.y += offset_delta
+		applied_table_offset_y = new_offset
+	if table_sprite != null:
+		table_sprite.position = GameConfig.table_texture_center()
 	var source_size := background_sprite.texture.get_size()
 	var cover_scale := maxf(viewport_size.x / source_size.x, viewport_size.y / source_size.y)
 	background_sprite.position = viewport_size * 0.5
@@ -338,7 +360,7 @@ func _update_danger_timers(delta: float) -> void:
 		if piece.id == active_piece_id or piece.is_active_launcher or piece.consumed or not piece.is_settled():
 			danger_timers.erase(piece.id)
 			continue
-		if piece.position.y + piece.radius > GameConfig.DANGER_LINE_Y:
+		if piece.position.y + piece.radius > GameConfig.danger_line_y():
 			danger_timers[piece.id] = float(danger_timers.get(piece.id, 0.0)) + delta
 			if float(danger_timers[piece.id]) >= GameConfig.DANGER_GRACE_DURATION and not failed:
 				failed = true
@@ -481,7 +503,8 @@ func _route_collision_feedback() -> void:
 func _draw() -> void:
 	# The supplied artwork is drawn by Sprite2D nodes. This dynamic line is kept
 	# above the clean table art so it always shares the authoritative rail bounds.
-	draw_dashed_line(Vector2(GameConfig.table_left_at(GameConfig.DANGER_LINE_Y) + 8.0, GameConfig.DANGER_LINE_Y), Vector2(GameConfig.table_right_at(GameConfig.DANGER_LINE_Y) - 8.0, GameConfig.DANGER_LINE_Y), Color("f6bb42"), 3.0, 12.0)
+	var danger_y := GameConfig.danger_line_y()
+	draw_dashed_line(Vector2(GameConfig.table_left_at(danger_y) + 8.0, danger_y), Vector2(GameConfig.table_right_at(danger_y) - 8.0, danger_y), Color("f6bb42"), 3.0, 12.0)
 	var font := ThemeDB.fallback_font
 	HudRendererType.draw(self, hud_snapshot(), font)
 	# Draw the non-physical source ghosts first. The new simulated gem is then
@@ -492,10 +515,12 @@ func _draw() -> void:
 		_draw_calibration_debug(font)
 
 func _draw_calibration_debug(font: Font) -> void:
-	var left_top := Vector2(GameConfig.table_left_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP)
-	var right_top := Vector2(GameConfig.table_right_at(GameConfig.BOARD_TOP), GameConfig.BOARD_TOP)
-	var left_bottom := Vector2(GameConfig.table_left_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM)
-	var right_bottom := Vector2(GameConfig.table_right_at(GameConfig.BOARD_BOTTOM), GameConfig.BOARD_BOTTOM)
+	var board_top := GameConfig.board_top()
+	var board_bottom := GameConfig.board_bottom()
+	var left_top := Vector2(GameConfig.table_left_at(board_top), board_top)
+	var right_top := Vector2(GameConfig.table_right_at(board_top), board_top)
+	var left_bottom := Vector2(GameConfig.table_left_at(board_bottom), board_bottom)
+	var right_bottom := Vector2(GameConfig.table_right_at(board_bottom), board_bottom)
 	# These table-interpolated endpoints are the exact same geometry the solver
 	# and launcher clamp read. F8 remains desktop/editor-only and off by default.
 	draw_line(left_top, left_bottom, Color("ff3fc7"), 4.0)

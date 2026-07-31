@@ -19,6 +19,8 @@ const HUD_WHITE_PANEL_REGION := Rect2(38.0, 620.0, 550.0, 190.0)
 ## The teal cog is the only gameplay-HUD control. Its source remains the
 ## supplied button sheet; no procedural control artwork is introduced.
 const HUD_SETTINGS_BUTTON_REGION := Rect2(276.0, 832.0, 180.0, 180.0)
+## Supplied lower-right return arrow used as the gameplay restart affordance.
+const HUD_RESTART_BUTTON_REGION := Rect2(780.0, 1080.0, 180.0, 180.0)
 
 ## All gameplay textures are preloaded once. `gem_texture()` is called from the
 ## per-frame sprite synchronization path, so it must be a dictionary lookup,

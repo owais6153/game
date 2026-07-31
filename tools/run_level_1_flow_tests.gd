@@ -12,6 +12,7 @@ func _init() -> void:
 	_test_level_sequence()
 	_test_unlimited_launcher()
 	_test_unlimited_launcher_after_restart()
+	_test_restart_hud_control()
 	_test_sequential_target_completion()
 	if failures.is_empty():
 		print("LEVEL_1_FLOW_TESTS: PASS")
@@ -70,6 +71,14 @@ func _test_unlimited_launcher_after_restart() -> void:
 		controller.active_piece_id = -1
 		controller.launcher_state = controller.LauncherState.SPAWNING_NEXT
 		controller._advance_launcher_lifecycle()
+	controller.queue_free()
+
+func _test_restart_hud_control() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	controller.next_queue_index = 37
+	controller._handle_pointer(GameConfig.RESTART_BUTTON_RECT.get_center(), true)
+	_assert(controller.next_queue_index == 1 and controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "Supplied restart icon must reset to one ready unlimited launcher")
 	controller.queue_free()
 
 func _complete_target(controller, level: int, id: int) -> void:

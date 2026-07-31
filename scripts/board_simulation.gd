@@ -35,8 +35,8 @@ func _resolve_bounds(piece: GemPiece) -> void:
 	# interpolation also drives the visual debug rails and launcher clamp.
 	var left := GameConfig.table_left_at(piece.position.y) + piece.radius
 	var right := GameConfig.table_right_at(piece.position.y) - piece.radius
-	var top := GameConfig.BOARD_TOP + piece.radius
-	var bottom := GameConfig.BOARD_BOTTOM - piece.radius
+	var top := GameConfig.board_top() + piece.radius
+	var bottom := GameConfig.board_bottom() - piece.radius
 	if piece.position.x < left:
 		_record_wall_impact(absf(piece.velocity.x), Vector2(left - piece.radius, piece.position.y))
 		piece.position.x = left

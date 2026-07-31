@@ -1,5 +1,11 @@
 # AI Knowledge Base
 
+## Bottom-anchored portrait guardrails
+
+- Never move table artwork independently on tall phones. Call `GameConfig.configure_portrait_bottom()` and use its accessors for every table, rail, launcher, danger, and perspective Y coordinate.
+- HUD stays in the fixed top design region. The active target icon must stay within `TARGET_PREVIEW_BOUNDS`; use contain scaling only.
+- `RESTART_BUTTON_RECT` is a supplied-art control that calls the existing complete reset. It must not introduce a launch cap, queue reset variant, or parallel gameplay state.
+
 ## Reference HUD / unlimited Level 1 guardrails
 
 - Keep HUD gem previews on `HudRenderer._draw_contained_texture()`; never square-stretch or circular-mask a supplied gem texture.

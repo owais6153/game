@@ -13,6 +13,7 @@ static func draw(controller: CanvasItem, snapshot: Dictionary, font: Font) -> vo
 	_draw_queue_preview(controller, GameConfig.NEXT_PREVIEW_RECT, int(snapshot.next_level))
 	_draw_progression(controller, snapshot, font)
 	_draw_active_target(controller, snapshot, font)
+	_draw_restart_button(controller)
 	_draw_settings_button(controller)
 
 static func _draw_panel(controller: CanvasItem, rect: Rect2, fill: Color, border: Color) -> void:
@@ -47,9 +48,12 @@ static func _draw_active_target(controller: CanvasItem, snapshot: Dictionary, fo
 	# the L7 collection flight has completed.
 	var rect := GameConfig.TARGET_PANEL_RECT
 	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, rect, AssetCatalogType.HUD_WHITE_PANEL_REGION)
-	controller.draw_string(font, rect.position + Vector2(14.0, 43.0), "GOAL", HORIZONTAL_ALIGNMENT_LEFT, 62.0, 16, Color("80532d"))
+	controller.draw_string(font, rect.position + Vector2(18.0, 49.0), "GOAL", HORIZONTAL_ALIGNMENT_LEFT, 72.0, 18, Color("80532d"))
 	var entry := AssetCatalogType.gem_entry(int(snapshot.target_level))
-	_draw_contained_texture(controller, entry.texture, rect.get_center() + Vector2(42.0, 0.0), GameConfig.TARGET_PREVIEW_BOUNDS)
+	_draw_contained_texture(controller, entry.texture, rect.get_center() + Vector2(66.0, 0.0), GameConfig.TARGET_PREVIEW_BOUNDS)
+
+static func _draw_restart_button(controller: CanvasItem) -> void:
+	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, GameConfig.RESTART_BUTTON_RECT, AssetCatalogType.HUD_RESTART_BUTTON_REGION)
 
 static func _draw_settings_button(controller: CanvasItem) -> void:
 	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, GameConfig.SETTINGS_BUTTON_RECT, AssetCatalogType.HUD_SETTINGS_BUTTON_REGION)
