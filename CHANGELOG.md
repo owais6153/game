@@ -1,5 +1,10 @@
 # Changelog
 
+## Reference HUD + Unlimited Launches v1
+
+- Removed target-count, restart, and feedback controls from the gameplay HUD; it now shows only the reference SCORE, progression, and NEXT composition.
+- Enabled expanded portrait aspect handling to remove black letterboxing on taller phones.
+
 ## Supplied HUD Art + L7/L8 Balance v1
 
 - Replaced the hand-drawn SCORE and NEXT HUD panels with direct regions from the supplied button sheet.

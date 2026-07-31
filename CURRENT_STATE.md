@@ -1,6 +1,6 @@
 # Current State
 
-**Current milestone:** Supplied HUD Art + L7/L8 Balance v1. SCORE and NEXT use the actual regions from `assets/buttons/Generated image 10.png`, not drawn substitutes. Level 1 has unlimited launches and exactly two sequential targets: L7 x1, then L8 x1. Its controlled mixed L1-L4 launcher cycle prevents a repetitive straight-line L1/L1 solve. Table, rails, perspective scaling, colliders, motion, and contact merging are unchanged. See `reports/SUPPLIED_HUD_L7_L8_BALANCE_V1_REPORT.md`.
+**Current milestone:** Reference HUD + Unlimited Launches v1. The visible HUD matches the supplied reference composition: SCORE left, gem ladder center, NEXT right; objective counters and Restart/S/V controls are not drawn there. Launches are unlimited—only danger overflow or completing the two sequential objectives ends a run. Expanded portrait aspect handling removes the prior black bars. Table, rails, perspective scaling, colliders, motion, and contact merging are unchanged. See `reports/REFERENCE_HUD_UNLIMITED_V1_REPORT.md`.
 
 **Current delivery:** `restored-working-table-rails-v1.apk` restores the historically proven `new-table-shadow-contact-fix-v1` table-interpolated side containment and launcher clamp. Its source rail geometry is translated exactly `+116px` in Y to the retained bottom-aligned table. The later perpendicular slanted-line resolver and its competing launcher limit system are removed. See `reports/RESTORED_WORKING_TABLE_RAILS_V1_REPORT.md`.
 

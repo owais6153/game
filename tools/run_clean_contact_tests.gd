@@ -314,7 +314,7 @@ func _test_visual_layout_bounds() -> void:
 	_assert(GameConfig.HUD_RECT.position.y >= 0.0 and GameConfig.HUD_RECT.end.y <= GameConfig.BOARD_TOP, "HUD must stay above the gameplay board")
 	_assert(GameConfig.OVERLAY_RECT.position.x >= GameConfig.SAFE_VISUAL_MARGIN and GameConfig.OVERLAY_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x - GameConfig.SAFE_VISUAL_MARGIN, "Overlay must remain within visual safe margins")
 	_assert(GameConfig.OVERLAY_BUTTON_RECT.position.y >= GameConfig.OVERLAY_RECT.position.y and GameConfig.OVERLAY_BUTTON_RECT.end.y <= GameConfig.OVERLAY_RECT.end.y, "Overlay action must fit within its panel")
-	_assert(GameConfig.RESTART_RECT.end.x <= GameConfig.HUD_RECT.end.x and GameConfig.RESTART_RECT.position.y >= GameConfig.HUD_RECT.position.y, "Restart control must remain inside the HUD")
+	_assert(GameConfig.SCORE_PANEL_RECT.end.x <= GameConfig.NEXT_PREVIEW_RECT.position.x, "Reference HUD panels must leave room for the centered gem ladder")
 
 func _test_portrait_board_bounds_and_scale() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:
@@ -353,7 +353,7 @@ func _test_hud_layout_and_pointer_safety() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:
 		var scale: float = minf(portrait_size.x / GameConfig.VIEWPORT_SIZE.x, portrait_size.y / GameConfig.VIEWPORT_SIZE.y)
 		_assert(GameConfig.HUD_RECT.end.x * scale <= portrait_size.x and GameConfig.HUD_RECT.end.y * scale <= GameConfig.BOARD_TOP * scale, "HUD must stay in safe bounds for representative portrait sizes")
-		_assert(GameConfig.PROGRESSION_START_X + GameConfig.PROGRESSION_STEP_X * 4.0 + 18.0 <= GameConfig.RESTART_RECT.position.x, "Progression preview must remain compact beside restart")
+		_assert(GameConfig.SCORE_PANEL_RECT.end.x <= GameConfig.NEXT_PREVIEW_RECT.position.x, "Reference HUD composition must preserve a clear central ladder area")
 	_assert(not GameConfig.HUD_RECT.intersects(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP)), "HUD/progression drawing must not intercept board drag space")
 
 func _test_sound_and_haptics_feedback_routing() -> void:
@@ -400,21 +400,6 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	fail_controller.pieces.append(danger)
 	for frame in range(50): fail_controller._process(1.0 / 60.0)
 	_assert(_event_count(fail_controller.audio_feedback.emitted_events, "fail") == 1 and _event_count(fail_controller.haptics_feedback.emitted_events, "fail") == 1, "Fail feedback must fire exactly once")
-	var settings_controller = GameScene.instantiate()
-	settings_controller._ready()
-	settings_controller.haptics_feedback.allow_platform_vibration = false
-	var sound_setting := bool(settings_controller.audio_feedback.enabled)
-	var vibration_setting := bool(settings_controller.haptics_feedback.enabled)
-	settings_controller._handle_pointer(GameConfig.SOUND_TOGGLE_RECT.get_center(), true)
-	settings_controller._handle_pointer(GameConfig.VIBRATION_TOGGLE_RECT.get_center(), true)
-	_assert(not settings_controller.audio_feedback.enabled and not settings_controller.haptics_feedback.enabled, "Settings toggles must disable feedback independently")
-	settings_controller.audio_feedback.clear_trace()
-	settings_controller.haptics_feedback.clear_trace()
-	settings_controller.restart()
-	settings_controller.launch_active_piece()
-	_assert(settings_controller.audio_feedback.emitted_events.is_empty() and settings_controller.haptics_feedback.emitted_events.is_empty(), "Disabled feedback must never alter gameplay or emit output")
-	_assert(not settings_controller.audio_feedback.enabled and not settings_controller.haptics_feedback.enabled, "Restart must preserve current-session settings")
-	_assert(sound_setting and vibration_setting, "Sound and vibration must default to enabled")
 
 func _test_inset_table_and_viewport_safety() -> void:
 	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 846.0), "Table must be genuinely bottom-anchored to the approved reference composition")

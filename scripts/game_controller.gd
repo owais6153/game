@@ -173,19 +173,6 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 			restart()
 		return
 	if pressed:
-		if GameConfig.SOUND_TOGGLE_RECT.has_point(pointer):
-			audio_feedback.enabled = not audio_feedback.enabled
-			audio_feedback.emit_event("button")
-			return
-		if GameConfig.VIBRATION_TOGGLE_RECT.has_point(pointer):
-			haptics_feedback.enabled = not haptics_feedback.enabled
-			if haptics_feedback.enabled:
-				haptics_feedback.emit_event("launch")
-			return
-		if GameConfig.RESTART_RECT.has_point(pointer):
-			audio_feedback.emit_event("button")
-			restart()
-			return
 		if collection_in_progress:
 			return
 		var active := get_active_piece()
@@ -410,7 +397,7 @@ func _update_target_collection(delta: float) -> void:
 	var t := clampf(elapsed / duration, 0.0, 1.0)
 	var eased := 1.0 - pow(1.0 - t, 3.0)
 	var start: Vector2 = target_collection.start
-	var destination := GameConfig.TARGET_PANEL_RECT.get_center() + Vector2(-58.0, 0.0)
+	var destination := GameConfig.TARGET_COLLECTION_DESTINATION
 	sprite.position = start.lerp(destination, eased)
 	var pop := 1.0 + sin(clampf(t * 2.0, 0.0, 1.0) * PI) * 0.20
 	# Keep a deterministic base scale instead of accumulating the pop each frame.
