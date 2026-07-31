@@ -1,13 +1,13 @@
 extends Node2D
 
-const GemVisualsType = preload("res://scripts/gem_visuals.gd")
-const HudRendererType = preload("res://scripts/hud_renderer.gd")
 const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.gd")
 const HapticsServiceType = preload("res://scripts/haptics_service.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
 const ResultOverlayLayerType = preload("res://scripts/result_overlay_layer.gd")
 const LevelConfigType = preload("res://scripts/level_config.gd")
+const GameplayHudLayerType = preload("res://scripts/gameplay_hud_layer.gd")
+const GameplayEffectsLayerType = preload("res://scripts/gameplay_effects_layer.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -19,6 +19,9 @@ var next_queue_index := 0
 var target_progress := 0
 var target_index := 0
 var counted_target_result_ids: Dictionary = {}
+## Exactly-once guard for production merge result IDs. It prevents duplicate
+## score, target, sound, haptic, and reward presentation from a repeated event.
+var processed_merge_result_ids: Dictionary = {}
 ## Results count only after their own merge presentation has completed.
 var pending_target_presentations: Dictionary = {}
 var active_piece_id := -1
@@ -34,6 +37,7 @@ var win_hold_elapsed := 0.0
 var failed := false
 var collection_in_progress := false
 var target_collection: Dictionary = {}
+var final_target_result_id := -1
 var background_sprite: Sprite2D
 var table_sprite: Sprite2D
 var applied_table_offset_y := 0.0
@@ -42,7 +46,12 @@ var launcher_handoff_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
 var gem_sprite_layer: GemSpriteLayer
-var result_overlay
+var gameplay_ui: GameplayHudLayer
+var effects_layer: GameplayEffectsLayer
+var result_overlay: ResultOverlayLayer
+var presentation_event_trace: Array[Dictionary] = []
+var process_frame_index := 0
+var piece_visual_feedbacks: Dictionary = {}
 ## Developer-only inspection aid. F8 toggles it in editor/desktop builds; it
 ## starts disabled and has no input or gameplay authority on Android.
 var debug_calibration_enabled := false
@@ -70,22 +79,28 @@ func _ready() -> void:
 	haptics_feedback = HapticsServiceType.new()
 	add_child(audio_feedback)
 	_advance_launcher_lifecycle()
-	gem_sprite_layer.sync_gems(pieces)
+	_sync_gems_and_mark_visibility()
+	_refresh_hud()
 	queue_redraw()
 
 func _process(delta: float) -> void:
+	process_frame_index += 1
 	for marker in debug_contact_points:
 		marker.age = float(marker.get("age", 0.0)) + delta
 	debug_contact_points = debug_contact_points.filter(func(marker: Dictionary) -> bool: return float(marker.get("age", 0.0)) < 0.45)
+	if effects_layer != null:
+		effects_layer.update_effects(delta)
+	_update_piece_visual_feedbacks(delta)
 	if failed:
-		_update_merge_presentations(delta)
-		gem_sprite_layer.sync_gems(pieces)
+		_sync_gems_and_mark_visibility()
+		_refresh_hud()
 		queue_redraw()
 		return
 	if win_qualified:
 		_update_merge_presentations(delta)
-		gem_sprite_layer.sync_gems(pieces)
+		_sync_gems_and_mark_visibility()
 		_update_win_presentation(delta)
+		_refresh_hud()
 		queue_redraw()
 		return
 	simulation.step(pieces, delta, merge_service)
@@ -98,7 +113,8 @@ func _process(delta: float) -> void:
 	_update_target_collection(delta)
 	_update_danger_timers(delta)
 	if win_qualified or failed:
-		gem_sprite_layer.sync_gems(pieces)
+		_sync_gems_and_mark_visibility()
+		_refresh_hud()
 		queue_redraw()
 		return
 	if result.merge_count > 0 and get_active_piece() == null:
@@ -110,7 +126,8 @@ func _process(delta: float) -> void:
 			launcher_state = LauncherState.RESOLVING
 			ready_delay_elapsed = 0.0
 	_advance_launcher_lifecycle(delta)
-	gem_sprite_layer.sync_gems(pieces)
+	_sync_gems_and_mark_visibility()
+	_refresh_hud()
 	queue_redraw()
 
 func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
@@ -170,6 +187,10 @@ func lifecycle_name() -> String:
 func hud_snapshot() -> Dictionary:
 	var active := get_active_piece()
 	var highest_level := 1
+	var visible_target := active_target()
+	var sequence := target_sequence()
+	if visible_target.is_empty() and not sequence.is_empty():
+		visible_target = sequence.back() as Dictionary
 	for piece in pieces:
 		if not piece.consumed:
 			highest_level = maxi(highest_level, piece.level)
@@ -179,20 +200,25 @@ func hud_snapshot() -> Dictionary:
 		"next_level": next_level,
 		"score": score,
 		"chain_multiplier": chain_multiplier,
-		"target_level": active_target_tier(),
+		"target_level": int(visible_target.get("tier", 1)),
 		"target_progress": target_progress,
-		"target_quantity": active_target_quantity(),
+		"target_quantity": int(visible_target.get("quantity", 1)),
 		"target_index": target_index,
 		"target_total": target_sequence().size(),
+		"target_collecting": collection_in_progress,
+		"target_completed": win_qualified,
 		"highest_level": highest_level,
 		"sound_enabled": audio_feedback.enabled if audio_feedback != null else true,
-		"vibration_enabled": haptics_feedback.enabled,
+		"vibration_enabled": haptics_feedback.enabled if haptics_feedback != null else true,
 	}
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F8:
 		debug_calibration_enabled = not debug_calibration_enabled
 		queue_redraw()
+		return
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE and not win_presented and not failed:
+		_on_settings_requested()
 		return
 	if event is InputEventScreenTouch:
 		_handle_pointer(event.position, event.pressed)
@@ -204,13 +230,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		move_active_to(event.position.x)
 
 func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
-	if pressed and GameConfig.RESTART_BUTTON_RECT.has_point(pointer):
-		audio_feedback.emit_event("button")
-		restart()
-		return
 	if win_presented or failed:
-		if pressed and GameConfig.OVERLAY_BUTTON_RECT.has_point(pointer):
-			restart()
 		return
 	if pressed:
 		if collection_in_progress:
@@ -235,6 +255,11 @@ func launch_active_piece() -> void:
 		active.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 		audio_feedback.emit_event("launch")
 		haptics_feedback.emit_event("launch")
+		if effects_layer != null:
+			effects_layer.begin_launch(active.position, active.level)
+		piece_visual_feedbacks[active.id] = {"kind": "launch", "elapsed": 0.0, "duration": 0.12}
+		if gem_sprite_layer != null:
+			gem_sprite_layer.set_presentation_scale(active.id, 0.92)
 		launcher_handoff_elapsed = 0.0
 		ready_delay_elapsed = 0.0
 		launcher_state = LauncherState.SHOT_IN_FLIGHT
@@ -247,6 +272,9 @@ func spawn_active_piece() -> bool:
 	next_piece_id += 1
 	piece.is_active_launcher = true
 	pieces.append(piece)
+	piece_visual_feedbacks[piece.id] = {"kind": "spawn", "elapsed": 0.0, "duration": 0.16}
+	if gem_sprite_layer != null:
+		gem_sprite_layer.set_presentation_scale(piece.id, 0.84)
 	active_piece_id = piece.id
 	next_queue_index += 1
 	next_level = LevelConfigType.launcher_level_at(level_config, next_queue_index)
@@ -259,6 +287,8 @@ func get_active_piece() -> GemPiece:
 	return null
 
 func restart() -> void:
+	if is_inside_tree():
+		get_tree().paused = false
 	pieces.clear()
 	merge_service.clear()
 	merge_presentations.clear()
@@ -269,13 +299,18 @@ func restart() -> void:
 	target_progress = 0
 	target_index = 0
 	counted_target_result_ids.clear()
+	processed_merge_result_ids.clear()
 	pending_target_presentations.clear()
+	presentation_event_trace.clear()
+	process_frame_index = 0
+	piece_visual_feedbacks.clear()
 	chain_multiplier = 1
 	danger_timers.clear()
 	won = false
 	win_qualified = false
 	win_presented = false
 	win_hold_elapsed = 0.0
+	final_target_result_id = -1
 	failed = false
 	collection_in_progress = false
 	_cancel_target_collection()
@@ -283,11 +318,18 @@ func restart() -> void:
 	launcher_state = LauncherState.SPAWNING_NEXT
 	ready_delay_elapsed = 0.0
 	launcher_handoff_elapsed = 0.0
+	if effects_layer != null:
+		effects_layer.clear()
+	if gem_sprite_layer != null:
+		gem_sprite_layer.clear_presentation_scales()
 	_advance_launcher_lifecycle()
 	if gem_sprite_layer != null:
-		gem_sprite_layer.sync_gems(pieces)
+		_sync_gems_and_mark_visibility()
 	if result_overlay != null:
 		result_overlay.dismiss()
+	if gameplay_ui != null:
+		gameplay_ui.reset_presentation()
+		_refresh_hud()
 
 func _setup_asset_presentation() -> void:
 	var background := Sprite2D.new()
@@ -305,11 +347,17 @@ func _setup_asset_presentation() -> void:
 	gem_sprite_layer = GemSpriteLayerType.new()
 	gem_sprite_layer.z_index = 10
 	add_child(gem_sprite_layer)
-	var overlay_canvas := CanvasLayer.new()
-	overlay_canvas.layer = 10
-	add_child(overlay_canvas)
+	effects_layer = GameplayEffectsLayerType.new()
+	effects_layer.z_index = 20
+	add_child(effects_layer)
+	gameplay_ui = GameplayHudLayerType.new()
+	add_child(gameplay_ui)
+	gameplay_ui.settings_requested.connect(_on_settings_requested)
+	gameplay_ui.resume_requested.connect(_on_resume_requested)
+	gameplay_ui.restart_requested.connect(_on_restart_requested)
 	result_overlay = ResultOverlayLayerType.new()
-	overlay_canvas.add_child(result_overlay)
+	add_child(result_overlay)
+	result_overlay.retry_requested.connect(_on_restart_requested)
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
@@ -330,6 +378,8 @@ func _refresh_background_fill() -> void:
 			presentation.second_position.y += offset_delta
 		if collection_in_progress:
 			target_collection.start.y += offset_delta
+		if effects_layer != null:
+			effects_layer.shift_world_y(offset_delta)
 		applied_table_offset_y = new_offset
 	if table_sprite != null:
 		table_sprite.position = GameConfig.table_texture_center()
@@ -341,21 +391,38 @@ func _refresh_background_fill() -> void:
 func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 	var resolution_multiplier := 1
 	for merge_event in events:
+		var result_id := int(merge_event.get("result_id", -1))
+		if result_id >= 0 and processed_merge_result_ids.has(result_id):
+			continue
+		if result_id >= 0:
+			processed_merge_result_ids[result_id] = true
 		var result_level: int = int(merge_event.level)
+		# Cache all presentation resources at confirmation time. The draw path
+		# never loads textures or performs catalog analysis/lookups per frame.
+		merge_event.source_texture = AssetCatalogType.gem_texture(maxi(1, result_level - 1))
+		merge_event.result_texture = AssetCatalogType.gem_texture(result_level)
 		chain_multiplier = resolution_multiplier
-		score += GameConfig.merge_score_for_result_level(result_level) * chain_multiplier
+		var awarded_score := GameConfig.merge_score_for_result_level(result_level) * chain_multiplier
+		score += awarded_score
 		# Chain resolution remains immediate and deterministic; this only staggers its visuals.
 		merge_event.elapsed = -float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
+		merge_event.first_frame_visible = false
 		merge_presentations.append(merge_event)
+		_trace_presentation_event("merge_confirmed", result_id)
+		_trace_presentation_event("result_created", result_id)
+		if gem_sprite_layer != null and result_id >= 0:
+			gem_sprite_layer.set_presentation_scale(result_id, GameConfig.MERGE_RESULT_START_SCALE)
+		if effects_layer != null:
+			effects_layer.begin_merge_feedback(merge_event, awarded_score)
 		audio_feedback.emit_event("merge_%d" % result_level)
-		haptics_feedback.emit_event("merge")
 		if int(merge_event.get("depth", 0)) > 0:
 			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
+		else:
+			haptics_feedback.emit_event("merge")
 		if result_level == active_target_tier():
-			var result_id := int(merge_event.get("result_id", -1))
 			if result_id >= 0 and not counted_target_result_ids.has(result_id):
-				pending_target_presentations[result_id] = true
+				pending_target_presentations[result_id] = merge_event
 		resolution_multiplier += 1
 
 func _configure_level_1() -> void:
@@ -389,12 +456,7 @@ func _update_danger_timers(delta: float) -> void:
 		if piece.position.y + piece.radius > GameConfig.danger_line_y():
 			danger_timers[piece.id] = float(danger_timers.get(piece.id, 0.0)) + delta
 			if float(danger_timers[piece.id]) >= GameConfig.DANGER_GRACE_DURATION and not failed:
-				failed = true
-				active_piece_id = -1
-				launcher_state = LauncherState.RESOLVING
-				audio_feedback.emit_event("fail")
-				haptics_feedback.emit_event("fail")
-				result_overlay.present(false, score)
+				_trigger_failure()
 				return
 		else:
 			danger_timers.erase(piece.id)
@@ -402,20 +464,54 @@ func _update_danger_timers(delta: float) -> void:
 		if not live_ids.has(id):
 			danger_timers.erase(id)
 
+func _trigger_failure() -> void:
+	if failed:
+		return
+	failed = true
+	active_piece_id = -1
+	launcher_state = LauncherState.RESOLVING
+	dragging = false
+	pending_target_presentations.clear()
+	merge_presentations.clear()
+	piece_visual_feedbacks.clear()
+	collection_in_progress = false
+	_cancel_target_collection()
+	if gem_sprite_layer != null:
+		gem_sprite_layer.clear_presentation_scales()
+	if effects_layer != null:
+		effects_layer.clear()
+	audio_feedback.emit_event("fail")
+	haptics_feedback.emit_event("fail")
+	result_overlay.present(false, score)
+
 func _update_merge_presentations(delta: float) -> void:
+	var completed: Array[Dictionary] = []
+	var remaining: Array[Dictionary] = []
 	for presentation in merge_presentations:
 		presentation.elapsed += delta
-	var completed: Array[Dictionary] = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed >= GameConfig.MERGE_PRESENTATION_DURATION)
-	merge_presentations = merge_presentations.filter(func(presentation: Dictionary) -> bool: return presentation.elapsed < GameConfig.MERGE_PRESENTATION_DURATION)
+		var result_id := int(presentation.get("result_id", -1))
+		if float(presentation.elapsed) >= 0.0 and result_id >= 0 and gem_sprite_layer != null:
+			gem_sprite_layer.set_presentation_scale(result_id, _merge_result_visual_scale(float(presentation.elapsed)))
+		var duration_complete := float(presentation.elapsed) >= GameConfig.MERGE_PRESENTATION_DURATION
+		var waits_for_visible_frame := result_id >= 0 and not bool(presentation.get("first_frame_visible", false))
+		if duration_complete and not waits_for_visible_frame:
+			completed.append(presentation)
+		else:
+			remaining.append(presentation)
+	merge_presentations = remaining
 	for presentation in completed:
 		var result_id := int(presentation.get("result_id", -1))
+		if gem_sprite_layer != null and result_id >= 0:
+			gem_sprite_layer.clear_presentation_scale(result_id)
+		_trace_presentation_event("merge_presentation_completed", result_id)
 		if pending_target_presentations.has(result_id):
 			pending_target_presentations.erase(result_id)
 			if not counted_target_result_ids.has(result_id):
 				counted_target_result_ids[result_id] = true
-				_begin_target_collection(result_id)
+				_trace_presentation_event("target_completed", result_id)
+				_begin_target_collection(result_id, presentation)
 
-func _begin_target_collection(result_id: int) -> void:
+func _begin_target_collection(result_id: int, presentation: Dictionary = {}) -> void:
 	if collection_in_progress or result_id < 0:
 		return
 	var result_piece: GemPiece = null
@@ -423,32 +519,36 @@ func _begin_target_collection(result_id: int) -> void:
 		if piece.id == result_id and not piece.consumed:
 			result_piece = piece
 			break
-	if result_piece == null:
-		return
+	var level := result_piece.level if result_piece != null else int(presentation.get("level", active_target_tier()))
+	var start := result_piece.position if result_piece != null else Vector2(presentation.get("midpoint", Vector2(360.0, GameConfig.board_top() + 180.0)))
 	# The actual confirmed merge result has already finished its presentation.
 	# Remove it from the live simulation *before* its separate visual travels to
 	# the HUD. Keeping a consumed RefCounted item in `pieces` used to leave a
 	# stale body available to future contact/occupancy paths.
-	result_piece.consumed = true
-	pieces.erase(result_piece)
+	if result_piece != null:
+		result_piece.consumed = true
+		pieces.erase(result_piece)
 	danger_timers.erase(result_id)
 	merge_service.clear()
+	_trace_presentation_event("physics_body_removed", result_id)
 	collection_in_progress = true
 	# A replacement launcher may already be waiting at the bottom. Preserve it
 	# while collection temporarily blocks input; clearing its marker here was a
 	# second way to make the game appear to run out of shots.
 	dragging = false
 	var sprite := Sprite2D.new()
-	var entry := AssetCatalogType.gem_entry(result_piece.level)
+	var entry := AssetCatalogType.gem_entry(level)
 	sprite.texture = entry.texture
-	sprite.position = result_piece.position
-	var diameter := result_piece.radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(result_piece.level, 1.0))
-	sprite.scale = Vector2(diameter / sprite.texture.get_size().x, diameter / sprite.texture.get_size().y)
+	sprite.position = start
+	var diameter := GameConfig.gem_collision_radius(level) * GameConfig.gem_perspective_scale_at(start.y) * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(level, 1.0))
+	var uniform_scale := diameter / maxf(sprite.texture.get_size().x, sprite.texture.get_size().y)
+	sprite.scale = Vector2.ONE * uniform_scale
 	# Godot canvas z is bounded; this stays above the live gem layer (10)
 	# without exceeding the engine's maximum canvas z range.
-	sprite.z_index = 4090
-	gem_sprite_layer.add_child(sprite)
-	target_collection = {"result_id": result_id, "level": result_piece.level, "sprite": sprite, "start": result_piece.position, "elapsed": 0.0}
+	sprite.z_index = 2
+	(effects_layer if effects_layer != null else gem_sprite_layer).add_child(sprite)
+	target_collection = {"result_id": result_id, "level": level, "sprite": sprite, "start": start, "elapsed": 0.0, "base_scale": Vector2.ONE * uniform_scale, "opacity": 1.0}
+	_trace_presentation_event("collection_animation_started", result_id)
 
 func _update_target_collection(delta: float) -> void:
 	if not collection_in_progress:
@@ -459,33 +559,53 @@ func _update_target_collection(delta: float) -> void:
 		return
 	var elapsed := float(target_collection.get("elapsed", 0.0)) + delta
 	target_collection.elapsed = elapsed
-	var duration := 0.48
-	var t := clampf(elapsed / duration, 0.0, 1.0)
-	var eased := 1.0 - pow(1.0 - t, 3.0)
+	var t := clampf(elapsed / GameConfig.TARGET_COLLECTION_DURATION, 0.0, 1.0)
+	var eased := smoothstep(0.0, 1.0, t)
 	var start: Vector2 = target_collection.start
-	var destination := GameConfig.TARGET_COLLECTION_DESTINATION
-	sprite.position = start.lerp(destination, eased)
-	var pop := 1.0 + sin(clampf(t * 2.0, 0.0, 1.0) * PI) * 0.20
-	# Keep a deterministic base scale instead of accumulating the pop each frame.
-	var level := int(target_collection.level)
-	var base_diameter := GameConfig.gem_collision_radius(level) * GameConfig.gem_perspective_scale_at(start.y) * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(level, 1.0))
-	sprite.scale = Vector2(base_diameter / sprite.texture.get_size().x, base_diameter / sprite.texture.get_size().y) * pop
-	sprite.modulate = Color(1.0, 1.0, 1.0, 1.0 - t)
+	var destination := gameplay_ui.target_collection_destination() if gameplay_ui != null else GameConfig.TARGET_COLLECTION_DESTINATION
+	target_collection.destination = destination
+	var control := Vector2(lerpf(start.x, destination.x, 0.48), minf(start.y, destination.y) - 82.0)
+	var inverse := 1.0 - eased
+	sprite.position = start * inverse * inverse + control * 2.0 * inverse * eased + destination * eased * eased
+	var pop := 1.0
+	if t <= 0.32:
+		pop = 1.0 + sin(t / 0.32 * PI) * (GameConfig.TARGET_COLLECTION_POP_SCALE - 1.0)
+	else:
+		pop = lerpf(1.0, 0.88, smoothstep(0.32, 1.0, t))
+	var base_scale: Vector2 = target_collection.get("base_scale", Vector2.ONE)
+	sprite.scale = base_scale * pop
+	var opacity := 1.0
+	if t > GameConfig.TARGET_COLLECTION_FADE_START:
+		opacity = lerpf(1.0, 0.15, smoothstep(GameConfig.TARGET_COLLECTION_FADE_START, 1.0, t))
+	target_collection.opacity = opacity
+	sprite.modulate = Color(1.0, 1.0, 1.0, opacity)
 	if t >= 1.0:
 		_finish_target_collection()
 
 func _finish_target_collection() -> void:
+	var result_id := int(target_collection.get("result_id", -1))
+	var level := int(target_collection.get("level", active_target_tier()))
+	var destination: Vector2 = target_collection.get("destination", gameplay_ui.target_collection_destination() if gameplay_ui != null else GameConfig.TARGET_COLLECTION_DESTINATION)
 	var sprite: Sprite2D = target_collection.get("sprite")
 	if sprite != null:
 		sprite.queue_free()
 	target_collection.clear()
 	collection_in_progress = false
+	if effects_layer != null:
+		effects_layer.begin_target_arrival(destination, level)
+	if gameplay_ui != null:
+		gameplay_ui.pulse_target()
+	audio_feedback.emit_event("target_collect")
+	haptics_feedback.emit_event("target_collect")
+	_trace_presentation_event("collection_animation_completed", result_id)
 	target_progress += 1
 	if target_progress < active_target_quantity():
 		return
 	target_index += 1
 	target_progress = 0
 	if target_index >= target_sequence().size():
+		final_target_result_id = result_id
+		_trace_presentation_event("final_target_confirmed", result_id)
 		_qualify_win_if_target_complete()
 
 func _cancel_target_collection() -> void:
@@ -493,6 +613,7 @@ func _cancel_target_collection() -> void:
 	if sprite != null:
 		sprite.queue_free()
 	target_collection.clear()
+	collection_in_progress = false
 
 func _qualify_win_if_target_complete() -> void:
 	if target_index < target_sequence().size() or win_qualified:
@@ -508,16 +629,116 @@ func _qualify_win_if_target_complete() -> void:
 	launcher_state = LauncherState.RESOLVING
 
 func _update_win_presentation(delta: float) -> void:
-	# The Diamond must have been synchronized and its merge pulse completed
-	# before the dedicated UI layer can present victory.
+	# The final target must finish merge presentation and collection before the
+	# dedicated UI layer can present victory.
 	if win_presented or not merge_presentations.is_empty():
 		return
 	win_hold_elapsed += delta
 	if win_hold_elapsed >= GameConfig.WIN_PRESENTATION_HOLD:
-		win_presented = true
-		result_overlay.present(true, score)
-		audio_feedback.emit_event("win")
-		haptics_feedback.emit_event("win")
+		if result_overlay.present(true, score):
+			win_presented = true
+			_trace_presentation_event("win_overlay_started", final_target_result_id)
+			audio_feedback.emit_event("win")
+			haptics_feedback.emit_event("win")
+
+func _sync_gems_and_mark_visibility() -> void:
+	if gem_sprite_layer == null:
+		return
+	gem_sprite_layer.sync_gems(pieces)
+	for presentation in merge_presentations:
+		if bool(presentation.get("first_frame_visible", false)) or float(presentation.get("elapsed", -1.0)) < 0.0:
+			continue
+		var result_id := int(presentation.get("result_id", -1))
+		if result_id < 0:
+			continue
+		var has_visual := _has_live_piece(result_id) or (effects_layer != null and effects_layer.has_merge_result(result_id))
+		if has_visual:
+			presentation.first_frame_visible = true
+			presentation.visible_frame = process_frame_index
+			_trace_presentation_event("result_first_frame_visible", result_id)
+
+func _refresh_hud() -> void:
+	if gameplay_ui != null:
+		gameplay_ui.update_snapshot(hud_snapshot())
+
+func _merge_result_visual_scale(elapsed: float) -> float:
+	if elapsed <= 0.0:
+		return GameConfig.MERGE_RESULT_START_SCALE
+	if elapsed <= GameConfig.MERGE_RESULT_POP_DURATION:
+		var pop_t := clampf(elapsed / GameConfig.MERGE_RESULT_POP_DURATION, 0.0, 1.0)
+		var pop_eased := 1.0 - pow(1.0 - pop_t, 3.0)
+		return lerpf(GameConfig.MERGE_RESULT_START_SCALE, GameConfig.MERGE_RESULT_POP_SCALE, pop_eased)
+	var settle_duration := maxf(0.001, GameConfig.MERGE_PRESENTATION_DURATION - GameConfig.MERGE_RESULT_POP_DURATION)
+	var settle_t := smoothstep(0.0, 1.0, clampf((elapsed - GameConfig.MERGE_RESULT_POP_DURATION) / settle_duration, 0.0, 1.0))
+	return lerpf(GameConfig.MERGE_RESULT_POP_SCALE, 1.0, settle_t)
+
+func _update_piece_visual_feedbacks(delta: float) -> void:
+	if gem_sprite_layer == null or piece_visual_feedbacks.is_empty():
+		return
+	for piece_id in piece_visual_feedbacks.keys():
+		var feedback: Dictionary = piece_visual_feedbacks[piece_id]
+		feedback.elapsed = float(feedback.get("elapsed", 0.0)) + delta
+		var duration := maxf(0.001, float(feedback.get("duration", 0.1)))
+		var t := clampf(float(feedback.elapsed) / duration, 0.0, 1.0)
+		var scale := 1.0
+		if String(feedback.get("kind", "")) == "spawn":
+			if t <= 0.68:
+				var rise := 1.0 - pow(1.0 - t / 0.68, 3.0)
+				scale = lerpf(0.84, 1.06, rise)
+			else:
+				scale = lerpf(1.06, 1.0, smoothstep(0.68, 1.0, t))
+		else:
+			scale = lerpf(0.92, 1.0, 1.0 - pow(1.0 - t, 2.0))
+		if t >= 1.0:
+			gem_sprite_layer.clear_presentation_scale(int(piece_id))
+			piece_visual_feedbacks.erase(piece_id)
+		else:
+			gem_sprite_layer.set_presentation_scale(int(piece_id), scale)
+
+func _has_live_piece(piece_id: int) -> bool:
+	for piece in pieces:
+		if piece.id == piece_id and not piece.consumed:
+			return true
+	return false
+
+func _trace_presentation_event(event_name: String, result_id: int) -> void:
+	if result_id < 0:
+		return
+	presentation_event_trace.append({"name": event_name, "result_id": result_id, "frame": process_frame_index})
+	while presentation_event_trace.size() > GameConfig.PRESENTATION_EVENT_TRACE_LIMIT:
+		presentation_event_trace.pop_front()
+
+func presentation_events_for_result(result_id: int) -> Array[String]:
+	var names: Array[String] = []
+	for event in presentation_event_trace:
+		if int(event.get("result_id", -1)) == result_id:
+			names.append(String(event.get("name", "")))
+	return names
+
+func _on_settings_requested() -> void:
+	if gameplay_ui == null or failed or win_presented or gameplay_ui.is_pause_visible():
+		return
+	dragging = false
+	audio_feedback.emit_event("button")
+	gameplay_ui.show_pause()
+	if is_inside_tree():
+		get_tree().paused = true
+
+func _on_resume_requested() -> void:
+	if gameplay_ui == null:
+		return
+	gameplay_ui.hide_pause()
+	if is_inside_tree():
+		get_tree().paused = false
+	audio_feedback.emit_event("button")
+
+func _on_restart_requested() -> void:
+	if gameplay_ui != null:
+		gameplay_ui.hide_pause()
+	if is_inside_tree():
+		get_tree().paused = false
+	audio_feedback.emit_event("button")
+	restart()
 
 func _route_collision_feedback() -> void:
 	for impact in simulation.consume_collision_impacts():
@@ -536,14 +757,12 @@ func _draw() -> void:
 	# above the clean table art so it always shares the authoritative rail bounds.
 	var danger_y := GameConfig.danger_line_y()
 	draw_dashed_line(Vector2(GameConfig.table_left_at(danger_y) + 8.0, danger_y), Vector2(GameConfig.table_right_at(danger_y) - 8.0, danger_y), Color("f6bb42"), 3.0, 12.0)
-	var font := ThemeDB.fallback_font
-	HudRendererType.draw(self, hud_snapshot(), font)
 	# Draw the non-physical source ghosts first. The new simulated gem is then
 	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
 	for presentation in merge_presentations:
 		_draw_merge_presentation(presentation)
 	if debug_calibration_enabled:
-		_draw_calibration_debug(font)
+		_draw_calibration_debug(ThemeDB.fallback_font)
 
 func _draw_calibration_debug(font: Font) -> void:
 	var board_top := GameConfig.board_top()
@@ -588,21 +807,35 @@ func _draw_crystal_atmosphere() -> void:
 	draw_rect(Rect2(0.0, 174.0, 720.0, 4.0), Color("d8b86a", 0.22), true)
 
 func _draw_merge_presentation(presentation: Dictionary) -> void:
+	if float(presentation.get("elapsed", -1.0)) < 0.0:
+		return
 	var t: float = clampf(presentation.elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)
 	var pull_t: float = clampf(presentation.elapsed / GameConfig.MERGE_SOURCE_PULL_DURATION, 0.0, 1.0)
 	var midpoint: Vector2 = presentation.midpoint
-	var source_scale := 1.0 - pull_t * 0.75
+	var result_level := int(presentation.level)
+	var source_level := maxi(1, result_level - 1)
+	var source_texture := presentation.get("source_texture") as Texture2D
+	if source_texture == null:
+		return
+	var source_scale := 1.0 - pull_t * 0.72
 	var source_alpha := 1.0 - pull_t
 	for source_position in [presentation.first_position, presentation.second_position]:
 		var position: Vector2 = source_position.lerp(midpoint, pull_t * 0.72)
-		GemVisualsType.draw_gem(self, presentation.level - 1, position, GameConfig.PIECE_RADIUS, source_alpha, source_scale)
-	var ring_alpha := 1.0 - t
-	var ring_color := GameConfig.gem_color(presentation.level).lightened(0.35)
-	ring_color.a = ring_alpha
-	draw_arc(midpoint, GameConfig.PIECE_RADIUS * (1.0 + t * 1.15), 0.0, TAU, 28, ring_color, 3.0)
-	# Ease the visual pulse only; presentation never affects live gem geometry.
-	var eased_t := 1.0 - pow(1.0 - t, 3.0)
-	var pulse := 1.0 + sin(eased_t * PI) * (GameConfig.MERGE_PULSE_SCALE - 1.0)
-	var glow := GameConfig.gem_color(presentation.level)
-	glow.a = (1.0 - t) * 0.35
-	draw_circle(midpoint, GameConfig.PIECE_RADIUS * pulse, glow)
+		var source_diameter := GameConfig.gem_collision_radius(source_level) * GameConfig.gem_perspective_scale_at(source_position.y) * 2.0
+		var texture_scale := source_diameter / maxf(source_texture.get_size().x, source_texture.get_size().y) * source_scale
+		var source_size := source_texture.get_size() * texture_scale
+		draw_texture_rect(source_texture, Rect2(position - source_size * 0.5, source_size), false, Color(1.0, 1.0, 1.0, source_alpha))
+	var glow := GameConfig.gem_color(result_level)
+	glow.a = (1.0 - t) * 0.20
+	draw_circle(midpoint, GameConfig.gem_collision_radius(result_level) * (0.85 + t * 0.35), glow)
+	# A chain-intermediate result can be consumed in the same resolver call. It
+	# still receives one visual frame through this presentation-only proxy.
+	var result_id := int(presentation.get("result_id", -1))
+	if result_id >= 0 and not _has_live_piece(result_id):
+		var result_texture := presentation.get("result_texture") as Texture2D
+		if result_texture == null:
+			return
+		var result_diameter := GameConfig.gem_collision_radius(result_level) * GameConfig.gem_perspective_scale_at(midpoint.y) * 2.0
+		var result_scale := result_diameter / maxf(result_texture.get_size().x, result_texture.get_size().y) * _merge_result_visual_scale(float(presentation.elapsed))
+		var result_size := result_texture.get_size() * result_scale
+		draw_texture_rect(result_texture, Rect2(midpoint - result_size * 0.5, result_size), false)

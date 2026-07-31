@@ -24,6 +24,8 @@ func _init() -> void:
 	_test_score_and_chain_runtime_path()
 	_test_danger_line_failure_rules()
 	_test_chain_presentation_cadence()
+	_test_win_stops_spawning()
+	_test_win_visual_sequence_and_overlay_isolation()
 	_test_overlay_reset()
 	_test_visual_level_mapping()
 	_test_visual_layout_bounds()
@@ -229,40 +231,43 @@ func _test_score_and_chain_runtime_path() -> void:
 func _test_win_stops_spawning() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	var first_left := _piece(300, 3, Vector2(260, 500))
-	var second_left := _piece(301, 3, Vector2(260 + first_left.radius * 2.0, 500))
-	var first_right := _piece(302, 3, Vector2(460, 500))
-	var second_right := _piece(303, 3, Vector2(460 + first_right.radius * 2.0, 500))
-	controller.pieces.append_array([first_left, second_left, first_right, second_right])
-	controller._process(0.0)
-	controller._process(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
-	_assert(controller.won, "Creating both target Sapphires must trigger win exactly once")
-	_assert(controller.win_qualified and not controller.win_presented, "Second Sapphire must qualify the win before its overlay is presented")
+	_complete_current_target(controller, 7, 300)
+	_complete_current_target(controller, 8, 301)
+	_assert(controller.won, "Collecting the sequential L7 then L8 targets must qualify win exactly once")
+	_assert(controller.win_qualified and not controller.win_presented, "Final L8 collection must qualify the win before its overlay is presented")
 	var count: int = controller.pieces.size()
 	for frame in range(120): controller._process(1.0 / 60.0)
 	_assert(controller.pieces.size() == count, "No launcher may spawn after win")
+	_assert(controller.result_overlay.present_count == 1, "Final result overlay must present exactly once")
 
 func _test_win_visual_sequence_and_overlay_isolation() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	var first_left := _piece(310, 3, Vector2(260, 500))
-	var second_left := _piece(311, 3, Vector2(260 + first_left.radius * 2.0, 500))
-	var first_right := _piece(312, 3, Vector2(460, 500))
-	var second_right := _piece(313, 3, Vector2(460 + first_right.radius * 2.0, 500))
-	controller.pieces.append_array([first_left, second_left, first_right, second_right])
-	controller._process(0.0)
-	controller._process(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
-	_assert(controller.pieces.filter(func(piece: GemPiece): return piece.level == 4).size() >= 2, "Both target Sapphires must exist in simulation immediately after confirmed merges")
-	_assert(not controller.win_presented, "Win overlay must wait for the final Sapphire merge presentation")
+	var witness := _piece(309, 2, Vector2(260, 620))
+	controller.pieces.append(witness)
 	controller.gem_sprite_layer.sync_gems(controller.pieces)
-	var sapphire_id := -1
-	for piece in controller.pieces:
-		if piece.level == 4: sapphire_id = piece.id
-	var sapphire_sprite: Sprite2D = controller.gem_sprite_layer._sprites.get(sapphire_id)
-	_assert(sapphire_sprite != null and sapphire_sprite.texture == AssetCatalogType.gem_texture(4) and sapphire_sprite.modulate == Color.WHITE, "Final Sapphire visual must be synchronized unchanged before result UI")
-	for frame in range(40): controller._process(1.0 / 60.0)
-	_assert(controller.win_presented and controller.result_overlay.visible_result, "Win overlay must present only after merge animation plus celebration hold")
-	_assert(sapphire_sprite.texture == AssetCatalogType.gem_texture(4) and sapphire_sprite.modulate == Color.WHITE, "Result backdrop must not change Sapphire texture or modulation")
+	var witness_sprite: Sprite2D = controller.gem_sprite_layer._sprites.get(witness.id)
+	_complete_current_target(controller, 7, 310)
+	_complete_current_target(controller, 8, 311)
+	var expected := ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed"]
+	_assert(controller.presentation_events_for_result(311) == expected, "Final L8 target must preserve the exact pre-overlay visual and cleanup order")
+	_assert(not controller.win_presented, "Win overlay must wait for final collection plus celebration hold")
+	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
+	_assert(controller.win_presented and controller.result_overlay.visible_result, "Win overlay must present only after final collection and celebration hold")
+	_assert(controller.presentation_events_for_result(311) == expected + ["win_overlay_started"], "Win trace must append one overlay start after final target confirmation")
+	_assert(witness_sprite != null and witness_sprite.texture == AssetCatalogType.gem_texture(2) and witness_sprite.modulate == Color.WHITE, "Result backdrop must not change any surviving gem texture or modulation")
+
+func _complete_current_target(controller, level: int, result_id: int) -> void:
+	var result := _piece(result_id, level, Vector2(360, 720))
+	controller.pieces.append(result)
+	var event: Dictionary = {"first_position": Vector2(320, 720), "second_position": Vector2(400, 720), "midpoint": Vector2(360, 720), "level": level, "depth": 0, "result_id": result_id}
+	var events: Array[Dictionary] = [event]
+	controller._apply_confirmed_merge_events(events)
+	controller._sync_gems_and_mark_visibility()
+	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
+	_assert(controller.collection_in_progress, "Target collection must begin only after one result frame and merge presentation")
+	_assert(not controller.pieces.any(func(piece: GemPiece): return piece.id == result_id), "Target physics body must be absent before collection travel")
+	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION + 0.01)
 
 func _test_danger_line_failure_rules() -> void:
 	var controller = GameScene.instantiate()
@@ -312,22 +317,20 @@ func _test_visual_level_mapping() -> void:
 		_assert(GemVisualsType.visual_style_name(level) == expected[level - 1], "Gem level %d must keep its assigned procedural visual style" % level)
 
 func _test_visual_layout_bounds() -> void:
-	_assert(GameConfig.HUD_RECT.position.x >= 0.0 and GameConfig.HUD_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x, "HUD must remain inside the design viewport")
-	_assert(GameConfig.HUD_RECT.position.y >= 0.0 and GameConfig.HUD_RECT.end.y <= GameConfig.BOARD_TOP, "HUD must stay above the gameplay board")
-	_assert(GameConfig.OVERLAY_RECT.position.x >= GameConfig.SAFE_VISUAL_MARGIN and GameConfig.OVERLAY_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x - GameConfig.SAFE_VISUAL_MARGIN, "Overlay must remain within visual safe margins")
-	_assert(GameConfig.OVERLAY_BUTTON_RECT.position.y >= GameConfig.OVERLAY_RECT.position.y and GameConfig.OVERLAY_BUTTON_RECT.end.y <= GameConfig.OVERLAY_RECT.end.y, "Overlay action must fit within its panel")
-	_assert(GameConfig.SCORE_PANEL_RECT.end.x <= GameConfig.NEXT_PREVIEW_RECT.position.x, "Reference HUD panels must leave room for the centered gem ladder")
-	_assert(GameConfig.SCORE_PANEL_RECT.size.y >= 120.0 and GameConfig.NEXT_PREVIEW_RECT.size.y >= 150.0, "Reference SCORE and NEXT panels must use the large supplied-art composition")
-	_assert(GameConfig.SETTINGS_BUTTON_RECT.position.y >= GameConfig.NEXT_PREVIEW_RECT.end.y, "Settings must not crowd SCORE, progression, or NEXT")
-	_assert(GameConfig.TARGET_PANEL_RECT.position.y > GameConfig.PROGRESSION_Y, "The single active target must remain visually separate from the progression strip")
-	var target_preview_rect := Rect2(GameConfig.TARGET_BODY_RECT.get_center() - GameConfig.TARGET_PREVIEW_BOUNDS * 0.5, GameConfig.TARGET_PREVIEW_BOUNDS)
-	_assert(GameConfig.TARGET_BODY_RECT.encloses(target_preview_rect), "Centered GOAL artwork must fit fully inside the supplied cream body")
-	_assert(GameConfig.TARGET_COLLECTION_DESTINATION.is_equal_approx(GameConfig.TARGET_BODY_RECT.get_center()), "Target collection must finish at the centered GOAL preview")
-	var next_preview_rect := Rect2(GameConfig.NEXT_PREVIEW_RECT.get_center() + Vector2(0.0, 19.0) - Vector2(38.0, 33.0), Vector2(76.0, 66.0))
-	_assert(GameConfig.NEXT_PREVIEW_RECT.encloses(next_preview_rect), "NEXT artwork contain box must stay inside the supplied panel")
-	_assert(GameConfig.SETTINGS_BUTTON_RECT.size.x >= 88.0 and GameConfig.SETTINGS_BUTTON_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x, "Supplied settings control must be large and on-screen")
-	_assert(is_equal_approx(GameConfig.RESTART_BUTTON_RECT.size.aspect(), AssetCatalogType.HUD_RESTART_BUTTON_REGION.size.aspect()), "Supplied RESTART artwork must retain its native aspect ratio")
-	_assert(AssetCatalogType.HUD_RESTART_ART.resource_path.ends_with("Generated image 3.png"), "Gameplay reset must use the supplied literal RESTART control, never a back arrow")
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var ui = controller.gameplay_ui
+	_assert(ui != null and ui.score_panel is Control and ui.next_panel is Control and ui.target_panel is Control, "Gameplay HUD must be a responsive Control hierarchy")
+	_assert(ui.score_panel.custom_minimum_size.x >= 180.0 and ui.next_panel.custom_minimum_size.y >= 190.0, "Supplied SCORE and NEXT panels must keep the large reference hierarchy")
+	_assert(ui.next_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED and ui.target_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "NEXT and target gems must use aspect-preserving contain scaling")
+	_assert(ui.progression_icons.all(func(icon: TextureRect): return icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED), "Every progression gem must use aspect-preserving contain scaling")
+	var settings_atlas := ui.settings_button.texture_normal as AtlasTexture
+	var restart_atlas := ui.restart_button.texture_normal as AtlasTexture
+	_assert(ui.settings_button.custom_minimum_size.x >= 88.0 and settings_atlas != null and settings_atlas.atlas == AssetCatalogType.HUD_BUTTON_SHEET, "Gameplay must expose one large supplied settings control")
+	_assert(not ui.pause_blocker.visible and ui.pause_panel.is_ancestor_of(ui.restart_button) and restart_atlas != null and restart_atlas.atlas == AssetCatalogType.HUD_RESTART_ART, "Supplied RESTART artwork must exist only inside the hidden pause popup")
+	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
+	_assert(controller_source.contains("GameplayHudLayerType") and not controller_source.contains("HudRendererType") and not controller_source.contains("RESTART_BUTTON_RECT.has_point"), "Production gameplay must use the Control HUD and have no direct Restart hit target")
+	controller.queue_free()
 
 func _test_portrait_board_bounds_and_scale() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:

@@ -8,10 +8,12 @@ var enabled := true
 var emitted_events: Array[String] = []
 var _last_played_at: Dictionary = {}
 var _players: Array[AudioStreamPlayer] = []
+var _stream_cache: Dictionary = {}
 var _clock := 0.0
 var _variation_index := 0
 
 func _ready() -> void:
+	_build_stream_cache()
 	for index in range(GameConfig.AUDIO_MAX_CONCURRENT_PLAYERS):
 		var player := AudioStreamPlayer.new()
 		player.bus = "Master"
@@ -41,25 +43,35 @@ func _play_crystal(event_name: String, intensity: float) -> void:
 	var available := _players.filter(func(candidate: AudioStreamPlayer) -> bool: return not candidate.playing)
 	var player: AudioStreamPlayer = available.front() if not available.is_empty() else _players[0]
 	var tone: Dictionary = GameConfig.AUDIO_TONES.get(event_name, GameConfig.AUDIO_TONES.button)
-	var stream := AudioStreamGenerator.new()
-	stream.mix_rate = GameConfig.AUDIO_SAMPLE_RATE
-	stream.buffer_length = 0.35
-	player.stream = stream
+	player.stream = _stream_cache.get(event_name, _stream_cache.get("button"))
 	player.volume_db = linear_to_db(float(tone.volume) * intensity)
-	player.play()
-	var playback := player.get_stream_playback() as AudioStreamGeneratorPlayback
-	if playback == null:
-		return
 	_variation_index += 1
 	var variation := 0.94 + float(_variation_index % 5) * 0.03
+	player.pitch_scale = variation
+	player.play()
+
+func cached_stream_count() -> int:
+	return _stream_cache.size()
+
+func _build_stream_cache() -> void:
+	if not _stream_cache.is_empty():
+		return
+	var seed := 1
+	for event_name in GameConfig.AUDIO_TONES.keys():
+		_stream_cache[event_name] = _build_crystal_stream(GameConfig.AUDIO_TONES[event_name], seed)
+		seed += 1
+
+func _build_crystal_stream(tone: Dictionary, seed: int) -> AudioStreamWAV:
 	var duration := float(tone.duration)
 	var frames := int(GameConfig.AUDIO_SAMPLE_RATE * duration)
-	var base := float(tone.frequency) * variation
+	var base := float(tone.frequency)
 	var brightness := float(tone.brightness)
 	var fall := float(tone.fall)
 	var phase_a := 0.0
 	var phase_b := 0.0
 	var phase_c := 0.0
+	var samples := PackedByteArray()
+	samples.resize(frames * 2)
 	for frame in range(frames):
 		var t := float(frame) / GameConfig.AUDIO_SAMPLE_RATE
 		var normalized := t / duration
@@ -69,7 +81,13 @@ func _play_crystal(event_name: String, intensity: float) -> void:
 		phase_b += TAU * base * 2.73 / GameConfig.AUDIO_SAMPLE_RATE
 		phase_c += TAU * base * 4.18 / GameConfig.AUDIO_SAMPLE_RATE
 		var body := sin(phase_a) * 0.58 + sin(phase_b) * (0.22 + brightness * 0.12) + sin(phase_c) * (0.07 + brightness * 0.11)
-		var deterministic_noise := sin(float(frame * 1664525 + _variation_index * 1013904223))
+		var deterministic_noise := sin(float(frame) * 1664525.0 + float(seed) * 1013904223.0)
 		var sparkle := deterministic_noise * brightness * exp(-normalized * 22.0) * 0.10
 		var sample := clampf((body + sparkle) * envelope * 0.40, -0.88, 0.88)
-		playback.push_frame(Vector2(sample, sample))
+		samples.encode_s16(frame * 2, int(round(sample * 32767.0)))
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = int(GameConfig.AUDIO_SAMPLE_RATE)
+	stream.stereo = false
+	stream.data = samples
+	return stream

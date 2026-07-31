@@ -17,7 +17,7 @@ func _init() -> void:
 	_test_unlimited_launcher_through_real_process_loop()
 	_test_missing_active_marker_recovers_without_cap()
 	_test_target_collection_during_shot_preserves_unlimited_flow()
-	_test_restart_hud_control()
+	_test_pause_settings_restart_preserves_unlimited_flow()
 	_test_sequential_target_completion()
 	if failures.is_empty():
 		print("LEVEL_1_FLOW_TESTS: PASS")
@@ -167,23 +167,44 @@ func _test_target_collection_during_shot_preserves_unlimited_flow() -> void:
 	controller.pieces.append(target_result)
 	var events: Array[Dictionary] = [{"level": 7, "depth": 0, "result_id": 9100}]
 	controller._apply_confirmed_merge_events(events)
+	controller._sync_gems_and_mark_visibility()
 	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
 	_assert(controller.collection_in_progress and controller.get_active_piece() == fired, "Target collection must pause without discarding the in-flight launcher marker")
-	controller._update_target_collection(0.60)
+	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION + 0.01)
 	controller._advance_launcher_lifecycle(GameConfig.LAUNCHER_HANDOFF_DELAY + 0.01)
 	controller._advance_launcher_lifecycle(GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.01)
 	controller._advance_launcher_lifecycle()
 	_assert(controller.get_active_piece() != null and controller.get_active_piece() != fired and controller.lifecycle_name() == "READY_TO_AIM", "Launcher generation must resume after first-target collection")
 	controller.queue_free()
 
-func _test_restart_hud_control() -> void:
+func _test_pause_settings_restart_preserves_unlimited_flow() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
+	var launcher_before_pointer = controller.get_active_piece()
 	controller.next_queue_index = 37
 	controller.launcher_handoff_elapsed = 99.0
+	controller.score = 1250
+	# The former gameplay-HUD restart rectangle is deliberately inert. Restart
+	# is available only inside the settings/pause popup.
 	controller._handle_pointer(GameConfig.RESTART_BUTTON_RECT.get_center(), true)
-	_assert(controller.next_queue_index == 1 and controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "Supplied restart icon must reset to one ready unlimited launcher")
+	controller._handle_pointer(GameConfig.RESTART_BUTTON_RECT.get_center(), false)
+	_assert(controller.next_queue_index == 37 and controller.score == 1250 and controller.get_active_piece() == launcher_before_pointer, "Gameplay input must not expose the obsolete restart hit region")
+
+	controller.gameplay_ui.settings_button.pressed.emit()
+	_assert(controller.gameplay_ui.is_pause_visible(), "Settings must open the input-blocking pause popup")
+	controller.gameplay_ui.restart_button.pressed.emit()
+	_assert(not controller.gameplay_ui.is_pause_visible(), "Pause-popup Restart must close the popup")
+	_assert(controller.next_queue_index == 1 and controller.score == 0 and controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "Pause-popup Restart must reset to one ready unlimited launcher")
 	_assert(is_zero_approx(controller.launcher_handoff_elapsed), "Restart must clear launcher handoff timing without restoring a cap")
+	for index in range(80):
+		var active = controller.get_active_piece()
+		_assert(active != null and [1, 2, 3, 4].has(active.level), "Pause-popup Restart must preserve unlimited configured launches (%d)" % (index + 1))
+		if active == null:
+			break
+		active.is_active_launcher = false
+		controller.active_piece_id = -1
+		controller.launcher_state = controller.LauncherState.SPAWNING_NEXT
+		controller._advance_launcher_lifecycle()
 	controller.queue_free()
 
 func _complete_target(controller, level: int, id: int) -> void:
@@ -192,22 +213,36 @@ func _complete_target(controller, level: int, id: int) -> void:
 	var events: Array[Dictionary] = []
 	events.append({"level": level, "depth": 0, "result_id": id})
 	controller._apply_confirmed_merge_events(events)
+	# A target cannot enter collection until its merge result has synchronized
+	# into the Sprite2D layer for at least one rendered frame.
+	controller._sync_gems_and_mark_visibility()
 	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
 	_assert(controller.collection_in_progress, "Confirmed target must begin collection only after merge presentation")
 	_assert(controller.pieces.filter(func(piece): return piece.id == id).is_empty(), "Collected target body must leave the live simulation before its fly-to-HUD animation")
-	controller._update_target_collection(0.60)
+	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION + 0.01)
+
+func _assert_event_order(controller, result_id: int, expected: Array[String]) -> void:
+	var actual: Array[String] = controller.presentation_events_for_result(result_id)
+	var previous_index := -1
+	for event_name in expected:
+		var event_index := actual.find(event_name, previous_index + 1)
+		_assert(event_index >= 0, "Result %d must trace %s (actual: %s)" % [result_id, event_name, str(actual)])
+		if event_index >= 0:
+			previous_index = event_index
 
 func _test_sequential_target_completion() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
 	var waiting_launcher = controller.get_active_piece()
 	_complete_target(controller, 7, 1001)
+	_assert_event_order(controller, 1001, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed"])
 	_assert(controller.target_index == 1 and controller.target_progress == 0 and not controller.win_qualified, "Collected L7 must advance to the L8 target without victory")
 	_assert(controller.get_active_piece() == waiting_launcher and controller.lifecycle_name() == "READY_TO_AIM", "First target collection must preserve the waiting unlimited launcher")
 	_complete_target(controller, 8, 1002)
 	_assert(controller.target_index == 2 and controller.win_qualified and not controller.win_presented, "Collected L8 must qualify only after collection animation")
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(controller.win_presented, "Win overlay must follow final collection completion")
+	_assert_event_order(controller, 1002, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed", "win_overlay_started"])
 	controller.restart()
 	_assert(controller.target_index == 0 and controller.target_progress == 0 and not controller.collection_in_progress, "Restart must restore target sequence safely")
 	controller.queue_free()

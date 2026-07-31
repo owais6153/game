@@ -7,6 +7,9 @@ var _sprites: Dictionary = {}
 var _shadows: Dictionary = {}
 var _piece_visual_roots: Dictionary = {}
 var _visual_containers: Dictionary = {}
+## Transient reward scale applied to the visual child only. The authoritative
+## root scale, GemPiece radius, rail contact, and merge eligibility never read it.
+var _presentation_scales: Dictionary = {}
 ## Last synchronized tier for each live piece. Appearance work is done once on
 ## creation/merge-tier change; the frame path only moves existing sprites.
 var _appearance_levels: Dictionary = {}
@@ -65,7 +68,7 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		piece_visual_root.z_index = GameConfig.gem_visual_z_index(piece.id, piece.position.y)
 		# The root already carries the single shared visual/physics scale. Keep
 		# this child at its calibrated base mapping to avoid double scaling.
-		visual.scale = Vector2.ONE
+		visual.scale = Vector2.ONE * float(_presentation_scales.get(piece.id, 1.0))
 		sprite.position = Vector2.ZERO
 		# Overlay state must never replace or dim a live gem texture. This layer
 		# owns the exact texture/modulate values for every sync.
@@ -89,6 +92,16 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 			_visual_containers.erase(id)
 			_appearance_levels.erase(id)
 			_shadows.erase(id)
+			_presentation_scales.erase(id)
+
+func set_presentation_scale(piece_id: int, multiplier: float) -> void:
+	_presentation_scales[piece_id] = clampf(multiplier, 0.70, 1.30)
+
+func clear_presentation_scale(piece_id: int) -> void:
+	_presentation_scales.erase(piece_id)
+
+func clear_presentation_scales() -> void:
+	_presentation_scales.clear()
 
 func clear() -> void:
 	for sprite in _sprites.values():
@@ -102,6 +115,7 @@ func clear() -> void:
 	_visual_containers.clear()
 	_appearance_levels.clear()
 	_shadows.clear()
+	_presentation_scales.clear()
 
 func shadow_bounds(piece_id: int) -> Rect2:
 	var shadow: Sprite2D = _shadows.get(piece_id)

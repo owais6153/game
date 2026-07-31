@@ -76,9 +76,21 @@ const COLLISION_TANGENTIAL_FRICTION := 0.18 # contact-only rolling resistance; a
 const MAX_PIECE_SPEED := 1200.0 # containment guard; preserves natural launch/collision speed
 const CONTACT_EPSILON := 0.20
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
-const MERGE_PRESENTATION_DURATION := 0.18 # shorter total presentation reduces dead time
-const MERGE_SOURCE_PULL_DURATION := 0.11 # source convergence remains visible but soft
-const MERGE_PULSE_SCALE := 1.18 # a compact bounce rather than an oversized pop
+## Presentation-only reward cadence. Physics, colliders, contact eligibility,
+## momentum, score values, and launcher handoff are intentionally unaffected.
+const MERGE_PRESENTATION_DURATION := 0.27
+const MERGE_SOURCE_PULL_DURATION := 0.08
+const MERGE_RESULT_START_SCALE := 0.82
+const MERGE_RESULT_POP_SCALE := 1.13
+const MERGE_RESULT_POP_DURATION := 0.15
+const MERGE_PULSE_SCALE := 1.13
+const SCORE_POPUP_DURATION := 0.62
+const SCORE_POPUP_RISE := 36.0
+const TARGET_COLLECTION_DURATION := 0.62
+const TARGET_COLLECTION_FADE_START := 0.68
+const TARGET_COLLECTION_POP_SCALE := 1.16
+const TARGET_PANEL_PULSE_DURATION := 0.22
+const PRESENTATION_EVENT_TRACE_LIMIT := 128
 const MERGE_MOMENTUM_TRANSFER := 0.35 # bounded average of source momentum
 const MERGE_MAX_SPAWN_SPEED := 260.0 # prevents an upgrade from shooting through a cluster
 const CHAIN_PRESENTATION_STAGGER := 0.05 # visual cadence only; merge logic remains immediate
@@ -136,8 +148,8 @@ const WALL_CONTACT_SOUND_THRESHOLD := 290.0
 const CONTACT_SOUND_COOLDOWN := 0.075
 const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN, "wall_contact": 0.11, "launch": 0.05, "merge_2": 0.04, "merge_3": 0.04,
-	"merge_4": 0.03, "merge_5": 0.03, "chain": 0.04, "win": 0.25,
-	"fail": 0.25, "button": 0.05,
+	"merge_4": 0.03, "merge_5": 0.03, "merge_6": 0.03, "merge_7": 0.03, "merge_8": 0.03, "chain": 0.04, "win": 0.25,
+	"target_collect": 0.16, "fail": 0.25, "button": 0.05,
 }
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.18, "brightness": 0.38, "fall": 0.78},
@@ -147,7 +159,11 @@ const AUDIO_TONES := {
 	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.27, "brightness": 0.68, "fall": 1.20},
 	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.29, "brightness": 0.76, "fall": 1.24},
 	"merge_5": {"frequency": 1318.0, "duration": 0.19, "volume": 0.31, "brightness": 0.88, "fall": 1.30},
+	"merge_6": {"frequency": 1480.0, "duration": 0.19, "volume": 0.31, "brightness": 0.90, "fall": 1.32},
+	"merge_7": {"frequency": 1661.0, "duration": 0.20, "volume": 0.32, "brightness": 0.92, "fall": 1.34},
+	"merge_8": {"frequency": 1760.0, "duration": 0.21, "volume": 0.33, "brightness": 0.94, "fall": 1.36},
 	"chain": {"frequency": 1568.0, "duration": 0.11, "volume": 0.18, "brightness": 0.92, "fall": 1.24},
+	"target_collect": {"frequency": 1760.0, "duration": 0.16, "volume": 0.25, "brightness": 0.94, "fall": 1.34},
 	"win": {"frequency": 1318.0, "duration": 0.30, "volume": 0.34, "brightness": 0.96, "fall": 1.55},
 	"fail": {"frequency": 523.0, "duration": 0.22, "volume": 0.18, "brightness": 0.33, "fall": 0.56},
 	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.10, "brightness": 0.55, "fall": 0.84},
@@ -156,6 +172,7 @@ const HAPTICS_BY_EVENT := {
 	"launch": {"duration_ms": 18, "amplitude": 0.22},
 	"merge": {"duration_ms": 30, "amplitude": 0.48},
 	"chain": {"duration_ms": 46, "amplitude": 0.72},
+	"target_collect": {"duration_ms": 52, "amplitude": 0.78},
 	"win": {"duration_ms": 90, "amplitude": 1.0},
 	"fail": {"duration_ms": 70, "amplitude": 0.82},
 }
