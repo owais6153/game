@@ -1,5 +1,17 @@
 # AI Knowledge Base
 
+## Final gameplay UI/reward guardrails v1
+
+- The production HUD is `GameplayHudLayer`, not `HudRenderer`. It may read only `hud_snapshot()`. Keep SCORE/NEXT/target/progression gem art on `STRETCH_KEEP_ASPECT_CENTERED`; never restore circular masks, independent-axis stretching, fixed immediate-draw panels, a gameplay Restart button, shot counts, target fractions, or S/V text controls.
+- The correct pause Restart is `assets/ui/Generated image 3.png` region `(321,1128,300,100)`. Available arrow assets are BACK, not restart. Settings remains the sole normal-HUD button and at least 88×88 design px.
+- Unlimited play is a production state-machine invariant. There is no `shot_limit`, `shots_left`, or decrementing count. Preserve the bounded 0.30 s active handoff, ready-state recovery, collection-during-shot ownership, and the regression that performs 80 additional launches after pause-popup Restart.
+- Never animate a `GemPiece`, live radius, perspective root, collider, rail, or physics coordinate for reward feel. Use only the `GemSpriteLayer` visual child or an effects-layer proxy.
+- Never travel a live target body toward the HUD. Erase it from `pieces`, danger state, merge registration, occupancy, and live sprite sync before starting the proxy. Preserve the exact final trace: merge confirmed → result created → first visible frame → merge presentation complete → target complete → physics body removed → collection start → collection complete → final confirmation → overlay start.
+- Fade target proxies only near arrival (`TARGET_COLLECTION_FADE_START = 0.68`). The next target appears after the first collection completes; final overlay appears only after final collection plus the hold.
+- Cache textures into presentation records and synthesize audio streams only during initialization. Do not add frame-time `load()`, image/alpha work, resource/sample creation, signal connection, or unbounded particles/nodes.
+- Score formatting is display-only. Do not alter `GameConfig.MERGE_SCORE_BY_RESULT_LEVEL` to make the animation look larger; suppress misleading zero popups instead.
+- Before changing this area, read `reports/GAMEPLAY_UI_FEEL_FINALIZATION_V1_REPORT.md` and run `GAMEPLAY_UI_FEEL_TESTS`, `LEVEL_1_FLOW_TESTS`, `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, and `MOTION_PROFILE`.
+
 ## Video-verified launcher deadlock guard
 
 - Never use `GemPiece.is_settled()` as the production condition for granting the next launch. A crowded moving body may never sleep. After release, use the bounded centralized handoff delay and demote the fired body without changing its physics.

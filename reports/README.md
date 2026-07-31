@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Gameplay UI, Animation, Reward Feel, and Pause/Settings Finalization v1](GAMEPLAY_UI_FEEL_FINALIZATION_V1_REPORT.md) — final responsive gameplay HUD, modal pause/restart, merge/score reward feedback, target collection cleanup/flight, exact final-win sequencing, unlimited-launch regression proof, APK provenance, and [render evidence](gameplay-ui-feel-finalization-v1/README.md).
+
 - [Video-Verified Unlimited Launcher + HUD v1](VIDEO_VERIFIED_UNLIMITED_LAUNCHER_HUD_V1_REPORT.md)
 
 - [Unlimited Launcher Runtime Proof v1](UNLIMITED_LAUNCHER_RUNTIME_PROOF_V1_REPORT.md)

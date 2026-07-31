@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Gameplay UI, Animation, Reward Feel, and Pause/Settings Finalization v1
+
+- File: `gameplay-ui-feel-finalization-v1.apk`
+- Path: `D:\Owais\game\build\android\gameplay-ui-feel-finalization-v1.apk`
+- Size: `100,772,764 bytes`
+- Modified: `2026-07-31 13:42:12 +05:00` (`2026-07-31T08:42:12Z`)
+- SHA-256: `420684CA1D975A434D421EF129FAB195E98FA511C6C2207CA71D64DD7A374090`
+- Exact gameplay source commit: `42c7b38085aa70bd422f35637b76758507acc7e9` (`feat: finalize gameplay UI and reward feel`); delivery tag: `gameplay-ui-feel-finalization-v1`.
+- Validation: Godot 4.6.3 parse/import passed; `GAMEPLAY_UI_FEEL_TESTS`, `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, `GEM18_CHAIN_TESTS`, and `MOTION_PROFILE` passed; ANGLE evidence capture passed. APK has 349 ZIP entries with manifest/dex/resources/arm64 Godot runtime present and zero `reports/` or `tools/` entries; `apksigner` verifies valid v2/v3 signatures.
+- Device status: `adb devices -l` did not return within the validation window. No install, device launch, listening/haptic check, or phone performance result is claimed.
+
 ## Video-Verified Unlimited Launcher + HUD v1
 
 - File: `video-verified-unlimited-launcher-hud-v1.apk`

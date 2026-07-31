@@ -46,3 +46,11 @@
 - Toggle `S` and `V`; confirm the change applies immediately and remains after Replay/Retry.
 - Verify collision sounds do not chatter in a crowded cluster.
 - Confirm game play remains unchanged when either feedback option is disabled.
+
+## Gameplay UI Feel Finalization v1 update
+
+- Exact gameplay source commit: `42c7b38085aa70bd422f35637b76758507acc7e9`; report: `GAMEPLAY_UI_FEEL_FINALIZATION_V1_REPORT.md`.
+- The original procedural crystal design remains, but all 15 short `AudioStreamWAV` resources are now generated once during `AudioFeedbackService._ready()` and reused. Event playback no longer creates an `AudioStreamGenerator`, samples, or another resource during merge/contact gameplay.
+- Confirmed L6, L7, and L8 results now route to their own rising merge tones. `target_collect` sound and haptic fire at the target-panel arrival pulse, after physics removal and proxy travel. Chain depth emits the chain haptic instead of duplicating merge plus chain haptics.
+- No gameplay sound/vibration text controls were restored. Feedback remains service-owned and cannot influence physics, score, target state, launcher availability, or outcomes.
+- Headless validation reports `cached_audio_streams=15`, zero gameplay resource loads after initialization, and zero persistent node delta. On-phone listening and haptic timing remain unverified because ADB enumeration did not return in this session.

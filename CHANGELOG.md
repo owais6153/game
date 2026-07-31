@@ -1,5 +1,13 @@
 # Changelog
 
+## Gameplay UI, Animation, Reward Feel, and Pause/Settings Finalization v1
+
+- Replaced the fixed immediate gameplay HUD with responsive supplied-art Controls for level, SCORE, progression, NEXT, one active target/progress display, and an 88×88 Settings control. Large scores compact safely and every gem preview uses aspect-preserving contain scaling.
+- Removed gameplay Restart completely; Settings now freezes the tree behind a full input blocker and exposes only Resume plus the correct supplied pause-only RESTART asset. The single reset path clears board, queue, targets, score, effects, proxies, danger state, overlay, and stale presentation IDs before restoring one ready unlimited launcher.
+- Added visual-child-only launch/spawn/merge easing, bounded ring/spark effects, local score feedback, cached audio streams, L6–L8 merge cues, and an arrival-aligned target sound/haptic. Physics roots, radii, colliders, and simulation motion never read presentation scale.
+- Reworked target completion into an atomic body removal followed by a 620 ms visual proxy flight with fade delayed until 68% travel. Final victory now follows the traced first-visible → merge-complete → cleanup → collection-complete → confirmation → overlay order exactly once.
+- Added comprehensive UI/sequence/responsive/performance regressions, 80 post-popup-restart unlimited launch cycles, real-render evidence, developer-artifact export exclusions, and a freshly signed/verified Android APK.
+
 ## Video-Verified Unlimited Launcher + HUD v1
 
 - Eliminated the permanent launcher deadlock caused by an unrelated merge overwriting `SHOT_IN_FLIGHT` while the fired body remained active.

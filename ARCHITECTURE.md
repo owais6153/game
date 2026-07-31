@@ -1,5 +1,16 @@
 # Architecture
 
+## Gameplay UI and reward-presentation boundary v1
+
+- `GameplayHudLayer` is the production layer-40 `CanvasLayer`. Its Control/container tree reads only `GameController.hud_snapshot()` and owns no queue, target, score, input-on-board, collision, or simulation rule. Supplied SCORE/NEXT skins retain their source aspect; stretchable target/pause/button skins use NinePatch regions; all gem icons use contained `TextureRect` children.
+- Settings is the only normal-HUD button. `GameController` owns the three one-time UI signal routes: pause freezes the scene tree after showing a full-screen blocker, Resume restores it, and pause-only Restart delegates to the sole complete `restart()` path.
+- `GameplayEffectsLayer` owns bounded, non-physical launch rings, merge impacts, score popups, and target-arrival effects. `GemSpriteLayer` exposes only a transient scale on each gem's `Visual` child; the perspective-mirroring root and `GemPiece.radius` remain authoritative and unchanged.
+- Confirmed merge `result_id` values pass through one exactly-once controller guard. Presentation records cache source/result textures at confirmation, so the frame path performs no resource loading, image analysis, or catalog lookup. Procedural sound streams are likewise generated once during `AudioFeedbackService._ready()` and reused.
+- A target result becomes presentation-only atomically: erase/consume the `GemPiece`, erase danger state, clear merge registration, trace `physics_body_removed`, then create a separate proxy. The proxy's completion advances L7→L8 or qualifies final victory. `ResultOverlayLayer` starts only after final collection and the post-collection hold.
+- `ScoreFormatter` is presentation-only; controller score remains the exact integer and still comes from the unchanged confirmed-event score table.
+- `HudRenderer` is retained only as a no-op compatibility type. Production does not instantiate or route input through it.
+- `reports/.gdignore` and the Android `tools/*` export exclusion keep test/evidence artifacts out of the runtime package.
+
 ## Video-verified bounded launcher handoff v1
 
 - `launcher_handoff_elapsed` separates launcher ownership from simulation motion. A released body keeps normal physics but loses launcher ownership after `GameConfig.LAUNCHER_HANDOFF_DELAY`; queue creation therefore has bounded latency without changing velocity, collision, or settling behavior.
