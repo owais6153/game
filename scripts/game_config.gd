@@ -92,7 +92,7 @@ const WIN_PRESENTATION_HOLD := 0.32
 ## HUD measurements are in the fixed 720-wide design space, sampled from the
 ## supplied portrait reference: large SCORE left, five-ring ladder centered,
 ## and large NEXT right.  They are presentation-only.
-const HUD_RECT := Rect2(24.0, 42.0, 672.0, 240.0)
+const HUD_RECT := Rect2(24.0, 42.0, 672.0, 266.0)
 const SCORE_PANEL_RECT := Rect2(38.0, 48.0, 174.0, 136.0)
 const NEXT_PREVIEW_RECT := Rect2(510.0, 48.0, 178.0, 158.0)
 const PROGRESSION_START_X := 252.0
@@ -100,10 +100,12 @@ const PROGRESSION_STEP_X := 56.0
 const PROGRESSION_Y := 111.0
 const PROGRESSION_SLOT_RADIUS := 23.0
 const PROGRESSION_PREVIEW_BOUNDS := Vector2(37.0, 37.0)
-const TARGET_PANEL_RECT := Rect2(238.0, 194.0, 244.0, 84.0)
-const TARGET_PREVIEW_BOUNDS := Vector2(38.0, 38.0)
-const RESTART_BUTTON_RECT := Rect2(566.0, 212.0, 66.0, 66.0)
-const SETTINGS_BUTTON_RECT := Rect2(642.0, 212.0, 66.0, 66.0)
+const TARGET_PANEL_RECT := Rect2(260.0, 188.0, 200.0, 112.0)
+const TARGET_HEADER_RECT := Rect2(274.0, 188.0, 172.0, 46.0)
+const TARGET_BODY_RECT := Rect2(260.0, 224.0, 200.0, 76.0)
+const TARGET_PREVIEW_BOUNDS := Vector2(42.0, 42.0)
+const RESTART_BUTTON_RECT := Rect2(516.0, 220.0, 110.0, 42.0)
+const SETTINGS_BUTTON_RECT := Rect2(634.0, 208.0, 76.0, 76.0)
 const TARGET_COLLECTION_DESTINATION := Vector2(360.0, 233.0)
 const OVERLAY_RECT := Rect2(76.0, 398.0, 568.0, 484.0)
 const SAFE_VISUAL_MARGIN := 24.0

@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Unlimited Launcher + HUD Final Repair v1
+
+- File: `unlimited-launcher-hud-final-repair-v1.apk`
+- Path: `D:\Owais\game\build\android\unlimited-launcher-hud-final-repair-v1.apk`
+- Size: `102,331,828 bytes`
+- Modified: `2026-07-31 08:23:44 +05:00`
+- SHA-256: `ED0215913CA8C4FB5B724EE395C3EC2466BBD0451FADDA3EF49192AC9E6BA83C`
+- Source baseline: `e530cbb` / `portrait-bottom-table-hud-repair-v1`; delivery tag: `unlimited-launcher-hud-final-repair-v1`.
+- Validation: Godot 4.6.3 headless import/parse; `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, `GEM18_CHAIN_TESTS`, and `MOTION_PROFILE` passed. The fresh APK is nonzero and its ZIP contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: no installation or launch attempted in this repair session.
+
 ## Portrait Bottom Table + HUD Repair v1
 
 - File: `portrait-bottom-table-hud-repair-v1.apk`

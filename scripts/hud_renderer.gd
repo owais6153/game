@@ -46,14 +46,14 @@ static func _draw_queue_preview(controller: CanvasItem, rect: Rect2, level: int)
 static func _draw_active_target(controller: CanvasItem, snapshot: Dictionary, font: Font) -> void:
 	# One card reads only the current snapshot target: L8 is not shown before
 	# the L7 collection flight has completed.
-	var rect := GameConfig.TARGET_PANEL_RECT
-	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, rect, AssetCatalogType.HUD_WHITE_PANEL_REGION)
-	controller.draw_string(font, rect.position + Vector2(18.0, 49.0), "GOAL", HORIZONTAL_ALIGNMENT_LEFT, 72.0, 18, Color("80532d"))
+	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, GameConfig.TARGET_BODY_RECT, AssetCatalogType.HUD_GOAL_BODY_REGION)
+	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, GameConfig.TARGET_HEADER_RECT, AssetCatalogType.HUD_GOAL_HEADER_REGION)
+	controller.draw_string(font, GameConfig.TARGET_HEADER_RECT.position + Vector2(12.0, 32.0), "GOAL", HORIZONTAL_ALIGNMENT_CENTER, GameConfig.TARGET_HEADER_RECT.size.x - 24.0, 19, Color.WHITE)
 	var entry := AssetCatalogType.gem_entry(int(snapshot.target_level))
-	_draw_contained_texture(controller, entry.texture, rect.get_center() + Vector2(66.0, 0.0), GameConfig.TARGET_PREVIEW_BOUNDS)
+	_draw_contained_texture(controller, entry.texture, GameConfig.TARGET_BODY_RECT.get_center() + Vector2(48.0, 3.0), GameConfig.TARGET_PREVIEW_BOUNDS)
 
 static func _draw_restart_button(controller: CanvasItem) -> void:
-	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, GameConfig.RESTART_BUTTON_RECT, AssetCatalogType.HUD_RESTART_BUTTON_REGION)
+	controller.draw_texture_rect_region(AssetCatalogType.HUD_REPLAY_ART, GameConfig.RESTART_BUTTON_RECT, AssetCatalogType.HUD_RESTART_BUTTON_REGION)
 
 static func _draw_settings_button(controller: CanvasItem) -> void:
 	controller.draw_texture_rect_region(AssetCatalogType.HUD_BUTTON_SHEET, GameConfig.SETTINGS_BUTTON_RECT, AssetCatalogType.HUD_SETTINGS_BUTTON_REGION)

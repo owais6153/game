@@ -114,22 +114,25 @@ func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
 		return
 	match launcher_state:
 		LauncherState.SHOT_IN_FLIGHT:
-			if all_pieces_settled():
-				var active := get_active_piece()
+			# A crowded board can keep unrelated pieces moving for a long time.
+			# Unlimited play must wait only for the launched gem, never for every
+			# existing board gem to become motionless.
+			var active := get_active_piece()
+			if active == null or active.is_settled():
 				if active != null:
 					active.is_active_launcher = false
-					active_piece_id = -1
+				active_piece_id = -1
 				launcher_state = LauncherState.RESOLVING
 				ready_delay_elapsed = 0.0
 		LauncherState.RESOLVING:
-			if all_pieces_settled() and not merge_service.has_pending_candidates() and merge_presentations.is_empty():
+			if not merge_service.has_pending_candidates() and merge_presentations.is_empty():
 				ready_delay_elapsed += delta
 				if ready_delay_elapsed >= GameConfig.NEXT_LAUNCHER_READY_DELAY:
 					launcher_state = LauncherState.SPAWNING_NEXT
 			else:
 				ready_delay_elapsed = 0.0
 		LauncherState.SPAWNING_NEXT:
-			if all_pieces_settled() and spawn_active_piece():
+			if spawn_active_piece():
 				launcher_state = LauncherState.READY_TO_AIM
 				chain_multiplier = 1
 				ready_delay_elapsed = 0.0

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unlimited Launcher + HUD Final Repair v1
+
+- Removed the global board-settled gate that could leave a live run without a launcher; next launches now wait only for the fired gem and merge/target presentation state.
+- Replaced the incorrect back arrow with supplied REPLAY artwork, enlarged settings, and rebuilt the GOAL display from matching supplied red-header and cream-body panel regions.
+
 ## Portrait Bottom Table + HUD Repair v1
 
 - Fixed expanded-portrait layout so the supplied table artwork, rails, collision bounds, launcher, drag clamp, danger line, and perspective interpolation move together to the screen bottom.

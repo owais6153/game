@@ -1,5 +1,10 @@
 # Architecture
 
+## Unlimited launcher readiness v1
+
+- `GameController._advance_launcher_lifecycle()` treats only the fired active gem as the readiness gate. Unrelated board motion cannot suppress the next launcher; pending merge and target-collection presentation remain the only intentional temporary blocks.
+- HUD restart renders the supplied `Generated image 4.png` REPLAY region and routes to the existing `restart()` method. GOAL is composed from supplied button-sheet header/body regions and displays one contained active target icon.
+
 ## Expanded portrait bottom anchor v1
 
 - `GameConfig.configure_portrait_bottom()` owns the sole runtime Y offset for expanded screens. `table_texture_center()`, `board_top()`, `board_bottom()`, `danger_line_y()`, `launch_y()`, and `table_interpolation()` all derive from it.

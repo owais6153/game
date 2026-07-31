@@ -1,5 +1,10 @@
 # AI Knowledge Base
 
+## Unlimited launcher non-blocking rule
+
+- Never gate `SPAWNING_NEXT` on `all_pieces_settled()`. Only the fired active gem, pending merge presentation, target collection, win, or danger failure may delay a launcher.
+- The restart affordance uses the supplied REPLAY source art, never the back-arrow asset. GOAL uses matching header/body supplied regions; the icon must remain contain-scaled inside its cream body.
+
 ## Bottom-anchored portrait guardrails
 
 - Never move table artwork independently on tall phones. Call `GameConfig.configure_portrait_bottom()` and use its accessors for every table, rail, launcher, danger, and perspective Y coordinate.

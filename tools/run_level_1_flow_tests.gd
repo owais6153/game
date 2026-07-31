@@ -12,6 +12,7 @@ func _init() -> void:
 	_test_level_sequence()
 	_test_unlimited_launcher()
 	_test_unlimited_launcher_after_restart()
+	_test_unlimited_launcher_while_board_moves()
 	_test_restart_hud_control()
 	_test_sequential_target_completion()
 	if failures.is_empty():
@@ -71,6 +72,21 @@ func _test_unlimited_launcher_after_restart() -> void:
 		controller.active_piece_id = -1
 		controller.launcher_state = controller.LauncherState.SPAWNING_NEXT
 		controller._advance_launcher_lifecycle()
+	controller.queue_free()
+
+func _test_unlimited_launcher_while_board_moves() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	var launched = controller.get_active_piece()
+	controller.launch_active_piece()
+	launched.velocity = Vector2.ZERO
+	var unrelated_moving_piece := _piece(9001, 1, Vector2(360.0, GameConfig.BOARD_TOP + 100.0))
+	unrelated_moving_piece.velocity = Vector2(180.0, 0.0)
+	controller.pieces.append(unrelated_moving_piece)
+	controller._advance_launcher_lifecycle()
+	controller._advance_launcher_lifecycle(GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.01)
+	controller._advance_launcher_lifecycle()
+	_assert(controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "A moving board gem must never block the next unlimited launcher")
 	controller.queue_free()
 
 func _test_restart_hud_control() -> void:
