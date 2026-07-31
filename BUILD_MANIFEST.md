@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Reference-Accurate HUD + Unlimited Level 1 v1
+
+- File: `reference-accurate-hud-unlimited-level1-v1.apk`
+- Path: `D:\Owais\game\build\android\reference-accurate-hud-unlimited-level1-v1.apk`
+- Size: `100,754,358 bytes`
+- Modified: `2026-07-31 07:33:18 +05:00`
+- SHA-256: `DB6298720500B43D70A8F80260C6AB4D9CCED4A6BE5973F4963379F58F503CA7`
+- Source baseline: `aebf1fb` / `reference-hud-unlimited-v1`; delivery tag: `reference-accurate-hud-unlimited-level1-v1`.
+- Validation: Godot 4.6.3 headless import/parse; `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, and `MOTION_PROFILE` passed. The fresh APK is nonzero and its ZIP contains `AndroidManifest.xml` and `classes.dex`.
+- Device status: `adb devices -l` did not complete in this environment; installation and launch were not attempted.
+
 ## Gameplay HUD + Sequential Targets v1
 
 - File: `gameplay-hud-sequential-targets-v1.apk`

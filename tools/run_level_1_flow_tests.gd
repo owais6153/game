@@ -11,6 +11,7 @@ func _init() -> void:
 	_test_catalog_identity()
 	_test_level_sequence()
 	_test_unlimited_launcher()
+	_test_unlimited_launcher_after_restart()
 	_test_sequential_target_completion()
 	if failures.is_empty():
 		print("LEVEL_1_FLOW_TESTS: PASS")
@@ -44,6 +45,7 @@ func _test_level_sequence() -> void:
 	_assert(int(sequence[0].tier) == 7 and int(sequence[0].quantity) == 1 and int(sequence[1].tier) == 8 and int(sequence[1].quantity) == 1, "Level 1 must require exactly L7 then L8")
 	_assert((config.spawnable_tiers as Array).size() == 4 and (config.launcher_sequence as Array).size() >= 8, "Level 1 needs controlled low-tier variety rather than a straight-line L1/L1 loop")
 	_assert(not config.has("shot_limit"), "Level 1 must not define a shot limit")
+	_assert(int(config.active_tier_max) == 8, "Level 1 must permit L7 then L8 objectives without direct high-tier launches")
 
 func _test_unlimited_launcher() -> void:
 	var controller = GameScene.instantiate()
@@ -51,6 +53,19 @@ func _test_unlimited_launcher() -> void:
 	for index in range(30):
 		var active = controller.get_active_piece()
 		_assert(active != null and [1, 2, 3, 4].has(active.level), "Unlimited queue must keep producing configured low tiers")
+		active.is_active_launcher = false
+		controller.active_piece_id = -1
+		controller.launcher_state = controller.LauncherState.SPAWNING_NEXT
+		controller._advance_launcher_lifecycle()
+	controller.queue_free()
+
+func _test_unlimited_launcher_after_restart() -> void:
+	var controller = GameScene.instantiate()
+	controller._ready()
+	controller.restart()
+	for index in range(60):
+		var active = controller.get_active_piece()
+		_assert(active != null and [1, 2, 3, 4].has(active.level), "Restart must not restore a hidden finite launch limit")
 		active.is_active_launcher = false
 		controller.active_piece_id = -1
 		controller.launcher_state = controller.LauncherState.SPAWNING_NEXT

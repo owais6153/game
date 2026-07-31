@@ -85,13 +85,21 @@ const OVERLAY_FADE_DURATION := 0.18
 const RESULT_BACKDROP_OPACITY := 0.48
 const WIN_PRESENTATION_HOLD := 0.32
 ## Rendering-only layout values. These never feed simulation or collision geometry.
-const HUD_RECT := Rect2(20.0, 20.0, 680.0, 112.0)
-const SCORE_PANEL_RECT := Rect2(40.0, 28.0, 150.0, 72.0)
-const NEXT_PREVIEW_RECT := Rect2(530.0, 28.0, 150.0, 72.0)
-const TARGET_COLLECTION_DESTINATION := Vector2(456.0, 58.0)
-const PROGRESSION_START_X := 448.0
-const PROGRESSION_STEP_X := 27.0
-const PROGRESSION_Y := 54.0
+## HUD measurements are in the fixed 720-wide design space, sampled from the
+## supplied portrait reference: large SCORE left, five-ring ladder centered,
+## and large NEXT right.  They are presentation-only.
+const HUD_RECT := Rect2(24.0, 42.0, 672.0, 240.0)
+const SCORE_PANEL_RECT := Rect2(38.0, 48.0, 174.0, 136.0)
+const NEXT_PREVIEW_RECT := Rect2(510.0, 48.0, 178.0, 158.0)
+const PROGRESSION_START_X := 252.0
+const PROGRESSION_STEP_X := 56.0
+const PROGRESSION_Y := 111.0
+const PROGRESSION_SLOT_RADIUS := 23.0
+const PROGRESSION_PREVIEW_BOUNDS := Vector2(37.0, 37.0)
+const TARGET_PANEL_RECT := Rect2(258.0, 198.0, 204.0, 70.0)
+const TARGET_PREVIEW_BOUNDS := Vector2(50.0, 50.0)
+const SETTINGS_BUTTON_RECT := Rect2(650.0, 216.0, 48.0, 48.0)
+const TARGET_COLLECTION_DESTINATION := Vector2(360.0, 233.0)
 const OVERLAY_RECT := Rect2(76.0, 398.0, 568.0, 484.0)
 const SAFE_VISUAL_MARGIN := 24.0
 const TARGET_LEVEL := 5

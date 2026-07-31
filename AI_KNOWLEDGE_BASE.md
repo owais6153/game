@@ -1,5 +1,12 @@
 # AI Knowledge Base
 
+## Reference HUD / unlimited Level 1 guardrails
+
+- Keep HUD gem previews on `HudRenderer._draw_contained_texture()`; never square-stretch or circular-mask a supplied gem texture.
+- The visible objective is one active supplied-art GOAL card. Do not reintroduce target fractions, shot counters, or a second future-target card.
+- `LevelConfig.level_1()` has no `shot_limit`. Launcher generation must remain cyclic indefinitely, including after `GameController.restart()`, until danger failure or final target qualification.
+- With `stretch/aspect="expand"`, cover the current viewport with the supplied background using uniform scale. Never compensate by moving the table or changing gameplay coordinates.
+
 ## HUD and sequential target rules
 
 - Never add a parallel gem icon/name mapping; use `AssetCatalog.gem_entry` everywhere.

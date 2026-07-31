@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** Reference-Accurate HUD + Unlimited Level 1 v1. SCORE, five-ring progression, NEXT, one active GOAL, and settings use direct approved sheet regions; gem previews use aspect-preserving contain scaling. Level 1 remains exactly L7 then L8 with the controlled L1-L4 mixed bag and unlimited launches before and after restart. Background cover fills 720x1600, 1080x1920, and 1080x2400 without moving table or physics coordinates. See `reports/REFERENCE_ACCURATE_HUD_UNLIMITED_LEVEL1_V1_REPORT.md`.
+
 **Current milestone:** Reference HUD + Unlimited Launches v1. The visible HUD matches the supplied reference composition: SCORE left, gem ladder center, NEXT right; objective counters and Restart/S/V controls are not drawn there. Launches are unlimited—only danger overflow or completing the two sequential objectives ends a run. Expanded portrait aspect handling removes the prior black bars. Table, rails, perspective scaling, colliders, motion, and contact merging are unchanged. See `reports/REFERENCE_HUD_UNLIMITED_V1_REPORT.md`.
 
 **Current delivery:** `restored-working-table-rails-v1.apk` restores the historically proven `new-table-shadow-contact-fix-v1` table-interpolated side containment and launcher clamp. Its source rail geometry is translated exactly `+116px` in Y to the retained bottom-aligned table. The later perpendicular slanted-line resolver and its competing launcher limit system are removed. See `reports/RESTORED_WORKING_TABLE_RAILS_V1_REPORT.md`.

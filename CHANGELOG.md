@@ -1,5 +1,12 @@
 # Changelog
 
+## Reference-Accurate HUD + Unlimited Level 1 v1
+
+- Enlarged and repositioned supplied SCORE/NEXT artwork to the reference composition; score typography now has matching visual prominence.
+- Added supplied-art settings and a single active GOAL card. The L7/L8 objective icon changes only after collection completes; visible `1/2`, shot, Restart, and S/V gameplay controls remain absent.
+- Added aspect-preserving contain scaling for HUD gems and cover scaling for expanded portrait backgrounds, preventing distorted/clipped previews and black bars.
+- Added regression coverage for unlimited post-restart launcher generation and portrait cover at 720x1600, 1080x1920, and 1080x2400.
+
 ## Reference HUD + Unlimited Launches v1
 
 - Removed target-count, restart, and feedback controls from the gameplay HUD; it now shows only the reference SCORE, progression, and NEXT composition.

@@ -1,5 +1,11 @@
 # Architecture
 
+## Reference-accurate HUD + portrait fill v1
+
+- `HudRenderer` still consumes only `GameController.hud_snapshot()`. It draws supplied SCORE, NEXT, white GOAL, and settings regions from `AssetCatalog.HUD_BUTTON_SHEET`; it has no launcher, target, or input authority.
+- `_draw_contained_texture()` is the one HUD preview path. It computes `min(bounds.x/source.x, bounds.y/source.y)`, so supplied gem artwork remains fully visible at its native aspect ratio in NEXT, progression, and the single active target card.
+- `GameController._refresh_background_fill()` covers the expanded viewport with the supplied background at a uniform scale. It is presentation-only: the table sprite, GameConfig board coordinates, rails, collision, and motion are not changed.
+
 ## HUD and sequential targets v1
 
 - `AssetCatalog.gem_entry(tier)` is the sole presentation identity source for IDs, names, textures, and calibration references.

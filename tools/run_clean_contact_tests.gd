@@ -28,6 +28,7 @@ func _init() -> void:
 	_test_visual_level_mapping()
 	_test_visual_layout_bounds()
 	_test_portrait_board_bounds_and_scale()
+	_test_expanded_portrait_background_cover()
 	_test_merge_momentum_is_bounded_and_contained()
 	_test_inset_table_and_viewport_safety()
 	_test_asset_mapping_and_clean_diamond()
@@ -315,6 +316,9 @@ func _test_visual_layout_bounds() -> void:
 	_assert(GameConfig.OVERLAY_RECT.position.x >= GameConfig.SAFE_VISUAL_MARGIN and GameConfig.OVERLAY_RECT.end.x <= GameConfig.VIEWPORT_SIZE.x - GameConfig.SAFE_VISUAL_MARGIN, "Overlay must remain within visual safe margins")
 	_assert(GameConfig.OVERLAY_BUTTON_RECT.position.y >= GameConfig.OVERLAY_RECT.position.y and GameConfig.OVERLAY_BUTTON_RECT.end.y <= GameConfig.OVERLAY_RECT.end.y, "Overlay action must fit within its panel")
 	_assert(GameConfig.SCORE_PANEL_RECT.end.x <= GameConfig.NEXT_PREVIEW_RECT.position.x, "Reference HUD panels must leave room for the centered gem ladder")
+	_assert(GameConfig.SCORE_PANEL_RECT.size.y >= 120.0 and GameConfig.NEXT_PREVIEW_RECT.size.y >= 150.0, "Reference SCORE and NEXT panels must use the large supplied-art composition")
+	_assert(GameConfig.SETTINGS_BUTTON_RECT.position.y >= GameConfig.NEXT_PREVIEW_RECT.end.y, "Settings must not crowd SCORE, progression, or NEXT")
+	_assert(GameConfig.TARGET_PANEL_RECT.position.y > GameConfig.PROGRESSION_Y, "The single active target must remain visually separate from the progression strip")
 
 func _test_portrait_board_bounds_and_scale() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:
@@ -355,6 +359,13 @@ func _test_hud_layout_and_pointer_safety() -> void:
 		_assert(GameConfig.HUD_RECT.end.x * scale <= portrait_size.x and GameConfig.HUD_RECT.end.y * scale <= GameConfig.BOARD_TOP * scale, "HUD must stay in safe bounds for representative portrait sizes")
 		_assert(GameConfig.SCORE_PANEL_RECT.end.x <= GameConfig.NEXT_PREVIEW_RECT.position.x, "Reference HUD composition must preserve a clear central ladder area")
 	_assert(not GameConfig.HUD_RECT.intersects(Rect2(GameConfig.BOARD_LEFT, GameConfig.BOARD_TOP, GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT, GameConfig.BOARD_BOTTOM - GameConfig.BOARD_TOP)), "HUD/progression drawing must not intercept board drag space")
+
+func _test_expanded_portrait_background_cover() -> void:
+	var source_size := AssetCatalogType.TROPICAL_BACKGROUND.get_size()
+	for portrait_size in [Vector2(720, 1600), Vector2(1080, 1920), Vector2(1080, 2400)]:
+		var cover_scale := maxf(portrait_size.x / source_size.x, portrait_size.y / source_size.y)
+		var covered_size := source_size * cover_scale
+		_assert(covered_size.x >= portrait_size.x and covered_size.y >= portrait_size.y, "Aspect-preserving background cover must leave no black portrait bars")
 
 func _test_sound_and_haptics_feedback_routing() -> void:
 	var controller = GameScene.instantiate()

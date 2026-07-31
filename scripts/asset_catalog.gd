@@ -16,6 +16,9 @@ const HUD_BUTTON_SHEET: Texture2D = preload("res://assets/buttons/Generated imag
 const HUD_SCORE_PANEL_REGION := Rect2(632.0, 358.0, 360.0, 232.0)
 const HUD_NEXT_PANEL_REGION := Rect2(632.0, 610.0, 360.0, 400.0)
 const HUD_WHITE_PANEL_REGION := Rect2(38.0, 620.0, 550.0, 190.0)
+## The teal cog is the only gameplay-HUD control. Its source remains the
+## supplied button sheet; no procedural control artwork is introduced.
+const HUD_SETTINGS_BUTTON_REGION := Rect2(276.0, 832.0, 180.0, 180.0)
 
 ## All gameplay textures are preloaded once. `gem_texture()` is called from the
 ## per-frame sprite synchronization path, so it must be a dictionary lookup,

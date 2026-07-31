@@ -34,6 +34,7 @@ var win_hold_elapsed := 0.0
 var failed := false
 var collection_in_progress := false
 var target_collection: Dictionary = {}
+var background_sprite: Sprite2D
 var ready_delay_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
@@ -58,6 +59,10 @@ var launcher_state: LauncherState = LauncherState.SPAWNING_NEXT
 func _ready() -> void:
 	_configure_level_1()
 	_setup_asset_presentation()
+	_refresh_background_fill()
+	var viewport := get_viewport()
+	if viewport != null:
+		viewport.size_changed.connect(_refresh_background_fill)
 	audio_feedback = AudioFeedbackServiceType.new()
 	haptics_feedback = HapticsServiceType.new()
 	add_child(audio_feedback)
@@ -255,8 +260,7 @@ func restart() -> void:
 func _setup_asset_presentation() -> void:
 	var background := Sprite2D.new()
 	background.texture = AssetCatalogType.TROPICAL_BACKGROUND
-	background.position = GameConfig.VIEWPORT_SIZE * 0.5
-	background.scale = Vector2(GameConfig.VIEWPORT_SIZE.x / background.texture.get_size().x, GameConfig.VIEWPORT_SIZE.y / background.texture.get_size().y)
+	background_sprite = background
 	background.z_index = -20
 	add_child(background)
 	var table := Sprite2D.new()
@@ -273,6 +277,18 @@ func _setup_asset_presentation() -> void:
 	add_child(overlay_canvas)
 	result_overlay = ResultOverlayLayerType.new()
 	overlay_canvas.add_child(result_overlay)
+
+func _refresh_background_fill() -> void:
+	if background_sprite == null or background_sprite.texture == null:
+		return
+	# `expand` exposes additional portrait canvas height. Cover it with the
+	# supplied background while preserving image proportions; table and
+	# simulation coordinates remain in their fixed design space.
+	var viewport_size := get_viewport_rect().size if is_inside_tree() else GameConfig.VIEWPORT_SIZE
+	var source_size := background_sprite.texture.get_size()
+	var cover_scale := maxf(viewport_size.x / source_size.x, viewport_size.y / source_size.y)
+	background_sprite.position = viewport_size * 0.5
+	background_sprite.scale = Vector2.ONE * cover_scale
 
 func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 	var resolution_multiplier := 1
