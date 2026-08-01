@@ -86,7 +86,7 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 		_assert(hud.target_icon.texture == AssetCatalogType.gem_texture(tier), "Target tier %d must map through AssetCatalog" % tier)
 		_assert(hud.target_name_label.text == AssetCatalogType.gem_name(tier).to_upper(), "Target tier %d name must map through AssetCatalog" % tier)
 	hud.update_snapshot(_snapshot(0, 2, 3, 7, 2, 4, 0, 2, false, false, 4))
-	_assert(hud.target_status_label.text == "2 / 4", "Target progress must be explicit and numeric")
+	_assert(hud.target_status_label.text == "PROGRESS  2 / 4", "Target progress must be explicit, labeled, and numeric")
 	hud.update_snapshot(_snapshot(0, 2, 3, 7, 2, 4, 0, 2, true, false, 4))
 	_assert(hud.target_status_label.text == "3 / 4   ARRIVING", "Target travel must have an explicit arrival state")
 	await _dispose_viewport(fixture.viewport)
@@ -102,6 +102,7 @@ func _test_score_fit_and_state_updates() -> void:
 		_assert(hud.score_label.text == ScoreFormatterType.format(score), "HUD must display the shared score format for %s" % str(score))
 		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Score %s must fit without clipping" % str(score))
 		_assert(hud.score_panel.get_global_rect().encloses(hud.score_label.get_global_rect()), "Score %s must remain inside its responsive card" % str(score))
+		_assert(hud.score_label.get_global_rect().end.y <= hud.score_panel.get_global_rect().end.y - 14.0, "Score %s must retain visible bottom breathing room" % str(score))
 	hud.update_snapshot(_snapshot(125500, 2, 4, 7, 0, 1, 0, 2, false, false, 4))
 	var texture_before := hud.next_icon.texture
 	hud.update_snapshot(_snapshot(125500, 2, 3, 8, 0, 1, 1, 2, false, false, 4))
@@ -169,6 +170,11 @@ func _test_responsive_layouts() -> void:
 		_assert(not (metrics.progression as Rect2).intersects(metrics.next), "Merge path and NEXT must not overlap at %s" % str(viewport_size))
 		_assert(not (metrics.level as Rect2).intersects(metrics.target), "Level and target must not overlap at %s" % str(viewport_size))
 		_assert(not (metrics.target as Rect2).intersects(metrics.settings), "Target and Settings must not overlap at %s" % str(viewport_size))
+		_assert((metrics.next as Rect2).grow(-16.0).encloses(hud.next_icon.get_global_rect()), "NEXT gem must remain visibly inset inside its card at %s" % str(viewport_size))
+		_assert((metrics.target as Rect2).grow(-8.0).encloses(hud.target_icon.get_global_rect()), "Target gem must remain visibly inset inside its panel at %s (panel=%s icon=%s)" % [str(viewport_size), str(metrics.target), str(hud.target_icon.get_global_rect())])
+		var objective_center_y := (metrics.target as Rect2).get_center().y
+		_assert(absf((metrics.level as Rect2).get_center().y - objective_center_y) <= 2.0, "Level badge must align with the target at %s" % str(viewport_size))
+		_assert(absf((metrics.settings as Rect2).get_center().y - objective_center_y) <= 2.0, "Settings button must align with the target at %s" % str(viewport_size))
 		var minimum_physical_touch := 64.0 if viewport_size.x < 720 else 88.0
 		_assert((metrics.settings as Rect2).size.x >= minimum_physical_touch and (metrics.settings as Rect2).size.y >= minimum_physical_touch, "Settings touch target must remain usable at %s" % str(viewport_size))
 		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Maximum score must fit at %s" % str(viewport_size))
@@ -187,7 +193,7 @@ func _test_safe_areas() -> void:
 	await process_frame
 	var metrics := hud.layout_metrics()
 	_assert((metrics.score as Rect2).position.y >= insets.y + UiDesignSystemType.SAFE_INSET_PADDING - 1.0, "Top HUD must clear a simulated notch")
-	_assert((metrics.settings as Rect2).end.x <= 720.0 - insets.z - UiDesignSystemType.SAFE_INSET_PADDING + 1.0, "Settings must clear the right safe inset")
+	_assert((metrics.settings as Rect2).end.x <= 720.0 - insets.z - UiDesignSystemType.SAFE_INSET_PADDING + 1.0, "Settings must clear the right safe inset (settings=%s)" % str(metrics.settings))
 	var safe_rect := Rect2(Vector2(insets.x + 10.0, insets.y + 10.0), Vector2(720.0 - insets.x - insets.z - 20.0, 1600.0 - insets.y - insets.w - 20.0))
 	_assert(safe_rect.encloses(metrics.pause), "Pause must fit completely inside a notched device safe area")
 	_assert((metrics.pause as Rect2).get_center().distance_to(safe_rect.get_center()) <= 2.0, "Pause must center within the safe area, not the obstructed screen")

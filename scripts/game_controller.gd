@@ -774,7 +774,10 @@ func _draw() -> void:
 	# The supplied artwork is drawn by Sprite2D nodes. This dynamic line is kept
 	# above the clean table art so it always shares the authoritative rail bounds.
 	var danger_y := GameConfig.danger_line_y()
-	draw_dashed_line(Vector2(GameConfig.table_left_at(danger_y) + 8.0, danger_y), Vector2(GameConfig.table_right_at(danger_y) - 8.0, danger_y), Color("f6bb42"), 3.0, 12.0)
+	var danger_start := Vector2(GameConfig.table_left_at(danger_y) + 8.0, danger_y)
+	var danger_end := Vector2(GameConfig.table_right_at(danger_y) - 8.0, danger_y)
+	draw_dashed_line(danger_start, danger_end, Color(0.26, 0.12, 0.07, 0.28), 7.0, 11.0)
+	draw_dashed_line(danger_start, danger_end, Color("e85f52"), 3.5, 11.0)
 	# Draw the non-physical source ghosts first. The new simulated gem is then
 	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
 	for presentation in merge_presentations:

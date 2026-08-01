@@ -17,6 +17,7 @@ const COLOR_GOLD := Color("f4ae32")
 const COLOR_GOLD_LIGHT := Color("ffd46d")
 const COLOR_TEXT := Color("5f3923")
 const COLOR_TEXT_MUTED := Color("986650")
+const COLOR_TRACK := Color("cbb89b")
 const COLOR_DISABLED := Color("b9afa1")
 const COLOR_OVERLAY := Color(0.025, 0.04, 0.06, 0.52)
 
@@ -87,12 +88,32 @@ static func panel_style() -> StyleBoxFlat:
 	return _rounded_style(COLOR_CREAM, Color("e9c88a"), PANEL_BORDER_WIDTH, PANEL_CORNER_RADIUS, 8, Color(0.18, 0.10, 0.04, 0.22))
 
 
+static func hud_content_style() -> StyleBoxFlat:
+	return _rounded_style(Color("fffdf7"), Color("e3c27b"), 2, 22, 3, Color(0.22, 0.12, 0.04, 0.16))
+
+
+static func progression_panel_style() -> StyleBoxFlat:
+	var style := _rounded_style(Color(1.0, 0.976, 0.91, 0.96), Color("e5b74f"), 2, 22, 5, Color(0.10, 0.20, 0.22, 0.22))
+	style.content_margin_left = 9.0
+	style.content_margin_top = 8.0
+	style.content_margin_right = 9.0
+	style.content_margin_bottom = 9.0
+	return style
+
+
+static func level_badge_style() -> StyleBoxFlat:
+	var style := _rounded_style(COLOR_CORAL, COLOR_GOLD_LIGHT, 3, 22, 5, Color(0.24, 0.10, 0.04, 0.22))
+	style.content_margin_left = 14.0
+	style.content_margin_right = 14.0
+	return style
+
+
 static func progression_style(border: Color, border_width: int, background: Color = COLOR_CREAM) -> StyleBoxFlat:
 	return _rounded_style(background, border, border_width, 26, 4, Color(0.24, 0.12, 0.03, 0.20))
 
 
 static func progress_background_style() -> StyleBoxFlat:
-	return _rounded_style(COLOR_CREAM_DEEP, Color(0, 0, 0, 0), 0, 6, 0, Color.TRANSPARENT)
+	return _rounded_style(COLOR_TRACK, Color("a98d68"), 1, 6, 0, Color.TRANSPARENT)
 
 
 static func progress_fill_style() -> StyleBoxFlat:
