@@ -1,5 +1,13 @@
 # Architecture
 
+## Production UI polish v4
+
+- `HudRows/MainRow` is now a `CenterContainer` dedicated to the 600 x 138 MERGE PATH card. `ScoreNextRow` is a separate responsive `HBoxContainer` below it, with equal 122 x 132 SCORE/NEXT controls separated by an expanding spacer. `ObjectiveRow` remains LEVEL/spacer/Settings; `TableTargetAnchor` remains independent and table-adjacent.
+- The eight progression slots are 58 x 58 `MarginContainer` nodes containing aspect-preserved `TextureRect`s. They use `AssetCatalog.gem_texture(tier)` exactly like table sprites and have no circular `PanelContainer`, mask, alternate array, or runtime load path.
+- Pause and result composition share `UiDesignSystem.simple_popup_panel_style()`. Pause is a 420 x 408 `PanelContainer`; Win/Fail share a 440 x 500 `PanelContainer`. Each modal remains safe-area centered, input-blocking, duplicate-guarded, tweened, and state-driven.
+- `GameConfig.configure_viewport()` owns both portrait-bottom Y offset and non-negative horizontal table-centering offset. `table_center_x()`, `table_texture_center()`, and rail interpolation consume that shared X value. `GameController` shifts live pieces, merge/collection records, debug contacts, and `GameplayEffectsLayer` by the same vector on resize.
+- UI layout remains outside the table transform. The horizontal offset changes only coordinate placement on canvases wider than the 720 design width; it does not change table width, perspective, rail shape, radii, collider scaling, velocity, merge rules, scoring, targets, or timing.
+
 ## Production UI simplification v3
 
 - `MainRow` is a 652 design-pixel minimum responsive HBox: equal 122 x 122 SCORE/NEXT controls surround a 396 x 122 eight-gem merge panel. SCORE, NEXT, TARGET, and LEVEL use the same native `PanelContainer` coral badge helper; dynamic boxes use `simple_hud_panel_style()` and no decorative bitmap headers.

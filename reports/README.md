@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Production UI Polish v4](PRODUCTION_UI_POLISH_V4_REPORT.md) - original gem silhouettes across gameplay/UI, enlarged eight-gem path, simplified Pause/Win/Fail cards, shared wide-screen visual/physics centering, 36-image evidence, full regression pass, and verified APK.
+
 - [Production UI Simplification v3](PRODUCTION_UI_SIMPLIFICATION_V3_REPORT.md) - unified badge labels, simple panels, full eight-gem merge path, table-adjacent gem-only target, six-resolution evidence, and verified APK.
 
 - [Production UI Corrective Pass v2](PRODUCTION_UI_CORRECTIVE_PASS_V2_REPORT.md) - rendered correction of the reported HUD defects, six-resolution/notch evidence, complete regression pass, and verified fresh APK.

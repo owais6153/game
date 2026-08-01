@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Production UI Polish v4
+
+- File: `production-ui-finalization-v1.apk` (freshly replaced at the user-requested canonical delivery path)
+- Path: `D:\Owais\game\build\android\production-ui-finalization-v1.apk`
+- Size: `100,789,757 bytes`
+- Modified: `2026-08-01 10:45:31 +05:00`
+- SHA-256: `B771310C4A1B829AD6AC740663353A61C3EF68AFAD34FDDDD70DD063C00E0266`
+- Package: `com.owais.gemmergerebuild`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
+- Exact source commit: `8bbc4b2ae7f3259defd740e033e053d46dd8a9df` (`feat: finalize production gameplay UI`); delivery tag: `production-ui-polish-v4`.
+- Export: fresh Godot 4.6.3 `--export-debug Android`; this is an installable signed validation build, not a store-release signing claim.
+- Validation: 355 ZIP entries; manifest, primary dex, and arm64 Godot runtime present; zero `reports/` or `tools/` entries. `apksigner` verifies v2/v3 signatures with one RSA-2048 signer.
+- Runtime/UI validation: all six regression/profile suites passed; 36 exact-resolution/state ANGLE captures passed, including 1000 x 1280 wide centering.
+
 ## Production UI Simplification v3
 
 - File: `production-ui-simplification-v3.apk`

@@ -1,5 +1,13 @@
 # Art Direction
 
+## Production UI polish v4
+
+MERGE PATH is the first visual read and owns the full top width. Its eight gems must retain their individual source silhouettes; do not place them inside decorative circles that can make them look like different assets. Gold connectors remain secondary, and current-tier emphasis is a restrained scale/modulation change only.
+
+SCORE and NEXT sit beneath the path as small matching cream cards with coral labels. Pause, Win, and Fail use the same quiet cream surface, gold edge, short shadow, coral headings/actions, teal score text, and generous margins. The simpler modal boxes intentionally replace the oversized carved/ornamental frames that crowded their contents.
+
+On wide portrait/tablet canvases, the entire table composition is centered as one unit. Empty tropical background space may expand at both sides, but the table, rails, live gems, launcher, target relationship, and effects must never drift apart.
+
 ## Production UI simplification v3
 
 The approved gameplay HUD is deliberately simpler than the supplied ornamental comps. SCORE, NEXT, TARGET, and LEVEL use the same coral pill with a thin gold edge, white type, and short shadow. SCORE/NEXT/TARGET content uses the same softly opaque cream panel as MERGE PATH, so the screen reads as one system instead of layered stickers.

@@ -1,5 +1,15 @@
 # AI Knowledge Base
 
+## Production UI polish guardrails v4
+
+- Treat `reports/production-ui-polish-v4/final-screenshots/576x1312/details/screenshot-reproduction-score-1300.png` as the current portrait visual baseline and `1000x1280-wide/table-and-physics-centered.png` as the wide-canvas centering proof.
+- MERGE PATH owns `MainRow`, shows all eight active Level 1 tiers, and uses 58 px silhouette-preserving slots. Do not restore circular frames/masks, alternate preview arrays, five-gem truncation, or independent UI gem artwork.
+- SCORE/NEXT belong in `ScoreNextRow` below MERGE PATH. Preserve their equal 122 x 132 geometry and internal 16 px bottom breathing room; maximum formatted scores must remain contained.
+- Pause and result outer panels are native simple `PanelContainer`s using `simple_popup_panel_style()`. Do not restore the oversized ornamental NinePatch outer cards that squeezed content.
+- Wide-screen alignment is one shared world-coordinate vector. Never center the table sprite alone: rails, launcher, pieces, merge/collection records, effects, and debug contacts must move by the same `GameConfig.viewport_center_offset_x`.
+- `configure_portrait_bottom()` intentionally resets X for deterministic legacy tests; production resize uses `configure_viewport(Vector2)`. Preserve unchanged table width/shape, perspective, radii, motion, collision, merge, target, score, reward, audio, and haptic behavior.
+- After HUD/modal/viewport work, run all six suites and the ANGLE capture, including the 1000 x 1280 wide proof.
+
 ## Production UI simplification guardrails v3
 
 - The approved gameplay HUD visual is `reports/production-ui-simplification-v3/final-screenshots/576x1312/details/screenshot-reproduction-score-1300.png`.

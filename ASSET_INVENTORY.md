@@ -1,5 +1,13 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Production UI polish v4
+
+No production raster asset was added, regenerated, or destructively modified. Source originals under `assets/gems/` remain untouched. Table sprites and all dynamic UI previews continue to resolve through `AssetCatalog.GEM_TIER_TEXTURES`, whose calibrated runtime textures are non-destructive alpha-trimmed derivatives of those originals.
+
+The prior shape mismatch was not an asset mapping defect: circular progression `PanelContainer` frames visually replaced each gem's silhouette. Those frames were removed. MERGE PATH now displays the same aspect-preserved catalog textures used by `GemSpriteLayer`, NEXT, TARGET, target collection, and result art.
+
+Pause/Win/Fail no longer depend on the ornamental white-panel NinePatch region for their outer composition. Their new cream/gold surfaces are cached `StyleBoxFlat` resources from `UiDesignSystem`; dynamic text and numbers remain native labels. The previous atlas/reference assets remain preserved and unchanged. PNG evidence under `reports/production-ui-polish-v4/` and the local walkthrough recording are development-only and excluded from Android export.
+
 ## Production UI simplification v3
 
 No raster production asset changed. SCORE, NEXT, TARGET, LEVEL, and MERGE PATH now use native `PanelContainer`/`StyleBoxFlat` composition; the prior ornamental atlas headers are no longer used by these gameplay labels. `assets/buttons/Generated image 10.png` remains retained and still supplies the Settings control and any legacy/reference regions needed elsewhere.

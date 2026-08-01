@@ -1,5 +1,13 @@
 # Changelog
 
+## Production UI Polish v4
+
+- Removed the circular progression frames that visually changed gem silhouettes. MERGE PATH, NEXT, TARGET, result art, merge presentation, and table pieces now visibly preserve the same `AssetCatalog`-authoritative source shapes.
+- Gave MERGE PATH the full top row at 600 x 138 design pixels with eight 58 px silhouette-preserving slots, then moved the equal SCORE/NEXT cards into a separate lower row with corrected internal breathing room.
+- Rebuilt Pause, Win, and Fail as simple responsive cream/gold `PanelContainer` cards so titles, art, scores, and mobile actions fit without ornamental NinePatch compression.
+- Added one shared horizontal viewport offset for table artwork, launcher, pieces, rail interpolation, collection presentations, debug contacts, and effects. Wide devices now center the visible table and its physics together.
+- Added wide-screen centering regression/evidence, updated hierarchy assertions, 36 ANGLE screenshots, a deterministic walkthrough, a six-suite regression/profile pass, and a freshly exported/verified APK.
+
 ## Production UI Simplification v3
 
 - Replaced ornamental SCORE/NEXT/TARGET ribbons and layered card skins with one simple native cream-panel/coral-badge system matching the approved LEVEL 1 label.
