@@ -7,7 +7,7 @@ extends SceneTree
 const GameScene = preload("res://scenes/Game.tscn")
 const GemPieceType = preload("res://scripts/gem_piece.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
-const OUTPUT_DIR := "res://reports/production-ui-corrective-pass-v2/final-screenshots/"
+const OUTPUT_DIR := "res://reports/production-ui-simplification-v3/final-screenshots/"
 const RESOLUTIONS: Array[Vector2i] = [
 	Vector2i(576, 1312),
 	Vector2i(720, 1600),
@@ -123,10 +123,10 @@ func _capture_detailed_video_resolution_set() -> void:
 	await _settle_ui(0.05)
 	await _capture(fixture, "%s/crowded-board.png" % directory)
 	var reproduced_snapshot: Dictionary = controller.hud_snapshot()
-	reproduced_snapshot.score = 1490
+	reproduced_snapshot.score = 1300
 	reproduced_snapshot.current_level = 4
 	reproduced_snapshot.highest_level = 5
-	reproduced_snapshot.next_level = 1
+	reproduced_snapshot.next_level = 2
 	reproduced_snapshot.target_level = 7
 	reproduced_snapshot.target_progress = 0
 	reproduced_snapshot.target_quantity = 1
@@ -134,7 +134,7 @@ func _capture_detailed_video_resolution_set() -> void:
 	reproduced_snapshot.target_total = 2
 	controller.gameplay_ui.update_snapshot(reproduced_snapshot)
 	await _settle_ui(0.05)
-	await _capture(fixture, "%s/screenshot-reproduction-score-1490.png" % directory)
+	await _capture(fixture, "%s/screenshot-reproduction-score-1300.png" % directory)
 
 	controller.restart()
 	controller.set_process(false)

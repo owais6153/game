@@ -70,12 +70,14 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 	_assert(hud.hud_margin is MarginContainer, "HUD safe-area root must be a MarginContainer")
 	_assert(hud.hud_margin.get_node("HudRows") is VBoxContainer, "HUD rows must be container-driven")
 	_assert(hud.hud_margin.get_node("HudRows/MainRow") is HBoxContainer, "SCORE, merge path, and NEXT must share an HBoxContainer")
-	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level, target, and Settings must share an HBoxContainer")
-	_assert(hud.score_panel.get_node("BodySkin") is NinePatchRect and hud.next_panel.get_node("BodySkin") is NinePatchRect, "Dynamic SCORE and NEXT cards must use scalable NinePatchRect skins")
-	_assert(hud.target_panel.get_node("TargetBodySkin") is NinePatchRect and hud.pause_panel is NinePatchRect, "Target and Pause panels must use scalable NinePatchRect skins")
+	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must share a responsive utility HBoxContainer")
+	_assert(hud.target_panel.get_parent() == hud.target_anchor, "Target must use its own responsive table-adjacent anchor")
+	_assert(hud.score_panel.get_node("ContentSurface") is PanelContainer and hud.next_panel.get_node("ContentSurface") is PanelContainer, "SCORE and NEXT must use the same simple scalable panel system")
+	_assert(hud.score_panel.get_node("ScoreBadge") is PanelContainer and hud.next_panel.get_node("NextBadge") is PanelContainer, "SCORE and NEXT labels must use the Level badge language")
+	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is NinePatchRect, "Target must use a simple panel while Pause retains its scalable NinePatch skin")
 	_assert(hud.next_icon.get_parent() is AspectRatioContainer and hud.target_icon.get_parent() is AspectRatioContainer, "Dynamic gem previews must use aspect-preserving slots")
-	_assert(hud.progression_icons.size() == 5, "Level 1 must show its readable active five-tier merge path, not all eighteen cramped tiers")
-	for tier in range(1, 6):
+	_assert(hud.progression_icons.size() == 8, "Level 1 must show its complete readable eight-tier gameplay path")
+	for tier in range(1, 9):
 		_assert(hud.progression_icons[tier - 1].texture == AssetCatalogType.gem_texture(tier), "Progression tier %d must come from the authoritative gem catalog" % tier)
 	_assert(_buttons_below(hud.hud_margin) == [hud.settings_button], "Normal gameplay must expose only the Settings/Pause button")
 	_assert(hud.hud_margin.find_child("PauseRestartButton", true, false) == null, "Restart must not exist in the gameplay HUD")
@@ -84,11 +86,10 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 		hud.update_snapshot(_snapshot(0, tier, maxi(1, 19 - tier), tier, 0, 4, 0, 2, false, false, tier))
 		_assert(hud.next_icon.texture == AssetCatalogType.gem_texture(maxi(1, 19 - tier)), "NEXT tier %d must map through AssetCatalog" % maxi(1, 19 - tier))
 		_assert(hud.target_icon.texture == AssetCatalogType.gem_texture(tier), "Target tier %d must map through AssetCatalog" % tier)
-		_assert(hud.target_name_label.text == AssetCatalogType.gem_name(tier).to_upper(), "Target tier %d name must map through AssetCatalog" % tier)
-	hud.update_snapshot(_snapshot(0, 2, 3, 7, 2, 4, 0, 2, false, false, 4))
-	_assert(hud.target_status_label.text == "PROGRESS  2 / 4", "Target progress must be explicit, labeled, and numeric")
-	hud.update_snapshot(_snapshot(0, 2, 3, 7, 2, 4, 0, 2, true, false, 4))
-	_assert(hud.target_status_label.text == "3 / 4   ARRIVING", "Target travel must have an explicit arrival state")
+	_assert(hud.target_header_label.text == "TARGET", "Target label must stay simple and must not expose sequential counters")
+	_assert(hud.target_panel.find_child("TargetName", true, false) == null, "Target card must not display the gem name")
+	_assert(hud.target_panel.find_child("TargetProgressText", true, false) == null, "Target card must not display progress copy")
+	_assert(hud.target_panel.find_child("TargetProgressBar", true, false) == null, "Target card must not display a progress bar")
 	await _dispose_viewport(fixture.viewport)
 
 
@@ -107,7 +108,7 @@ func _test_score_fit_and_state_updates() -> void:
 	var texture_before := hud.next_icon.texture
 	hud.update_snapshot(_snapshot(125500, 2, 3, 8, 0, 1, 1, 2, false, false, 4))
 	_assert(texture_before != hud.next_icon.texture and hud.next_icon.texture == AssetCatalogType.gem_texture(3), "NEXT artwork must update immediately with the queue identity")
-	_assert(hud.target_header_label.text == "TARGET 2 / 2", "Sequential target header must expose its real position")
+	_assert(hud.target_header_label.text == "TARGET", "Sequential state must not add counters to the Target label")
 	await _dispose_viewport(fixture.viewport)
 
 
@@ -168,13 +169,16 @@ func _test_responsive_layouts() -> void:
 			_assert(bounds.encloses(metrics[key]), "%s must remain inside %dx%d" % [key, viewport_size.x, viewport_size.y])
 		_assert(not (metrics.score as Rect2).intersects(metrics.progression), "SCORE and merge path must not overlap at %s" % str(viewport_size))
 		_assert(not (metrics.progression as Rect2).intersects(metrics.next), "Merge path and NEXT must not overlap at %s" % str(viewport_size))
-		_assert(not (metrics.level as Rect2).intersects(metrics.target), "Level and target must not overlap at %s" % str(viewport_size))
-		_assert(not (metrics.target as Rect2).intersects(metrics.settings), "Target and Settings must not overlap at %s" % str(viewport_size))
-		_assert((metrics.next as Rect2).grow(-16.0).encloses(hud.next_icon.get_global_rect()), "NEXT gem must remain visibly inset inside its card at %s" % str(viewport_size))
+		_assert(not (metrics.level as Rect2).intersects(metrics.target), "Level and table-adjacent target must not overlap at %s" % str(viewport_size))
+		_assert(not (metrics.target as Rect2).intersects(metrics.settings), "Table-adjacent target and Settings must not overlap at %s" % str(viewport_size))
+		_assert((metrics.next as Rect2).grow(-10.0).encloses(hud.next_icon.get_global_rect()), "NEXT gem must remain visibly inset inside its card at %s" % str(viewport_size))
 		_assert((metrics.target as Rect2).grow(-8.0).encloses(hud.target_icon.get_global_rect()), "Target gem must remain visibly inset inside its panel at %s (panel=%s icon=%s)" % [str(viewport_size), str(metrics.target), str(hud.target_icon.get_global_rect())])
-		var objective_center_y := (metrics.target as Rect2).get_center().y
-		_assert(absf((metrics.level as Rect2).get_center().y - objective_center_y) <= 2.0, "Level badge must align with the target at %s" % str(viewport_size))
-		_assert(absf((metrics.settings as Rect2).get_center().y - objective_center_y) <= 2.0, "Settings button must align with the target at %s" % str(viewport_size))
+		_assert(absf((metrics.level as Rect2).get_center().y - (metrics.settings as Rect2).get_center().y) <= 2.0, "Level and Settings must align as the top utility row at %s" % str(viewport_size))
+		var design_scale := minf(1.0, float(viewport_size.x) / UiDesignSystemType.DESIGN_WIDTH)
+		var design_height := float(viewport_size.y) / design_scale
+		var board_top_design := GameConfig.BOARD_TOP + maxf(0.0, design_height - GameConfig.VIEWPORT_SIZE.y)
+		var board_top_physical := board_top_design * design_scale
+		_assert((metrics.target as Rect2).end.y <= board_top_physical - UiDesignSystemType.TARGET_TABLE_GAP * design_scale + 1.0, "Target card must remain immediately above the table at %s" % str(viewport_size))
 		var minimum_physical_touch := 64.0 if viewport_size.x < 720 else 88.0
 		_assert((metrics.settings as Rect2).size.x >= minimum_physical_touch and (metrics.settings as Rect2).size.y >= minimum_physical_touch, "Settings touch target must remain usable at %s" % str(viewport_size))
 		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Maximum score must fit at %s" % str(viewport_size))

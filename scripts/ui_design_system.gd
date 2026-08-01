@@ -32,6 +32,7 @@ const PANEL_BORDER_WIDTH := 2
 const BUTTON_CORNER_RADIUS := 24
 const BUTTON_BORDER_WIDTH := 3
 const MIN_TOUCH_TARGET := 88.0
+const TARGET_TABLE_GAP := 46.0
 
 const TITLE_FONT_SIZE := 42
 const POPUP_TITLE_FONT_SIZE := 40
@@ -90,6 +91,10 @@ static func panel_style() -> StyleBoxFlat:
 
 static func hud_content_style() -> StyleBoxFlat:
 	return _rounded_style(Color("fffdf7"), Color("e3c27b"), 2, 22, 3, Color(0.22, 0.12, 0.04, 0.16))
+
+
+static func simple_hud_panel_style() -> StyleBoxFlat:
+	return _rounded_style(Color(1.0, 0.984, 0.93, 0.97), Color("e5b74f"), 2, 22, 5, Color(0.10, 0.20, 0.22, 0.22))
 
 
 static func progression_panel_style() -> StyleBoxFlat:

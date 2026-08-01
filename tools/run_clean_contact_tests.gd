@@ -331,7 +331,7 @@ func _test_visual_layout_bounds() -> void:
 	controller._ready()
 	var ui = controller.gameplay_ui
 	_assert(ui != null and ui.score_panel is Control and ui.next_panel is Control and ui.target_panel is Control, "Gameplay HUD must be a responsive Control hierarchy")
-	_assert(ui.score_panel.custom_minimum_size.x >= 170.0 and ui.score_panel.custom_minimum_size == ui.next_panel.custom_minimum_size, "SCORE and NEXT must use equal large responsive cards")
+	_assert(ui.score_panel.custom_minimum_size.x >= 120.0 and ui.score_panel.custom_minimum_size == ui.next_panel.custom_minimum_size, "SCORE and NEXT must use equal compact responsive cards")
 	_assert(ui.next_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED and ui.target_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "NEXT and target gems must use aspect-preserving contain scaling")
 	_assert(ui.progression_icons.all(func(icon: TextureRect): return icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED), "Every progression gem must use aspect-preserving contain scaling")
 	var settings_atlas := ui.settings_button.texture_normal as AtlasTexture

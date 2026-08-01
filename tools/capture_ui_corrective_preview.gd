@@ -4,7 +4,7 @@ extends SceneTree
 ## separate from the full evidence sweep so visual iteration stays deliberate.
 const GameScene = preload("res://scenes/Game.tscn")
 const GemPieceType = preload("res://scripts/gem_piece.gd")
-const OUTPUT := "res://reports/production-ui-corrective-pass-v2/576x1312/screenshot-reproduction-score-1490.png"
+const OUTPUT := "res://reports/production-ui-simplification-v3/576x1312/screenshot-reproduction-score-1300.png"
 
 
 func _init() -> void:
@@ -40,10 +40,10 @@ func _run() -> void:
 		controller.pieces.append(GemPieceType.new(9200 + index, level, positions[index], GameConfig.gem_collision_radius(level)))
 	controller.gem_sprite_layer.sync_gems(controller.pieces)
 	var snapshot: Dictionary = controller.hud_snapshot()
-	snapshot.score = 1490
+	snapshot.score = 1300
 	snapshot.current_level = 4
 	snapshot.highest_level = 5
-	snapshot.next_level = 1
+	snapshot.next_level = 2
 	snapshot.target_level = 7
 	snapshot.target_progress = 0
 	snapshot.target_quantity = 1

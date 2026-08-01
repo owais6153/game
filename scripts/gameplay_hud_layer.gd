@@ -14,6 +14,7 @@ var root_control: Control
 var hud_canvas: Control
 var hud_margin: MarginContainer
 var progression_center: CenterContainer
+var target_anchor: CenterContainer
 var score_panel: Control
 var score_label: Label
 var progression_frames: Array[PanelContainer] = []
@@ -25,9 +26,6 @@ var level_label: Label
 var target_panel: Control
 var target_header_label: Label
 var target_icon: TextureRect
-var target_name_label: Label
-var target_status_label: Label
-var target_progress_bar: ProgressBar
 var settings_button: TextureButton
 var pause_blocker: Control
 var pause_dimmer: ColorRect
@@ -106,30 +104,12 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		var target_name := AssetCatalogType.gem_name(target_level)
 		target_icon.texture = AssetCatalogType.gem_texture(target_level)
 		target_icon.tooltip_text = "Target: %s" % target_name
-		target_name_label.text = target_name.to_upper()
-		target_name_label.add_theme_font_size_override("font_size", _target_name_font_size(target_name))
 		if had_snapshot:
 			_animate_target_swap()
 
 	var level_number := int(snapshot.get("level_number", 1))
 	level_label.text = "LEVEL %d" % level_number
-	var target_index := int(snapshot.get("target_index", 0))
-	var target_total := maxi(1, int(snapshot.get("target_total", 1)))
-	target_header_label.text = "TARGET %d / %d" % [mini(target_total, target_index + 1), target_total]
-
-	var quantity := maxi(1, int(snapshot.get("target_quantity", 1)))
-	var progress := clampi(int(snapshot.get("target_progress", 0)), 0, quantity)
-	var collecting := bool(snapshot.get("target_collecting", false))
-	var completed := bool(snapshot.get("target_completed", false))
-	var displayed_progress := quantity if completed else mini(quantity, progress + (1 if collecting else 0))
-	target_progress_bar.max_value = quantity
-	target_progress_bar.value = displayed_progress
-	if completed:
-		target_status_label.text = "%d / %d   COMPLETE" % [quantity, quantity]
-	elif collecting:
-		target_status_label.text = "%d / %d   ARRIVING" % [displayed_progress, quantity]
-	else:
-		target_status_label.text = "PROGRESS  %d / %d" % [progress, quantity]
+	target_header_label.text = "TARGET"
 	_snapshot = snapshot.duplicate()
 
 
@@ -280,15 +260,15 @@ func _build_hud() -> void:
 
 	var main_row := HBoxContainer.new()
 	main_row.name = "MainRow"
-	main_row.custom_minimum_size = Vector2(0.0, 154.0)
-	main_row.add_theme_constant_override("separation", UiDesignSystemType.ITEM_GAP)
+	main_row.custom_minimum_size = Vector2(0.0, 128.0)
+	main_row.add_theme_constant_override("separation", 6)
 	main_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(main_row)
 	score_panel = _build_score_panel()
 	main_row.add_child(score_panel)
 	progression_center = CenterContainer.new()
 	progression_center.name = "ProgressionCenter"
-	progression_center.custom_minimum_size = Vector2(296.0, 150.0)
+	progression_center.custom_minimum_size = Vector2(396.0, 128.0)
 	progression_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	progression_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	main_row.add_child(progression_center)
@@ -298,32 +278,37 @@ func _build_hud() -> void:
 
 	var objective_row := HBoxContainer.new()
 	objective_row.name = "ObjectiveRow"
-	objective_row.custom_minimum_size = Vector2(0.0, 120.0)
+	objective_row.custom_minimum_size = Vector2(0.0, 96.0)
 	objective_row.add_theme_constant_override("separation", UiDesignSystemType.ITEM_GAP)
 	objective_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(objective_row)
 	var level_slot := CenterContainer.new()
 	level_slot.name = "LevelSlot"
-	level_slot.custom_minimum_size = Vector2(116.0, 120.0)
+	level_slot.custom_minimum_size = Vector2(116.0, 96.0)
 	level_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	objective_row.add_child(level_slot)
 	level_chip = _build_level_chip()
 	level_slot.add_child(level_chip)
-	var target_slot := CenterContainer.new()
-	target_slot.name = "TargetSlot"
-	target_slot.custom_minimum_size = Vector2(412.0, 120.0)
-	target_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	target_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	objective_row.add_child(target_slot)
-	target_panel = _build_target_panel()
-	target_slot.add_child(target_panel)
+	var utility_spacer := Control.new()
+	utility_spacer.name = "UtilitySpacer"
+	utility_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	utility_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	objective_row.add_child(utility_spacer)
 	var settings_slot := CenterContainer.new()
 	settings_slot.name = "SettingsSlot"
-	settings_slot.custom_minimum_size = Vector2(88.0, 120.0)
+	settings_slot.custom_minimum_size = Vector2(88.0, 96.0)
 	settings_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	objective_row.add_child(settings_slot)
 	settings_button = _build_settings_button()
 	settings_slot.add_child(settings_button)
+
+	target_anchor = CenterContainer.new()
+	target_anchor.name = "TableTargetAnchor"
+	target_anchor.custom_minimum_size = Vector2(UiDesignSystemType.DESIGN_WIDTH, 148.0)
+	target_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud_canvas.add_child(target_anchor)
+	target_panel = _build_target_panel()
+	target_anchor.add_child(target_panel)
 
 
 func _build_score_panel() -> Control:
@@ -331,10 +316,10 @@ func _build_score_panel() -> Control:
 	var margin := MarginContainer.new()
 	margin.name = "ScoreContentMargin"
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_top", 48)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_bottom", 27)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 50)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 12)
 	panel.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var column := VBoxContainer.new()
@@ -343,7 +328,7 @@ func _build_score_panel() -> Control:
 	margin.add_child(column)
 	score_label = _label("0", UiDesignSystemType.SCORE_FONT_SIZE, UiDesignSystemType.COLOR_TEXT)
 	score_label.name = "ScoreValue"
-	score_label.custom_minimum_size = Vector2(0.0, 58.0)
+	score_label.custom_minimum_size = Vector2(0.0, 62.0)
 	column.add_child(score_label)
 	return panel
 
@@ -353,10 +338,10 @@ func _build_next_panel() -> Control:
 	var margin := MarginContainer.new()
 	margin.name = "NextContentMargin"
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_theme_constant_override("margin_left", 34)
-	margin.add_theme_constant_override("margin_top", 49)
-	margin.add_theme_constant_override("margin_right", 34)
-	margin.add_theme_constant_override("margin_bottom", 24)
+	margin.add_theme_constant_override("margin_left", 18)
+	margin.add_theme_constant_override("margin_top", 50)
+	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_bottom", 12)
 	panel.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var center := CenterContainer.new()
@@ -364,7 +349,7 @@ func _build_next_panel() -> Control:
 	margin.add_child(center)
 	var aspect := AspectRatioContainer.new()
 	aspect.name = "NextGemAspect"
-	aspect.custom_minimum_size = Vector2(68.0, 68.0)
+	aspect.custom_minimum_size = Vector2(60.0, 60.0)
 	aspect.ratio = 1.0
 	aspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(aspect)
@@ -376,58 +361,41 @@ func _build_next_panel() -> Control:
 func _build_hud_card(node_name: String, title: String) -> Control:
 	var panel := Control.new()
 	panel.name = node_name
-	panel.custom_minimum_size = Vector2(170.0, 150.0)
+	panel.custom_minimum_size = Vector2(122.0, 122.0)
 	panel.clip_contents = true
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var body := NinePatchRect.new()
-	body.name = "BodySkin"
-	UiDesignSystemType.configure_nine_patch(body, UiDesignSystemType.atlas(AssetCatalogType.HUD_BUTTON_SHEET, AssetCatalogType.HUD_WHITE_PANEL_REGION), 52, 32)
-	panel.add_child(body)
-	body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var inner := PanelContainer.new()
 	inner.name = "ContentSurface"
-	inner.add_theme_stylebox_override("panel", UiDesignSystemType.hud_content_style())
+	inner.add_theme_stylebox_override("panel", UiDesignSystemType.simple_hud_panel_style())
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(inner)
 	inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	inner.offset_left = 10.0
-	inner.offset_top = 30.0
-	inner.offset_right = -10.0
-	inner.offset_bottom = -10.0
-	var header := NinePatchRect.new()
-	header.name = "HeaderSkin"
-	UiDesignSystemType.configure_nine_patch(header, UiDesignSystemType.atlas(AssetCatalogType.HUD_BUTTON_SHEET, AssetCatalogType.HUD_GOAL_HEADER_REGION), 44, 18)
-	header.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	header.offset_left = 5.0
-	header.offset_top = 0.0
-	header.offset_right = -5.0
-	header.offset_bottom = 44.0
-	panel.add_child(header)
-	var title_label := _label(title, UiDesignSystemType.PANEL_TITLE_FONT_SIZE, Color.WHITE)
-	title_label.name = "%sTitle" % title.to_pascal_case()
-	_decorate_header_label(title_label)
-	header.add_child(title_label)
-	title_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	inner.offset_top = 18.0
+	var badge := _build_label_badge("%sBadge" % title.to_pascal_case(), title, 100.0, 44.0)
+	badge.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	badge.offset_left = -50.0
+	badge.offset_right = 50.0
+	panel.add_child(badge)
 	return panel
 
 
 func _build_progression_group() -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = "ProgressionPanel"
-	panel.custom_minimum_size = Vector2(296.0, 104.0)
+	panel.custom_minimum_size = Vector2(396.0, 122.0)
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.progression_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var group := VBoxContainer.new()
 	group.name = "ProgressionGroup"
 	group.alignment = BoxContainer.ALIGNMENT_CENTER
-	group.add_theme_constant_override("separation", 6)
+	group.add_theme_constant_override("separation", 7)
 	group.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(group)
-	var heading := _label("MERGE PATH", 17, Color.WHITE)
+	var heading := _label("MERGE PATH", 19, UiDesignSystemType.COLOR_TEAL_DARK)
 	heading.name = "ProgressionHeading"
-	heading.custom_minimum_size = Vector2(0.0, 24.0)
-	heading.add_theme_constant_override("outline_size", 4)
-	heading.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_TEAL_DARK)
+	heading.custom_minimum_size = Vector2(0.0, 26.0)
+	heading.add_theme_constant_override("outline_size", 2)
+	heading.add_theme_color_override("font_outline_color", Color.WHITE)
 	group.add_child(heading)
 	var strip := HBoxContainer.new()
 	strip.name = "ProgressionStrip"
@@ -435,18 +403,18 @@ func _build_progression_group() -> PanelContainer:
 	strip.add_theme_constant_override("separation", 0)
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	group.add_child(strip)
-	for tier in range(1, 6):
+	for tier in range(1, 9):
 		var frame := PanelContainer.new()
 		frame.name = "ProgressionSlot%d" % tier
-		frame.custom_minimum_size = Vector2(50.0, 50.0)
+		frame.custom_minimum_size = Vector2(42.0, 42.0)
 		frame.add_theme_stylebox_override("panel", _progress_style)
 		frame.tooltip_text = AssetCatalogType.gem_name(tier)
 		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var inset := MarginContainer.new()
-		inset.add_theme_constant_override("margin_left", 5)
-		inset.add_theme_constant_override("margin_top", 5)
-		inset.add_theme_constant_override("margin_right", 5)
-		inset.add_theme_constant_override("margin_bottom", 5)
+		inset.add_theme_constant_override("margin_left", 3)
+		inset.add_theme_constant_override("margin_top", 3)
+		inset.add_theme_constant_override("margin_right", 3)
+		inset.add_theme_constant_override("margin_bottom", 3)
 		inset.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		frame.add_child(inset)
 		var icon := _gem_texture_rect("ProgressionGem%d" % tier)
@@ -455,12 +423,12 @@ func _build_progression_group() -> PanelContainer:
 		strip.add_child(frame)
 		progression_frames.append(frame)
 		progression_icons.append(icon)
-		if tier < 5:
+		if tier < 8:
 			var connector_center := CenterContainer.new()
-			connector_center.custom_minimum_size = Vector2(7.0, 50.0)
+			connector_center.custom_minimum_size = Vector2(6.0, 42.0)
 			connector_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			var connector := ColorRect.new()
-			connector.custom_minimum_size = Vector2(7.0, 4.0)
+			connector.custom_minimum_size = Vector2(6.0, 4.0)
 			connector.color = UiDesignSystemType.COLOR_GOLD
 			connector.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			connector_center.add_child(connector)
@@ -469,98 +437,64 @@ func _build_progression_group() -> PanelContainer:
 
 
 func _build_level_chip() -> Control:
-	var chip := PanelContainer.new()
-	chip.name = "LevelChip"
-	chip.custom_minimum_size = Vector2(116.0, 58.0)
-	chip.add_theme_stylebox_override("panel", UiDesignSystemType.level_badge_style())
-	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	level_label = _label("LEVEL 1", 20, Color.WHITE)
-	_decorate_header_label(level_label)
-	chip.add_child(level_label)
+	var chip := _build_label_badge("LevelChip", "LEVEL 1", 116.0, 58.0)
+	level_label = chip.get_node("Label") as Label
 	return chip
 
 
 func _build_target_panel() -> Control:
 	var panel := Control.new()
 	panel.name = "ActiveTargetPanel"
-	panel.custom_minimum_size = Vector2(412.0, 116.0)
+	panel.custom_minimum_size = Vector2(178.0, 148.0)
 	panel.clip_contents = true
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var body := NinePatchRect.new()
-	body.name = "TargetBodySkin"
-	UiDesignSystemType.configure_nine_patch(body, UiDesignSystemType.atlas(AssetCatalogType.HUD_BUTTON_SHEET, AssetCatalogType.HUD_WHITE_PANEL_REGION), 52, 32)
-	panel.add_child(body)
-	body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var inner := PanelContainer.new()
 	inner.name = "TargetContentSurface"
-	inner.add_theme_stylebox_override("panel", UiDesignSystemType.hud_content_style())
+	inner.add_theme_stylebox_override("panel", UiDesignSystemType.simple_hud_panel_style())
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(inner)
 	inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	inner.offset_left = 10.0
-	inner.offset_top = 22.0
-	inner.offset_right = -10.0
-	inner.offset_bottom = -9.0
-	var header := NinePatchRect.new()
-	header.name = "TargetHeaderSkin"
-	UiDesignSystemType.configure_nine_patch(header, UiDesignSystemType.atlas(AssetCatalogType.HUD_BUTTON_SHEET, AssetCatalogType.HUD_GOAL_HEADER_REGION), 44, 18)
-	header.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	header.offset_left = -108.0
-	header.offset_top = 0.0
-	header.offset_right = 108.0
-	header.offset_bottom = 40.0
-	panel.add_child(header)
-	target_header_label = _label("TARGET 1 / 2", 19, Color.WHITE)
-	_decorate_header_label(target_header_label)
-	header.add_child(target_header_label)
-	target_header_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	inner.offset_top = 18.0
+	var badge := _build_label_badge("TargetBadge", "TARGET", 120.0, 44.0)
+	badge.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	badge.offset_left = -60.0
+	badge.offset_right = 60.0
+	panel.add_child(badge)
+	target_header_label = badge.get_node("Label") as Label
 	var content_margin := MarginContainer.new()
 	content_margin.name = "TargetContentMargin"
-	content_margin.add_theme_constant_override("margin_left", 22)
-	content_margin.add_theme_constant_override("margin_top", 40)
-	content_margin.add_theme_constant_override("margin_right", 22)
+	content_margin.add_theme_constant_override("margin_left", 24)
+	content_margin.add_theme_constant_override("margin_top", 50)
+	content_margin.add_theme_constant_override("margin_right", 24)
 	content_margin.add_theme_constant_override("margin_bottom", 12)
 	content_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(content_margin)
 	content_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var row := HBoxContainer.new()
-	row.name = "TargetContentRow"
-	row.add_theme_constant_override("separation", 14)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content_margin.add_child(row)
 	var icon_slot := CenterContainer.new()
-	icon_slot.custom_minimum_size = Vector2(72.0, 62.0)
+	icon_slot.name = "TargetGemCenter"
 	icon_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(icon_slot)
+	content_margin.add_child(icon_slot)
 	var icon_aspect := AspectRatioContainer.new()
-	icon_aspect.custom_minimum_size = Vector2(56.0, 56.0)
+	icon_aspect.custom_minimum_size = Vector2(80.0, 80.0)
 	icon_aspect.ratio = 1.0
 	icon_aspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_slot.add_child(icon_aspect)
 	target_icon = _gem_texture_rect("TargetGem")
 	icon_aspect.add_child(target_icon)
-	var details := VBoxContainer.new()
-	details.name = "TargetDetails"
-	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	details.alignment = BoxContainer.ALIGNMENT_CENTER
-	details.add_theme_constant_override("separation", 2)
-	details.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(details)
-	target_name_label = _label("RUBY", 22, UiDesignSystemType.COLOR_TEXT)
-	target_name_label.name = "TargetName"
-	target_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	details.add_child(target_name_label)
-	target_status_label = _label("PROGRESS  0 / 1", 17, UiDesignSystemType.COLOR_CORAL_DARK)
-	target_status_label.name = "TargetProgressText"
-	target_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	details.add_child(target_status_label)
-	target_progress_bar = ProgressBar.new()
-	target_progress_bar.name = "TargetProgressBar"
-	target_progress_bar.custom_minimum_size = Vector2(0.0, 12.0)
-	target_progress_bar.show_percentage = false
-	target_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	details.add_child(target_progress_bar)
 	return panel
+
+
+func _build_label_badge(node_name: String, text: String, width: float, height: float) -> PanelContainer:
+	var badge := PanelContainer.new()
+	badge.name = node_name
+	badge.custom_minimum_size = Vector2(width, height)
+	badge.add_theme_stylebox_override("panel", UiDesignSystemType.level_badge_style())
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var label := _label(text, 20, Color.WHITE)
+	label.name = "Label"
+	_decorate_header_label(label)
+	badge.add_child(label)
+	return badge
 
 
 func _build_settings_button() -> TextureButton:
@@ -703,18 +637,10 @@ func _decorate_header_label(label: Label) -> void:
 
 func _score_font_size(formatted: String) -> int:
 	if formatted.length() <= 4:
-		return 40
-	if formatted.length() <= 6:
 		return 34
-	return 29
-
-
-func _target_name_font_size(target_name: String) -> int:
-	if target_name.length() <= 12:
-		return 22
-	if target_name.length() <= 20:
-		return 18
-	return 15
+	if formatted.length() <= 6:
+		return 30
+	return 26
 
 
 func _animate_score_change() -> void:
@@ -796,6 +722,11 @@ func _refresh_safe_margins() -> void:
 	hud_margin.add_theme_constant_override("margin_left", int(ceil(maxf(base_margin, insets.x * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
 	hud_margin.add_theme_constant_override("margin_top", int(ceil(maxf(base_margin, insets.y * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
 	hud_margin.add_theme_constant_override("margin_right", int(ceil(maxf(base_margin, insets.z * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
+	var design_height := viewport_size.y * inverse_scale
+	var board_top := GameConfig.BOARD_TOP + maxf(0.0, design_height - GameConfig.VIEWPORT_SIZE.y)
+	var target_y := maxf(178.0, board_top - target_anchor.custom_minimum_size.y - UiDesignSystemType.TARGET_TABLE_GAP)
+	target_anchor.position = Vector2(0.0, target_y)
+	target_anchor.size = Vector2(UiDesignSystemType.DESIGN_WIDTH, target_anchor.custom_minimum_size.y)
 	_apply_safe_margin(pause_safe_margin, insets)
 
 
