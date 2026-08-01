@@ -8,6 +8,9 @@ const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 var failures: Array[String] = []
 
 func _init() -> void:
+	call_deferred("_run")
+
+func _run() -> void:
 	_test_catalog_identity()
 	_test_level_sequence()
 	_test_unlimited_launcher()
@@ -19,9 +22,15 @@ func _init() -> void:
 	_test_target_collection_during_shot_preserves_unlimited_flow()
 	_test_pause_settings_restart_preserves_unlimited_flow()
 	_test_sequential_target_completion()
+	_free_orphan_fixtures()
+	# The fixtures intentionally call production `_ready()` off-tree. Flush their
+	# queued cleanup before quitting so Godot reports the suite's real exit code.
+	await process_frame
+	await process_frame
 	if failures.is_empty():
 		print("LEVEL_1_FLOW_TESTS: PASS")
 		quit(0)
+		return
 	for failure in failures:
 		push_error(failure)
 	quit(1)
@@ -29,6 +38,12 @@ func _init() -> void:
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
 		failures.append(message)
+
+func _free_orphan_fixtures() -> void:
+	for object_id in Node.get_orphan_node_ids():
+		var orphan := instance_from_id(object_id)
+		if is_instance_valid(orphan) and orphan is Node and orphan.get_parent() == null:
+			orphan.free()
 
 func _piece(id: int, level: int, position: Vector2) -> GemPiece:
 	return GemPieceType.new(id, level, position, GameConfig.gem_collision_radius(level))

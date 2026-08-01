@@ -4,9 +4,9 @@ const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.g
 const HapticsServiceType = preload("res://scripts/haptics_service.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
-const ResultOverlayLayerType = preload("res://scripts/result_overlay_layer.gd")
+const ResultOverlayScene = preload("res://scenes/ui/ResultOverlay.tscn")
 const LevelConfigType = preload("res://scripts/level_config.gd")
-const GameplayHudLayerType = preload("res://scripts/gameplay_hud_layer.gd")
+const GameplayHudScene = preload("res://scenes/ui/GameplayHud.tscn")
 const GameplayEffectsLayerType = preload("res://scripts/gameplay_effects_layer.gd")
 
 var pieces: Array[GemPiece] = []
@@ -217,8 +217,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		debug_calibration_enabled = not debug_calibration_enabled
 		queue_redraw()
 		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE and not win_presented and not failed:
-		_on_settings_requested()
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		if gameplay_ui != null and gameplay_ui.is_pause_visible():
+			_on_resume_requested()
+		elif not win_presented and not failed:
+			_on_settings_requested()
+		if get_viewport() != null:
+			get_viewport().set_input_as_handled()
 		return
 	if event is InputEventScreenTouch:
 		_handle_pointer(event.position, event.pressed)
@@ -228,6 +233,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		_handle_pointer(event.position, event.pressed)
 	elif event is InputEventMouseMotion and dragging:
 		move_active_to(event.position.x)
+
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_WM_GO_BACK_REQUEST or not is_inside_tree():
+		return
+	# Mobile Back is a UI-state action: dismiss Pause first, open Pause during
+	# active play, and leave completed/failed results on their explicit action.
+	if result_overlay != null and result_overlay.visible_result:
+		return
+	if gameplay_ui != null and gameplay_ui.is_pause_visible():
+		_on_resume_requested()
+	elif gameplay_ui != null and not win_presented and not failed:
+		_on_settings_requested()
 
 func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 	if win_presented or failed:
@@ -350,12 +368,12 @@ func _setup_asset_presentation() -> void:
 	effects_layer = GameplayEffectsLayerType.new()
 	effects_layer.z_index = 20
 	add_child(effects_layer)
-	gameplay_ui = GameplayHudLayerType.new()
+	gameplay_ui = GameplayHudScene.instantiate() as GameplayHudLayer
 	add_child(gameplay_ui)
 	gameplay_ui.settings_requested.connect(_on_settings_requested)
 	gameplay_ui.resume_requested.connect(_on_resume_requested)
 	gameplay_ui.restart_requested.connect(_on_restart_requested)
-	result_overlay = ResultOverlayLayerType.new()
+	result_overlay = ResultOverlayScene.instantiate() as ResultOverlayLayer
 	add_child(result_overlay)
 	result_overlay.retry_requested.connect(_on_restart_requested)
 
@@ -727,14 +745,14 @@ func _on_settings_requested() -> void:
 func _on_resume_requested() -> void:
 	if gameplay_ui == null:
 		return
-	gameplay_ui.hide_pause()
+	gameplay_ui.hide_pause(true)
 	if is_inside_tree():
 		get_tree().paused = false
 	audio_feedback.emit_event("button")
 
 func _on_restart_requested() -> void:
 	if gameplay_ui != null:
-		gameplay_ui.hide_pause()
+		gameplay_ui.hide_pause(false)
 	if is_inside_tree():
 		get_tree().paused = false
 	audio_feedback.emit_event("button")

@@ -7,8 +7,8 @@ static func format(value: int) -> String:
 	var magnitude := absi(value)
 	if magnitude < 10000:
 		return _with_grouping(value)
-	var units := ["K", "M", "B", "T", "Q"]
-	var thresholds := [1000.0, 1000000.0, 1000000000.0, 1000000000000.0, 1000000000000000.0]
+	var units := ["K", "M", "B", "T", "Q", "Qi"]
+	var thresholds := [1000.0, 1000000.0, 1000000000.0, 1000000000000.0, 1000000000000000.0, 1000000000000000000.0]
 	var unit_index := 0
 	for index in range(thresholds.size()):
 		if float(magnitude) >= thresholds[index]:

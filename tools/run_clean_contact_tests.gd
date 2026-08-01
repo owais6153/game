@@ -9,6 +9,9 @@ const GameScene = preload("res://scenes/Game.tscn")
 var failures: Array[String] = []
 
 func _init() -> void:
+	call_deferred("_run")
+
+func _run() -> void:
 	_test_contact_merges()
 	_test_rejections()
 	_test_one_piece_once_per_cycle()
@@ -42,6 +45,7 @@ func _init() -> void:
 	_test_calibrated_wall_contacts()
 	_test_collision_audio_uses_confirmed_contact()
 	_test_shadow_presentation_is_collision_free()
+	_free_orphan_fixtures()
 	if failures.is_empty():
 		print("CLEAN_CONTACT_TESTS: PASS")
 		quit(0)
@@ -56,6 +60,12 @@ func _piece(id: int, level: int, at_position: Vector2) -> GemPiece:
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
 		failures.append(message)
+
+func _free_orphan_fixtures() -> void:
+	for object_id in Node.get_orphan_node_ids():
+		var orphan := instance_from_id(object_id)
+		if is_instance_valid(orphan) and orphan is Node and orphan.get_parent() == null:
+			orphan.free()
 
 func _resolve(items: Array[GemPiece]) -> Dictionary:
 	var merger = MergeType.new()
@@ -321,15 +331,14 @@ func _test_visual_layout_bounds() -> void:
 	controller._ready()
 	var ui = controller.gameplay_ui
 	_assert(ui != null and ui.score_panel is Control and ui.next_panel is Control and ui.target_panel is Control, "Gameplay HUD must be a responsive Control hierarchy")
-	_assert(ui.score_panel.custom_minimum_size.x >= 180.0 and ui.next_panel.custom_minimum_size.y >= 190.0, "Supplied SCORE and NEXT panels must keep the large reference hierarchy")
+	_assert(ui.score_panel.custom_minimum_size.x >= 170.0 and ui.score_panel.custom_minimum_size == ui.next_panel.custom_minimum_size, "SCORE and NEXT must use equal large responsive cards")
 	_assert(ui.next_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED and ui.target_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "NEXT and target gems must use aspect-preserving contain scaling")
 	_assert(ui.progression_icons.all(func(icon: TextureRect): return icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED), "Every progression gem must use aspect-preserving contain scaling")
 	var settings_atlas := ui.settings_button.texture_normal as AtlasTexture
-	var restart_atlas := ui.restart_button.texture_normal as AtlasTexture
 	_assert(ui.settings_button.custom_minimum_size.x >= 88.0 and settings_atlas != null and settings_atlas.atlas == AssetCatalogType.HUD_BUTTON_SHEET, "Gameplay must expose one large supplied settings control")
-	_assert(not ui.pause_blocker.visible and ui.pause_panel.is_ancestor_of(ui.restart_button) and restart_atlas != null and restart_atlas.atlas == AssetCatalogType.HUD_RESTART_ART, "Supplied RESTART artwork must exist only inside the hidden pause popup")
+	_assert(not ui.pause_blocker.visible and ui.pause_panel.is_ancestor_of(ui.restart_button) and ui.restart_button is Button and ui.restart_button.get_theme_stylebox("normal") != null and ui.restart_button.get_theme_stylebox("pressed") != null, "Themed RESTART control must exist only inside the hidden pause popup")
 	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
-	_assert(controller_source.contains("GameplayHudLayerType") and not controller_source.contains("HudRendererType") and not controller_source.contains("RESTART_BUTTON_RECT.has_point"), "Production gameplay must use the Control HUD and have no direct Restart hit target")
+	_assert(controller_source.contains("GameplayHudScene") and not controller_source.contains("HudRendererType") and not controller_source.contains("RESTART_BUTTON_RECT.has_point"), "Production gameplay must use the reusable Control HUD scene and have no direct Restart hit target")
 	controller.queue_free()
 
 func _test_portrait_board_bounds_and_scale() -> void:

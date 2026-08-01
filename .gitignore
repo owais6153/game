@@ -9,6 +9,7 @@ android/build/
 android/.gradle/
 *.apk
 *.aab
+*.avi
 
 # User-supplied comparison recordings are local reference inputs, never source assets.
 *.mp4

@@ -87,10 +87,13 @@ func _seed_final_target(controller) -> void:
 func _print_pause_profile(label: String, controller, frames: int) -> void:
 	var total_us := 0
 	var worst_us := 0
+	var modal_visible := false
 	for frame in range(frames):
 		var started := Time.get_ticks_usec()
-		controller.gameplay_ui._process(1.0 / 60.0)
+		# Production HUD presentation is event-driven; sampling visibility here
+		# confirms the paused modal without inventing a per-frame UI callback.
+		modal_visible = controller.gameplay_ui.is_pause_visible()
 		var elapsed := Time.get_ticks_usec() - started
 		total_us += elapsed
 		worst_us = maxi(worst_us, elapsed)
-	print("MOTION_PROFILE | %s | avg_ui_ms=%.3f | worst_ui_ms=%.3f | modal=%s" % [label, float(total_us) / float(frames) / 1000.0, float(worst_us) / 1000.0, str(controller.gameplay_ui.is_pause_visible())])
+	print("MOTION_PROFILE | %s | avg_ui_idle_ms=%.3f | worst_ui_idle_ms=%.3f | modal=%s | has_process_method=%s" % [label, float(total_us) / float(frames) / 1000.0, float(worst_us) / 1000.0, str(modal_visible), str(controller.gameplay_ui.has_method("_process"))])

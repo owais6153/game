@@ -1,5 +1,5 @@
-﻿; Engine configuration file.
-; Clean rebuild: Godot 4.6.3 Compatibility renderer, Android portrait.
+; Engine configuration file.
+; Godot 4.6.3 Compatibility renderer, Android portrait.
 
 config_version=5
 
@@ -20,6 +20,9 @@ stretch/aspect="expand"
 [display/window/handheld]
 orientation=1
 
+[editor_plugins]
+enabled=PackedStringArray()
+
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
@@ -27,6 +30,3 @@ textures/default_filters/use_nearest_mipmap_filter=false
 
 [rendering/textures/vram_compression]
 import_etc2_astc=true
-
-[editor_plugins]
-enabled=PackedStringArray()

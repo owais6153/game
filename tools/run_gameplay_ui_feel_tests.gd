@@ -9,6 +9,7 @@ const GameplayEffectsLayerType = preload("res://scripts/gameplay_effects_layer.g
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemPieceType = preload("res://scripts/gem_piece.gd")
+const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
 
 var failures: Array[String] = []
 
@@ -109,7 +110,9 @@ func _test_pause_freeze_resume_and_restart_cleanup() -> void:
 	_assert(int(controller.process_frame_index) == frame_before, "Paused gameplay must not advance controller frames")
 	_assert(active.position == position_before and active.velocity == velocity_before, "Paused gameplay must freeze simulation position and velocity")
 	controller._on_resume_requested()
-	_assert(not paused and not controller.gameplay_ui.is_pause_visible(), "Resume must close the popup and restore play")
+	_assert(not paused, "Resume must restore gameplay immediately while the lightweight popup exit animation finishes")
+	await create_timer(UiDesignSystemType.POPUP_EXIT_DURATION + 0.03).timeout
+	_assert(not controller.gameplay_ui.is_pause_visible(), "Resume must finish closing the popup after the shared exit duration")
 	await process_frame
 	_assert(int(controller.process_frame_index) > frame_before, "Controller processing must resume after Resume")
 
