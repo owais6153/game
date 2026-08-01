@@ -1,5 +1,13 @@
 # AI Knowledge Base
 
+## Production UI corrective guardrails v2
+
+- Treat `reports/production-ui-corrective-pass-v2/final-screenshots/576x1312/details/screenshot-reproduction-score-1490.png` as the minimum visual bar. Do not restore the oversized NEXT gem, low score baseline, floating merge strip, escaped target gem, or detached objective controls visible before `baae648`.
+- Keep SCORE/NEXT equal at 170 x 150 and their content inside clipped surfaces. Keep the five-step path in its 296 x 104 panel; do not remove its heading or shrink the 50 px catalog slots.
+- Preserve the target hierarchy: header, contained 56 px icon, catalog name, labeled progress, and 12 px bar. Level, Target, and Settings remain centered on the same baseline.
+- Keep the top-row minimum safe-inset compatible. Run `PRODUCTION_UI_FINALIZATION_TESTS` after size/margin changes; its containment, baseline, maximum-score, notch, and six-resolution checks are intentional.
+- The two-layer danger line is presentation only. Never move its authoritative Y coordinate or change the existing timer/failure logic.
+
 ## Production UI finalization guardrails v1
 
 - Use `GameplayHud.tscn`, `ResultOverlay.tscn`, and `UiDesignSystem`; do not restore scattered UI constants, immediate drawing, fixed bitmap text, or parallel popup implementations.

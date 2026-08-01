@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Production UI Corrective Pass v2](PRODUCTION_UI_CORRECTIVE_PASS_V2_REPORT.md) - rendered correction of the reported HUD defects, six-resolution/notch evidence, complete regression pass, and verified fresh APK.
+
 - [Production UI Finalization v1](PRODUCTION_UI_FINALIZATION_V1_REPORT.md) - commercial gameplay HUD, shared UI theme/tokens, responsive Pause/Win/Fail, mobile Back behavior, score/icon/state regressions, exact-resolution screenshots, reviewed walkthrough, and verified APK.
 
 - [Gameplay UI, Animation, Reward Feel, and Pause/Settings Finalization v1](GAMEPLAY_UI_FEEL_FINALIZATION_V1_REPORT.md) — final responsive gameplay HUD, modal pause/restart, merge/score reward feedback, target collection cleanup/flight, exact final-win sequencing, unlimited-launch regression proof, APK provenance, and [render evidence](gameplay-ui-feel-finalization-v1/README.md).

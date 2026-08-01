@@ -1,5 +1,11 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Production UI corrective pass v2
+
+No raster asset was added, regenerated, resized, or destructively edited. The correction retains `assets/buttons/Generated image 10.png` for the ornamental SCORE/NEXT/target headers, Settings icon, and outer panel framing; dynamic containment surfaces, level badge, merge-path panel, progress track, borders, and shadows are cached Godot `StyleBoxFlat` resources.
+
+All gem images remain authoritative `AssetCatalog` textures in aspect-preserving slots. PNGs under `reports/production-ui-corrective-pass-v2/` are validation evidence only, covered by `reports/.gdignore`, and absent from the APK. No production asset mapping changed.
+
 ## Production UI finalization v1
 
 The milestone inspected all six 941 x 1672 RGB UI reference compositions, both 1024 x 1536 ARGB button sheets, all active panel/icon regions, pause/win/fail sources, the complete 18-gem catalog, and the project font inventory. There is no bundled font file; production uses one cached emboldened `ThemeDB.fallback_font` variation.

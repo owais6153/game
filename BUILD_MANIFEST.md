@@ -1,5 +1,17 @@
 # Build Manifest
 
+## Production UI Finalization v2
+
+- File: `production-ui-finalization-v2.apk`
+- Path: `D:\Owais\game\build\android\production-ui-finalization-v2.apk`
+- Size: `100,793,853 bytes`
+- Modified: `2026-08-01 07:44:38 +05:00` (`2026-08-01T02:44:38Z`)
+- SHA-256: `53CEF1A789A91956B80CF8EB627BCE066899C1445919104A366D162F23E61A38`
+- Exact UI source commit: `baae6488874174811207437d2b84f5daa6b148fa` (`fix: correct production HUD visual composition`); delivery tag: `production-ui-finalization-v2`.
+- Export: fresh Godot 4.6.3 `--export-debug Android`; the unconfigured release-keystore check correctly prevented a release-signed export. This is the same installable signed validation format used by the prior milestone, not a store-release signing claim.
+- Validation: 355 ZIP entries; manifest/dex/arm64 Godot runtime present; zero `reports/`/`tools/` entries; v2/v3 signatures with one RSA-2048 signer. All six test/profile suites and the 35-image ANGLE capture pass.
+- Device status: `adb devices -l` returned an empty device list. No installation or physical-device result is claimed.
+
 ## Production UI Finalization v1
 
 - File: `production-ui-finalization-v1.apk`

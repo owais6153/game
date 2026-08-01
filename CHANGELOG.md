@@ -1,5 +1,11 @@
 # Changelog
 
+## Production UI Corrective Pass v2
+
+- Corrected the visibly unfinished 576 x 1312 HUD: contained NEXT, restored score breathing room, framed MERGE PATH, rebuilt target content containment/alignment, and aligned Level/Target/Settings on one objective baseline.
+- Added crisp native content surfaces, consistent borders/shadows, clearer target progress, a higher-contrast progress track, and a legible two-layer danger-line treatment while preserving its threshold and all gameplay geometry.
+- Added icon/card inset and baseline assertions, a reported-state reproduction, and 35 final screenshots across six portrait sizes plus a simulated notch. All six test/profile suites pass.
+
 ## Production UI Finalization v1
 
 - Rebuilt gameplay UI around reusable `GameplayHud.tscn` / `ResultOverlay.tscn` CanvasLayers and a cached `UiDesignSystem` theme: equal SCORE/NEXT cards, readable five-tier path, explicit sequential target progress, compact level badge, safe-area margins, and catalog-authoritative icons.

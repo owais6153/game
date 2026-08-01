@@ -1,5 +1,13 @@
 # Architecture
 
+## Production UI corrective composition v2
+
+- SCORE/NEXT use equal 170 x 150 outer NinePatch cards plus clipped native `ContentSurface` panels, keeping dynamic values/icons clear of headers and borders.
+- `ProgressionCenter` contains a 296 x 104 cream/gold panel with five catalog-driven 50 px slots. The objective row uses a 116 x 58 Level badge, a 412 x 116 clipped target card, and the existing 88 px Settings button, all vertically centered by one container.
+- Target decoration and content are separate layers: body, content surface, header, then margin/HBox with one 56 px aspect-preserved catalog icon and a VBox for name, labeled progress, and a 12 px cached-theme ProgressBar.
+- The maximum row minimum is 652 design px, so simulated 24 px side insets plus safe padding fit the 720-wide canvas. Tests assert icon insets and objective baselines at every supported portrait size.
+- The danger threshold still reads only `GameConfig.danger_line_y()` and the same rail functions. A dark dashed backing beneath the coral foreground changes contrast only, never failure state, bounds, timing, or collision.
+
 ## Production UI system v1
 
 - `scenes/ui/GameplayHud.tscn` and `ResultOverlay.tscn` are the reusable runtime entry points. Both are CanvasLayers outside the table transform and are instantiated once by `GameController`.
