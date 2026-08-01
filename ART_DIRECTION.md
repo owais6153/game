@@ -1,5 +1,11 @@
 # Art Direction
 
+## Production UI simplification v3
+
+The approved gameplay HUD is deliberately simpler than the supplied ornamental comps. SCORE, NEXT, TARGET, and LEVEL use the same coral pill with a thin gold edge, white type, and short shadow. SCORE/NEXT/TARGET content uses the same softly opaque cream panel as MERGE PATH, so the screen reads as one system instead of layered stickers.
+
+MERGE PATH is the dominant learning aid at the top: all eight active Level 1 gems appear in one horizontal chain with compact gold links, teal heading, and clear current/reached rings. The objective card floats immediately above the table and shows only the target gem; names, fractions, and progress indicators are intentionally removed. The open sky between the utility row and target is purposeful breathing room that preserves the tropical scene and guides the eye from progression to objective to table.
+
 ## Production UI corrective pass v2
 
 The gameplay HUD reads as one compact tropical instrument panel, not unrelated stickers. SCORE and NEXT retain their coral ribbons but use opaque cream content wells and equal proportions. MERGE PATH sits in a quiet cream/gold capsule. The objective row is organized around the wide target card, with the coral Level badge and teal Settings control centered on the same axis.

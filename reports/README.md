@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Production UI Simplification v3](PRODUCTION_UI_SIMPLIFICATION_V3_REPORT.md) - unified badge labels, simple panels, full eight-gem merge path, table-adjacent gem-only target, six-resolution evidence, and verified APK.
+
 - [Production UI Corrective Pass v2](PRODUCTION_UI_CORRECTIVE_PASS_V2_REPORT.md) - rendered correction of the reported HUD defects, six-resolution/notch evidence, complete regression pass, and verified fresh APK.
 
 - [Production UI Finalization v1](PRODUCTION_UI_FINALIZATION_V1_REPORT.md) - commercial gameplay HUD, shared UI theme/tokens, responsive Pause/Win/Fail, mobile Back behavior, score/icon/state regressions, exact-resolution screenshots, reviewed walkthrough, and verified APK.

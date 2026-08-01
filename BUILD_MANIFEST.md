@@ -1,5 +1,17 @@
 # Build Manifest
 
+## Production UI Simplification v3
+
+- File: `production-ui-simplification-v3.apk`
+- Path: `D:\Owais\game\build\android\production-ui-simplification-v3.apk`
+- Size: `100,789,757 bytes`
+- Modified: `2026-08-01 08:45:42 +05:00` (`2026-08-01T03:45:42Z`)
+- SHA-256: `EE39C5935AD6CF992C4BEFEA577B1F5095CD841CDA205B7A1BD4AB3EE2BC710E`
+- Exact UI source commit: `126585365fd7a5c5b8bfc4f1590964ddc1b3aedd` (`feat: simplify HUD and show full merge path`); delivery tag: `production-ui-simplification-v3`.
+- Export: fresh signed Godot 4.6.3 debug APK; no store-release keystore is configured or claimed.
+- Validation: 355 ZIP entries; manifest/dex/arm64 Godot runtime present; zero `reports/`/`tools/` entries; v2/v3 signatures with one RSA-2048 signer. All six regression/profile suites and the 35-image ANGLE capture pass.
+- Device status: `adb devices -l` returned an empty device list; no installation or physical-device result is claimed.
+
 ## Production UI Finalization v2
 
 - File: `production-ui-finalization-v2.apk`

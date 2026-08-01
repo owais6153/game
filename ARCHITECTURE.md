@@ -1,5 +1,13 @@
 # Architecture
 
+## Production UI simplification v3
+
+- `MainRow` is a 652 design-pixel minimum responsive HBox: equal 122 x 122 SCORE/NEXT controls surround a 396 x 122 eight-gem merge panel. SCORE, NEXT, TARGET, and LEVEL use the same native `PanelContainer` coral badge helper; dynamic boxes use `simple_hud_panel_style()` and no decorative bitmap headers.
+- The merge strip is the full active Level 1 chain, tiers 1 through 8, resolved only through `AssetCatalog`. Eight 42 px slots and seven 6 px connectors fit the safe-width budget without a second row or icon overlap.
+- TARGET is outside the top `HudRows` in `TableTargetAnchor`. It is a 178 x 148 simple card containing only a `TARGET` badge and one 80 px aspect-preserved icon. There are no target-name, target-index, progress-copy, or ProgressBar nodes.
+- `_refresh_safe_margins()` computes the target's presentation Y from the authoritative `GameConfig.BOARD_TOP`, base viewport height, current expanded portrait height, and a presentation-only 46 px table gap. It never changes table or simulation coordinates.
+- The top utility row contains only LEVEL and Settings separated by an expanding spacer. Target collection still reads the live target icon center, so the approved collection path/timing remains intact after repositioning.
+
 ## Production UI corrective composition v2
 
 - SCORE/NEXT use equal 170 x 150 outer NinePatch cards plus clipped native `ContentSurface` panels, keeping dynamic values/icons clear of headers and borders.

@@ -1,5 +1,14 @@
 # AI Knowledge Base
 
+## Production UI simplification guardrails v3
+
+- The approved gameplay HUD visual is `reports/production-ui-simplification-v3/final-screenshots/576x1312/details/screenshot-reproduction-score-1300.png`.
+- SCORE, NEXT, TARGET, and LEVEL must keep the shared coral `PanelContainer` badge style. Do not restore atlas ribbon headers, stacked decorative bodies, or separate visual languages for these labels.
+- MERGE PATH must show exactly all eight active Level 1 catalog tiers. Keep it horizontal, readable, safe-width compatible, and catalog-driven; do not regress to five tiers or substitute names/duplicate mappings.
+- TARGET shows only `TARGET` and the current catalog gem. Do not add its name, `1 / 2`, progress copy, or a progress bar. Sequential target logic remains controller-owned and unchanged even though its count is hidden.
+- Keep `TableTargetAnchor` driven from `GameConfig.BOARD_TOP` plus portrait expansion and `TARGET_TABLE_GAP`. This dependency is presentation-only; never move the table to accommodate UI.
+- After layout changes, run the production UI, gameplay-feel, Level 1, contact, 18-gem, and motion suites plus the six-resolution capture.
+
 ## Production UI corrective guardrails v2
 
 - Treat `reports/production-ui-corrective-pass-v2/final-screenshots/576x1312/details/screenshot-reproduction-score-1490.png` as the minimum visual bar. Do not restore the oversized NEXT gem, low score baseline, floating merge strip, escaped target gem, or detached objective controls visible before `baae648`.

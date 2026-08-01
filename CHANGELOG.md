@@ -1,5 +1,11 @@
 # Changelog
 
+## Production UI Simplification v3
+
+- Replaced ornamental SCORE/NEXT/TARGET ribbons and layered card skins with one simple native cream-panel/coral-badge system matching the approved LEVEL 1 label.
+- Expanded MERGE PATH from five to all eight active Level 1 gems in a 396 x 122 responsive panel, with catalog-authoritative icons and readable connectors.
+- Reduced TARGET to its label and current gem only, removed its name/counter/progress/bar, and anchored it responsively immediately above the table at every supported portrait aspect ratio.
+
 ## Production UI Corrective Pass v2
 
 - Corrected the visibly unfinished 576 x 1312 HUD: contained NEXT, restored score breathing room, framed MERGE PATH, rebuilt target content containment/alignment, and aligned Level/Target/Settings on one objective baseline.

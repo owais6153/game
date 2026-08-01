@@ -1,5 +1,11 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Production UI simplification v3
+
+No raster production asset changed. SCORE, NEXT, TARGET, LEVEL, and MERGE PATH now use native `PanelContainer`/`StyleBoxFlat` composition; the prior ornamental atlas headers are no longer used by these gameplay labels. `assets/buttons/Generated image 10.png` remains retained and still supplies the Settings control and any legacy/reference regions needed elsewhere.
+
+The expanded eight-gem path and gem-only target use the existing `AssetCatalog` textures without derivatives or duplicate preview arrays. Evidence under `reports/production-ui-simplification-v3/` is development-only and excluded from Android export.
+
 ## Production UI corrective pass v2
 
 No raster asset was added, regenerated, resized, or destructively edited. The correction retains `assets/buttons/Generated image 10.png` for the ornamental SCORE/NEXT/target headers, Settings icon, and outer panel framing; dynamic containment surfaces, level badge, merge-path panel, progress track, borders, and shadows are cached Godot `StyleBoxFlat` resources.
