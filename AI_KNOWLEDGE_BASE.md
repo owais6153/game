@@ -1,5 +1,16 @@
 # AI Knowledge Base
 
+## Production UI finalization guardrails v1
+
+- Use `GameplayHud.tscn`, `ResultOverlay.tscn`, and `UiDesignSystem`; do not restore scattered UI constants, immediate drawing, fixed bitmap text, or parallel popup implementations.
+- Keep SCORE and NEXT equal responsive cards. Score formatting is presentation-only and must retain grouped values below 10,000 plus compact K/M/B/T/Q/Qi notation without changing the exact controller integer.
+- Keep the Level 1 path to five readable catalog tiers; never squeeze all 18 tiers into the gameplay strip. NEXT, progression, target, and result art must resolve through `AssetCatalog` only.
+- The target card must show one current sequential target, its real index, catalog name/icon, numeric progress, and ARRIVING/COMPLETE state. Collection destination is the live target icon center; collection and reward timing are frozen.
+- Settings is the only normal-HUD button and retains an 88 px design target. Restart belongs only to Pause. Pause/Result roots must block click-through, remain duplicate-guarded, respect safe areas, and provide normal/hover/pressed/disabled/focus states.
+- Preserve Android Back behavior: open Pause during play, close Pause first, and do not dismiss result screens. Do not add an immediate exit path.
+- HUD updates are state-driven. Do not add `_process`, runtime `load()`, font/theme creation, image processing, node rebuilding, or repeated signal connections. Run `PRODUCTION_UI_FINALIZATION_TESTS` plus the existing gameplay/contact/18-gem/profile suites after UI changes.
+- Before editing this system, read `reports/PRODUCTION_UI_FINALIZATION_V1_REPORT.md` and inspect `reports/production-ui-finalization-v1/final-screenshots/`.
+
 ## Final gameplay UI/reward guardrails v1
 
 - The production HUD is `GameplayHudLayer`, not `HudRenderer`. It may read only `hud_snapshot()`. Keep SCORE/NEXT/target/progression gem art on `STRETCH_KEEP_ASPECT_CENTERED`; never restore circular masks, independent-axis stretching, fixed immediate-draw panels, a gameplay Restart button, shot counts, target fractions, or S/V text controls.

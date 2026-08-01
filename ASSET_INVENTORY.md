@@ -1,5 +1,13 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Production UI finalization v1
+
+The milestone inspected all six 941 x 1672 RGB UI reference compositions, both 1024 x 1536 ARGB button sheets, all active panel/icon regions, pause/win/fail sources, the complete 18-gem catalog, and the project font inventory. There is no bundled font file; production uses one cached emboldened `ThemeDB.fallback_font` variation.
+
+No raster asset was generated or destructively edited. `assets/buttons/Generated image 10.png` remains the active UI atlas; scalable panel/header regions are composed with AtlasTexture and NinePatchRect, while dynamic labels/numbers remain Godot text. `assets/ui/Generated image 1 (3).png` through `Generated image 6.png`, including the previous pause/result compositions, remain preserved reference assets. All gem, table, background, and shadow assets are unchanged.
+
+New reusable non-raster UI resources: `scenes/ui/GameplayHud.tscn`, `scenes/ui/ResultOverlay.tscn`, and `scripts/ui_design_system.gd`. Evidence images under `reports/production-ui-finalization-v1/` are development artifacts excluded from Android export.
+
 ## Isolated 18-gem chain v1
 
 The user-selected source originals are preserved in `assets/gems/`. Their deterministic L1-L18 mapping, SHA-256 checksums, and source filenames are in `assets/runtime/gems18/source-gems-sha256.json`. Non-destructive alpha-trimmed derivatives are in `assets/runtime/gems18/tier_01.png` through `tier_18.png`, with bounds and crop details in `normalization_manifest.json`. The original Moonstone source has an opaque exterior; only its runtime derivative receives a circular body mask. Existing `gem_soft_shadow.png` remains a separate presentation-only layer.

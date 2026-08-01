@@ -1,5 +1,15 @@
 # Architecture
 
+## Production UI system v1
+
+- `scenes/ui/GameplayHud.tscn` and `ResultOverlay.tscn` are the reusable runtime entry points. Both are CanvasLayers outside the table transform and are instantiated once by `GameController`.
+- `UiDesignSystem` owns cached theme/font resources, palette, typography sizes, spacing, safe-area padding, panel/button geometry, full button states, ProgressBar styling, and animation timings. Runtime UI code never creates these per frame.
+- The HUD is a 720-wide design canvas scaled down only for narrower viewports. A safe `MarginContainer` holds a `VBoxContainer` with a SCORE/progression/NEXT row and a level/target/Settings row. Dynamic cards use NinePatch skins, content margins, aspect slots, and labels rather than fixed-position image hacks.
+- `GameplayHudLayer.update_snapshot()` is event-driven and compares controller-owned state before updating. It has no `_process`, runtime load, catalog scan, or node rebuilding path. Score, queue, target, and animation changes kill/replace their bounded tween.
+- Result and Pause roots own full-screen input blockers and safe-area-centered cards. Duplicate visibility guards prevent parallel modal instances. Escape/Android Back routing opens/closes Pause first and leaves result actions explicit.
+- `AssetCatalog` remains the sole icon/name/texture authority. `ScoreFormatter` remains display-only. Target collection reads the live target icon center but does not change body cleanup, travel duration, reward timing, or win sequencing.
+- `reports/.gdignore` and `tools/*` export exclusion keep all audit/capture/test artifacts out of Android packages.
+
 ## Gameplay UI and reward-presentation boundary v1
 
 - `GameplayHudLayer` is the production layer-40 `CanvasLayer`. Its Control/container tree reads only `GameController.hud_snapshot()` and owns no queue, target, score, input-on-board, collision, or simulation rule. Supplied SCORE/NEXT skins retain their source aspect; stretchable target/pause/button skins use NinePatch regions; all gem icons use contained `TextureRect` children.

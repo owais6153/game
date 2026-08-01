@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Production UI Finalization v1
+
+- File: `production-ui-finalization-v1.apk`
+- Path: `D:\Owais\game\build\android\production-ui-finalization-v1.apk`
+- Size: `100,789,757 bytes`
+- Modified: `2026-08-01 05:34:59 +05:00` (`2026-08-01T00:34:59Z`)
+- SHA-256: `32737D83797840B2145913CADBD54EE1CC7A4004B3FD752BB3D16C88E3DC57E8`
+- Exact gameplay/UI source commit: `a861fecb8e7b344b4dabe63894e2ae10e2c2fc63` (`feat: finalize production gameplay UI`); delivery tag: `production-ui-finalization-v1`.
+- Validation: Godot 4.6.3 parse/import and real ANGLE capture passed; `PRODUCTION_UI_FINALIZATION_TESTS`, `GAMEPLAY_UI_FEEL_TESTS`, `LEVEL_1_FLOW_TESTS`, `CLEAN_CONTACT_TESTS`, `GEM18_CHAIN_TESTS`, and `MOTION_PROFILE` passed. The APK has 355 ZIP entries with manifest/dex/arm64 runtime present, zero `reports/` or `tools/` entries, and valid v2/v3 signatures.
+- Device status: `adb devices -l` returned an empty device list. No install or physical-device launch/performance/haptic result is claimed.
+
 ## Gameplay UI, Animation, Reward Feel, and Pause/Settings Finalization v1
 
 - File: `gameplay-ui-feel-finalization-v1.apk`

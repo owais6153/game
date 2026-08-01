@@ -85,6 +85,15 @@ func _capture_detailed_video_resolution_set() -> void:
 	controller._refresh_hud()
 	await _settle_ui()
 	await _capture(fixture, "%s/score-12-5m.png" % directory)
+	var changed_preview: Dictionary = controller.hud_snapshot()
+	changed_preview.current_level = 4
+	changed_preview.highest_level = 5
+	changed_preview.next_level = 3
+	changed_preview.target_level = 8
+	changed_preview.target_index = 1
+	controller.gameplay_ui.update_snapshot(changed_preview)
+	await _settle_ui()
+	await _capture(fixture, "%s/current-next-target-change.png" % directory)
 
 	controller.restart()
 	controller.set_process(false)

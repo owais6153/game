@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Production UI Finalization v1](PRODUCTION_UI_FINALIZATION_V1_REPORT.md) - commercial gameplay HUD, shared UI theme/tokens, responsive Pause/Win/Fail, mobile Back behavior, score/icon/state regressions, exact-resolution screenshots, reviewed walkthrough, and verified APK.
+
 - [Gameplay UI, Animation, Reward Feel, and Pause/Settings Finalization v1](GAMEPLAY_UI_FEEL_FINALIZATION_V1_REPORT.md) — final responsive gameplay HUD, modal pause/restart, merge/score reward feedback, target collection cleanup/flight, exact final-win sequencing, unlimited-launch regression proof, APK provenance, and [render evidence](gameplay-ui-feel-finalization-v1/README.md).
 
 - [Video-Verified Unlimited Launcher + HUD v1](VIDEO_VERIFIED_UNLIMITED_LAUNCHER_HUD_V1_REPORT.md)

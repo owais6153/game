@@ -1,5 +1,11 @@
 # Art Direction
 
+## Production UI finalization v1
+
+The final mobile UI keeps the supplied tropical/coral/cream/gold language while separating dynamic information from baked compositions. Cream carved panels use coral ribbon headers, gold connection/progress accents, teal utility controls, warm brown primary text, and coral state text. SCORE and NEXT are visual peers; the five-tier merge path is readable but secondary; the current target is the clearest objective; the level badge is intentionally compact.
+
+Pause, Win, and Fail use the same cream card, soft shadow, restrained 52% dimmer, type family, spacing rhythm, and coral primary action. State-specific art and copy create distinction without introducing another style. UI motion is quick and functional: scale/fade entrances, value/icon response, target pulse, and press feedback only. New raster art was unnecessary; approved atlas slices and native controls preserve clean edges and dynamic text.
+
 ## Asset integration v1
 
 The playable scene now uses the supplied tropical beach environment behind a coral-framed turquoise game table. The world background is full-screen and presentation-only; it does not intercept input. The contained table remains the visual and physical focal point.

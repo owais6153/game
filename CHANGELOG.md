@@ -1,5 +1,11 @@
 # Changelog
 
+## Production UI Finalization v1
+
+- Rebuilt gameplay UI around reusable `GameplayHud.tscn` / `ResultOverlay.tscn` CanvasLayers and a cached `UiDesignSystem` theme: equal SCORE/NEXT cards, readable five-tier path, explicit sequential target progress, compact level badge, safe-area margins, and catalog-authoritative icons.
+- Replaced temporary modal composition with consistent Pause, Win, and Fail cards; added complete button states, touch targets, dimmers, fast interruptible tweens, duplicate guards, mobile Back routing, and a purposeful Fail badge. Normal gameplay still shows only Settings.
+- Added signed-64-bit-safe score formatting through Qi, six-resolution plus notch validation, 34 final screenshots, a reviewed updated walkthrough, lifecycle/input/performance regressions, and a fresh verified Android APK. Gameplay physics, balance, table, rails, targets, unlimited launcher, reward timing, audio, and haptics are unchanged.
+
 ## Gameplay UI, Animation, Reward Feel, and Pause/Settings Finalization v1
 
 - Replaced the fixed immediate gameplay HUD with responsive supplied-art Controls for level, SCORE, progression, NEXT, one active target/progress display, and an 88×88 Settings control. Large scores compact safely and every gem preview uses aspect-preserving contain scaling.
