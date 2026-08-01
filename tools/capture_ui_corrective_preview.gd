@@ -4,7 +4,7 @@ extends SceneTree
 ## separate from the full evidence sweep so visual iteration stays deliberate.
 const GameScene = preload("res://scenes/Game.tscn")
 const GemPieceType = preload("res://scripts/gem_piece.gd")
-const OUTPUT := "res://reports/production-ui-simplification-v3/576x1312/screenshot-reproduction-score-1300.png"
+const OUTPUT := "res://reports/production-ui-polish-v4/576x1312/screenshot-reproduction-score-1300.png"
 
 
 func _init() -> void:

@@ -40,6 +40,7 @@ var target_collection: Dictionary = {}
 var final_target_result_id := -1
 var background_sprite: Sprite2D
 var table_sprite: Sprite2D
+var applied_table_offset_x := 0.0
 var applied_table_offset_y := 0.0
 var ready_delay_elapsed := 0.0
 var launcher_handoff_elapsed := 0.0
@@ -286,7 +287,7 @@ func spawn_active_piece() -> bool:
 	# Idempotent for a lifecycle cycle: an existing launcher is never replaced.
 	if get_active_piece() != null:
 		return false
-	var piece := GemPiece.new(next_piece_id, next_level, Vector2(360.0, GameConfig.launch_y()), GameConfig.gem_collision_radius(next_level))
+	var piece := GemPiece.new(next_piece_id, next_level, Vector2(GameConfig.table_center_x(), GameConfig.launch_y()), GameConfig.gem_collision_radius(next_level))
 	next_piece_id += 1
 	piece.is_active_launcher = true
 	pieces.append(piece)
@@ -384,21 +385,24 @@ func _refresh_background_fill() -> void:
 	# supplied background while preserving image proportions; table and
 	# simulation coordinates remain in their fixed design space.
 	var viewport_size := get_viewport_rect().size if is_inside_tree() else GameConfig.VIEWPORT_SIZE
-	GameConfig.configure_portrait_bottom(viewport_size.y)
-	var new_offset := GameConfig.portrait_bottom_offset_y
-	var offset_delta := new_offset - applied_table_offset_y
-	if not is_zero_approx(offset_delta):
+	GameConfig.configure_viewport(viewport_size)
+	var new_offset := Vector2(GameConfig.viewport_center_offset_x, GameConfig.portrait_bottom_offset_y)
+	var offset_delta := new_offset - Vector2(applied_table_offset_x, applied_table_offset_y)
+	if not offset_delta.is_zero_approx():
 		for piece in pieces:
-			piece.position.y += offset_delta
+			piece.position += offset_delta
 		for presentation in merge_presentations:
-			presentation.midpoint.y += offset_delta
-			presentation.first_position.y += offset_delta
-			presentation.second_position.y += offset_delta
+			presentation.midpoint += offset_delta
+			presentation.first_position += offset_delta
+			presentation.second_position += offset_delta
 		if collection_in_progress:
-			target_collection.start.y += offset_delta
+			target_collection.start += offset_delta
+		for marker in debug_contact_points:
+			marker.position += offset_delta
 		if effects_layer != null:
-			effects_layer.shift_world_y(offset_delta)
-		applied_table_offset_y = new_offset
+			effects_layer.shift_world(offset_delta)
+		applied_table_offset_x = new_offset.x
+		applied_table_offset_y = new_offset.y
 	if table_sprite != null:
 		table_sprite.position = GameConfig.table_texture_center()
 	var source_size := background_sprite.texture.get_size()
@@ -538,7 +542,7 @@ func _begin_target_collection(result_id: int, presentation: Dictionary = {}) -> 
 			result_piece = piece
 			break
 	var level := result_piece.level if result_piece != null else int(presentation.get("level", active_target_tier()))
-	var start := result_piece.position if result_piece != null else Vector2(presentation.get("midpoint", Vector2(360.0, GameConfig.board_top() + 180.0)))
+	var start := result_piece.position if result_piece != null else Vector2(presentation.get("midpoint", Vector2(GameConfig.table_center_x(), GameConfig.board_top() + 180.0)))
 	# The actual confirmed merge result has already finished its presentation.
 	# Remove it from the live simulation *before* its separate visual travels to
 	# the HUD. Keeping a consumed RefCounted item in `pieces` used to leave a

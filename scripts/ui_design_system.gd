@@ -97,6 +97,15 @@ static func simple_hud_panel_style() -> StyleBoxFlat:
 	return _rounded_style(Color(1.0, 0.984, 0.93, 0.97), Color("e5b74f"), 2, 22, 5, Color(0.10, 0.20, 0.22, 0.22))
 
 
+static func simple_popup_panel_style() -> StyleBoxFlat:
+	var style := _rounded_style(Color("fffaf0"), Color("e5b74f"), 3, 30, 9, Color(0.06, 0.16, 0.18, 0.28))
+	style.content_margin_left = 0.0
+	style.content_margin_top = 0.0
+	style.content_margin_right = 0.0
+	style.content_margin_bottom = 0.0
+	return style
+
+
 static func progression_panel_style() -> StyleBoxFlat:
 	var style := _rounded_style(Color(1.0, 0.976, 0.91, 0.96), Color("e5b74f"), 2, 22, 5, Color(0.10, 0.20, 0.22, 0.22))
 	style.content_margin_left = 9.0

@@ -33,6 +33,7 @@ func _run() -> void:
 	_test_visual_level_mapping()
 	_test_visual_layout_bounds()
 	_test_portrait_board_bounds_and_scale()
+	_test_wide_viewport_center_alignment()
 	_test_expanded_portrait_background_cover()
 	_test_expanded_portrait_table_bottom_anchor()
 	_test_merge_momentum_is_bounded_and_contained()
@@ -347,6 +348,24 @@ func _test_portrait_board_bounds_and_scale() -> void:
 		_assert(GameConfig.table_left_at(GameConfig.BOARD_TOP) * scale >= 0.0 and GameConfig.table_right_at(GameConfig.BOARD_TOP) * scale <= portrait_size.x, "Table rail model must fit every supported portrait width")
 		_assert(GameConfig.BOARD_TOP * scale >= GameConfig.HUD_RECT.end.y * scale and GameConfig.BOARD_BOTTOM * scale <= portrait_size.y, "Board must remain below HUD and inside every supported portrait height")
 		_assert(GameConfig.PIECE_RADIUS * 2.0 <= (GameConfig.BOARD_RIGHT - GameConfig.BOARD_LEFT) * 0.20, "Gem scale must leave horizontal cluster room")
+
+
+func _test_wide_viewport_center_alignment() -> void:
+	GameConfig.configure_viewport(Vector2(1000.0, 1280.0))
+	var expected_center := 500.0
+	_assert(is_equal_approx(GameConfig.viewport_center_offset_x, 140.0), "Wide viewports must derive one shared horizontal table offset")
+	_assert(is_equal_approx(GameConfig.table_texture_center().x, expected_center), "Visible table artwork must center on a wide viewport")
+	for y_position in [GameConfig.BOARD_TOP, 800.0, GameConfig.BOARD_BOTTOM]:
+		_assert(is_equal_approx((GameConfig.table_left_at(y_position) + GameConfig.table_right_at(y_position)) * 0.5, expected_center), "Physical rails must share the visible table center at y=%s" % str(y_position))
+	var centered_piece := _piece(91001, 1, Vector2(expected_center, GameConfig.LAUNCH_Y))
+	var centered_items: Array[GemPiece] = [centered_piece]
+	var centered_simulation = SimulationType.new()
+	var centered_merger = MergeType.new()
+	centered_simulation.step(centered_items, 0.0, centered_merger)
+	_assert(centered_piece.position.x >= GameConfig.table_left_at(centered_piece.position.y) + centered_piece.radius and centered_piece.position.x <= GameConfig.table_right_at(centered_piece.position.y) - centered_piece.radius, "Wide-screen physics containment must remain centered inside the shifted table")
+	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
+	_assert(controller_source.contains("GameConfig.table_center_x()") and controller_source.contains("effects_layer.shift_world(offset_delta)"), "Launcher and presentation state must consume the shared wide-screen offset")
+	GameConfig.configure_portrait_bottom(GameConfig.VIEWPORT_SIZE.y)
 
 func _test_merge_momentum_is_bounded_and_contained() -> void:
 	var first := _piece(1, 1, Vector2(300, 500))

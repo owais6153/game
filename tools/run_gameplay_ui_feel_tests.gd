@@ -71,10 +71,11 @@ func _test_control_hierarchy_and_contained_previews() -> void:
 	await process_frame
 	_assert(hud.root_control is Control and hud.hud_margin is MarginContainer, "Gameplay HUD must be a full Control tree rooted in a MarginContainer")
 	_assert(hud.hud_margin.get_node("HudRows") is VBoxContainer, "Gameplay HUD rows must use a VBoxContainer")
-	_assert(hud.hud_margin.get_node("HudRows/MainRow") is HBoxContainer, "Score, progression, and NEXT must use a responsive HBoxContainer")
+	_assert(hud.hud_margin.get_node("HudRows/MainRow") is CenterContainer, "The merge path must own the enlarged centered top row")
+	_assert(hud.hud_margin.get_node("HudRows/ScoreNextRow") is HBoxContainer, "Score and NEXT must use the responsive row below the merge path")
 	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must use a responsive utility HBoxContainer")
 	_assert(hud.target_panel.get_parent() == hud.target_anchor, "The active target must be independently anchored above the table")
-	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is NinePatchRect, "Target must use the simple HUD panel system while Pause retains a stretchable border")
+	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must share the simple native panel system")
 	_assert(hud.next_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "NEXT gem must use aspect-preserving contain scaling")
 	_assert(hud.target_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "Target gem must use aspect-preserving contain scaling")
 	for icon in hud.progression_icons:

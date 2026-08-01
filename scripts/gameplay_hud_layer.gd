@@ -17,7 +17,7 @@ var progression_center: CenterContainer
 var target_anchor: CenterContainer
 var score_panel: Control
 var score_label: Label
-var progression_frames: Array[PanelContainer] = []
+var progression_frames: Array[Control] = []
 var progression_icons: Array[TextureRect] = []
 var next_panel: Control
 var next_icon: TextureRect
@@ -30,15 +30,12 @@ var settings_button: TextureButton
 var pause_blocker: Control
 var pause_dimmer: ColorRect
 var pause_safe_margin: MarginContainer
-var pause_panel: NinePatchRect
+var pause_panel: PanelContainer
 var resume_button: Button
 var restart_button: Button
 
 var _built := false
 var _snapshot: Dictionary = {}
-var _progress_style: StyleBoxFlat
-var _progress_reached_style: StyleBoxFlat
-var _progress_active_style: StyleBoxFlat
 var _layout_scale := 1.0
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 var _score_tween: Tween
@@ -92,12 +89,17 @@ func update_snapshot(snapshot: Dictionary) -> void:
 	if int(_snapshot.get("current_level", -1)) != current_level or int(_snapshot.get("highest_level", -1)) != highest_level:
 		for index in range(progression_frames.size()):
 			var tier := index + 1
-			var style := _progress_style
+			var icon := progression_icons[index]
+			var slot := progression_frames[index]
 			if tier == current_level:
-				style = _progress_active_style
+				icon.modulate = Color.WHITE
+				slot.scale = Vector2.ONE * 1.10
 			elif tier <= mini(highest_level, progression_frames.size()):
-				style = _progress_reached_style
-			progression_frames[index].add_theme_stylebox_override("panel", style)
+				icon.modulate = Color.WHITE
+				slot.scale = Vector2.ONE
+			else:
+				icon.modulate = Color(1.0, 1.0, 1.0, 0.82)
+				slot.scale = Vector2.ONE
 
 	var target_level := int(snapshot.get("target_level", 1))
 	if int(_snapshot.get("target_level", -1)) != target_level:
@@ -225,9 +227,6 @@ func _build_once() -> void:
 	if _built:
 		return
 	_built = true
-	_progress_style = UiDesignSystemType.progression_style(UiDesignSystemType.COLOR_GOLD, 3)
-	_progress_reached_style = UiDesignSystemType.progression_style(UiDesignSystemType.COLOR_TEAL, 3, Color("f2ffff"))
-	_progress_active_style = UiDesignSystemType.progression_style(UiDesignSystemType.COLOR_CORAL, 5, Color("fff1e8"))
 	root_control = Control.new()
 	root_control.name = "GameplayUIRoot"
 	root_control.theme = UiDesignSystemType.theme()
@@ -244,7 +243,7 @@ func _build_hud() -> void:
 	hud_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_canvas.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	hud_canvas.offset_right = UiDesignSystemType.DESIGN_WIDTH
-	hud_canvas.offset_bottom = 326.0
+	hud_canvas.offset_bottom = 420.0
 	root_control.add_child(hud_canvas)
 
 	hud_margin = MarginContainer.new()
@@ -258,23 +257,32 @@ func _build_hud() -> void:
 	rows.add_theme_constant_override("separation", UiDesignSystemType.ROW_GAP)
 	hud_margin.add_child(rows)
 
-	var main_row := HBoxContainer.new()
+	var main_row := CenterContainer.new()
 	main_row.name = "MainRow"
-	main_row.custom_minimum_size = Vector2(0.0, 128.0)
-	main_row.add_theme_constant_override("separation", 6)
+	main_row.custom_minimum_size = Vector2(0.0, 142.0)
 	main_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(main_row)
-	score_panel = _build_score_panel()
-	main_row.add_child(score_panel)
 	progression_center = CenterContainer.new()
 	progression_center.name = "ProgressionCenter"
-	progression_center.custom_minimum_size = Vector2(396.0, 128.0)
-	progression_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	progression_center.custom_minimum_size = Vector2(600.0, 142.0)
 	progression_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	main_row.add_child(progression_center)
 	progression_center.add_child(_build_progression_group())
+
+	var score_next_row := HBoxContainer.new()
+	score_next_row.name = "ScoreNextRow"
+	score_next_row.custom_minimum_size = Vector2(0.0, 132.0)
+	score_next_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rows.add_child(score_next_row)
+	score_panel = _build_score_panel()
+	score_next_row.add_child(score_panel)
+	var card_spacer := Control.new()
+	card_spacer.name = "CardSpacer"
+	card_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	score_next_row.add_child(card_spacer)
 	next_panel = _build_next_panel()
-	main_row.add_child(next_panel)
+	score_next_row.add_child(next_panel)
 
 	var objective_row := HBoxContainer.new()
 	objective_row.name = "ObjectiveRow"
@@ -317,9 +325,9 @@ func _build_score_panel() -> Control:
 	margin.name = "ScoreContentMargin"
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_top", 50)
+	margin.add_theme_constant_override("margin_top", 48)
 	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_theme_constant_override("margin_bottom", 16)
 	panel.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var column := VBoxContainer.new()
@@ -328,7 +336,7 @@ func _build_score_panel() -> Control:
 	margin.add_child(column)
 	score_label = _label("0", UiDesignSystemType.SCORE_FONT_SIZE, UiDesignSystemType.COLOR_TEXT)
 	score_label.name = "ScoreValue"
-	score_label.custom_minimum_size = Vector2(0.0, 62.0)
+	score_label.custom_minimum_size = Vector2(0.0, 54.0)
 	column.add_child(score_label)
 	return panel
 
@@ -339,9 +347,9 @@ func _build_next_panel() -> Control:
 	margin.name = "NextContentMargin"
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_theme_constant_override("margin_left", 18)
-	margin.add_theme_constant_override("margin_top", 50)
+	margin.add_theme_constant_override("margin_top", 48)
 	margin.add_theme_constant_override("margin_right", 18)
-	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_theme_constant_override("margin_bottom", 16)
 	panel.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var center := CenterContainer.new()
@@ -349,7 +357,7 @@ func _build_next_panel() -> Control:
 	margin.add_child(center)
 	var aspect := AspectRatioContainer.new()
 	aspect.name = "NextGemAspect"
-	aspect.custom_minimum_size = Vector2(60.0, 60.0)
+	aspect.custom_minimum_size = Vector2(62.0, 62.0)
 	aspect.ratio = 1.0
 	aspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(aspect)
@@ -361,7 +369,7 @@ func _build_next_panel() -> Control:
 func _build_hud_card(node_name: String, title: String) -> Control:
 	var panel := Control.new()
 	panel.name = node_name
-	panel.custom_minimum_size = Vector2(122.0, 122.0)
+	panel.custom_minimum_size = Vector2(122.0, 132.0)
 	panel.clip_contents = true
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var inner := PanelContainer.new()
@@ -382,7 +390,7 @@ func _build_hud_card(node_name: String, title: String) -> Control:
 func _build_progression_group() -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = "ProgressionPanel"
-	panel.custom_minimum_size = Vector2(396.0, 122.0)
+	panel.custom_minimum_size = Vector2(600.0, 138.0)
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.progression_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var group := VBoxContainer.new()
@@ -404,31 +412,28 @@ func _build_progression_group() -> PanelContainer:
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	group.add_child(strip)
 	for tier in range(1, 9):
-		var frame := PanelContainer.new()
+		var frame := MarginContainer.new()
 		frame.name = "ProgressionSlot%d" % tier
-		frame.custom_minimum_size = Vector2(42.0, 42.0)
-		frame.add_theme_stylebox_override("panel", _progress_style)
+		frame.custom_minimum_size = Vector2(58.0, 58.0)
+		frame.pivot_offset = Vector2(29.0, 29.0)
 		frame.tooltip_text = AssetCatalogType.gem_name(tier)
 		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var inset := MarginContainer.new()
-		inset.add_theme_constant_override("margin_left", 3)
-		inset.add_theme_constant_override("margin_top", 3)
-		inset.add_theme_constant_override("margin_right", 3)
-		inset.add_theme_constant_override("margin_bottom", 3)
-		inset.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		frame.add_child(inset)
+		frame.add_theme_constant_override("margin_left", 3)
+		frame.add_theme_constant_override("margin_top", 3)
+		frame.add_theme_constant_override("margin_right", 3)
+		frame.add_theme_constant_override("margin_bottom", 3)
 		var icon := _gem_texture_rect("ProgressionGem%d" % tier)
 		icon.texture = AssetCatalogType.gem_texture(tier)
-		inset.add_child(icon)
+		frame.add_child(icon)
 		strip.add_child(frame)
 		progression_frames.append(frame)
 		progression_icons.append(icon)
 		if tier < 8:
 			var connector_center := CenterContainer.new()
-			connector_center.custom_minimum_size = Vector2(6.0, 42.0)
+			connector_center.custom_minimum_size = Vector2(12.0, 58.0)
 			connector_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			var connector := ColorRect.new()
-			connector.custom_minimum_size = Vector2(6.0, 4.0)
+			connector.custom_minimum_size = Vector2(12.0, 4.0)
 			connector.color = UiDesignSystemType.COLOR_GOLD
 			connector.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			connector_center.add_child(connector)
@@ -540,30 +545,30 @@ func _build_pause_popup() -> void:
 	var center := CenterContainer.new()
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pause_safe_margin.add_child(center)
-	pause_panel = NinePatchRect.new()
+	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
-	pause_panel.custom_minimum_size = Vector2(438.0, 468.0)
-	UiDesignSystemType.configure_nine_patch(pause_panel, UiDesignSystemType.atlas(AssetCatalogType.HUD_BUTTON_SHEET, AssetCatalogType.HUD_WHITE_PANEL_REGION), 64, 64)
+	pause_panel.custom_minimum_size = Vector2(420.0, 408.0)
+	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.simple_popup_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
 	var margin := MarginContainer.new()
 	margin.name = "PauseContentMargin"
-	margin.add_theme_constant_override("margin_left", 52)
-	margin.add_theme_constant_override("margin_top", 42)
-	margin.add_theme_constant_override("margin_right", 52)
-	margin.add_theme_constant_override("margin_bottom", 42)
+	margin.add_theme_constant_override("margin_left", 42)
+	margin.add_theme_constant_override("margin_top", 30)
+	margin.add_theme_constant_override("margin_right", 42)
+	margin.add_theme_constant_override("margin_bottom", 30)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pause_panel.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var column := VBoxContainer.new()
 	column.name = "PauseActions"
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 14)
+	column.add_theme_constant_override("separation", 12)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(column)
-	var title := _label("PAUSED", 46, UiDesignSystemType.COLOR_CORAL)
+	var title := _label("PAUSED", 40, UiDesignSystemType.COLOR_CORAL)
 	title.name = "PauseTitle"
-	title.custom_minimum_size = Vector2(0.0, 66.0)
+	title.custom_minimum_size = Vector2(0.0, 56.0)
 	title.add_theme_constant_override("outline_size", 6)
 	title.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_CREAM)
 	column.add_child(title)
@@ -584,11 +589,11 @@ func _build_pause_popup() -> void:
 	spacer.custom_minimum_size = Vector2(0.0, 6.0)
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(spacer)
-	resume_button = _button("ResumeButton", "RESUME", Vector2(310.0, 76.0), "")
+	resume_button = _button("ResumeButton", "RESUME", Vector2(310.0, 72.0), "")
 	resume_button.tooltip_text = "Continue playing"
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
 	column.add_child(resume_button)
-	restart_button = _button("PauseRestartButton", "RESTART", Vector2(310.0, 76.0), "SecondaryButton")
+	restart_button = _button("PauseRestartButton", "RESTART", Vector2(310.0, 72.0), "SecondaryButton")
 	restart_button.tooltip_text = "Restart Level 1"
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
 	column.add_child(restart_button)

@@ -7,7 +7,7 @@ extends SceneTree
 const GameScene = preload("res://scenes/Game.tscn")
 const GemPieceType = preload("res://scripts/gem_piece.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
-const OUTPUT_DIR := "res://reports/production-ui-simplification-v3/final-screenshots/"
+const OUTPUT_DIR := "res://reports/production-ui-polish-v4/final-screenshots/"
 const RESOLUTIONS: Array[Vector2i] = [
 	Vector2i(576, 1312),
 	Vector2i(720, 1600),
@@ -27,6 +27,7 @@ func _run() -> void:
 	for resolution in RESOLUTIONS:
 		await _capture_responsive_set(resolution)
 	await _capture_detailed_video_resolution_set()
+	await _capture_wide_table_alignment()
 	paused = false
 	print("PRODUCTION_UI_FINALIZATION_CAPTURE: PASS")
 	quit(0)
@@ -64,6 +65,26 @@ func _capture_responsive_set(resolution: Vector2i) -> void:
 		controller._refresh_hud()
 		await _settle_ui(0.05)
 		await _capture(fixture, "%s/notch-safe-area.png" % directory)
+	await _dispose_fixture(fixture)
+
+
+func _capture_wide_table_alignment() -> void:
+	var resolution := Vector2i(1000, 1280)
+	var fixture := await _new_fixture(resolution, true)
+	var controller = fixture.controller
+	controller.pieces.clear()
+	controller.active_piece_id = -1
+	var center_x := GameConfig.table_center_x()
+	for index in range(8):
+		var column := index % 4
+		var row := index / 4
+		controller.pieces.append(_piece(9800 + index, index % 5 + 1, Vector2(center_x - 138.0 + column * 92.0, GameConfig.board_top() + 170.0 + row * 96.0)))
+	controller.pieces.append(_piece(9899, 2, Vector2(center_x, GameConfig.launch_y())))
+	controller.gem_sprite_layer.sync_gems(controller.pieces)
+	controller._refresh_hud()
+	controller.queue_redraw()
+	await _settle_ui(0.05)
+	await _capture(fixture, "1000x1280-wide/table-and-physics-centered.png")
 	await _dispose_fixture(fixture)
 
 
@@ -154,12 +175,12 @@ func _capture_detailed_video_resolution_set() -> void:
 	await _dispose_fixture(fixture)
 
 
-func _new_fixture(physical_resolution: Vector2i) -> Dictionary:
+func _new_fixture(physical_resolution: Vector2i, preserve_physical_canvas: bool = false) -> Dictionary:
 	paused = false
 	var virtual_height := int(round(float(physical_resolution.y) * 720.0 / float(physical_resolution.x)))
 	var viewport := SubViewport.new()
 	viewport.name = "CaptureViewport_%dx%d" % [physical_resolution.x, physical_resolution.y]
-	viewport.size = Vector2i(720, virtual_height)
+	viewport.size = physical_resolution if preserve_physical_canvas else Vector2i(720, virtual_height)
 	viewport.disable_3d = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	viewport.transparent_bg = false

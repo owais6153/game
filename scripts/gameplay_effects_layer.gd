@@ -63,14 +63,18 @@ func clear() -> void:
 	queue_redraw()
 
 func shift_world_y(delta_y: float) -> void:
-	if is_zero_approx(delta_y):
+	shift_world(Vector2(0.0, delta_y))
+
+
+func shift_world(delta: Vector2) -> void:
+	if delta.is_zero_approx():
 		return
 	for popup in score_popups:
-		popup.position.y += delta_y
+		popup.position += delta
 	for impact in merge_impacts:
-		impact.position.y += delta_y
+		impact.position += delta
 	for launch in launch_impacts:
-		launch.position.y += delta_y
+		launch.position += delta
 	queue_redraw()
 
 func active_effect_count() -> int:

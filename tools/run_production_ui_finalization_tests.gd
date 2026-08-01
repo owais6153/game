@@ -69,16 +69,18 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 	_assert(hud.root_control.theme == UiDesignSystemType.theme(), "Gameplay HUD must use the shared cached production Theme")
 	_assert(hud.hud_margin is MarginContainer, "HUD safe-area root must be a MarginContainer")
 	_assert(hud.hud_margin.get_node("HudRows") is VBoxContainer, "HUD rows must be container-driven")
-	_assert(hud.hud_margin.get_node("HudRows/MainRow") is HBoxContainer, "SCORE, merge path, and NEXT must share an HBoxContainer")
+	_assert(hud.hud_margin.get_node("HudRows/MainRow") is CenterContainer, "The enlarged merge path must own the centered top row")
+	_assert(hud.hud_margin.get_node("HudRows/ScoreNextRow") is HBoxContainer, "SCORE and NEXT must share the lower responsive card row")
 	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must share a responsive utility HBoxContainer")
 	_assert(hud.target_panel.get_parent() == hud.target_anchor, "Target must use its own responsive table-adjacent anchor")
 	_assert(hud.score_panel.get_node("ContentSurface") is PanelContainer and hud.next_panel.get_node("ContentSurface") is PanelContainer, "SCORE and NEXT must use the same simple scalable panel system")
 	_assert(hud.score_panel.get_node("ScoreBadge") is PanelContainer and hud.next_panel.get_node("NextBadge") is PanelContainer, "SCORE and NEXT labels must use the Level badge language")
-	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is NinePatchRect, "Target must use a simple panel while Pause retains its scalable NinePatch skin")
+	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must use the same simple native panel system")
 	_assert(hud.next_icon.get_parent() is AspectRatioContainer and hud.target_icon.get_parent() is AspectRatioContainer, "Dynamic gem previews must use aspect-preserving slots")
 	_assert(hud.progression_icons.size() == 8, "Level 1 must show its complete readable eight-tier gameplay path")
 	for tier in range(1, 9):
 		_assert(hud.progression_icons[tier - 1].texture == AssetCatalogType.gem_texture(tier), "Progression tier %d must come from the authoritative gem catalog" % tier)
+		_assert(hud.progression_frames[tier - 1] is MarginContainer, "Progression tier %d must preserve its source silhouette without a circular panel frame" % tier)
 	_assert(_buttons_below(hud.hud_margin) == [hud.settings_button], "Normal gameplay must expose only the Settings/Pause button")
 	_assert(hud.hud_margin.find_child("PauseRestartButton", true, false) == null, "Restart must not exist in the gameplay HUD")
 	_assert(hud.hud_margin.find_child("ShotCounter", true, false) == null, "No finite shot counter may return to Level 1")
@@ -119,9 +121,9 @@ func _test_popup_composition_and_states() -> void:
 	hud.show_pause()
 	await process_frame
 	_assert(hud.pause_blocker.visible and hud.pause_dimmer.mouse_filter == Control.MOUSE_FILTER_STOP, "Pause must dim and block all gameplay input")
-	_assert(hud.pause_blocker.find_children("PausePanel", "NinePatchRect", true, false).size() == 1, "Fast repeated taps must never duplicate the Pause popup")
+	_assert(hud.pause_blocker.find_children("PausePanel", "PanelContainer", true, false).size() == 1, "Fast repeated taps must never duplicate the simple Pause popup")
 	_assert(hud.resume_button.text == "RESUME" and hud.restart_button.text == "RESTART", "Pause actions must be explicit")
-	_assert(hud.resume_button.custom_minimum_size.y >= 76.0 and hud.restart_button.custom_minimum_size.y >= 76.0, "Pause actions must retain mobile-sized touch targets")
+	_assert(hud.resume_button.custom_minimum_size.y >= 72.0 and hud.restart_button.custom_minimum_size.y >= 72.0, "Pause actions must retain mobile-sized touch targets")
 	for button in [hud.resume_button, hud.restart_button]:
 		for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 			_assert(button.get_theme_stylebox(state) != null, "%s must provide a %s state" % [button.name, state])
@@ -134,6 +136,7 @@ func _test_popup_composition_and_states() -> void:
 	var result_fixture := await _new_result(Vector2i(720, 1600))
 	var result: ResultOverlayLayer = result_fixture.result
 	_assert(result.root_control.theme == UiDesignSystemType.theme(), "Result UI must use the same production Theme as gameplay")
+	_assert(result.panel is PanelContainer, "Win and Fail must use the same simple native panel system as gameplay")
 	_assert(result.present(true, 125500), "First result presentation must succeed")
 	_assert(not result.present(true, 125500) and result.present_count == 1, "Repeated final-state signals must not duplicate overlays")
 	_assert(result.title_label.text == "LEVEL COMPLETE" and result.retry_button.text == "REPLAY", "Win must use success-specific copy and a valid replay action")

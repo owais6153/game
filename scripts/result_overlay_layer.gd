@@ -17,7 +17,7 @@ var present_count := 0
 var root_control: Control
 var dimmer: ColorRect
 var safe_margin: MarginContainer
-var panel: NinePatchRect
+var panel: PanelContainer
 var title_label: Label
 var celebration_label: Label
 var subtitle_label: Label
@@ -125,18 +125,18 @@ func _build_ui() -> void:
 	center.name = "ResultCenter"
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	safe_margin.add_child(center)
-	panel = NinePatchRect.new()
+	panel = PanelContainer.new()
 	panel.name = "ResultPanel"
-	panel.custom_minimum_size = Vector2(480.0, 548.0)
-	UiDesignSystemType.configure_nine_patch(panel, UiDesignSystemType.atlas(AssetCatalogType.HUD_BUTTON_SHEET, AssetCatalogType.HUD_WHITE_PANEL_REGION), 64, 64)
+	panel.custom_minimum_size = Vector2(440.0, 500.0)
+	panel.add_theme_stylebox_override("panel", UiDesignSystemType.simple_popup_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(panel)
 	var margin := MarginContainer.new()
 	margin.name = "ResultContentMargin"
-	margin.add_theme_constant_override("margin_left", 52)
-	margin.add_theme_constant_override("margin_top", 42)
-	margin.add_theme_constant_override("margin_right", 52)
-	margin.add_theme_constant_override("margin_bottom", 42)
+	margin.add_theme_constant_override("margin_left", 38)
+	margin.add_theme_constant_override("margin_top", 28)
+	margin.add_theme_constant_override("margin_right", 38)
+	margin.add_theme_constant_override("margin_bottom", 28)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -146,7 +146,7 @@ func _build_ui() -> void:
 	column.add_theme_constant_override("separation", 8)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(column)
-	title_label = _label("LEVEL COMPLETE", 37, UiDesignSystemType.COLOR_CORAL)
+	title_label = _label("LEVEL COMPLETE", 34, UiDesignSystemType.COLOR_CORAL)
 	title_label.name = "ResultTitle"
 	title_label.custom_minimum_size = Vector2(0.0, 58.0)
 	title_label.add_theme_constant_override("outline_size", 6)
@@ -163,12 +163,12 @@ func _build_ui() -> void:
 	column.add_child(subtitle_label)
 	var art_slot := CenterContainer.new()
 	art_slot.name = "ResultArtSlot"
-	art_slot.custom_minimum_size = Vector2(170.0, 170.0)
+	art_slot.custom_minimum_size = Vector2(140.0, 140.0)
 	art_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(art_slot)
 	var icon_aspect := AspectRatioContainer.new()
 	icon_aspect.name = "ResultGemSlot"
-	icon_aspect.custom_minimum_size = Vector2(158.0, 158.0)
+	icon_aspect.custom_minimum_size = Vector2(128.0, 128.0)
 	icon_aspect.ratio = 1.0
 	icon_aspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art_slot.add_child(icon_aspect)
@@ -180,7 +180,7 @@ func _build_ui() -> void:
 	icon_aspect.add_child(result_icon)
 	fail_badge = PanelContainer.new()
 	fail_badge.name = "FailBadge"
-	fail_badge.custom_minimum_size = Vector2(116.0, 116.0)
+	fail_badge.custom_minimum_size = Vector2(104.0, 104.0)
 	fail_badge.add_theme_stylebox_override("panel", UiDesignSystemType.fail_badge_style())
 	fail_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art_slot.add_child(fail_badge)
@@ -191,7 +191,7 @@ func _build_ui() -> void:
 	fail_badge.visible = false
 	score_label = _label("SCORE  0", 29, UiDesignSystemType.COLOR_TEAL)
 	score_label.name = "ResultScore"
-	score_label.custom_minimum_size = Vector2(0.0, 52.0)
+	score_label.custom_minimum_size = Vector2(0.0, 48.0)
 	column.add_child(score_label)
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0.0, 6.0)
@@ -200,7 +200,7 @@ func _build_ui() -> void:
 	retry_button = Button.new()
 	retry_button.name = "ResultActionButton"
 	retry_button.text = "REPLAY"
-	retry_button.custom_minimum_size = Vector2(320.0, 78.0)
+	retry_button.custom_minimum_size = Vector2(320.0, 74.0)
 	retry_button.focus_mode = Control.FOCUS_ALL
 	retry_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	retry_button.mouse_filter = Control.MOUSE_FILTER_STOP

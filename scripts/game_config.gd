@@ -27,6 +27,7 @@ const LAUNCH_Y := 1144.0
 ## table coordinate system to the physical bottom. This offset is shared by
 ## artwork, rails, bounds, spawn, drag, danger, and depth interpolation.
 static var portrait_bottom_offset_y := 0.0
+static var viewport_center_offset_x := 0.0
 ## Largest gameplay radius. Individual values are calibrated to the visible
 ## main body of the alpha-trimmed runtime texture for each gem level.
 const PIECE_RADIUS := 42.0
@@ -196,10 +197,21 @@ static func gem_color(level: int) -> Color:
 		_: return Color.WHITE
 
 static func configure_portrait_bottom(viewport_height: float) -> void:
+	viewport_center_offset_x = 0.0
 	portrait_bottom_offset_y = maxf(0.0, viewport_height - VIEWPORT_SIZE.y)
 
+
+static func configure_viewport(viewport_size: Vector2) -> void:
+	viewport_center_offset_x = maxf(0.0, (viewport_size.x - VIEWPORT_SIZE.x) * 0.5)
+	portrait_bottom_offset_y = maxf(0.0, viewport_size.y - VIEWPORT_SIZE.y)
+
+
+static func table_center_x() -> float:
+	return TABLE_TEXTURE_CENTER.x + viewport_center_offset_x
+
+
 static func table_texture_center() -> Vector2:
-	return TABLE_TEXTURE_CENTER + Vector2(0.0, portrait_bottom_offset_y)
+	return TABLE_TEXTURE_CENTER + Vector2(viewport_center_offset_x, portrait_bottom_offset_y)
 
 static func board_top() -> float:
 	return BOARD_TOP + portrait_bottom_offset_y
@@ -229,10 +241,10 @@ static func gem_visual_z_index(piece_id: int, y_position: float) -> int:
 	return y_bucket * GEM_VISUAL_Z_TIE_STRIDE + posmod(piece_id, GEM_VISUAL_Z_TIE_STRIDE)
 
 static func table_left_at(y_position: float) -> float:
-	return lerpf(TABLE_INNER_LEFT_TOP, TABLE_INNER_LEFT_BOTTOM, table_interpolation(y_position))
+	return viewport_center_offset_x + lerpf(TABLE_INNER_LEFT_TOP, TABLE_INNER_LEFT_BOTTOM, table_interpolation(y_position))
 
 static func table_right_at(y_position: float) -> float:
-	return lerpf(TABLE_INNER_RIGHT_TOP, TABLE_INNER_RIGHT_BOTTOM, table_interpolation(y_position))
+	return viewport_center_offset_x + lerpf(TABLE_INNER_RIGHT_TOP, TABLE_INNER_RIGHT_BOTTOM, table_interpolation(y_position))
 
 static func table_playable_width_at(y_position: float) -> float:
 	return table_right_at(y_position) - table_left_at(y_position)
