@@ -54,3 +54,11 @@
 - Confirmed L6, L7, and L8 results now route to their own rising merge tones. `target_collect` sound and haptic fire at the target-panel arrival pulse, after physics removal and proxy travel. Chain depth emits the chain haptic instead of duplicating merge plus chain haptics.
 - No gameplay sound/vibration text controls were restored. Feedback remains service-owned and cannot influence physics, score, target state, launcher availability, or outcomes.
 - Headless validation reports `cached_audio_streams=15`, zero gameplay resource loads after initialization, and zero persistent node delta. On-phone listening and haptic timing remain unverified because ADB enumeration did not return in this session.
+
+## Physics + Reward Feedback v1 update
+
+- Exact gameplay source: `4cde848`; milestone report: `PHYSICS_REWARD_FEEDBACK_V1_REPORT.md`; delivery tag: `physics-reward-feedback-v1`.
+- The supplied current video measured about `-47.7 dB` mean with `92.6%` of analyzed windows below `-35 dB`, versus about `-19 dB` in the supplied reference. Central one-shot volumes are now `0.20-0.62`, gem/wall thresholds are `170/220 px/s`, and existing cooldown/concurrency guards remain in force.
+- `AudioFeedbackService` now generates and caches one original six-second looping procedural crystal/beach ambience bed during `_ready()`. It uses a dedicated player, follows the existing session sound toggle, and never influences gameplay.
+- Direct confirmed L6+ merges use the centralized `major_merge` haptic (`42 ms`, amplitude `0.66`). Chains still emit only the chain haptic, preventing duplicate vibration.
+- Automated cache, routing, toggle, threshold, score, and bounded-effect tests pass. Physical-device listening, volume balance, and haptic feel remain unverified because `adb` is unavailable.

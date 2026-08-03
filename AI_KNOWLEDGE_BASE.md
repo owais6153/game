@@ -1,5 +1,14 @@
 # AI Knowledge Base
 
+## Physics + reward feedback guardrails v1
+
+- Level 1 length/progression was explicitly deferred. Do not change `LevelConfig.level_1()`: preserve its L1-L4 mixed bag, unlimited launcher, and sequential L7 then L8 objectives until the user begins creating other levels.
+- Keep launch speed at 1160 and the calibrated table rails/radii/epsilons unchanged. Approved feel values are damping 210 (safe 190-230), sleep 9 (8-11), side/top/bottom restitution 0.20/0.16/0.10, true piece restitution 0.22 (0.18-0.28), and approach-only tangent friction 0.10 (0.06-0.14).
+- Equal-mass contact must leave separating relative velocity. Do not restore the legacy `-relative_speed * restitution` impulse or apply tangent damping during resting overlap correction.
+- Confirmed L6-L8 scores are 350/800/1,800. L6+ major feedback remains transient and bounded; never enlarge live visuals permanently or let reward scale affect radii, rails, collision, merge eligibility, target state, launcher timing, or score authority.
+- Preserve cached-only procedural feedback: 15 one-shots plus one ambience stream initialized once. Contact telemetry stays typed, thresholded, cooled down, concurrency-capped, and presentation-only. The sound toggle controls both ambience and one-shots.
+- After physics/reward/audio changes, run contact, gameplay-feel, Level 1, 18-gem, production UI, and motion-profile suites. Inspect the three captures under `reports/physics-reward-feedback-v1/` and complete the report's phone listening/haptic checklist when ADB hardware is available.
+
 ## Production UI polish guardrails v4
 
 - Treat `reports/production-ui-polish-v4/final-screenshots/576x1312/details/screenshot-reproduction-score-1300.png` as the current portrait visual baseline and `1000x1280-wide/table-and-physics-centered.png` as the wide-canvas centering proof.

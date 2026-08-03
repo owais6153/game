@@ -1,5 +1,13 @@
 # Architecture
 
+## Physics and reward feedback boundary v1
+
+- `BoardSimulation` resolves approaching equal-mass contact with `j = -v_rel * (1 + e) / 2`, where centralized `GameConfig.COLLISION_RESTITUTION = 0.22`. Tangential friction is applied once inside the approaching-contact branch; overlap correction without approach cannot repeatedly drain sideways velocity.
+- Damping, sleep threshold, wall restitution, merge momentum transfer, and spawn-speed cap remain delta-based centralized `GameConfig` values. Table art, slanted rails, perspective mapping, collision radii, contact/separation epsilon, merge candidates, and launcher speed are not part of this tuning milestone.
+- `GameController` remains the only score/reward event authority. It maps confirmed result tiers through `MERGE_SCORE_BY_RESULT_LEVEL`, selects the presentation-only major reward at L6+, and routes either direct major haptic or chain haptic without duplicating simulation decisions.
+- `GameplayEffectsLayer` owns bounded rings, sparks, and score labels only. Major parameters never reach `GemPiece`, `GemSpriteLayer` physics roots, colliders, target qualification, launcher lifecycle, or input.
+- `AudioFeedbackService` builds 15 reusable one-shot streams and one reusable six-second procedural ambience stream during `_ready()`. Its three one-shot players, thresholds, cooldowns, sound toggle, and ambience player cannot feed physics, score, merge eligibility, or results.
+
 ## Production UI polish v4
 
 - `HudRows/MainRow` is now a `CenterContainer` dedicated to the 600 x 138 MERGE PATH card. `ScoreNextRow` is a separate responsive `HBoxContainer` below it, with equal 122 x 132 SCORE/NEXT controls separated by an expanding spacer. `ObjectiveRow` remains LEVEL/spacer/Settings; `TableTargetAnchor` remains independent and table-adjacent.

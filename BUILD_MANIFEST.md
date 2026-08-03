@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Physics + Reward Feedback v1
+
+- File: `physics-reward-feedback-v1.apk`
+- Path: `D:\Owais\game\build\android\physics-reward-feedback-v1.apk`
+- Size: `100,793,853 bytes`
+- Modified: `2026-08-03 13:42:55 +05:00`
+- SHA-256: `AE1189E5E8AC21EA95497182F90F05B4F81383573222A74886BAD13453861594`
+- Package: `com.owais.gemmergerebuild`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
+- Exact gameplay source commit: `4cde848` (`feat: enliven physics and high-tier rewards`); delivery tag: `physics-reward-feedback-v1`.
+- Export: fresh Godot 4.6.3 `--export-debug Android`; this is an installable signed validation build, not a store-release signing claim.
+- Validation: 355 ZIP entries; manifest, primary dex, and arm64 Godot runtime present; zero `reports/` or `tools/` entries. `apksigner` verifies v2/v3 signatures with one RSA-2048 signer. Contact, gameplay-feel, Level 1, 18-gem, production UI, and motion-profile suites passed; three ANGLE major-reward captures passed.
+- Device status: `adb` is not installed or discoverable in this environment. No installation, physical-device performance, listening, or haptic result is claimed.
+
 ## Production UI Polish v4
 
 - File: `production-ui-finalization-v1.apk` (freshly replaced at the user-requested canonical delivery path)

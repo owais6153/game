@@ -2,6 +2,13 @@
 
 ## Scope
 
+## Physics + reward feedback v1
+
+- Level 1 progression is intentionally unchanged: the L1-L4 mixed launch bag, unlimited launcher, sequential L7 then L8 objectives, and existing win/danger flow remain authoritative.
+- Equal-mass contact response uses a true `0.22` coefficient of restitution and applies `0.10` tangential friction only on approaching impact. Centralized damping, sleep, wall restitution, and bounded merge momentum values keep motion lively while preserving containment.
+- Confirmed L6, L7, and L8 merge results score 350, 800, and 1,800. L6+ uses a larger but bounded presentation-only reward; score still comes only from confirmed controller merge events.
+- Audio feedback includes cached procedural one-shots plus a cached six-second looping procedural ambience bed. Contact thresholds/cooldowns/concurrency caps and the session sound toggle remain authoritative. Direct L6+ merges use one major haptic; chains retain their dedicated event.
+
 ## Sound and haptics v1
 
 ## Reference table + crystal audio v1

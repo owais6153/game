@@ -1,5 +1,13 @@
 # Changelog
 
+## Physics + Reward Feedback v1
+
+- Corrected equal-mass collision response to use a true `0.22` restitution coefficient, applied tangential friction only on approaching impact, and centrally tuned damping, sleep, walls, and bounded merge momentum for clearer redirection without changing launch speed or collider geometry.
+- Added exact confirmed-result scores for L6-L8 (350/800/1,800), a bounded L6+ double-ring/spark/score celebration, and one major-merge haptic route while preserving the existing chain multiplier and confirmed-event ownership.
+- Raised the centralized procedural cue mix, lowered meaningful contact thresholds within cooldown/concurrency guards, and added one cached original procedural ambience loop governed by the existing sound toggle.
+- Preserved Level 1's L1-L4 mixed launch bag, unlimited launcher, sequential L7 then L8 targets, table/rail/perspective geometry, radii, contact eligibility, chain rules, danger flow, HUD, and result states.
+- Added contact-energy, high-tier score/reward/audio/haptic regressions, three ANGLE evidence captures, a complete motion-profile pass, and a fresh verified debug-signed APK.
+
 ## Production UI Polish v4
 
 - Removed the circular progression frames that visually changed gem silhouettes. MERGE PATH, NEXT, TARGET, result art, merge presentation, and table pieces now visibly preserve the same `AssetCatalog`-authoritative source shapes.
