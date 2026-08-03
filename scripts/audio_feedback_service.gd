@@ -67,8 +67,40 @@ func _build_stream_cache() -> void:
 		return
 	var seed := 1
 	for event_name in GameConfig.AUDIO_TONES.keys():
-		_stream_cache[event_name] = _build_crystal_stream(GameConfig.AUDIO_TONES[event_name], seed)
+		_stream_cache[event_name] = _build_coin_stream(GameConfig.AUDIO_TONES[event_name], seed, String(event_name)) if String(event_name).begins_with("coin_") else _build_crystal_stream(GameConfig.AUDIO_TONES[event_name], seed)
 		seed += 1
+
+func _build_coin_stream(tone: Dictionary, seed: int, event_name: String) -> AudioStreamWAV:
+	# Original procedural metal reward cues: harmonic brass partials, a fast
+	# strike, and a small upward pitch sweep. No reference audio is copied.
+	var duration := float(tone.duration)
+	var frames := int(GameConfig.AUDIO_SAMPLE_RATE * duration)
+	var base := float(tone.frequency)
+	var brightness := float(tone.brightness)
+	var fall := float(tone.fall)
+	var phase_a := 0.0
+	var phase_b := 0.0
+	var phase_c := 0.0
+	var samples := PackedByteArray()
+	samples.resize(frames * 2)
+	for frame in range(frames):
+		var t := float(frame) / GameConfig.AUDIO_SAMPLE_RATE
+		var normalized := t / duration
+		var sweep := lerpf(0.92, 1.12 if event_name != "coin_burst" else 1.02, normalized)
+		var envelope := exp(-fall * 7.0 * normalized) * minf(1.0, normalized * 120.0)
+		phase_a += TAU * base * sweep / GameConfig.AUDIO_SAMPLE_RATE
+		phase_b += TAU * base * 2.02 * sweep / GameConfig.AUDIO_SAMPLE_RATE
+		phase_c += TAU * base * 3.96 * sweep / GameConfig.AUDIO_SAMPLE_RATE
+		var body := sin(phase_a) * 0.58 + sin(phase_b + 0.24) * (0.22 + brightness * 0.08) + sin(phase_c + 0.51) * (0.08 + brightness * 0.07)
+		var strike := sin(float(frame + seed * 13) * 1.91) * brightness * exp(-normalized * 34.0) * 0.08
+		var sample := clampf((body + strike) * envelope * 0.43, -0.88, 0.88)
+		samples.encode_s16(frame * 2, int(round(sample * 32767.0)))
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = int(GameConfig.AUDIO_SAMPLE_RATE)
+	stream.stereo = false
+	stream.data = samples
+	return stream
 
 func _build_crystal_stream(tone: Dictionary, seed: int) -> AudioStreamWAV:
 	var duration := float(tone.duration)

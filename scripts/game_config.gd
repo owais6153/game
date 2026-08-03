@@ -82,12 +82,12 @@ const CONTACT_EPSILON := 0.20
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.27
-const MERGE_SOURCE_PULL_DURATION := 0.08
-const MERGE_RESULT_START_SCALE := 0.82
-const MERGE_RESULT_POP_SCALE := 1.13
-const MERGE_RESULT_POP_DURATION := 0.15
-const MERGE_PULSE_SCALE := 1.13
+const MERGE_PRESENTATION_DURATION := 0.62 # reference-paced emergence; presentation only
+const MERGE_SOURCE_PULL_DURATION := 0.14
+const MERGE_RESULT_START_SCALE := 0.56
+const MERGE_RESULT_POP_SCALE := 1.20
+const MERGE_RESULT_POP_DURATION := 0.36
+const MERGE_PULSE_SCALE := 1.20
 const SCORE_POPUP_DURATION := 0.62
 const SCORE_POPUP_RISE := 36.0
 const MAJOR_REWARD_TIER := 6
@@ -96,6 +96,25 @@ const MAJOR_SCORE_POPUP_DURATION := 1.05
 const MAJOR_SCORE_POPUP_RISE := 58.0
 const MAJOR_MERGE_EFFECT_SCALE := 1.55
 const MAJOR_MERGE_SPARK_COUNT := 16
+## Reference-style run-coin reward. Coins scatter at the confirmed merge point,
+## then fly to the HUD in bounded staggered arcs while the visible count rises.
+const COIN_BURST_COUNT := 10
+const MAJOR_COIN_BURST_COUNT := 14
+const COIN_BURST_DURATION := 0.55
+const COIN_FLIGHT_DURATION := 1.18
+const MAJOR_COIN_FLIGHT_DURATION := 1.32
+const COIN_FLIGHT_STAGGER := 0.075
+const COIN_BURST_RADIUS := 72.0
+const MAJOR_COIN_BURST_RADIUS := 92.0
+const COIN_DRAW_RADIUS := 11.0
+const COIN_COUNTER_PULSE_DURATION := 0.18
+const COIN_EFFECT_LIMIT := 56
+const COIN_HUD_FALLBACK_DESTINATION := Vector2(78.0, 244.0)
+const AIM_GUIDE_WIDTH := 2.0
+const AIM_GUIDE_ALPHA := 0.58
+const IMPACT_VISUAL_DURATION := 0.16
+const IMPACT_VISUAL_MIN_SCALE := 0.92
+const IMPACT_VISUAL_OVERSHOOT_SCALE := 1.045
 const TARGET_COLLECTION_DURATION := 0.62
 const TARGET_COLLECTION_FADE_START := 0.68
 const TARGET_COLLECTION_POP_SCALE := 1.16
@@ -143,7 +162,7 @@ const TARGET_LEVEL := 5
 ## unchanged; this bounds merge eligibility for manually created higher tiers.
 const MAX_GEM_LEVEL := 18
 const DANGER_GRACE_DURATION := 0.75 # default 0.75 s; safe 0.65–0.90
-const MERGE_SCORE_BY_RESULT_LEVEL := {
+const MERGE_COIN_REWARD_BY_RESULT_LEVEL := {
 	2: 10,
 	3: 25,
 	4: 60,
@@ -152,6 +171,9 @@ const MERGE_SCORE_BY_RESULT_LEVEL := {
 	7: 800,
 	8: 1800,
 }
+## Compatibility alias for older tests/tools. Production presents this exact
+## confirmed-event value as run coins, not an abstract score.
+const MERGE_SCORE_BY_RESULT_LEVEL := MERGE_COIN_REWARD_BY_RESULT_LEVEL
 ## Feedback routing is presentation-only. Values are safe for short Android UI
 ## cues and never feed simulation, score, or lifecycle code.
 const AUDIO_SAMPLE_RATE := 22050.0
@@ -165,6 +187,7 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN, "wall_contact": 0.11, "launch": 0.05, "merge_2": 0.04, "merge_3": 0.04,
 	"merge_4": 0.03, "merge_5": 0.03, "merge_6": 0.03, "merge_7": 0.03, "merge_8": 0.03, "chain": 0.04, "win": 0.25,
 	"target_collect": 0.16, "fail": 0.25, "button": 0.05,
+	"coin_burst": 0.08, "coin_flight": 0.20, "coin_collect": 0.05,
 }
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.30, "brightness": 0.38, "fall": 0.78},
@@ -182,6 +205,9 @@ const AUDIO_TONES := {
 	"win": {"frequency": 1318.0, "duration": 0.34, "volume": 0.62, "brightness": 0.96, "fall": 1.55},
 	"fail": {"frequency": 523.0, "duration": 0.24, "volume": 0.38, "brightness": 0.33, "fall": 0.56},
 	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.20, "brightness": 0.55, "fall": 0.84},
+	"coin_burst": {"frequency": 820.0, "duration": 0.15, "volume": 0.42, "brightness": 0.88, "fall": 1.18},
+	"coin_flight": {"frequency": 1160.0, "duration": 0.18, "volume": 0.24, "brightness": 0.70, "fall": 0.92},
+	"coin_collect": {"frequency": 1760.0, "duration": 0.085, "volume": 0.31, "brightness": 0.96, "fall": 1.42},
 }
 const HAPTICS_BY_EVENT := {
 	"launch": {"duration_ms": 18, "amplitude": 0.22},
@@ -191,10 +217,14 @@ const HAPTICS_BY_EVENT := {
 	"target_collect": {"duration_ms": 52, "amplitude": 0.78},
 	"win": {"duration_ms": 90, "amplitude": 1.0},
 	"fail": {"duration_ms": 70, "amplitude": 0.82},
+	"coin_collect": {"duration_ms": 16, "amplitude": 0.20},
 }
 
+static func merge_coin_reward_for_result_level(level: int) -> int:
+	return int(MERGE_COIN_REWARD_BY_RESULT_LEVEL.get(level, 0))
+
 static func merge_score_for_result_level(level: int) -> int:
-	return int(MERGE_SCORE_BY_RESULT_LEVEL.get(level, 0))
+	return merge_coin_reward_for_result_level(level)
 
 static func gem_name(level: int) -> String:
 	return AssetCatalog.gem_name(level)

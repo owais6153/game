@@ -58,8 +58,8 @@ func _test_score_formatting() -> void:
 	for entry in cases:
 		var exact_value: int = entry.value
 		var formatted := ScoreFormatterType.format(exact_value)
-		_assert(formatted == String(entry.text), "Score %s must format as %s, got %s" % [str(exact_value), entry.text, formatted])
-		_assert(exact_value == int(entry.value), "Formatting must not mutate the exact score value")
+		_assert(formatted == String(entry.text), "Coin total %s must format as %s, got %s" % [str(exact_value), entry.text, formatted])
+		_assert(exact_value == int(entry.value), "Formatting must not mutate the exact coin value")
 
 
 func _test_hud_architecture_and_catalog_mapping() -> void:
@@ -70,11 +70,12 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 	_assert(hud.hud_margin is MarginContainer, "HUD safe-area root must be a MarginContainer")
 	_assert(hud.hud_margin.get_node("HudRows") is VBoxContainer, "HUD rows must be container-driven")
 	_assert(hud.hud_margin.get_node("HudRows/MainRow") is CenterContainer, "The enlarged merge path must own the centered top row")
-	_assert(hud.hud_margin.get_node("HudRows/ScoreNextRow") is HBoxContainer, "SCORE and NEXT must share the lower responsive card row")
+	_assert(hud.hud_margin.get_node("HudRows/ScoreNextRow") is HBoxContainer, "COINS and NEXT must share the lower responsive card row")
 	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must share a responsive utility HBoxContainer")
 	_assert(hud.target_panel.get_parent() == hud.target_anchor, "Target must use its own responsive table-adjacent anchor")
-	_assert(hud.score_panel.get_node("ContentSurface") is PanelContainer and hud.next_panel.get_node("ContentSurface") is PanelContainer, "SCORE and NEXT must use the same simple scalable panel system")
-	_assert(hud.score_panel.get_node("ScoreBadge") is PanelContainer and hud.next_panel.get_node("NextBadge") is PanelContainer, "SCORE and NEXT labels must use the Level badge language")
+	_assert(hud.score_panel.get_node("ContentSurface") is PanelContainer and hud.next_panel.get_node("ContentSurface") is PanelContainer, "COINS and NEXT must use the same simple scalable panel system")
+	_assert(hud.score_panel.get_node("CoinsBadge") is PanelContainer and hud.next_panel.get_node("NextBadge") is PanelContainer, "COINS and NEXT labels must use the Level badge language")
+	_assert(hud.coin_icon is Control and hud.coin_icon.get_parent().name == "CoinValueRow", "COINS must pair its value with the dedicated procedural coin icon")
 	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must use the same simple native panel system")
 	_assert(hud.next_icon.get_parent() is AspectRatioContainer and hud.target_icon.get_parent() is AspectRatioContainer, "Dynamic gem previews must use aspect-preserving slots")
 	_assert(hud.progression_icons.size() == 8, "Level 1 must show its complete readable eight-tier gameplay path")
@@ -102,10 +103,10 @@ func _test_score_fit_and_state_updates() -> void:
 	for score in scores:
 		hud.update_snapshot(_snapshot(score, 2, 4, 7, 0, 1, 0, 2, false, false, 4))
 		await process_frame
-		_assert(hud.score_label.text == ScoreFormatterType.format(score), "HUD must display the shared score format for %s" % str(score))
-		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Score %s must fit without clipping" % str(score))
-		_assert(hud.score_panel.get_global_rect().encloses(hud.score_label.get_global_rect()), "Score %s must remain inside its responsive card" % str(score))
-		_assert(hud.score_label.get_global_rect().end.y <= hud.score_panel.get_global_rect().end.y - 14.0, "Score %s must retain visible bottom breathing room" % str(score))
+		_assert(hud.score_label.text == ScoreFormatterType.format(score), "HUD must display the shared coin format for %s" % str(score))
+		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Coin total %s must fit without clipping" % str(score))
+		_assert(hud.score_panel.get_global_rect().encloses(hud.score_label.get_global_rect()), "Coin total %s must remain inside its responsive card" % str(score))
+		_assert(hud.score_label.get_global_rect().end.y <= hud.score_panel.get_global_rect().end.y - 14.0, "Coin total %s must retain visible bottom breathing room" % str(score))
 	hud.update_snapshot(_snapshot(125500, 2, 4, 7, 0, 1, 0, 2, false, false, 4))
 	var texture_before := hud.next_icon.texture
 	hud.update_snapshot(_snapshot(125500, 2, 3, 8, 0, 1, 1, 2, false, false, 4))
@@ -139,7 +140,7 @@ func _test_popup_composition_and_states() -> void:
 	_assert(result.panel is PanelContainer, "Win and Fail must use the same simple native panel system as gameplay")
 	_assert(result.present(true, 125500), "First result presentation must succeed")
 	_assert(not result.present(true, 125500) and result.present_count == 1, "Repeated final-state signals must not duplicate overlays")
-	_assert(result.title_label.text == "LEVEL COMPLETE" and result.retry_button.text == "REPLAY", "Win must use success-specific copy and a valid replay action")
+	_assert(result.title_label.text == "LEVEL COMPLETE" and result.retry_button.text == "REPLAY" and result.score_label.text == "COINS  125.5K", "Win must use success-specific copy, coin total, and a valid replay action")
 	_assert(result.result_icon.visible and not result.fail_badge.visible, "Win must show the final target artwork without failure art")
 	result.dismiss()
 	_assert(result.present(false, 9999), "Fail result must present after dismissal")
@@ -170,7 +171,7 @@ func _test_responsive_layouts() -> void:
 		var bounds := Rect2(Vector2.ZERO, Vector2(viewport_size))
 		for key in ["score", "progression", "next", "level", "target", "settings", "pause"]:
 			_assert(bounds.encloses(metrics[key]), "%s must remain inside %dx%d" % [key, viewport_size.x, viewport_size.y])
-		_assert(not (metrics.score as Rect2).intersects(metrics.progression), "SCORE and merge path must not overlap at %s" % str(viewport_size))
+		_assert(not (metrics.score as Rect2).intersects(metrics.progression), "COINS and merge path must not overlap at %s" % str(viewport_size))
 		_assert(not (metrics.progression as Rect2).intersects(metrics.next), "Merge path and NEXT must not overlap at %s" % str(viewport_size))
 		_assert(not (metrics.level as Rect2).intersects(metrics.target), "Level and table-adjacent target must not overlap at %s" % str(viewport_size))
 		_assert(not (metrics.target as Rect2).intersects(metrics.settings), "Table-adjacent target and Settings must not overlap at %s" % str(viewport_size))
@@ -184,7 +185,7 @@ func _test_responsive_layouts() -> void:
 		_assert((metrics.target as Rect2).end.y <= board_top_physical - UiDesignSystemType.TARGET_TABLE_GAP * design_scale + 1.0, "Target card must remain immediately above the table at %s" % str(viewport_size))
 		var minimum_physical_touch := 64.0 if viewport_size.x < 720 else 88.0
 		_assert((metrics.settings as Rect2).size.x >= minimum_physical_touch and (metrics.settings as Rect2).size.y >= minimum_physical_touch, "Settings touch target must remain usable at %s" % str(viewport_size))
-		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Maximum score must fit at %s" % str(viewport_size))
+		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Maximum coin total must fit at %s" % str(viewport_size))
 		_assert((metrics.pause as Rect2).get_center().distance_to(bounds.get_center()) <= 2.0, "Pause must remain centered at %s" % str(viewport_size))
 		await _dispose_viewport(fixture.viewport)
 
@@ -248,7 +249,7 @@ func _test_update_stability() -> void:
 	var node_count_before := _descendant_count(hud)
 	for index in range(500):
 		hud.update_snapshot(_snapshot(index * 43721, index % 5 + 1, index % 4 + 1, 7 + index % 2, index % 2, 1, index % 2, 2, false, false, mini(5, index % 5 + 1)))
-	_assert(_descendant_count(hud) == node_count_before, "Rapid score, queue, and target changes must not rebuild UI nodes")
+	_assert(_descendant_count(hud) == node_count_before, "Rapid coin, queue, and target changes must not rebuild UI nodes")
 	_assert(UiDesignSystemType.theme() == theme_before and UiDesignSystemType.font() == font_before, "Theme and font resources must remain cached")
 	_assert(hud.next_icon.texture == AssetCatalogType.gem_texture(499 % 4 + 1), "Rapid updates must finish with the current queue artwork")
 	await _dispose_viewport(fixture.viewport)
@@ -290,6 +291,7 @@ func _snapshot(score: int, current_level: int, next_level: int, target_level: in
 		"current_level": current_level,
 		"next_level": next_level,
 		"score": score,
+		"coins": score,
 		"target_level": target_level,
 		"target_progress": target_progress,
 		"target_quantity": target_quantity,

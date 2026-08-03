@@ -27,7 +27,14 @@ var pending_target_presentations: Dictionary = {}
 var active_piece_id := -1
 var dragging := false
 var merge_presentations: Array[Dictionary] = []
-var score := 0
+## Confirmed merge rewards are run coins. `score` remains a compatibility
+## property for older tools/tests and always resolves to the same exact integer.
+var coins := 0
+var score: int:
+	get:
+		return coins
+	set(value):
+		coins = value
 var chain_multiplier := 1
 var danger_timers: Dictionary = {}
 var won := false
@@ -53,6 +60,7 @@ var result_overlay: ResultOverlayLayer
 var presentation_event_trace: Array[Dictionary] = []
 var process_frame_index := 0
 var piece_visual_feedbacks: Dictionary = {}
+var piece_impact_feedbacks: Dictionary = {}
 ## Developer-only inspection aid. F8 toggles it in editor/desktop builds; it
 ## starts disabled and has no input or gameplay authority on Android.
 var debug_calibration_enabled := false
@@ -92,6 +100,7 @@ func _process(delta: float) -> void:
 	if effects_layer != null:
 		effects_layer.update_effects(delta)
 	_update_piece_visual_feedbacks(delta)
+	_update_piece_impact_feedbacks(delta)
 	if failed:
 		_sync_gems_and_mark_visibility()
 		_refresh_hud()
@@ -199,7 +208,8 @@ func hud_snapshot() -> Dictionary:
 		"level_number": 1,
 		"current_level": active.level if active != null else next_level,
 		"next_level": next_level,
-		"score": score,
+		"coins": coins,
+		"score": coins,
 		"chain_multiplier": chain_multiplier,
 		"target_level": int(visible_target.get("tier", 1)),
 		"target_progress": target_progress,
@@ -323,6 +333,7 @@ func restart() -> void:
 	presentation_event_trace.clear()
 	process_frame_index = 0
 	piece_visual_feedbacks.clear()
+	piece_impact_feedbacks.clear()
 	chain_multiplier = 1
 	danger_timers.clear()
 	won = false
@@ -341,6 +352,7 @@ func restart() -> void:
 		effects_layer.clear()
 	if gem_sprite_layer != null:
 		gem_sprite_layer.clear_presentation_scales()
+		gem_sprite_layer.clear_impact_scales()
 	_advance_launcher_lifecycle()
 	if gem_sprite_layer != null:
 		_sync_gems_and_mark_visibility()
@@ -374,6 +386,8 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.settings_requested.connect(_on_settings_requested)
 	gameplay_ui.resume_requested.connect(_on_resume_requested)
 	gameplay_ui.restart_requested.connect(_on_restart_requested)
+	effects_layer.coin_flight_started.connect(_on_coin_flight_started)
+	effects_layer.coin_arrived.connect(_on_coin_arrived)
 	result_overlay = ResultOverlayScene.instantiate() as ResultOverlayLayer
 	add_child(result_overlay)
 	result_overlay.retry_requested.connect(_on_restart_requested)
@@ -424,8 +438,10 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		merge_event.source_texture = AssetCatalogType.gem_texture(maxi(1, result_level - 1))
 		merge_event.result_texture = AssetCatalogType.gem_texture(result_level)
 		chain_multiplier = resolution_multiplier
-		var awarded_score := GameConfig.merge_score_for_result_level(result_level) * chain_multiplier
-		score += awarded_score
+		var awarded_coins := GameConfig.merge_coin_reward_for_result_level(result_level) * chain_multiplier
+		if gameplay_ui != null:
+			gameplay_ui.begin_coin_reward(awarded_coins)
+		coins += awarded_coins
 		# Chain resolution remains immediate and deterministic; this only staggers its visuals.
 		merge_event.elapsed = -float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
 		merge_event.first_frame_visible = false
@@ -435,8 +451,11 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if gem_sprite_layer != null and result_id >= 0:
 			gem_sprite_layer.set_presentation_scale(result_id, GameConfig.MERGE_RESULT_START_SCALE)
 		if effects_layer != null:
-			effects_layer.begin_merge_feedback(merge_event, awarded_score)
+			var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
+			effects_layer.begin_merge_feedback(merge_event, awarded_coins, coin_destination)
 		audio_feedback.emit_event("merge_%d" % result_level)
+		if awarded_coins > 0:
+			audio_feedback.emit_event("coin_burst")
 		if int(merge_event.get("depth", 0)) > 0:
 			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
@@ -496,10 +515,12 @@ func _trigger_failure() -> void:
 	pending_target_presentations.clear()
 	merge_presentations.clear()
 	piece_visual_feedbacks.clear()
+	piece_impact_feedbacks.clear()
 	collection_in_progress = false
 	_cancel_target_collection()
 	if gem_sprite_layer != null:
 		gem_sprite_layer.clear_presentation_scales()
+		gem_sprite_layer.clear_impact_scales()
 	if effects_layer != null:
 		effects_layer.clear()
 	audio_feedback.emit_event("fail")
@@ -653,7 +674,7 @@ func _qualify_win_if_target_complete() -> void:
 func _update_win_presentation(delta: float) -> void:
 	# The final target must finish merge presentation and collection before the
 	# dedicated UI layer can present victory.
-	if win_presented or not merge_presentations.is_empty():
+	if win_presented or not merge_presentations.is_empty() or (effects_layer != null and effects_layer.has_active_coin_flights()):
 		return
 	win_hold_elapsed += delta
 	if win_hold_elapsed >= GameConfig.WIN_PRESENTATION_HOLD:
@@ -717,6 +738,31 @@ func _update_piece_visual_feedbacks(delta: float) -> void:
 		else:
 			gem_sprite_layer.set_presentation_scale(int(piece_id), scale)
 
+func _begin_piece_impact_visual(piece_id: int, strength: float) -> void:
+	if piece_id < 0 or gem_sprite_layer == null:
+		return
+	var intensity := clampf(strength / GameConfig.LAUNCH_SPEED, 0.25, 1.0)
+	piece_impact_feedbacks[piece_id] = {"elapsed": 0.0, "duration": GameConfig.IMPACT_VISUAL_DURATION, "intensity": intensity}
+	var squash := lerpf(0.98, GameConfig.IMPACT_VISUAL_MIN_SCALE, intensity)
+	gem_sprite_layer.set_impact_scale(piece_id, squash)
+
+func _update_piece_impact_feedbacks(delta: float) -> void:
+	if gem_sprite_layer == null or piece_impact_feedbacks.is_empty():
+		return
+	for piece_id in piece_impact_feedbacks.keys():
+		var feedback: Dictionary = piece_impact_feedbacks[piece_id]
+		feedback.elapsed = float(feedback.get("elapsed", 0.0)) + delta
+		var t := clampf(float(feedback.elapsed) / maxf(0.001, float(feedback.duration)), 0.0, 1.0)
+		var intensity := float(feedback.get("intensity", 1.0))
+		var squash := lerpf(0.98, GameConfig.IMPACT_VISUAL_MIN_SCALE, intensity)
+		var overshoot := lerpf(1.012, GameConfig.IMPACT_VISUAL_OVERSHOOT_SCALE, intensity)
+		var scale := lerpf(squash, overshoot, 1.0 - pow(1.0 - t / 0.42, 3.0)) if t <= 0.42 else lerpf(overshoot, 1.0, smoothstep(0.42, 1.0, t))
+		if t >= 1.0:
+			gem_sprite_layer.clear_impact_scale(int(piece_id))
+			piece_impact_feedbacks.erase(piece_id)
+		else:
+			gem_sprite_layer.set_impact_scale(int(piece_id), scale)
+
 func _has_live_piece(piece_id: int) -> bool:
 	for piece in pieces:
 		if piece.id == piece_id and not piece.consumed:
@@ -762,6 +808,18 @@ func _on_restart_requested() -> void:
 	audio_feedback.emit_event("button")
 	restart()
 
+func _on_coin_flight_started(_result_id: int) -> void:
+	if audio_feedback != null:
+		audio_feedback.emit_event("coin_flight")
+
+func _on_coin_arrived(_result_id: int, value: int, final_coin: bool) -> void:
+	if gameplay_ui != null:
+		gameplay_ui.collect_coin_chunk(value, final_coin)
+	if audio_feedback != null:
+		audio_feedback.emit_event("coin_collect", 1.0 if final_coin else 0.72)
+	if final_coin and haptics_feedback != null:
+		haptics_feedback.emit_event("coin_collect")
+
 func _route_collision_feedback() -> void:
 	for impact in simulation.consume_collision_impacts():
 		if debug_calibration_enabled and impact.has("position"):
@@ -770,13 +828,17 @@ func _route_collision_feedback() -> void:
 		var strength := float(impact.get("strength", 0.0))
 		if kind == "wall":
 			if strength >= GameConfig.WALL_CONTACT_SOUND_THRESHOLD:
+				_begin_piece_impact_visual(int(impact.get("piece_id", -1)), strength)
 				audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75))
 		elif strength >= GameConfig.GEM_CONTACT_SOUND_THRESHOLD:
+			_begin_piece_impact_visual(int(impact.get("first_id", -1)), strength)
+			_begin_piece_impact_visual(int(impact.get("second_id", -1)), strength)
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:
 	# The supplied artwork is drawn by Sprite2D nodes. This dynamic line is kept
 	# above the clean table art so it always shares the authoritative rail bounds.
+	_draw_aim_guide()
 	var danger_y := GameConfig.danger_line_y()
 	var danger_start := Vector2(GameConfig.table_left_at(danger_y) + 8.0, danger_y)
 	var danger_end := Vector2(GameConfig.table_right_at(danger_y) - 8.0, danger_y)
@@ -788,6 +850,18 @@ func _draw() -> void:
 		_draw_merge_presentation(presentation)
 	if debug_calibration_enabled:
 		_draw_calibration_debug(ThemeDB.fallback_font)
+
+func _draw_aim_guide() -> void:
+	if launcher_state != LauncherState.READY_TO_AIM or collection_in_progress or win_qualified or failed:
+		return
+	var active := get_active_piece()
+	if active == null or not active.is_settled():
+		return
+	var start := Vector2(active.position.x, GameConfig.board_top() + 18.0)
+	var finish := Vector2(active.position.x, active.position.y - active.radius - 8.0)
+	var color := Color(1.0, 1.0, 1.0, GameConfig.AIM_GUIDE_ALPHA)
+	draw_line(start, finish, color, GameConfig.AIM_GUIDE_WIDTH, true)
+	draw_circle(start, 4.0, Color(1.0, 0.92, 0.54, GameConfig.AIM_GUIDE_ALPHA * 0.9))
 
 func _draw_calibration_debug(font: Font) -> void:
 	var board_top := GameConfig.board_top()

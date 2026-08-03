@@ -38,19 +38,19 @@ func _resolve_bounds(piece: GemPiece) -> void:
 	var top := GameConfig.board_top() + piece.radius
 	var bottom := GameConfig.board_bottom() - piece.radius
 	if piece.position.x < left:
-		_record_wall_impact(absf(piece.velocity.x), Vector2(left - piece.radius, piece.position.y))
+		_record_wall_impact(absf(piece.velocity.x), Vector2(left - piece.radius, piece.position.y), piece.id)
 		piece.position.x = left
 		piece.velocity.x = abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	elif piece.position.x > right:
-		_record_wall_impact(absf(piece.velocity.x), Vector2(right + piece.radius, piece.position.y))
+		_record_wall_impact(absf(piece.velocity.x), Vector2(right + piece.radius, piece.position.y), piece.id)
 		piece.position.x = right
 		piece.velocity.x = -abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
 	if piece.position.y < top:
-		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, top - piece.radius))
+		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, top - piece.radius), piece.id)
 		piece.position.y = top
 		piece.velocity.y = abs(piece.velocity.y) * GameConfig.TOP_WALL_RESTITUTION
 	elif piece.position.y > bottom:
-		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, bottom + piece.radius))
+		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, bottom + piece.radius), piece.id)
 		piece.position.y = bottom
 		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION
 
@@ -73,7 +73,7 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	var relative_speed := (second.velocity - first.velocity).dot(normal)
 	if relative_speed < 0.0:
 		var contact_point := first.position + normal * first.radius
-		_collision_impacts.append({"kind": "gem", "strength": absf(relative_speed), "position": contact_point})
+		_collision_impacts.append({"kind": "gem", "strength": absf(relative_speed), "position": contact_point, "first_id": first.id, "second_id": second.id})
 		# Equal masses share the normal impulse. The former multiplier-only
 		# response left the pair moving inward whenever its value was below 0.5,
 		# making crowded contacts look sticky. This uses the documented
@@ -91,9 +91,9 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	first.velocity = first.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 	second.velocity = second.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 
-func _record_wall_impact(strength: float, contact_position: Vector2) -> void:
+func _record_wall_impact(strength: float, contact_position: Vector2, piece_id: int) -> void:
 	if strength > 0.0:
-		_collision_impacts.append({"kind": "wall", "strength": strength, "position": contact_position})
+		_collision_impacts.append({"kind": "wall", "strength": strength, "position": contact_position, "piece_id": piece_id})
 
 func consume_collision_impacts() -> Array[Dictionary]:
 	var result := _collision_impacts.duplicate()

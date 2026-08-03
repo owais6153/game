@@ -2,11 +2,17 @@ class_name GameplayEffectsLayer
 extends Node2D
 
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
+const CoinVisualsType = preload("res://scripts/coin_visuals.gd")
+
+signal coin_flight_started(result_id: int)
+signal coin_arrived(result_id: int, value: int, final_coin: bool)
 
 var score_popups: Array[Dictionary] = []
 var merge_impacts: Array[Dictionary] = []
+var coin_rewards: Array[Dictionary] = []
 var target_arrivals: Array[Dictionary] = []
 var launch_impacts: Array[Dictionary] = []
+var _coin_flights_started: Dictionary = {}
 var _font: Font
 
 func _ready() -> void:
@@ -15,7 +21,7 @@ func _ready() -> void:
 	variation.variation_embolden = 0.75
 	_font = variation
 
-func begin_merge_feedback(merge_event: Dictionary, awarded_score: int) -> void:
+func begin_merge_feedback(merge_event: Dictionary, awarded_coins: int, coin_destination: Vector2 = GameConfig.COIN_HUD_FALLBACK_DESTINATION) -> void:
 	var delay := float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
 	var midpoint: Vector2 = merge_event.get("midpoint", Vector2.ZERO)
 	var result_id := int(merge_event.get("result_id", -1))
@@ -31,19 +37,39 @@ func begin_merge_feedback(merge_event: Dictionary, awarded_score: int) -> void:
 		"spark_count": GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 8,
 		"major_reward": major_reward,
 	})
-	if awarded_score > 0:
-		score_popups.append({
-			"result_id": result_id,
-			"position": midpoint,
-			"text": "+%s" % ScoreFormatterType.format(awarded_score),
-			"elapsed": -delay,
-			"duration": GameConfig.MAJOR_SCORE_POPUP_DURATION if major_reward else GameConfig.SCORE_POPUP_DURATION,
-			"rise": GameConfig.MAJOR_SCORE_POPUP_RISE if major_reward else GameConfig.SCORE_POPUP_RISE,
-			"font_size": 31 if major_reward else 23,
-			"major_reward": major_reward,
-		})
+	if awarded_coins > 0:
+		_spawn_coin_reward(result_id, midpoint, coin_destination, awarded_coins, delay, major_reward)
 	_cap_effects()
 	queue_redraw()
+
+func _spawn_coin_reward(result_id: int, midpoint: Vector2, destination: Vector2, awarded_coins: int, delay: float, major_reward: bool) -> void:
+	var coin_count := GameConfig.MAJOR_COIN_BURST_COUNT if major_reward else GameConfig.COIN_BURST_COUNT
+	var burst_radius := GameConfig.MAJOR_COIN_BURST_RADIUS if major_reward else GameConfig.COIN_BURST_RADIUS
+	var flight_duration := GameConfig.MAJOR_COIN_FLIGHT_DURATION if major_reward else GameConfig.COIN_FLIGHT_DURATION
+	var base_value: int = int(awarded_coins / coin_count)
+	var remainder := awarded_coins % coin_count
+	for index in range(coin_count):
+		var seed := result_id * 37 + index * 101
+		var normalized := float(index) / maxf(1.0, float(coin_count - 1))
+		var angle := -PI * 0.95 + normalized * PI * 1.90 + float(seed % 9 - 4) * 0.035
+		var radius := burst_radius * (0.60 + float(seed % 7) * 0.055)
+		var scatter := midpoint + Vector2.from_angle(angle) * radius + Vector2(0.0, -20.0 - float(index % 3) * 5.0)
+		var lateral_arc := (-54.0 if index % 2 == 0 else 54.0) + float(seed % 5 - 2) * 13.0
+		var control := (scatter + destination) * 0.5 + Vector2(lateral_arc, -96.0 - float(index % 4) * 13.0)
+		coin_rewards.append({
+			"result_id": result_id,
+			"index": index,
+			"count": coin_count,
+			"value": base_value + (1 if index < remainder else 0),
+			"start": midpoint,
+			"scatter": scatter,
+			"control": control,
+			"destination": destination,
+			"elapsed": -delay,
+			"flight_duration": flight_duration,
+			"arrived": false,
+			"major_reward": major_reward,
+		})
 
 func begin_target_arrival(position: Vector2, level: int) -> void:
 	target_arrivals.append({"position": position, "level": level, "elapsed": 0.0})
@@ -62,12 +88,26 @@ func update_effects(delta: float) -> void:
 		popup.elapsed = float(popup.get("elapsed", 0.0)) + delta
 	for impact in merge_impacts:
 		impact.elapsed = float(impact.get("elapsed", 0.0)) + delta
+	for coin in coin_rewards:
+		coin.elapsed = float(coin.get("elapsed", 0.0)) + delta
+		var flight_start := GameConfig.COIN_BURST_DURATION + float(coin.index) * GameConfig.COIN_FLIGHT_STAGGER
+		var result_id := int(coin.result_id)
+		if float(coin.elapsed) >= GameConfig.COIN_BURST_DURATION and not _coin_flights_started.has(result_id):
+			_coin_flights_started[result_id] = true
+			coin_flight_started.emit(result_id)
+		if not bool(coin.arrived) and float(coin.elapsed) >= flight_start + float(coin.flight_duration):
+			coin.arrived = true
+			var final_coin := int(coin.index) == int(coin.count) - 1
+			coin_arrived.emit(result_id, int(coin.value), final_coin)
+			if final_coin:
+				_coin_flights_started.erase(result_id)
 	for arrival in target_arrivals:
 		arrival.elapsed = float(arrival.get("elapsed", 0.0)) + delta
 	for launch in launch_impacts:
 		launch.elapsed = float(launch.get("elapsed", 0.0)) + delta
 	score_popups = score_popups.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.SCORE_POPUP_DURATION)))
 	merge_impacts = merge_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.MERGE_PRESENTATION_DURATION)))
+	coin_rewards = coin_rewards.filter(func(item: Dictionary) -> bool: return not bool(item.get("arrived", false)))
 	target_arrivals = target_arrivals.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < GameConfig.TARGET_PANEL_PULSE_DURATION)
 	launch_impacts = launch_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < 0.16)
 	queue_redraw()
@@ -75,8 +115,10 @@ func update_effects(delta: float) -> void:
 func clear() -> void:
 	score_popups.clear()
 	merge_impacts.clear()
+	coin_rewards.clear()
 	target_arrivals.clear()
 	launch_impacts.clear()
+	_coin_flights_started.clear()
 	queue_redraw()
 
 func shift_world_y(delta_y: float) -> void:
@@ -90,12 +132,23 @@ func shift_world(delta: Vector2) -> void:
 		popup.position += delta
 	for impact in merge_impacts:
 		impact.position += delta
+	for coin in coin_rewards:
+		coin.start += delta
+		coin.scatter += delta
+		coin.control += Vector2(delta.x, delta.y * 0.5)
+		coin.destination += Vector2(delta.x, 0.0)
 	for launch in launch_impacts:
 		launch.position += delta
 	queue_redraw()
 
 func active_effect_count() -> int:
-	return score_popups.size() + merge_impacts.size() + target_arrivals.size() + launch_impacts.size()
+	return score_popups.size() + merge_impacts.size() + coin_rewards.size() + target_arrivals.size() + launch_impacts.size()
+
+func active_coin_count() -> int:
+	return coin_rewards.size()
+
+func has_active_coin_flights() -> bool:
+	return not coin_rewards.is_empty()
 
 func has_merge_result(result_id: int) -> bool:
 	return merge_impacts.any(func(item: Dictionary) -> bool: return int(item.get("result_id", -1)) == result_id and float(item.get("elapsed", -1.0)) >= 0.0)
@@ -105,6 +158,8 @@ func _draw() -> void:
 		return
 	for impact in merge_impacts:
 		_draw_merge_impact(impact)
+	for coin in coin_rewards:
+		_draw_coin_reward(coin)
 	for popup in score_popups:
 		_draw_score_popup(popup)
 	for arrival in target_arrivals:
@@ -156,6 +211,36 @@ func _draw_score_popup(effect: Dictionary) -> void:
 	draw_string(_font, origin + Vector2(2.0, 3.0), String(effect.text), HORIZONTAL_ALIGNMENT_CENTER, 160.0, font_size, shadow)
 	draw_string(_font, origin, String(effect.text), HORIZONTAL_ALIGNMENT_CENTER, 160.0, font_size, foreground)
 
+func _draw_coin_reward(effect: Dictionary) -> void:
+	var elapsed := float(effect.get("elapsed", -1.0))
+	if elapsed < 0.0:
+		return
+	var index := int(effect.index)
+	var burst_t := clampf(elapsed / GameConfig.COIN_BURST_DURATION, 0.0, 1.0)
+	var flight_start := GameConfig.COIN_BURST_DURATION + float(index) * GameConfig.COIN_FLIGHT_STAGGER
+	var position: Vector2
+	var scale := 1.0
+	var start: Vector2 = effect.start
+	var scatter: Vector2 = effect.scatter
+	var control: Vector2 = effect.control
+	var destination: Vector2 = effect.destination
+	if elapsed < GameConfig.COIN_BURST_DURATION:
+		var outward := 1.0 - pow(1.0 - burst_t, 3.0)
+		position = start.lerp(scatter, outward)
+		scale = 0.42 + sin(burst_t * PI) * 0.82 + burst_t * 0.16
+	elif elapsed < flight_start:
+		var wait_t := (elapsed - GameConfig.COIN_BURST_DURATION) / maxf(0.001, flight_start - GameConfig.COIN_BURST_DURATION)
+		position = scatter + Vector2(0.0, -sin(wait_t * PI) * 7.0)
+		scale = 1.0 + sin(wait_t * PI) * 0.10
+	else:
+		var flight_t := clampf((elapsed - flight_start) / float(effect.flight_duration), 0.0, 1.0)
+		var eased := smoothstep(0.0, 1.0, flight_t)
+		var inverse := 1.0 - eased
+		position = scatter * inverse * inverse + control * 2.0 * inverse * eased + destination * eased * eased
+		scale = lerpf(1.06, 0.72, eased) * (1.0 + sin(flight_t * PI * 4.0) * 0.06)
+	var spin := elapsed * 15.0 + float(index) * 0.73
+	CoinVisualsType.draw_coin(self, position, GameConfig.COIN_DRAW_RADIUS * scale, 1.0, spin)
+
 func _draw_target_arrival(effect: Dictionary) -> void:
 	var t := clampf(float(effect.elapsed) / GameConfig.TARGET_PANEL_PULSE_DURATION, 0.0, 1.0)
 	var center: Vector2 = effect.position
@@ -182,3 +267,10 @@ func _cap_effects() -> void:
 		score_popups.pop_front()
 	while merge_impacts.size() > 12:
 		merge_impacts.pop_front()
+	while coin_rewards.size() > GameConfig.COIN_EFFECT_LIMIT:
+		var removed: Dictionary = coin_rewards.pop_front()
+		if not bool(removed.get("arrived", false)):
+			var final_coin := int(removed.get("index", -1)) == int(removed.get("count", 0)) - 1
+			coin_arrived.emit(int(removed.get("result_id", -1)), int(removed.get("value", 0)), final_coin)
+			if final_coin:
+				_coin_flights_started.erase(int(removed.get("result_id", -1)))

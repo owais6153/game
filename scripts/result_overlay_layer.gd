@@ -61,7 +61,7 @@ func present(won: bool, score: int) -> bool:
 	result_icon.visible = won
 	result_icon.texture = AssetCatalogType.gem_texture(8) if won else null
 	fail_badge.visible = not won
-	score_label.text = "SCORE  %s" % ScoreFormatterType.format(score)
+	score_label.text = "COINS  %s" % ScoreFormatterType.format(score)
 	retry_button.text = "REPLAY" if won else "RETRY"
 	retry_button.tooltip_text = "Replay Level 1" if won else "Retry Level 1"
 	root_control.visible = true
@@ -189,7 +189,7 @@ func _build_ui() -> void:
 	fail_mark.add_theme_constant_override("outline_size", 0)
 	fail_badge.add_child(fail_mark)
 	fail_badge.visible = false
-	score_label = _label("SCORE  0", 29, UiDesignSystemType.COLOR_TEAL)
+	score_label = _label("COINS  0", 29, UiDesignSystemType.COLOR_TEAL)
 	score_label.name = "ResultScore"
 	score_label.custom_minimum_size = Vector2(0.0, 48.0)
 	column.add_child(score_label)

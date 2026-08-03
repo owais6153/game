@@ -3,8 +3,9 @@ extends CanvasLayer
 
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
+const CoinIconType = preload("res://scripts/coin_icon.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
-const SNAPSHOT_KEYS := ["level_number", "current_level", "next_level", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level"]
+const SNAPSHOT_KEYS := ["level_number", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level"]
 
 signal settings_requested
 signal resume_requested
@@ -17,6 +18,7 @@ var progression_center: CenterContainer
 var target_anchor: CenterContainer
 var score_panel: Control
 var score_label: Label
+var coin_icon: CoinIcon
 var progression_frames: Array[Control] = []
 var progression_icons: Array[TextureRect] = []
 var next_panel: Control
@@ -39,11 +41,15 @@ var _snapshot: Dictionary = {}
 var _layout_scale := 1.0
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 var _score_tween: Tween
+var _coin_icon_tween: Tween
 var _next_tween: Tween
 var _target_swap_tween: Tween
 var _target_pulse_tween: Tween
 var _settings_tween: Tween
 var _pause_tween: Tween
+var _authoritative_coins := 0
+var _displayed_coins := 0
+var _queued_coin_rewards := 0
 
 
 func _ready() -> void:
@@ -70,12 +76,24 @@ func update_snapshot(snapshot: Dictionary) -> void:
 	if _snapshot_matches(snapshot):
 		return
 	var had_snapshot := not _snapshot.is_empty()
-	var formatted_score := ScoreFormatterType.format(int(snapshot.get("score", 0)))
-	if score_label.text != formatted_score:
-		score_label.text = formatted_score
-		score_label.add_theme_font_size_override("font_size", _score_font_size(formatted_score))
-		if had_snapshot:
-			_animate_score_change()
+	var authoritative_coins := int(snapshot.get("coins", snapshot.get("score", 0)))
+	if not had_snapshot or authoritative_coins < _authoritative_coins:
+		_authoritative_coins = authoritative_coins
+		_displayed_coins = authoritative_coins
+		_queued_coin_rewards = 0
+		_set_coin_label(_displayed_coins)
+	elif authoritative_coins != _authoritative_coins:
+		var unregistered_gain := authoritative_coins - _authoritative_coins
+		_authoritative_coins = authoritative_coins
+		# Direct/debug snapshot updates have no flight registration and therefore
+		# snap safely. Production merge rewards register before the snapshot, so
+		# their count changes only as the animated coins arrive.
+		if _queued_coin_rewards < unregistered_gain:
+			_displayed_coins = authoritative_coins
+			_queued_coin_rewards = 0
+			_set_coin_label(_displayed_coins)
+			if had_snapshot:
+				_animate_coin_change()
 
 	var next_level := int(snapshot.get("next_level", 1))
 	if int(_snapshot.get("next_level", -1)) != next_level:
@@ -186,12 +204,47 @@ func target_collection_destination() -> Vector2:
 	return target_icon.get_global_rect().get_center()
 
 
+func coin_collection_destination() -> Vector2:
+	if coin_icon == null or not coin_icon.is_inside_tree():
+		return GameConfig.COIN_HUD_FALLBACK_DESTINATION
+	return coin_icon.get_global_rect().get_center()
+
+
+func begin_coin_reward(amount: int) -> void:
+	if amount <= 0:
+		return
+	_queued_coin_rewards += amount
+	_authoritative_coins += amount
+
+
+func collect_coin_chunk(value: int, final_coin: bool = false) -> void:
+	if value <= 0:
+		return
+	_queued_coin_rewards = maxi(0, _queued_coin_rewards - value)
+	_displayed_coins = mini(_authoritative_coins, _displayed_coins + value)
+	if final_coin and _queued_coin_rewards == 0:
+		_displayed_coins = _authoritative_coins
+	_set_coin_label(_displayed_coins)
+	_animate_coin_change()
+
+
+func displayed_coin_value() -> int:
+	return _displayed_coins
+
+
+func pending_coin_value() -> int:
+	return _queued_coin_rewards
+
+
 func reset_presentation() -> void:
 	hide_pause(false)
-	for tween in [_score_tween, _next_tween, _target_swap_tween, _target_pulse_tween, _settings_tween]:
+	for tween in [_score_tween, _coin_icon_tween, _next_tween, _target_swap_tween, _target_pulse_tween, _settings_tween]:
 		_kill_tween(tween)
 	if score_label != null:
 		score_label.scale = Vector2.ONE
+	if coin_icon != null:
+		coin_icon.scale = Vector2.ONE
+	_queued_coin_rewards = 0
 	if next_icon != null:
 		next_icon.scale = Vector2.ONE
 		next_icon.modulate = Color.WHITE
@@ -320,7 +373,7 @@ func _build_hud() -> void:
 
 
 func _build_score_panel() -> Control:
-	var panel := _build_hud_card("ScorePanel", "SCORE")
+	var panel := _build_hud_card("ScorePanel", "COINS")
 	var margin := MarginContainer.new()
 	margin.name = "ScoreContentMargin"
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -330,14 +383,24 @@ func _build_score_panel() -> Control:
 	margin.add_theme_constant_override("margin_bottom", 16)
 	panel.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var column := VBoxContainer.new()
-	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_child(column)
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(center)
+	var row := HBoxContainer.new()
+	row.name = "CoinValueRow"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 5)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.add_child(row)
+	coin_icon = CoinIconType.new()
+	coin_icon.name = "CoinIcon"
+	coin_icon.custom_minimum_size = Vector2(28.0, 28.0)
+	coin_icon.pivot_offset = Vector2(14.0, 14.0)
+	row.add_child(coin_icon)
 	score_label = _label("0", UiDesignSystemType.SCORE_FONT_SIZE, UiDesignSystemType.COLOR_TEXT)
-	score_label.name = "ScoreValue"
-	score_label.custom_minimum_size = Vector2(0.0, 54.0)
-	column.add_child(score_label)
+	score_label.name = "CoinValue"
+	score_label.custom_minimum_size = Vector2(64.0, 54.0)
+	row.add_child(score_label)
 	return panel
 
 
@@ -369,7 +432,9 @@ func _build_next_panel() -> Control:
 func _build_hud_card(node_name: String, title: String) -> Control:
 	var panel := Control.new()
 	panel.name = node_name
-	panel.custom_minimum_size = Vector2(122.0, 132.0)
+	# The coin glyph and formatted total share this card. The wider reference-style
+	# footprint keeps compact values such as 125.5K inside the panel at all scales.
+	panel.custom_minimum_size = Vector2(154.0, 132.0)
 	panel.clip_contents = true
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var inner := PanelContainer.new()
@@ -649,14 +714,32 @@ func _score_font_size(formatted: String) -> int:
 
 
 func _animate_score_change() -> void:
+	_animate_coin_change()
+
+
+func _set_coin_label(value: int) -> void:
+	var formatted := ScoreFormatterType.format(value)
+	if score_label.text == formatted:
+		return
+	score_label.text = formatted
+	score_label.add_theme_font_size_override("font_size", _score_font_size(formatted))
+
+
+func _animate_coin_change() -> void:
 	_kill_tween(_score_tween)
+	_kill_tween(_coin_icon_tween)
 	score_label.pivot_offset = _node_center(score_label)
-	score_label.scale = Vector2.ONE * 0.90
+	coin_icon.pivot_offset = _node_center(coin_icon)
+	score_label.scale = Vector2.ONE * 1.10
+	coin_icon.scale = Vector2.ONE * 1.24
 	if not is_inside_tree():
 		score_label.scale = Vector2.ONE
+		coin_icon.scale = Vector2.ONE
 		return
 	_score_tween = create_tween()
-	_score_tween.tween_property(score_label, "scale", Vector2.ONE, UiDesignSystemType.VALUE_CHANGE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_score_tween.tween_property(score_label, "scale", Vector2.ONE, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_coin_icon_tween = create_tween()
+	_coin_icon_tween.tween_property(coin_icon, "scale", Vector2.ONE, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _animate_next_swap() -> void:

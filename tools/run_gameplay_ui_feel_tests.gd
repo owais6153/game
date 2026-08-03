@@ -24,6 +24,7 @@ func _run() -> void:
 	await _test_control_hierarchy_and_contained_previews()
 	await _test_pause_freeze_resume_and_restart_cleanup()
 	await _test_duplicate_merge_is_exactly_once()
+	await _test_reference_coin_reward_path()
 	await _test_late_collection_fade_and_body_cleanup()
 	await _test_final_l8_event_order_and_single_overlay()
 	await _test_responsive_hud_sizes()
@@ -57,11 +58,11 @@ func _test_score_formatter() -> void:
 		9876543210: "9.9B",
 	}
 	for raw_score in cases:
-		_assert(ScoreFormatterType.format(int(raw_score)) == String(cases[raw_score]), "Score %s must format as %s, got %s" % [str(raw_score), cases[raw_score], ScoreFormatterType.format(int(raw_score))])
+		_assert(ScoreFormatterType.format(int(raw_score)) == String(cases[raw_score]), "Coin total %s must format as %s, got %s" % [str(raw_score), cases[raw_score], ScoreFormatterType.format(int(raw_score))])
 	# Formatting is a presentation operation; the exact integer remains intact.
 	var exact_score := 9876543210
 	ScoreFormatterType.format(exact_score)
-	_assert(exact_score == 9876543210, "Score formatting must not replace or truncate the underlying integer")
+	_assert(exact_score == 9876543210, "Coin formatting must not replace or truncate the underlying integer")
 
 
 func _test_control_hierarchy_and_contained_previews() -> void:
@@ -72,7 +73,8 @@ func _test_control_hierarchy_and_contained_previews() -> void:
 	_assert(hud.root_control is Control and hud.hud_margin is MarginContainer, "Gameplay HUD must be a full Control tree rooted in a MarginContainer")
 	_assert(hud.hud_margin.get_node("HudRows") is VBoxContainer, "Gameplay HUD rows must use a VBoxContainer")
 	_assert(hud.hud_margin.get_node("HudRows/MainRow") is CenterContainer, "The merge path must own the enlarged centered top row")
-	_assert(hud.hud_margin.get_node("HudRows/ScoreNextRow") is HBoxContainer, "Score and NEXT must use the responsive row below the merge path")
+	_assert(hud.hud_margin.get_node("HudRows/ScoreNextRow") is HBoxContainer, "COINS and NEXT must use the responsive row below the merge path")
+	_assert(hud.coin_icon != null and hud.coin_icon.get_parent().name == "CoinValueRow", "The run total must use the shared procedural coin identity")
 	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must use a responsive utility HBoxContainer")
 	_assert(hud.target_panel.get_parent() == hud.target_anchor, "The active target must be independently anchored above the table")
 	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must share the simple native panel system")
@@ -85,8 +87,8 @@ func _test_control_hierarchy_and_contained_previews() -> void:
 	hud.update_snapshot(_snapshot(125500, 2, 3, 8, 0, 1, false))
 	_assert(hud.next_icon.texture == AssetCatalogType.gem_texture(3), "NEXT preview must replace stale queue artwork when identity changes")
 	_assert(hud.target_icon.texture == AssetCatalogType.gem_texture(8), "Sequential target preview must replace stale target artwork when identity changes")
-	_assert(hud.score_label.text == "125.5K", "HUD score must use the shared compact formatter")
-	_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Formatted score text must fit its dynamic panel without clipping")
+	_assert(hud.score_label.text == "125.5K", "HUD coins must use the shared compact formatter")
+	_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Formatted coin text must fit its dynamic panel without clipping")
 	var gameplay_buttons := _buttons_below(hud.hud_margin)
 	_assert(gameplay_buttons.size() == 1 and gameplay_buttons[0] == hud.settings_button, "Normal gameplay HUD must expose only Settings, never Restart")
 	_assert(hud.hud_margin.find_child("PauseRestartButton", true, false) == null, "Restart must exist only in the pause popup, not in the gameplay HUD")
@@ -135,13 +137,13 @@ func _test_pause_freeze_resume_and_restart_cleanup() -> void:
 	controller._on_settings_requested()
 	controller._on_restart_requested()
 	_assert(not paused and not controller.gameplay_ui.is_pause_visible(), "Pause-popup Restart must always leave the tree unpaused and popup closed")
-	_assert(controller.score == 0 and controller.target_index == 0 and controller.target_progress == 0, "Restart must reset score and sequential-target state")
+	_assert(controller.coins == 0 and controller.target_index == 0 and controller.target_progress == 0, "Restart must reset run coins and sequential-target state")
 	_assert(controller.merge_presentations.is_empty() and controller.pending_target_presentations.is_empty(), "Restart must clear pending merge and target presentation gates")
 	_assert(not controller.collection_in_progress and controller.target_collection.is_empty(), "Restart must cancel the target collection proxy")
 	_assert(controller.effects_layer.active_effect_count() == 0 and not controller.result_overlay.visible_result, "Restart must clear reward effects and result overlay state")
 	_assert(controller.danger_timers.is_empty(), "Restart must clear danger occupancy timers")
 	_assert(controller.pieces.size() == 1 and controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "Restart must restore exactly one ready launcher without a finite counter")
-	_assert(controller.gameplay_ui.score_label.text == "0", "Restart must refresh the HUD without a stale score")
+	_assert(controller.gameplay_ui.score_label.text == "0", "Restart must refresh the HUD without stale coins")
 	_assert(ghost.is_queued_for_deletion(), "Restart must queue any visual-only collection proxy for deletion")
 	await process_frame
 	_assert(not is_instance_valid(ghost), "Restart must leave no ghost collection node after the frame completes")
@@ -153,15 +155,36 @@ func _test_duplicate_merge_is_exactly_once() -> void:
 	var event := _merge_event(7001, 2)
 	var duplicate_events: Array[Dictionary] = [event, event.duplicate(true)]
 	controller._apply_confirmed_merge_events(duplicate_events)
-	_assert(controller.score == GameConfig.merge_score_for_result_level(2), "Duplicate confirmed result ID must award score exactly once")
+	_assert(controller.coins == GameConfig.merge_coin_reward_for_result_level(2), "Duplicate confirmed result ID must award coins exactly once")
 	_assert(controller.merge_presentations.size() == 1, "Duplicate confirmed result ID must create one merge presentation")
-	_assert(controller.effects_layer.score_popups.size() == 1 and controller.effects_layer.merge_impacts.size() == 1, "Duplicate confirmed result ID must create one score popup and one impact")
+	_assert(controller.effects_layer.coin_rewards.size() == GameConfig.COIN_BURST_COUNT and controller.effects_layer.merge_impacts.size() == 1, "Duplicate confirmed result ID must create one bounded coin burst and one impact")
 	_assert(_count_name(controller.presentation_events_for_result(7001), "merge_confirmed") == 1, "Duplicate confirmed result ID must trace merge confirmation exactly once")
 	var replay_events: Array[Dictionary] = [event.duplicate(true)]
 	controller._apply_confirmed_merge_events(replay_events)
-	_assert(controller.score == GameConfig.merge_score_for_result_level(2), "Replayed production event must not duplicate score")
-	_assert(controller.merge_presentations.size() == 1 and controller.effects_layer.score_popups.size() == 1, "Replayed production event must not duplicate visuals")
+	_assert(controller.coins == GameConfig.merge_coin_reward_for_result_level(2), "Replayed production event must not duplicate coins")
+	_assert(controller.merge_presentations.size() == 1 and controller.effects_layer.coin_rewards.size() == GameConfig.COIN_BURST_COUNT, "Replayed production event must not duplicate visuals")
 	_assert(controller.processed_merge_result_ids.size() == 1, "Exactly-once guard must retain one processed merge result")
+	await _dispose_controller(controller)
+
+
+func _test_reference_coin_reward_path() -> void:
+	var controller = await _new_controller()
+	var reward := GameConfig.merge_coin_reward_for_result_level(7)
+	var events: Array[Dictionary] = [_merge_event(7051, 7)]
+	controller._apply_confirmed_merge_events(events)
+	controller._refresh_hud()
+	_assert(controller.coins == reward, "Confirmed L7 merge must update the exact authoritative run coins immediately")
+	_assert(controller.gameplay_ui.displayed_coin_value() == 0 and controller.gameplay_ui.pending_coin_value() == reward, "Visible coins must wait for reward flight arrivals")
+	_assert(controller.effects_layer.active_coin_count() == GameConfig.MAJOR_COIN_BURST_COUNT, "L7 must create the bounded major coin burst")
+	controller.effects_layer.update_effects(GameConfig.COIN_BURST_DURATION * 0.8)
+	_assert(controller.gameplay_ui.displayed_coin_value() == 0, "Counter must not jump during the outward coin burst")
+	var complete_duration := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
+	controller.effects_layer.update_effects(complete_duration)
+	_assert(controller.effects_layer.active_coin_count() == 0, "All coin sprites must expire after their bounded flights")
+	_assert(controller.gameplay_ui.displayed_coin_value() == reward and controller.gameplay_ui.pending_coin_value() == 0, "Staggered arrivals must reconcile the visible and authoritative coin totals exactly")
+	_assert(controller.gameplay_ui.score_label.text == "800", "Coin counter must show the completed compact run total")
+	_assert("coin_burst" in controller.audio_feedback.emitted_events and "coin_flight" in controller.audio_feedback.emitted_events and "coin_collect" in controller.audio_feedback.emitted_events, "Coin burst, flight, and collection must each route original procedural audio")
+	_assert(controller.haptics_feedback.emitted_events.count("coin_collect") == 1, "Only the final coin may emit the light collection haptic")
 	await _dispose_controller(controller)
 
 
@@ -219,6 +242,10 @@ func _test_final_l8_event_order_and_single_overlay() -> void:
 	var expected_before_overlay: Array[String] = ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed"]
 	_assert(controller.presentation_events_for_result(result_id) == expected_before_overlay, "Final L8 must preserve the exact pre-overlay event order")
 	_assert(controller.win_qualified and not controller.win_presented and controller.result_overlay.present_count == 0, "Final collection must qualify victory but retain its celebration hold")
+	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 1.0)
+	_assert(not controller.win_presented, "Win overlay must wait until the visible coin reward reaches the counter")
+	var coin_finish := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
+	controller.effects_layer.update_effects(coin_finish)
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD - 0.01)
 	_assert(not controller.win_presented, "Win overlay must not start before the post-collection hold completes")
 	controller._update_win_presentation(0.02)
@@ -245,11 +272,11 @@ func _test_responsive_hud_sizes() -> void:
 		for metric_name in ["score", "next", "target", "settings", "pause"]:
 			var rect: Rect2 = metrics[metric_name]
 			_assert(bounds.encloses(rect), "%s must remain inside %dx%d at %s" % [metric_name, viewport_size.x, viewport_size.y, str(rect)])
-		_assert(not (metrics.score as Rect2).intersects(metrics.next), "SCORE and NEXT must not overlap at %dx%d" % [viewport_size.x, viewport_size.y])
+		_assert(not (metrics.score as Rect2).intersects(metrics.next), "COINS and NEXT must not overlap at %dx%d" % [viewport_size.x, viewport_size.y])
 		_assert(not (metrics.target as Rect2).intersects(metrics.settings), "Active target and Settings must not overlap at %dx%d" % [viewport_size.x, viewport_size.y])
 		_assert((metrics.settings as Rect2).size.x >= 88.0 and (metrics.settings as Rect2).size.y >= 88.0, "Settings touch target must stay at least 88x88 at %dx%d" % [viewport_size.x, viewport_size.y])
 		_assert((metrics.pause as Rect2).get_center().distance_to(bounds.get_center()) <= 2.0, "Pause popup must remain centered at %dx%d" % [viewport_size.x, viewport_size.y])
-		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Very large score must fit at %dx%d" % [viewport_size.x, viewport_size.y])
+		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Very large coin total must fit at %dx%d" % [viewport_size.x, viewport_size.y])
 		_assert((metrics.next as Rect2).encloses(hud.next_icon.get_global_rect()), "NEXT contain slot must stay inside its supplied panel at %dx%d" % [viewport_size.x, viewport_size.y])
 		_assert((metrics.target as Rect2).encloses(hud.target_icon.get_global_rect()), "Target contain slot must stay inside its supplied panel at %dx%d" % [viewport_size.x, viewport_size.y])
 		hud.hide_pause()
@@ -261,19 +288,19 @@ func _test_effect_counts_are_bounded() -> void:
 	root.add_child(layer)
 	await process_frame
 	var major_event := _merge_event(7999, 7)
-	layer.begin_merge_feedback(major_event, GameConfig.merge_score_for_result_level(7))
+	layer.begin_merge_feedback(major_event, GameConfig.merge_coin_reward_for_result_level(7), Vector2(80.0, 220.0))
 	_assert(bool(layer.merge_impacts[0].major_reward) and int(layer.merge_impacts[0].spark_count) == GameConfig.MAJOR_MERGE_SPARK_COUNT, "L7 feedback must use the bounded major-reward burst")
-	_assert(bool(layer.score_popups[0].major_reward) and float(layer.score_popups[0].duration) == GameConfig.MAJOR_SCORE_POPUP_DURATION, "L7 score must use the longer, larger major-reward popup")
+	_assert(layer.coin_rewards.size() == GameConfig.MAJOR_COIN_BURST_COUNT and bool(layer.coin_rewards[0].major_reward), "L7 must use the longer major coin flight")
 	for index in range(40):
 		var event := _merge_event(8000 + index, 2 + index % 4)
 		event.depth = index % 4
-		layer.begin_merge_feedback(event, 10 + index)
+		layer.begin_merge_feedback(event, 10 + index, Vector2(80.0, 220.0))
 	for index in range(10):
 		layer.begin_target_arrival(Vector2(100.0 + index * 10.0, 140.0), 7)
-	_assert(layer.score_popups.size() <= 12 and layer.merge_impacts.size() <= 12, "Crowded merge feedback must cap score popups and impact bursts")
+	_assert(layer.coin_rewards.size() <= GameConfig.COIN_EFFECT_LIMIT and layer.merge_impacts.size() <= 12, "Crowded merge feedback must cap coin flights and impact bursts")
 	_assert(layer.target_arrivals.size() <= 4, "Target arrival feedback must retain a small bounded count")
-	_assert(layer.active_effect_count() <= 28, "All transient gameplay effects must remain bounded")
-	layer.update_effects(maxf(GameConfig.SCORE_POPUP_DURATION, GameConfig.MERGE_PRESENTATION_DURATION) + 1.0)
+	_assert(layer.active_effect_count() <= GameConfig.COIN_EFFECT_LIMIT + 16, "All transient gameplay effects must remain bounded")
+	layer.update_effects(GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.COIN_EFFECT_LIMIT) + 1.0)
 	_assert(layer.active_effect_count() == 0, "Expired transient effects must release all presentation records")
 	layer.queue_free()
 	await process_frame
@@ -335,6 +362,7 @@ func _snapshot(score: int, current_level: int, next_level: int, target_level: in
 		"current_level": current_level,
 		"next_level": next_level,
 		"score": score,
+		"coins": score,
 		"target_level": target_level,
 		"target_progress": target_progress,
 		"target_quantity": target_quantity,

@@ -128,7 +128,8 @@ func _test_merge_presentation_blocks_next_launcher() -> void:
 	controller.pieces.clear()
 	controller._process(0.01)
 	_assert(controller.get_active_piece() == null, "Next launcher must wait while merge presentation is active")
-	for frame in range(30): controller._process(1.0 / 60.0)
+	var presentation_frames := ceili((GameConfig.MERGE_PRESENTATION_DURATION + GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.1) * 60.0)
+	for frame in range(presentation_frames): controller._process(1.0 / 60.0)
 	_assert(controller.get_active_piece() != null, "Next launcher must spawn after merge presentation completes")
 
 func _test_unobstructed_top_border() -> void:
@@ -244,33 +245,33 @@ func _test_launcher_spawn_lifecycle() -> void:
 	_assert(controller.lifecycle_name() == "READY_TO_AIM", "Restart must reset lifecycle to READY_TO_AIM")
 
 func _test_score_and_chain_runtime_path() -> void:
-	_assert(GameConfig.merge_score_for_result_level(6) == 350 and GameConfig.merge_score_for_result_level(7) == 800 and GameConfig.merge_score_for_result_level(8) == 1800, "L6-L8 merges must award escalating high-tier score")
+	_assert(GameConfig.merge_coin_reward_for_result_level(6) == 350 and GameConfig.merge_coin_reward_for_result_level(7) == 800 and GameConfig.merge_coin_reward_for_result_level(8) == 1800, "L6-L8 merges must award escalating high-tier coins")
 	var controller = GameScene.instantiate()
 	controller._ready()
 	controller.pieces.append(_piece(100, 1, Vector2(300, 500)))
 	controller.pieces.append(_piece(101, 1, Vector2(360, 500)))
 	controller._process(0.0)
-	_assert(controller.score == 10, "A confirmed Pearl merge must award the Ruby score once")
+	_assert(controller.coins == 10, "A confirmed Pearl merge must award the Ruby coins once")
 	_assert(controller.chain_multiplier == 1, "A single confirmed merge must use x1")
-	var no_merge_score: int = controller.score
+	var no_merge_coins: int = controller.coins
 	controller.pieces.append(_piece(102, 1, Vector2(160, 500)))
 	controller.pieces.append(_piece(103, 2, Vector2(220, 500)))
 	controller._process(0.0)
-	_assert(controller.score == no_merge_score, "Collision without a valid merge must award zero score")
+	_assert(controller.coins == no_merge_coins, "Collision without a valid merge must award zero coins")
 	var chain_controller = GameScene.instantiate()
 	chain_controller._ready()
 	var confirmed_events: Array[Dictionary] = []
 	confirmed_events.append({"level": 2})
 	confirmed_events.append({"level": 3})
 	chain_controller._apply_confirmed_merge_events(confirmed_events)
-	_assert(chain_controller.score == 60, "Pearl merge plus Ruby chain must score 10 + (25 x2)")
+	_assert(chain_controller.coins == 60, "Pearl merge plus Ruby chain must award 10 + (25 x2) coins")
 	_assert(chain_controller.chain_multiplier == 2, "A two-merge resolution must end at x2")
 	var high_tier_controller = GameScene.instantiate()
 	high_tier_controller._ready()
 	var high_tier_events: Array[Dictionary] = [{"level": 6, "depth": 0, "result_id": 6100, "midpoint": Vector2(360.0, 620.0)}]
 	high_tier_controller._apply_confirmed_merge_events(high_tier_events)
-	_assert(high_tier_controller.score == 350, "A confirmed L6 merge must award its high-tier score exactly once")
-	_assert(high_tier_controller.effects_layer.score_popups.size() == 1 and bool(high_tier_controller.effects_layer.score_popups[0].major_reward), "A scored L6 merge must create one major reward popup")
+	_assert(high_tier_controller.coins == 350, "A confirmed L6 merge must award its high-tier coins exactly once")
+	_assert(high_tier_controller.effects_layer.coin_rewards.size() == GameConfig.MAJOR_COIN_BURST_COUNT and high_tier_controller.effects_layer.score_popups.is_empty(), "A rewarded L6 merge must create one major coin burst and no legacy score popup")
 	chain_controller.merge_presentations.clear()
 	chain_controller.launcher_state = chain_controller.LauncherState.RESOLVING
 	chain_controller.get_active_piece().is_active_launcher = false
@@ -287,7 +288,8 @@ func _test_win_stops_spawning() -> void:
 	_assert(controller.won, "Collecting the sequential L7 then L8 targets must qualify win exactly once")
 	_assert(controller.win_qualified and not controller.win_presented, "Final L8 collection must qualify the win before its overlay is presented")
 	var count: int = controller.pieces.size()
-	for frame in range(120): controller._process(1.0 / 60.0)
+	var reward_frames := ceili((GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + GameConfig.WIN_PRESENTATION_HOLD + 0.2) * 60.0)
+	for frame in range(reward_frames): controller._process(1.0 / 60.0)
 	_assert(controller.pieces.size() == count, "No launcher may spawn after win")
 	_assert(controller.result_overlay.present_count == 1, "Final result overlay must present exactly once")
 
@@ -303,6 +305,10 @@ func _test_win_visual_sequence_and_overlay_isolation() -> void:
 	var expected := ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed"]
 	_assert(controller.presentation_events_for_result(311) == expected, "Final L8 target must preserve the exact pre-overlay visual and cleanup order")
 	_assert(not controller.win_presented, "Win overlay must wait for final collection plus celebration hold")
+	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
+	_assert(not controller.win_presented, "Win overlay must not cover the final coin flight")
+	var coin_finish := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
+	controller.effects_layer.update_effects(coin_finish)
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(controller.win_presented and controller.result_overlay.visible_result, "Win overlay must present only after final collection and celebration hold")
 	_assert(controller.presentation_events_for_result(311) == expected + ["win_overlay_started"], "Win trace must append one overlay start after final target confirmation")
@@ -347,18 +353,19 @@ func _test_chain_presentation_cadence() -> void:
 	_assert(controller.merge_presentations.size() == 2, "Two confirmed chain events must create two presentation records")
 	_assert(is_equal_approx(controller.merge_presentations[0].elapsed, 0.0), "The first chain visual must start immediately")
 	_assert(is_equal_approx(controller.merge_presentations[1].elapsed, -GameConfig.CHAIN_PRESENTATION_STAGGER), "Each later chain visual must use the approved display stagger")
-	for frame in range(24): controller._update_merge_presentations(1.0 / 60.0)
+	var chain_frames := ceili((GameConfig.MERGE_PRESENTATION_DURATION + GameConfig.CHAIN_PRESENTATION_STAGGER + 0.05) * 60.0)
+	for frame in range(chain_frames): controller._update_merge_presentations(1.0 / 60.0)
 	_assert(controller.merge_presentations.is_empty(), "A two-step chain presentation must complete within the approved pacing window")
 
 func _test_overlay_reset() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	controller.score = 235
+	controller.coins = 235
 	controller.chain_multiplier = 3
 	controller.won = true
 	controller.danger_timers[99] = 1.0
 	controller.restart()
-	_assert(not controller.won and not controller.failed and controller.score == 0 and controller.chain_multiplier == 1, "Replay or Retry must clear outcome, score, and chain state")
+	_assert(not controller.won and not controller.failed and controller.coins == 0 and controller.chain_multiplier == 1, "Replay or Retry must clear outcome, coins, and chain state")
 	_assert(controller.danger_timers.is_empty(), "Replay or Retry must clear danger timers")
 	_assert(controller.pieces.size() == 1 and _active_launcher_count(controller.pieces) == 1, "Replay or Retry must restore empty board plus one launcher")
 
@@ -372,7 +379,8 @@ func _test_visual_layout_bounds() -> void:
 	controller._ready()
 	var ui = controller.gameplay_ui
 	_assert(ui != null and ui.score_panel is Control and ui.next_panel is Control and ui.target_panel is Control, "Gameplay HUD must be a responsive Control hierarchy")
-	_assert(ui.score_panel.custom_minimum_size.x >= 120.0 and ui.score_panel.custom_minimum_size == ui.next_panel.custom_minimum_size, "SCORE and NEXT must use equal compact responsive cards")
+	_assert(ui.score_panel.custom_minimum_size.x >= 120.0 and ui.score_panel.custom_minimum_size == ui.next_panel.custom_minimum_size, "COINS and NEXT must use equal compact responsive cards")
+	_assert(ui.score_panel.get_node("CoinsBadge") is PanelContainer and ui.coin_icon is Control, "Coin HUD must use the dedicated badge and procedural coin icon")
 	_assert(ui.next_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED and ui.target_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "NEXT and target gems must use aspect-preserving contain scaling")
 	_assert(ui.progression_icons.all(func(icon: TextureRect): return icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED), "Every progression gem must use aspect-preserving contain scaling")
 	var settings_atlas := ui.settings_button.texture_normal as AtlasTexture
@@ -431,7 +439,7 @@ func _test_progression_hud_snapshot_and_queue() -> void:
 	_assert(int(after_shot.current_level) == 2 and int(after_shot.next_level) == 1, "HUD queue preview must advance exactly once after a shot cycle")
 	controller.restart()
 	var after_restart: Dictionary = controller.hud_snapshot()
-	_assert(int(after_restart.current_level) == 1 and int(after_restart.next_level) == 2 and int(after_restart.score) == 0, "Restart must reset Level 1 HUD and queue previews")
+	_assert(int(after_restart.current_level) == 1 and int(after_restart.next_level) == 2 and int(after_restart.coins) == 0, "Restart must reset Level 1 coin HUD and queue previews")
 
 func _test_hud_layout_and_pointer_safety() -> void:
 	for portrait_size in [Vector2(720, 1280), Vector2(1080, 1920), Vector2(1080, 2400), Vector2(1440, 3200), Vector2(900, 1280)]:
@@ -469,16 +477,24 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(_event_count(controller.audio_feedback.emitted_events, "launch") == 1, "Enabled launch must emit one audio event")
 	_assert(_event_count(controller.haptics_feedback.emitted_events, "launch") == 1, "Enabled launch must emit one haptic event")
 	controller.audio_feedback.clear_trace()
-	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD - 1.0})
+	var impact_first: GemPiece = controller.get_active_piece()
+	var impact_second := _piece(880, 2, Vector2(impact_first.position.x + 80.0, impact_first.position.y - 100.0))
+	controller.pieces.append(impact_second)
+	controller.gem_sprite_layer.sync_gems(controller.pieces)
+	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD - 1.0, "first_id": impact_first.id, "second_id": impact_second.id})
 	controller._route_collision_feedback()
 	_assert(controller.audio_feedback.emitted_events.is_empty(), "Sub-threshold collision must not emit audio")
-	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0})
+	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0, "first_id": impact_first.id, "second_id": impact_second.id})
 	controller._route_collision_feedback()
-	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0})
+	_assert(controller.piece_impact_feedbacks.has(impact_first.id) and controller.piece_impact_feedbacks.has(impact_second.id), "Confirmed gem contact must start presentation-only impact feedback on both bodies")
+	_assert(float(controller.gem_sprite_layer._impact_scales.get(impact_first.id, 1.0)) < 1.0 and float(controller.gem_sprite_layer._impact_scales.get(impact_second.id, 1.0)) < 1.0, "Impact feedback must begin with a visible child-only squash")
+	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0, "first_id": impact_first.id, "second_id": impact_second.id})
 	controller._route_collision_feedback()
 	_assert(_event_count(controller.audio_feedback.emitted_events, "gem_contact") == 1, "Gem contact audio must be throttled")
+	controller._update_piece_impact_feedbacks(GameConfig.IMPACT_VISUAL_DURATION + 0.01)
+	_assert(controller.piece_impact_feedbacks.is_empty() and controller.gem_sprite_layer._impact_scales.is_empty(), "Impact squash must expire without changing physics state")
 	controller.audio_feedback.clear_trace()
-	controller.simulation._collision_impacts.append({"kind": "wall", "strength": GameConfig.WALL_CONTACT_SOUND_THRESHOLD + 100.0})
+	controller.simulation._collision_impacts.append({"kind": "wall", "strength": GameConfig.WALL_CONTACT_SOUND_THRESHOLD + 100.0, "piece_id": impact_first.id})
 	controller._route_collision_feedback()
 	_assert(_event_count(controller.audio_feedback.emitted_events, "wall_contact") == 1, "Wall contact must use its own soft crystal event")
 	controller.audio_feedback.clear_trace()
@@ -501,6 +517,9 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_complete_current_target(win_controller, 8, 701)
 	win_controller.audio_feedback.clear_trace()
 	win_controller.haptics_feedback.clear_trace()
+	win_controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
+	var win_coin_finish := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
+	win_controller.effects_layer.update_effects(win_coin_finish)
 	win_controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(_event_count(win_controller.audio_feedback.emitted_events, "win") == 1 and _event_count(win_controller.haptics_feedback.emitted_events, "win") == 1, "Win feedback must fire exactly once")
 	var fail_controller = GameScene.instantiate()
@@ -646,7 +665,7 @@ func _test_collision_audio_uses_confirmed_contact() -> void:
 	second.position.x = first.position.x + first.radius + second.radius
 	simulation.step(no_contact, 0.0, merger)
 	var impacts := simulation.consume_collision_impacts()
-	_assert(impacts.any(func(impact: Dictionary): return String(impact.get("kind", "")) == "gem" and impact.has("position")), "Gem audio telemetry must be emitted from the confirmed contact point")
+	_assert(impacts.any(func(impact: Dictionary): return String(impact.get("kind", "")) == "gem" and impact.has("position") and int(impact.get("first_id", -1)) == first.id and int(impact.get("second_id", -1)) == second.id), "Gem feedback telemetry must identify both bodies at the confirmed contact point")
 
 func _test_shadow_presentation_is_collision_free() -> void:
 	var controller = GameScene.instantiate()

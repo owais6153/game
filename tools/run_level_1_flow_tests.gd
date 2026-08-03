@@ -256,7 +256,11 @@ func _test_sequential_target_completion() -> void:
 	_complete_target(controller, 8, 1002)
 	_assert(controller.target_index == 2 and controller.win_qualified and not controller.win_presented, "Collected L8 must qualify only after collection animation")
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
-	_assert(controller.win_presented, "Win overlay must follow final collection completion")
+	_assert(not controller.win_presented, "Win overlay must not cover the visible final coin flight")
+	var coin_finish := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
+	controller.effects_layer.update_effects(coin_finish)
+	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
+	_assert(controller.win_presented, "Win overlay must follow final coin collection completion")
 	_assert_event_order(controller, 1002, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed", "win_overlay_started"])
 	controller.restart()
 	_assert(controller.target_index == 0 and controller.target_progress == 0 and not controller.collection_in_progress, "Restart must restore target sequence safely")
