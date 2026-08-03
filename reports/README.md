@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Reference Gameplay + Coin Parity v1](REFERENCE_GAMEPLAY_COIN_PARITY_V1_REPORT.md) - reference-paced aim/merge/contact presentation, exact arrival-counted coin rewards, original coin audio/haptics, four ANGLE captures, full regression evidence, and verified APK.
+
 - [Physics + Reward Feedback v1](PHYSICS_REWARD_FEEDBACK_V1_REPORT.md) - video-guided collision redirection and energy tuning, nonzero L6-L8 rewards, bounded major-merge feedback, audible procedural mix/ambience, full regression evidence, and verified APK.
 
 - [Production UI Polish v4](PRODUCTION_UI_POLISH_V4_REPORT.md) - original gem silhouettes across gameplay/UI, enlarged eight-gem path, simplified Pause/Win/Fail cards, shared wide-screen visual/physics centering, 36-image evidence, full regression pass, and verified APK.

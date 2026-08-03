@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Reference Gameplay + Coin Parity v1
+
+- File: `reference-gameplay-coin-parity-v1.apk`
+- Path: `D:\Owais\game\build\android\reference-gameplay-coin-parity-v1.apk`
+- Size: `100,806,453 bytes`
+- Modified: `2026-08-03 23:11:13 +05:00`
+- SHA-256: `CED1D7496791BBDEE3E01C85EF1D2D397A98998785A438B1C3B1613E1CE29A94`
+- Package: `com.owais.gemmergerebuild`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
+- Exact gameplay source commit: `b9f15935174f8e52663fcf4c088cac92e0a35bc4` (`feat: add reference-paced coin reward animations`); delivery tag: `reference-gameplay-coin-parity-v1`.
+- Export: one fresh Godot 4.6.3 `--export-debug Android`; this is an installable debug-signed validation build, not a store-release signing claim.
+- Validation: 359 ZIP entries; `AndroidManifest.xml`, primary dex, and arm64 Godot runtime present; zero `reports/` or `tools/` entries. `apksigner` verifies v2/v3 signatures with one RSA-2048 signer. All six regression/profile suites passed and four 720 x 1600 production ANGLE captures were reviewed.
+- Device status: `adb devices -l` returned no connected devices. No install, on-device launch, frame-rate, listening, or haptic result is claimed.
+
 ## Physics + Reward Feedback v1
 
 - File: `physics-reward-feedback-v1.apk`

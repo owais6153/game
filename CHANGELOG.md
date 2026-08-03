@@ -1,5 +1,13 @@
 # Changelog
 
+## Reference Gameplay + Coin Parity v1
+
+- Replaced player-facing SCORE copy with COINS in gameplay and result UI while preserving the exact confirmed-merge reward table, chain multiplication, exactly-once result guard, and a compatibility `score` property for older tools.
+- Added a thin ready-state aim guide, retimed merge emergence to 0.62 seconds, and added 0.16-second confirmed-contact squash/pop on `GemSpriteLayer`'s presentation child only. Simulation velocity, collision response, colliders, rails, and merge eligibility are unchanged.
+- Replaced local score text with bounded procedural coin rewards: 10 normal / 14 major coins scatter for 0.55 seconds, follow staggered curved paths into the live HUD coin icon, increment the visible counter only on arrival, and finish before the final result overlay.
+- Added three cached original procedural coin cues (`coin_burst`, `coin_flight`, `coin_collect`) plus one final-coin light haptic; no reference recording art or audio was copied.
+- Added coin/impact/overlay-order regressions, four real 720 x 1600 ANGLE captures, a complete six-suite pass, and one fresh v2/v3-signed Android APK. Level 1 progression remains deliberately unchanged for the later level-creation task.
+
 ## Physics + Reward Feedback v1
 
 - Corrected equal-mass collision response to use a true `0.22` restitution coefficient, applied tangential friction only on approaching impact, and centrally tuned damping, sleep, walls, and bounded merge momentum for clearer redirection without changing launch speed or collider geometry.

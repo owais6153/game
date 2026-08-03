@@ -1,5 +1,17 @@
 # AI Knowledge Base
 
+## Reference gameplay + coin parity guardrails v1
+
+- The current player-facing currency is COINS. Preserve `GameController.coins` as the exact confirmed-event value and `score` only as a compatibility alias. Do not award currency from coin arrival, drawing, contact telemetry, HUD code, or sound.
+- Treat `reports/reference-gameplay-parity-v1/final-screenshots/` as the current gameplay-feedback visual proof. COINS and NEXT are equal 154 x 132 cards; do not restore SCORE copy or the narrower pre-coin card that clips the glyph/value row.
+- Preserve the bounded reward cadence: 10 normal / 14 major coins, 0.55-second burst, 1.18/1.32-second flights, 0.075-second stagger, and 56-record cap. If capping removes a record, its integer value must still reach the counter.
+- The HUD counter intentionally lags authoritative coins until animated arrivals. Register the pending reward before the controller snapshot changes; restart/failure must clear pending effects and presentation totals atomically.
+- Aim guide, merge scale, coin paths, counter pulse, and contact squash are presentation-only. Never feed them into `GemPiece`, `BoardSimulation`, `ContactMergeService`, table geometry, launcher input, danger timers, targets, or outcomes.
+- Keep coin visuals and audio original/procedural. Do not copy frames, sprites, or sound from the supplied reference. Current audio cache truth is 18 one-shots plus the separate ambience.
+- Final victory must wait for visible coin flights, then apply the existing hold, and present exactly one overlay. First-target L7 collection still advances only to L8.
+- Level 1 expansion remains deferred. Preserve the L1-L4 mixed bag, unlimited launcher, sequential L7 then L8 targets, and the established physics constants/radii/rails.
+- After work in this area, run all six suites and inspect `reports/reference-gameplay-parity-v1/final-screenshots/`; device feel, loudness, and haptics require a connected phone.
+
 ## Physics + reward feedback guardrails v1
 
 - Level 1 length/progression was explicitly deferred. Do not change `LevelConfig.level_1()`: preserve its L1-L4 mixed bag, unlimited launcher, and sequential L7 then L8 objectives until the user begins creating other levels.

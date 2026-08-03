@@ -62,3 +62,11 @@
 - `AudioFeedbackService` now generates and caches one original six-second looping procedural crystal/beach ambience bed during `_ready()`. It uses a dedicated player, follows the existing session sound toggle, and never influences gameplay.
 - Direct confirmed L6+ merges use the centralized `major_merge` haptic (`42 ms`, amplitude `0.66`). Chains still emit only the chain haptic, preventing duplicate vibration.
 - Automated cache, routing, toggle, threshold, score, and bounded-effect tests pass. Physical-device listening, volume balance, and haptic feel remain unverified because `adb` is unavailable.
+
+## Reference Gameplay + Coin Parity v1 update
+
+- Exact gameplay source: `b9f15935174f8e52663fcf4c088cac92e0a35bc4`; milestone report: `REFERENCE_GAMEPLAY_COIN_PARITY_V1_REPORT.md`; delivery tag: `reference-gameplay-coin-parity-v1`.
+- `coin_burst`, `coin_flight`, and `coin_collect` are original procedural metallic transients generated and cached during `AudioFeedbackService._ready()`. The one-shot cache is now 18 streams; the separate six-second ambience remains unchanged.
+- Merge confirmation emits the burst, the first flight phase emits one travel cue per result, and staggered HUD arrivals emit throttled collection ticks. Only the final coin routes the light 16 ms / 0.20 haptic, preventing vibration chatter.
+- Feedback still originates only from confirmed controller events or thresholded contact telemetry. Sound/haptic toggles cannot affect run coins, simulation, merge eligibility, targets, launcher flow, or outcomes.
+- Automated routing/cache/cooldown/counter reconciliation tests pass. `adb devices -l` returned no connected device, so listening balance and haptic feel are not claimed.

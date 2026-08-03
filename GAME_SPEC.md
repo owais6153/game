@@ -2,6 +2,16 @@
 
 ## Scope
 
+## Reference-paced coin gameplay feedback v1
+
+- The player's run reward is presented as **COINS**, not score. Confirmed merge events remain the sole currency source, use the same exact L2-L8 reward integers and chain multiplier, and are guarded once per result ID. The controller's legacy `score` property is only a compatibility alias for `coins`.
+- While `READY_TO_AIM`, a thin vertical guide runs from the launcher toward the top rail. It disappears whenever aiming is not legal and has no input, raycast, trajectory, or simulation authority.
+- Merge presentation lasts 0.62 seconds: sources pull for 0.14 seconds, the result begins at 0.56 scale, and it grows through a 1.20 visual-only pop. Live radii, collision roots, velocities, and merge rules never read this scale.
+- Every rewarded merge emits a bounded procedural burst at the confirmed midpoint: 10 coins normally or 14 for L6+. Coins scatter for 0.55 seconds, then follow staggered quadratic arcs into the live HUD coin icon over 1.18-1.32 seconds. The visible counter rises only as those coins arrive; authoritative currency is updated immediately and reconciles exactly.
+- Confirmed gem/rail telemetry identifies the impacted simulation IDs. Eligible contact starts a 0.16-second squash/pop on the rendered `Visual` child only; the effect expires without changing position, radius, perspective root, momentum, containment, sound authority, or merge eligibility.
+- Coin burst, flight, and collection use three cached original procedural metallic cues. Only the final coin adds a light collection haptic. Victory waits for the final visible coin flight before starting its existing hold and one result overlay.
+- Level 1 is unchanged: L1-L4 mixed launcher bag, unlimited launches, then one L7 target followed by one L8 target. Physics constants from Physics + Reward Feedback v1 are unchanged.
+
 ## Physics + reward feedback v1
 
 - Level 1 progression is intentionally unchanged: the L1-L4 mixed launch bag, unlimited launcher, sequential L7 then L8 objectives, and existing win/danger flow remain authoritative.

@@ -1,5 +1,16 @@
 # Architecture
 
+## Reference gameplay + coin feedback boundary v1
+
+- `GameController.coins` is the canonical exact run currency. `_apply_confirmed_merge_events()` remains the sole reward authority and registers the pending HUD reward before updating the controller integer. `score` delegates to the same value only for compatibility; neither HUD nor effects can award currency.
+- `GameplayEffectsLayer` owns bounded coin records, deterministic scatter geometry, staggered quadratic flight, drawing, and arrival signals. It never owns currency, physics pieces, input, merge candidates, or lifecycle. Safety capping emits each removed coin's value so display and controller totals still reconcile.
+- `GameplayHudLayer` remains snapshot-only for authoritative state. It owns only `_displayed_coins` and pending presentation accounting so the label advances on arrival. `CoinIcon` and `CoinVisuals` provide one procedural visual language without runtime assets or per-coin nodes.
+- COINS and NEXT remain equal 154 x 132 responsive cards; the added coin glyph/value row is contained inside the same clipped panel system.
+- `BoardSimulation` adds only impacted piece IDs to its existing confirmed-contact telemetry. `GameController` converts eligible telemetry into a short `GemSpriteLayer` child scale; the physics-mirroring root and `GemPiece.radius` remain untouched.
+- `AudioFeedbackService` now caches 18 one-shots plus the separate ambience at initialization. Coin cues are original synthesized metallic transients and share the existing reusable-player, cooldown, toggle, and controller-routing boundary.
+- Victory qualification remains controller state. Presentation waits while bounded coin records exist, then begins the existing `WIN_PRESENTATION_HOLD`; this cannot change target qualification, launcher blocking, danger handling, or final score/coin state.
+- `tools/capture_reference_gameplay_coin_parity.gd`, tests, reports, and screenshots are development-only and excluded from the Android package.
+
 ## Physics and reward feedback boundary v1
 
 - `BoardSimulation` resolves approaching equal-mass contact with `j = -v_rel * (1 + e) / 2`, where centralized `GameConfig.COLLISION_RESTITUTION = 0.22`. Tangential friction is applied once inside the approaching-contact branch; overlap correction without approach cannot repeatedly drain sideways velocity.
