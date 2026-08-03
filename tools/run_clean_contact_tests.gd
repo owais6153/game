@@ -5,6 +5,7 @@ const SimulationType = preload("res://scripts/board_simulation.gd")
 const MergeType = preload("res://scripts/merge_service.gd")
 const GemVisualsType = preload("res://scripts/gem_visuals.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
+const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.gd")
 const GameScene = preload("res://scenes/Game.tscn")
 var failures: Array[String] = []
 
@@ -23,6 +24,7 @@ func _run() -> void:
 	_test_launch_timing_and_settling()
 	_test_frame_step_stability()
 	_test_border_containment()
+	_test_collision_redirection_and_resting_friction()
 	_test_launcher_spawn_lifecycle()
 	_test_score_and_chain_runtime_path()
 	_test_danger_line_failure_rules()
@@ -44,6 +46,7 @@ func _run() -> void:
 	_test_perspective_view_presentation()
 	_test_visible_collision_calibration()
 	_test_calibrated_wall_contacts()
+	_test_sound_and_haptics_feedback_routing()
 	_test_collision_audio_uses_confirmed_contact()
 	_test_shadow_presentation_is_collision_free()
 	_free_orphan_fixtures()
@@ -184,6 +187,36 @@ func _test_border_containment() -> void:
 	_assert(piece.position.x >= GameConfig.table_left_at(piece.position.y) + piece.radius and piece.position.x <= GameConfig.table_right_at(piece.position.y) - piece.radius, "Side containment must remain valid during a wall shot")
 	_assert(piece.position.y >= GameConfig.BOARD_TOP + piece.radius and piece.position.y <= GameConfig.BOARD_BOTTOM - piece.radius, "Top/bottom containment must remain valid during a wall shot")
 
+func _test_collision_redirection_and_resting_friction() -> void:
+	var simulation := SimulationType.new()
+	var merger := MergeType.new()
+	var y := 700.0
+	var first := _piece(1, 1, Vector2(300.0, y))
+	var second := _piece(2, 2, Vector2.ZERO)
+	first.apply_perspective_scale(GameConfig.gem_perspective_scale_at(y))
+	second.apply_perspective_scale(GameConfig.gem_perspective_scale_at(y))
+	second.position = Vector2(first.position.x + first.radius + second.radius, y)
+	first.velocity = Vector2(420.0, 180.0)
+	second.velocity = Vector2.ZERO
+	var items: Array[GemPiece] = [first, second]
+	simulation.step(items, 0.0, merger)
+	var normal := Vector2.RIGHT
+	var separating_speed := (second.velocity - first.velocity).dot(normal)
+	var post_tangent_speed := absf((second.velocity - first.velocity).y)
+	_assert(separating_speed > 0.0, "Equal-mass impact response must redirect touching gems into separating motion")
+	_assert(post_tangent_speed < 180.0 and post_tangent_speed > 120.0, "Glancing impact must reduce tangent speed once without erasing redirection")
+
+	var resting_first := _piece(3, 1, Vector2(300.0, y))
+	var resting_second := _piece(4, 2, Vector2.ZERO)
+	resting_first.apply_perspective_scale(GameConfig.gem_perspective_scale_at(y))
+	resting_second.apply_perspective_scale(GameConfig.gem_perspective_scale_at(y))
+	resting_second.position = Vector2(resting_first.position.x + resting_first.radius + resting_second.radius, y)
+	resting_first.velocity = Vector2(0.0, 180.0)
+	resting_second.velocity = Vector2.ZERO
+	var resting_items: Array[GemPiece] = [resting_first, resting_second]
+	simulation.step(resting_items, 0.0, merger)
+	_assert(is_equal_approx(resting_first.velocity.y, 180.0) and resting_second.velocity == Vector2.ZERO, "Resting contact must not drain tangential motion again on every frame")
+
 func _test_launcher_spawn_lifecycle() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
@@ -211,6 +244,7 @@ func _test_launcher_spawn_lifecycle() -> void:
 	_assert(controller.lifecycle_name() == "READY_TO_AIM", "Restart must reset lifecycle to READY_TO_AIM")
 
 func _test_score_and_chain_runtime_path() -> void:
+	_assert(GameConfig.merge_score_for_result_level(6) == 350 and GameConfig.merge_score_for_result_level(7) == 800 and GameConfig.merge_score_for_result_level(8) == 1800, "L6-L8 merges must award escalating high-tier score")
 	var controller = GameScene.instantiate()
 	controller._ready()
 	controller.pieces.append(_piece(100, 1, Vector2(300, 500)))
@@ -231,6 +265,12 @@ func _test_score_and_chain_runtime_path() -> void:
 	chain_controller._apply_confirmed_merge_events(confirmed_events)
 	_assert(chain_controller.score == 60, "Pearl merge plus Ruby chain must score 10 + (25 x2)")
 	_assert(chain_controller.chain_multiplier == 2, "A two-merge resolution must end at x2")
+	var high_tier_controller = GameScene.instantiate()
+	high_tier_controller._ready()
+	var high_tier_events: Array[Dictionary] = [{"level": 6, "depth": 0, "result_id": 6100, "midpoint": Vector2(360.0, 620.0)}]
+	high_tier_controller._apply_confirmed_merge_events(high_tier_events)
+	_assert(high_tier_controller.score == 350, "A confirmed L6 merge must award its high-tier score exactly once")
+	_assert(high_tier_controller.effects_layer.score_popups.size() == 1 and bool(high_tier_controller.effects_layer.score_popups[0].major_reward), "A scored L6 merge must create one major reward popup")
 	chain_controller.merge_presentations.clear()
 	chain_controller.launcher_state = chain_controller.LauncherState.RESOLVING
 	chain_controller.get_active_piece().is_active_launcher = false
@@ -416,6 +456,10 @@ func _test_expanded_portrait_table_bottom_anchor() -> void:
 	GameConfig.configure_portrait_bottom(GameConfig.VIEWPORT_SIZE.y)
 
 func _test_sound_and_haptics_feedback_routing() -> void:
+	var audio_fixture = AudioFeedbackServiceType.new()
+	root.add_child(audio_fixture)
+	_assert(audio_fixture.ambience_is_ready(), "Original procedural ambience must be cached, looped, and ready at initialization")
+	audio_fixture.queue_free()
 	var controller = GameScene.instantiate()
 	controller._ready()
 	controller.haptics_feedback.allow_platform_vibration = false
@@ -443,13 +487,22 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	controller._apply_confirmed_merge_events(merge_events)
 	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_2") == 1 and _event_count(controller.audio_feedback.emitted_events, "merge_3") == 1, "Confirmed merges must route level-specific audio")
 	_assert(_event_count(controller.audio_feedback.emitted_events, "chain") == 1, "A chain step must emit one chain accent")
-	_assert(_event_count(controller.haptics_feedback.emitted_events, "merge") == 2 and _event_count(controller.haptics_feedback.emitted_events, "chain") == 1, "Confirmed direct and chain merges must use distinct haptics")
+	_assert(_event_count(controller.haptics_feedback.emitted_events, "merge") == 1 and _event_count(controller.haptics_feedback.emitted_events, "chain") == 1, "Confirmed direct and chain merges must use distinct haptics")
 	controller.audio_feedback.clear_trace()
 	controller.haptics_feedback.clear_trace()
-	var win_events: Array[Dictionary] = [{"level": 4, "depth": 0, "result_id": 700}, {"level": 4, "depth": 0, "result_id": 701}]
-	controller._apply_confirmed_merge_events(win_events)
-	for frame in range(40): controller._process(1.0 / 60.0)
-	_assert(_event_count(controller.audio_feedback.emitted_events, "win") == 1 and _event_count(controller.haptics_feedback.emitted_events, "win") == 1, "Win feedback must fire exactly once")
+	var major_events: Array[Dictionary] = [{"level": 6, "depth": 0, "result_id": 699, "midpoint": Vector2(360.0, 620.0)}]
+	controller._apply_confirmed_merge_events(major_events)
+	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_6") == 1, "A confirmed major merge must use its stronger level-specific cue")
+	_assert(_event_count(controller.haptics_feedback.emitted_events, "major_merge") == 1, "A confirmed major merge must use the dedicated stronger haptic")
+	var win_controller = GameScene.instantiate()
+	win_controller._ready()
+	win_controller.haptics_feedback.allow_platform_vibration = false
+	_complete_current_target(win_controller, 7, 700)
+	_complete_current_target(win_controller, 8, 701)
+	win_controller.audio_feedback.clear_trace()
+	win_controller.haptics_feedback.clear_trace()
+	win_controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
+	_assert(_event_count(win_controller.audio_feedback.emitted_events, "win") == 1 and _event_count(win_controller.haptics_feedback.emitted_events, "win") == 1, "Win feedback must fire exactly once")
 	var fail_controller = GameScene.instantiate()
 	fail_controller._ready()
 	fail_controller.haptics_feedback.allow_platform_vibration = false

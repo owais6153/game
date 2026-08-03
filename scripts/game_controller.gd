@@ -441,7 +441,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
 		else:
-			haptics_feedback.emit_event("merge")
+			haptics_feedback.emit_event("major_merge" if result_level >= GameConfig.MAJOR_REWARD_TIER else "merge")
 		if result_level == active_target_tier():
 			if result_id >= 0 and not counted_target_result_ids.has(result_id):
 				pending_target_presentations[result_id] = merge_event

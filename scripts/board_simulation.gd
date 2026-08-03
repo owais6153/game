@@ -74,16 +74,20 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	if relative_speed < 0.0:
 		var contact_point := first.position + normal * first.radius
 		_collision_impacts.append({"kind": "gem", "strength": absf(relative_speed), "position": contact_point})
-		var impulse := -relative_speed * GameConfig.COLLISION_RESTITUTION
+		# Equal masses share the normal impulse. The former multiplier-only
+		# response left the pair moving inward whenever its value was below 0.5,
+		# making crowded contacts look sticky. This uses the documented
+		# coefficient of restitution and guarantees a bounded separating speed.
+		var impulse := -relative_speed * (1.0 + GameConfig.COLLISION_RESTITUTION) * 0.5
 		first.velocity -= normal * impulse
 		second.velocity += normal * impulse
-	# Contact resistance makes clusters slide and settle rather than read as
-	# rigid frictionless billiard balls. It has no merge authority.
-	var post_impact_relative := second.velocity - first.velocity
-	var tangent := post_impact_relative - normal * post_impact_relative.dot(normal)
-	var tangential_impulse := tangent * (GameConfig.COLLISION_TANGENTIAL_FRICTION * 0.5)
-	first.velocity += tangential_impulse
-	second.velocity -= tangential_impulse
+		# Apply tangential resistance once to an approaching impact. Resting
+		# contacts no longer drain sideways motion again on every simulation step.
+		var post_impact_relative := second.velocity - first.velocity
+		var tangent := post_impact_relative - normal * post_impact_relative.dot(normal)
+		var tangential_impulse := tangent * (GameConfig.COLLISION_TANGENTIAL_FRICTION * 0.5)
+		first.velocity += tangential_impulse
+		second.velocity -= tangential_impulse
 	first.velocity = first.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 	second.velocity = second.velocity.limit_length(GameConfig.MAX_PIECE_SPEED)
 

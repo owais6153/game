@@ -260,6 +260,10 @@ func _test_effect_counts_are_bounded() -> void:
 	var layer: GameplayEffectsLayer = GameplayEffectsLayerType.new()
 	root.add_child(layer)
 	await process_frame
+	var major_event := _merge_event(7999, 7)
+	layer.begin_merge_feedback(major_event, GameConfig.merge_score_for_result_level(7))
+	_assert(bool(layer.merge_impacts[0].major_reward) and int(layer.merge_impacts[0].spark_count) == GameConfig.MAJOR_MERGE_SPARK_COUNT, "L7 feedback must use the bounded major-reward burst")
+	_assert(bool(layer.score_popups[0].major_reward) and float(layer.score_popups[0].duration) == GameConfig.MAJOR_SCORE_POPUP_DURATION, "L7 score must use the longer, larger major-reward popup")
 	for index in range(40):
 		var event := _merge_event(8000 + index, 2 + index % 4)
 		event.depth = index % 4

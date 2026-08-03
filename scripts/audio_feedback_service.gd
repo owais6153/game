@@ -4,11 +4,16 @@ extends Node
 ## Original procedural crystal synth. It makes short glass-like transients from
 ## inharmonic partials, a controlled bright noise tick, and exponential decay.
 ## No external or copyrighted samples are used; all tones are generated at run time.
-var enabled := true
+var enabled := true:
+	set(value):
+		enabled = value
+		_sync_ambience_volume()
 var emitted_events: Array[String] = []
 var _last_played_at: Dictionary = {}
 var _players: Array[AudioStreamPlayer] = []
 var _stream_cache: Dictionary = {}
+var _ambience_player: AudioStreamPlayer
+var _ambience_stream: AudioStreamWAV
 var _clock := 0.0
 var _variation_index := 0
 
@@ -19,6 +24,7 @@ func _ready() -> void:
 		player.bus = "Master"
 		add_child(player)
 		_players.append(player)
+	_setup_ambience()
 
 func _process(delta: float) -> void:
 	_clock += delta
@@ -52,6 +58,9 @@ func _play_crystal(event_name: String, intensity: float) -> void:
 
 func cached_stream_count() -> int:
 	return _stream_cache.size()
+
+func ambience_is_ready() -> bool:
+	return _ambience_player != null and _ambience_stream != null and _ambience_stream.loop_mode == AudioStreamWAV.LOOP_FORWARD
 
 func _build_stream_cache() -> void:
 	if not _stream_cache.is_empty():
@@ -89,5 +98,48 @@ func _build_crystal_stream(tone: Dictionary, seed: int) -> AudioStreamWAV:
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = int(GameConfig.AUDIO_SAMPLE_RATE)
 	stream.stereo = false
+	stream.data = samples
+	return stream
+
+func _setup_ambience() -> void:
+	_ambience_stream = _build_ambience_stream()
+	_ambience_player = AudioStreamPlayer.new()
+	_ambience_player.name = "CrystalBeachAmbience"
+	_ambience_player.bus = "Master"
+	_ambience_player.stream = _ambience_stream
+	add_child(_ambience_player)
+	_sync_ambience_volume()
+	_ambience_player.play()
+
+func _sync_ambience_volume() -> void:
+	if _ambience_player == null:
+		return
+	_ambience_player.volume_db = linear_to_db(GameConfig.AUDIO_AMBIENCE_VOLUME) if enabled else -80.0
+
+func _build_ambience_stream() -> AudioStreamWAV:
+	# A seamless, original six-second crystal/beach bed removes dead air without
+	# allocating audio resources during play. All carrier frequencies complete
+	# whole cycles across the loop, preventing a boundary click.
+	var duration := GameConfig.AUDIO_AMBIENCE_DURATION
+	var frames := int(GameConfig.AUDIO_SAMPLE_RATE * duration)
+	var samples := PackedByteArray()
+	samples.resize(frames * 2)
+	for frame in range(frames):
+		var t := float(frame) / GameConfig.AUDIO_SAMPLE_RATE
+		var loop_phase := TAU * t / duration
+		var swell := 0.68 + sin(loop_phase - PI * 0.5) * 0.20
+		var low_wave := sin(TAU * 55.0 * t) * 0.20
+		var soft_wave := sin(TAU * 82.5 * t + 0.45) * 0.12
+		var crystal_air := sin(TAU * 165.0 * t + 1.10) * 0.045
+		var shimmer := sin(TAU * 330.0 * t + 0.30) * (0.012 + 0.010 * (0.5 + 0.5 * sin(loop_phase)))
+		var sample := clampf((low_wave + soft_wave + crystal_air + shimmer) * swell, -0.42, 0.42)
+		samples.encode_s16(frame * 2, int(round(sample * 32767.0)))
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = int(GameConfig.AUDIO_SAMPLE_RATE)
+	stream.stereo = false
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	stream.loop_begin = 0
+	stream.loop_end = frames
 	stream.data = samples
 	return stream

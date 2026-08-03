@@ -205,10 +205,11 @@ func _test_motion_regression_guards() -> void:
 	_assert(not sprite_layer_source.contains("_alpha_bounds"), "Sprite layer must not calculate alpha bounds during gameplay")
 	_assert(sprite_layer_source.contains("piece.perspective_scale") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use shared perspective scaling and stable depth ordering")
 	_assert(not sprite_layer_source.contains("ResourceLoader.load("), "Perspective path must not load resources during gameplay")
-	# Exact motion profile from new-table-shadow-contact-fix-v1; catalog size is
-	# the only allowed physics-related extension.
+	# Calibrated collider mapping is preserved while the dedicated
+	# physics/reward-feedback milestone updates only centralized feel values.
 	_assert(GameConfig.GEM_COLLISION_RADIUS[1] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[3] == 33.0 and GameConfig.GEM_COLLISION_RADIUS[8] == 32.0, "Reordered tiers must retain their asset-calibrated collider values")
-	_assert(is_equal_approx(GameConfig.LAUNCH_SPEED, 1160.0) and is_equal_approx(GameConfig.VELOCITY_DAMPING_PER_SECOND, 235.0) and is_equal_approx(GameConfig.COLLISION_RESTITUTION, 0.34) and is_equal_approx(GameConfig.COLLISION_TANGENTIAL_FRICTION, 0.18), "Baseline motion constants must remain unchanged")
+	_assert(is_equal_approx(GameConfig.LAUNCH_SPEED, 1160.0) and is_equal_approx(GameConfig.VELOCITY_DAMPING_PER_SECOND, 210.0) and is_equal_approx(GameConfig.COLLISION_RESTITUTION, 0.22) and is_equal_approx(GameConfig.COLLISION_TANGENTIAL_FRICTION, 0.10), "Approved lively-contact motion constants must remain centralized")
+	_assert(GameConfig.merge_score_for_result_level(6) == 350 and GameConfig.merge_score_for_result_level(7) == 800 and GameConfig.merge_score_for_result_level(8) == 1800, "Active Level 1 high-tier results must retain escalating score rewards")
 	var flight_piece := _piece(99, 7, Vector2(360.0, 700.0))
 	flight_piece.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 	SimulationType.new().step([flight_piece], 1.0 / 60.0, MergeType.new())

@@ -20,11 +20,28 @@ func begin_merge_feedback(merge_event: Dictionary, awarded_score: int) -> void:
 	var midpoint: Vector2 = merge_event.get("midpoint", Vector2.ZERO)
 	var result_id := int(merge_event.get("result_id", -1))
 	var result_level := int(merge_event.get("level", 1))
-	merge_impacts.append({"result_id": result_id, "position": midpoint, "level": result_level, "elapsed": -delay})
-	# Higher-tier score values remain governed by the approved score table. Do
-	# not present a misleading "+0" reward when that table awards no points.
+	var major_reward := result_level >= GameConfig.MAJOR_REWARD_TIER
+	merge_impacts.append({
+		"result_id": result_id,
+		"position": midpoint,
+		"level": result_level,
+		"elapsed": -delay,
+		"duration": GameConfig.MAJOR_MERGE_EFFECT_DURATION if major_reward else GameConfig.MERGE_PRESENTATION_DURATION,
+		"effect_scale": GameConfig.MAJOR_MERGE_EFFECT_SCALE if major_reward else 1.0,
+		"spark_count": GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 8,
+		"major_reward": major_reward,
+	})
 	if awarded_score > 0:
-		score_popups.append({"result_id": result_id, "position": midpoint, "text": "+%s" % ScoreFormatterType.format(awarded_score), "elapsed": -delay})
+		score_popups.append({
+			"result_id": result_id,
+			"position": midpoint,
+			"text": "+%s" % ScoreFormatterType.format(awarded_score),
+			"elapsed": -delay,
+			"duration": GameConfig.MAJOR_SCORE_POPUP_DURATION if major_reward else GameConfig.SCORE_POPUP_DURATION,
+			"rise": GameConfig.MAJOR_SCORE_POPUP_RISE if major_reward else GameConfig.SCORE_POPUP_RISE,
+			"font_size": 31 if major_reward else 23,
+			"major_reward": major_reward,
+		})
 	_cap_effects()
 	queue_redraw()
 
@@ -49,8 +66,8 @@ func update_effects(delta: float) -> void:
 		arrival.elapsed = float(arrival.get("elapsed", 0.0)) + delta
 	for launch in launch_impacts:
 		launch.elapsed = float(launch.get("elapsed", 0.0)) + delta
-	score_popups = score_popups.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < GameConfig.SCORE_POPUP_DURATION)
-	merge_impacts = merge_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < GameConfig.MERGE_PRESENTATION_DURATION)
+	score_popups = score_popups.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.SCORE_POPUP_DURATION)))
+	merge_impacts = merge_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.MERGE_PRESENTATION_DURATION)))
 	target_arrivals = target_arrivals.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < GameConfig.TARGET_PANEL_PULSE_DURATION)
 	launch_impacts = launch_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < 0.16)
 	queue_redraw()
@@ -99,35 +116,45 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	var elapsed := float(effect.get("elapsed", -1.0))
 	if elapsed < 0.0:
 		return
-	var t := clampf(elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)
-	var impact_t := clampf(elapsed / 0.18, 0.0, 1.0)
+	var duration := float(effect.get("duration", GameConfig.MERGE_PRESENTATION_DURATION))
+	var effect_scale := float(effect.get("effect_scale", 1.0))
+	var spark_count := int(effect.get("spark_count", 8))
+	var major_reward := bool(effect.get("major_reward", false))
+	var t := clampf(elapsed / duration, 0.0, 1.0)
+	var impact_t := clampf(elapsed / (0.30 if major_reward else 0.18), 0.0, 1.0)
 	var center: Vector2 = effect.position
 	var color := GameConfig.gem_color(int(effect.level)).lightened(0.28)
 	color.a = 1.0 - t
 	var gem_radius := GameConfig.gem_collision_radius(int(effect.level))
-	var ring_radius := gem_radius * 0.82 + 32.0 * impact_t
-	draw_arc(center, ring_radius, 0.0, TAU, 28, color, 3.5)
-	for index in range(8):
-		var angle := float(index) * TAU / 8.0 + float(int(effect.result_id) % 7) * 0.07
+	var ring_radius := (gem_radius * 0.82 + 32.0 * impact_t) * effect_scale
+	draw_arc(center, ring_radius, 0.0, TAU, 36 if major_reward else 28, color, 5.0 if major_reward else 3.5)
+	if major_reward:
+		var echo_color := Color(1.0, 0.88, 0.34, (1.0 - t) * 0.74)
+		draw_arc(center, ring_radius * (0.58 + 0.24 * impact_t), 0.0, TAU, 32, echo_color, 3.0)
+	for index in range(spark_count):
+		var angle := float(index) * TAU / float(spark_count) + float(int(effect.result_id) % 7) * 0.07
 		var direction := Vector2.from_angle(angle)
-		var inner := center + direction * (gem_radius * 0.72 + 17.0 * impact_t)
-		var outer := center + direction * (gem_radius * 1.02 + 34.0 * impact_t)
+		var inner := center + direction * (gem_radius * 0.72 + 17.0 * impact_t) * effect_scale
+		var outer := center + direction * (gem_radius * 1.02 + 34.0 * impact_t) * effect_scale
 		var sparkle := Color("fff2a8") if index % 2 == 0 else color
 		sparkle.a = (1.0 - impact_t) * 0.92
-		draw_line(inner, outer, sparkle, 2.5)
+		draw_line(inner, outer, sparkle, 3.5 if major_reward else 2.5)
 
 func _draw_score_popup(effect: Dictionary) -> void:
 	var elapsed := float(effect.get("elapsed", -1.0))
 	if elapsed < 0.0:
 		return
-	var t := clampf(elapsed / GameConfig.SCORE_POPUP_DURATION, 0.0, 1.0)
+	var duration := float(effect.get("duration", GameConfig.SCORE_POPUP_DURATION))
+	var rise := float(effect.get("rise", GameConfig.SCORE_POPUP_RISE))
+	var font_size := int(effect.get("font_size", 23))
+	var t := clampf(elapsed / duration, 0.0, 1.0)
 	var eased := 1.0 - pow(1.0 - t, 3.0)
 	var alpha := 1.0 if t <= 0.45 else 1.0 - smoothstep(0.45, 1.0, t)
-	var origin: Vector2 = effect.position + Vector2(-70.0, -36.0 - GameConfig.SCORE_POPUP_RISE * eased)
+	var origin: Vector2 = effect.position + Vector2(-80.0, -36.0 - rise * eased)
 	var shadow := Color(0.24, 0.12, 0.05, alpha * 0.72)
 	var foreground := Color(1.0, 0.94, 0.55, alpha)
-	draw_string(_font, origin + Vector2(2.0, 3.0), String(effect.text), HORIZONTAL_ALIGNMENT_CENTER, 140.0, 23, shadow)
-	draw_string(_font, origin, String(effect.text), HORIZONTAL_ALIGNMENT_CENTER, 140.0, 23, foreground)
+	draw_string(_font, origin + Vector2(2.0, 3.0), String(effect.text), HORIZONTAL_ALIGNMENT_CENTER, 160.0, font_size, shadow)
+	draw_string(_font, origin, String(effect.text), HORIZONTAL_ALIGNMENT_CENTER, 160.0, font_size, foreground)
 
 func _draw_target_arrival(effect: Dictionary) -> void:
 	var t := clampf(float(effect.elapsed) / GameConfig.TARGET_PANEL_PULSE_DURATION, 0.0, 1.0)

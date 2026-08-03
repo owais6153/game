@@ -67,13 +67,16 @@ const GEM_VISUAL_Z_TIE_STRIDE := 8
 # The default/range notes are the approved safe tuning envelope for this prototype.
 const DRAG_HIT_RADIUS_MULTIPLIER := 1.8 # default 1.8; safe 1.5–2.0
 const LAUNCH_SPEED := 1160.0 # approved parity range 1120–1200
-const VELOCITY_DAMPING_PER_SECOND := 235.0 # approved parity range 210–260
-const SLEEP_SPEED := 11.0 # approved parity range 9–13
-const SIDE_WALL_RESTITUTION := 0.16 # approved parity range 0.12–0.20
-const TOP_WALL_RESTITUTION := 0.10 # approved parity range 0.08–0.14
-const BOTTOM_WALL_RESTITUTION := 0.08 # approved parity range 0.06–0.12
-const COLLISION_RESTITUTION := 0.34 # equal-mass normal impulse; approved parity range 0.28–0.42
-const COLLISION_TANGENTIAL_FRICTION := 0.18 # contact-only rolling resistance; approved range 0.12–0.24
+const VELOCITY_DAMPING_PER_SECOND := 210.0 # lively-contact range 190–230
+const SLEEP_SPEED := 9.0 # stable-settle range 8–11
+const SIDE_WALL_RESTITUTION := 0.20 # contained redirection range 0.16–0.24
+const TOP_WALL_RESTITUTION := 0.16 # visible but controlled rebound range 0.12–0.20
+const BOTTOM_WALL_RESTITUTION := 0.10 # containment-only range 0.08–0.12
+## True coefficient of restitution used by the equal-mass impulse equation.
+## This is intentionally a soft bounce: contact separates instead of retaining
+## inward velocity, without turning the table into frictionless billiards.
+const COLLISION_RESTITUTION := 0.22 # controlled separating response range 0.18–0.28
+const COLLISION_TANGENTIAL_FRICTION := 0.10 # applied once per approaching impact; range 0.06–0.14
 const MAX_PIECE_SPEED := 1200.0 # containment guard; preserves natural launch/collision speed
 const CONTACT_EPSILON := 0.20
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
@@ -87,13 +90,19 @@ const MERGE_RESULT_POP_DURATION := 0.15
 const MERGE_PULSE_SCALE := 1.13
 const SCORE_POPUP_DURATION := 0.62
 const SCORE_POPUP_RISE := 36.0
+const MAJOR_REWARD_TIER := 6
+const MAJOR_MERGE_EFFECT_DURATION := 0.78
+const MAJOR_SCORE_POPUP_DURATION := 1.05
+const MAJOR_SCORE_POPUP_RISE := 58.0
+const MAJOR_MERGE_EFFECT_SCALE := 1.55
+const MAJOR_MERGE_SPARK_COUNT := 16
 const TARGET_COLLECTION_DURATION := 0.62
 const TARGET_COLLECTION_FADE_START := 0.68
 const TARGET_COLLECTION_POP_SCALE := 1.16
 const TARGET_PANEL_PULSE_DURATION := 0.22
 const PRESENTATION_EVENT_TRACE_LIMIT := 128
-const MERGE_MOMENTUM_TRANSFER := 0.35 # bounded average of source momentum
-const MERGE_MAX_SPAWN_SPEED := 260.0 # prevents an upgrade from shooting through a cluster
+const MERGE_MOMENTUM_TRANSFER := 0.45 # bounded average of source momentum
+const MERGE_MAX_SPAWN_SPEED := 300.0 # prevents an upgrade from shooting through a cluster
 const CHAIN_PRESENTATION_STAGGER := 0.05 # visual cadence only; merge logic remains immediate
 const NEXT_LAUNCHER_READY_DELAY := 0.04 # after bounded handoff and any presentation gate
 ## A released gem gives the launcher lane time to clear, then becomes a normal
@@ -139,13 +148,18 @@ const MERGE_SCORE_BY_RESULT_LEVEL := {
 	3: 25,
 	4: 60,
 	5: 150,
+	6: 350,
+	7: 800,
+	8: 1800,
 }
 ## Feedback routing is presentation-only. Values are safe for short Android UI
 ## cues and never feed simulation, score, or lifecycle code.
 const AUDIO_SAMPLE_RATE := 22050.0
 const AUDIO_MAX_CONCURRENT_PLAYERS := 3
-const GEM_CONTACT_SOUND_THRESHOLD := 220.0
-const WALL_CONTACT_SOUND_THRESHOLD := 290.0
+const AUDIO_AMBIENCE_DURATION := 6.0
+const AUDIO_AMBIENCE_VOLUME := 0.16
+const GEM_CONTACT_SOUND_THRESHOLD := 170.0
+const WALL_CONTACT_SOUND_THRESHOLD := 220.0
 const CONTACT_SOUND_COOLDOWN := 0.075
 const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN, "wall_contact": 0.11, "launch": 0.05, "merge_2": 0.04, "merge_3": 0.04,
@@ -153,25 +167,26 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"target_collect": 0.16, "fail": 0.25, "button": 0.05,
 }
 const AUDIO_TONES := {
-	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.18, "brightness": 0.38, "fall": 0.78},
-	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.17, "brightness": 0.82, "fall": 0.64},
-	"wall_contact": {"frequency": 760.0, "duration": 0.065, "volume": 0.11, "brightness": 0.34, "fall": 0.58},
-	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.25, "brightness": 0.60, "fall": 1.16},
-	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.27, "brightness": 0.68, "fall": 1.20},
-	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.29, "brightness": 0.76, "fall": 1.24},
-	"merge_5": {"frequency": 1318.0, "duration": 0.19, "volume": 0.31, "brightness": 0.88, "fall": 1.30},
-	"merge_6": {"frequency": 1480.0, "duration": 0.19, "volume": 0.31, "brightness": 0.90, "fall": 1.32},
-	"merge_7": {"frequency": 1661.0, "duration": 0.20, "volume": 0.32, "brightness": 0.92, "fall": 1.34},
-	"merge_8": {"frequency": 1760.0, "duration": 0.21, "volume": 0.33, "brightness": 0.94, "fall": 1.36},
-	"chain": {"frequency": 1568.0, "duration": 0.11, "volume": 0.18, "brightness": 0.92, "fall": 1.24},
-	"target_collect": {"frequency": 1760.0, "duration": 0.16, "volume": 0.25, "brightness": 0.94, "fall": 1.34},
-	"win": {"frequency": 1318.0, "duration": 0.30, "volume": 0.34, "brightness": 0.96, "fall": 1.55},
-	"fail": {"frequency": 523.0, "duration": 0.22, "volume": 0.18, "brightness": 0.33, "fall": 0.56},
-	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.10, "brightness": 0.55, "fall": 0.84},
+	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.30, "brightness": 0.38, "fall": 0.78},
+	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.28, "brightness": 0.82, "fall": 0.64},
+	"wall_contact": {"frequency": 760.0, "duration": 0.065, "volume": 0.20, "brightness": 0.34, "fall": 0.58},
+	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.36, "brightness": 0.60, "fall": 1.16},
+	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.39, "brightness": 0.68, "fall": 1.20},
+	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.42, "brightness": 0.76, "fall": 1.24},
+	"merge_5": {"frequency": 1318.0, "duration": 0.19, "volume": 0.46, "brightness": 0.88, "fall": 1.30},
+	"merge_6": {"frequency": 1480.0, "duration": 0.24, "volume": 0.50, "brightness": 0.90, "fall": 1.32},
+	"merge_7": {"frequency": 1661.0, "duration": 0.27, "volume": 0.55, "brightness": 0.92, "fall": 1.34},
+	"merge_8": {"frequency": 1760.0, "duration": 0.30, "volume": 0.60, "brightness": 0.94, "fall": 1.36},
+	"chain": {"frequency": 1568.0, "duration": 0.13, "volume": 0.42, "brightness": 0.92, "fall": 1.24},
+	"target_collect": {"frequency": 1760.0, "duration": 0.22, "volume": 0.58, "brightness": 0.94, "fall": 1.34},
+	"win": {"frequency": 1318.0, "duration": 0.34, "volume": 0.62, "brightness": 0.96, "fall": 1.55},
+	"fail": {"frequency": 523.0, "duration": 0.24, "volume": 0.38, "brightness": 0.33, "fall": 0.56},
+	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.20, "brightness": 0.55, "fall": 0.84},
 }
 const HAPTICS_BY_EVENT := {
 	"launch": {"duration_ms": 18, "amplitude": 0.22},
 	"merge": {"duration_ms": 30, "amplitude": 0.48},
+	"major_merge": {"duration_ms": 42, "amplitude": 0.66},
 	"chain": {"duration_ms": 46, "amplitude": 0.72},
 	"target_collect": {"duration_ms": 52, "amplitude": 0.78},
 	"win": {"duration_ms": 90, "amplitude": 1.0},
@@ -190,10 +205,13 @@ static func gem_collision_radius(level: int) -> float:
 static func gem_color(level: int) -> Color:
 	match level:
 		1: return Color("f6ead0")
-		2: return Color("d84355")
+		2: return Color("20242d")
 		3: return Color("20ae79")
-		4: return Color("2e83e6")
-		5: return Color("c8efff")
+		4: return Color("55c7e8")
+		5: return Color("b7d93a")
+		6: return Color("e8549a")
+		7: return Color("c8324c")
+		8: return Color("4f70dc")
 		_: return Color.WHITE
 
 static func configure_portrait_bottom(viewport_height: float) -> void:
