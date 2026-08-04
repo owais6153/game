@@ -1,5 +1,11 @@
 # AI Knowledge Base
 
+## Home visual authority
+
+- Treat `assets/ui/Generated image 2 (3).png` as the composition reference for Home: full tropical backdrop, floating brand hero, coral primary action, and cream secondary/status surfaces.
+- Use `AssetCatalog.BRAND_LOGO` for the active transparent runtime logo. Never restore the opaque gradient derivative to Home and never overwrite the uploaded logo source.
+- Do not implement the level-tree composition from `assets/ui/Generated image 6.png`; progression remains infinite and forward-only.
+
 ## New background music guardrails v1
 
 - Keep `supplied_background_music_v5.ogg` as the active continuous track and preserve its original MP3 under `assets/sound/`.

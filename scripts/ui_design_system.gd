@@ -113,6 +113,14 @@ static func hero_screen_panel_style() -> StyleBoxFlat:
 	style.content_margin_bottom = 0.0
 	return style
 
+static func home_stage_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color.TRANSPARENT
+	return style
+
+static func floating_status_style() -> StyleBoxFlat:
+	return _rounded_style(Color(1.0, 0.985, 0.94, 0.96), Color("efb64b"), 3, 28, 8, Color(0.02, 0.12, 0.16, 0.30))
+
 static func logo_frame_style() -> StyleBoxFlat:
 	return _rounded_style(Color("19150f"), Color("f6c555"), 3, 30, 7, Color(0.25, 0.10, 0.01, 0.30))
 

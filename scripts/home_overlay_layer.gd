@@ -63,19 +63,20 @@ func _build() -> void:
 	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(root_control)
 	root_control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var dimmer := ColorRect.new()
-	dimmer.name = "HomeBackdrop"
-	dimmer.color = Color(0.02, 0.035, 0.055, 0.72)
-	dimmer.mouse_filter = Control.MOUSE_FILTER_STOP
-	root_control.add_child(dimmer)
-	dimmer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var glow := ColorRect.new()
-	glow.name = "HomeWarmGlow"
-	glow.color = Color(0.95, 0.55, 0.14, 0.10)
-	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root_control.add_child(glow)
-	glow.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	glow.offset_bottom = 620.0
+	var backdrop := TextureRect.new()
+	backdrop.name = "HomeTropicalBackdrop"
+	backdrop.texture = AssetCatalogType.background_texture(0)
+	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	root_control.add_child(backdrop)
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var wash := ColorRect.new()
+	wash.name = "HomeReadabilityWash"
+	wash.color = Color(0.02, 0.25, 0.30, 0.15)
+	wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_control.add_child(wash)
+	wash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	safe_margin = MarginContainer.new()
 	safe_margin.name = "HomeSafeArea"
 	safe_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -87,41 +88,42 @@ func _build() -> void:
 	safe_margin.add_child(center)
 	content_panel = PanelContainer.new()
 	content_panel.name = "HomeContentPanel"
-	content_panel.custom_minimum_size = Vector2(520.0, 820.0)
-	content_panel.add_theme_stylebox_override("panel", UiDesignSystemType.hero_screen_panel_style())
+	content_panel.custom_minimum_size = Vector2(520.0, 930.0)
+	content_panel.add_theme_stylebox_override("panel", UiDesignSystemType.home_stage_style())
 	content_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(content_panel)
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 34)
-	margin.add_theme_constant_override("margin_top", 28)
-	margin.add_theme_constant_override("margin_right", 34)
-	margin.add_theme_constant_override("margin_bottom", 34)
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 18)
 	content_panel.add_child(margin)
 	var column := VBoxContainer.new()
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 13)
+	column.add_theme_constant_override("separation", 18)
 	margin.add_child(column)
-	var hero := PanelContainer.new()
+	var hero := CenterContainer.new()
 	hero.name = "LogoHero"
-	hero.custom_minimum_size = Vector2(452.0, 354.0)
-	hero.clip_contents = true
-	hero.add_theme_stylebox_override("panel", UiDesignSystemType.logo_frame_style())
+	hero.custom_minimum_size = Vector2(472.0, 400.0)
 	hero.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(hero)
 	logo_rect = TextureRect.new()
 	logo_rect.name = "GemRushLogo"
 	logo_rect.texture = AssetCatalogType.BRAND_LOGO
+	logo_rect.custom_minimum_size = Vector2(472.0, 400.0)
 	logo_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	logo_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	logo_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hero.add_child(logo_rect)
-	tagline_label = _label("BUILD THE CHAIN.  CLAIM THE GEMS.", 17, UiDesignSystemType.COLOR_TEXT_MUTED)
-	tagline_label.custom_minimum_size = Vector2(0.0, 32.0)
+	tagline_label = _label("BUILD THE CHAIN  •  CLAIM THE GEMS", 18, Color.WHITE)
+	tagline_label.custom_minimum_size = Vector2(0.0, 38.0)
+	tagline_label.add_theme_constant_override("outline_size", 6)
+	tagline_label.add_theme_color_override("font_outline_color", Color(0.02, 0.30, 0.34, 0.85))
 	column.add_child(tagline_label)
 	var progress_card := PanelContainer.new()
 	progress_card.name = "ContinueCard"
-	progress_card.custom_minimum_size = Vector2(452.0, 136.0)
-	progress_card.add_theme_stylebox_override("panel", UiDesignSystemType.continue_card_style())
+	progress_card.custom_minimum_size = Vector2(472.0, 126.0)
+	progress_card.add_theme_stylebox_override("panel", UiDesignSystemType.floating_status_style())
 	column.add_child(progress_card)
 	var progress_margin := MarginContainer.new()
 	progress_margin.add_theme_constant_override("margin_left", 24)
@@ -152,13 +154,15 @@ func _build() -> void:
 	play_button = Button.new()
 	play_button.name = "HomePlayButton"
 	play_button.text = "PLAY"
-	play_button.custom_minimum_size = Vector2(452.0, 82.0)
+	play_button.custom_minimum_size = Vector2(472.0, 92.0)
 	play_button.focus_mode = Control.FOCUS_ALL
 	play_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	play_button.pressed.connect(func() -> void: play_requested.emit())
 	column.add_child(play_button)
-	var hint := _label("8 RANDOM GEMS  •  A NEW PATH EVERY LEVEL", 14, UiDesignSystemType.COLOR_TEXT_MUTED)
-	hint.custom_minimum_size = Vector2(0.0, 28.0)
+	var hint := _label("8 RANDOM GEMS  •  A NEW PATH EVERY LEVEL", 15, Color.WHITE)
+	hint.add_theme_constant_override("outline_size", 5)
+	hint.add_theme_color_override("font_outline_color", Color(0.02, 0.30, 0.34, 0.86))
+	hint.custom_minimum_size = Vector2(0.0, 34.0)
 	column.add_child(hint)
 
 func _start_entrance() -> void:

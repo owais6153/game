@@ -1,5 +1,9 @@
 # Architecture
 
+## Asset-matched Home presentation
+
+`HomeOverlayLayer` remains a presentation-only `CanvasLayer`. It reads the preloaded tropical background and transparent brand derivative through `AssetCatalog`, while its scalable coral/cream surfaces come from `UiDesignSystem`. It owns no seed generation, progression, simulation, input over the board, reward, or persistence rules.
+
 ## New background music routing boundary v1
 
 - `AudioFeedbackService` preloads `supplied_background_music_v5.ogg` into its single dedicated looping music player; no movement, collision, merge, or reward path owns playback position.

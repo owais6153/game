@@ -1,5 +1,11 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Asset-matched transparent brand v2
+
+| Purpose | Preserved source | Active runtime derivative | Audit |
+| --- | --- | --- | --- |
+| Transparent GEM RUSH Home hero | Uploaded original remains `assets/logo/ChatGPT Image Aug 5, 2026, 03_32_00 AM.png`; generated flat-key edit is `assets/generated/gem_rush_logo_chroma_source_v2.png` | `assets/runtime/ui/gem_rush_logo_transparent_v2.png` | Built-in image edit preserved the GEM RUSH wording, gold sign, gems, leaves, and sparkles on a flat magenta key. Windows alpha matte used measured key RGB `(238,20,218)`, transparent distance `<=28`, opaque distance `>=120`, soft interpolation and edge despill. Runtime is 1254 x 1254 RGBA, 2,846,807 bytes, SHA-256 `64A6A274A1B1AE92CC0061765292FE650CC101737941F3A65E38A44DD3B9B814`; all four corner alpha values are `0`. Generated keyed source SHA-256 is `417760299539758FE6A236598AD4A5B899C1B5922FB5ACA50BC00BBE92C3E833`. |
+
 ## New background music v1
 
 | Purpose | Preserved source | Active runtime derivative | Audit |

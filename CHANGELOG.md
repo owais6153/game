@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-05 - Asset-matched Home + transparent logo v1
+
+- Replaced the opaque framed Home logo with an alpha-matted GEM RUSH runtime derivative while preserving the uploaded source.
+- Rebuilt Home as a full-screen tropical composition using supplied background artwork, a floating logo, a cream/gold journey card, and a larger glossy coral primary action.
+- Removed the generic dark/card presentation from Home without changing gameplay or infinite progression.
+
 ## Branded Production Screen Flow v1 - 2026-08-05
 
 - Preserved the supplied 1024 x 1024 GEM RUSH logo and created a non-destructive cropped 720 x 563 runtime derivative for mobile UI.

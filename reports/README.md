@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Asset-matched Home + transparent logo v1](ASSET_MATCHED_HOME_TRANSPARENT_LOGO_V1_REPORT.md) - full tropical Home composition, alpha-matted GEM RUSH runtime hero, asset provenance, and validation evidence.
+
 - [Branded Production Screen Flow v1](PRODUCTION_SCREEN_FLOW_V1_REPORT.md) - supplied-logo integration, standalone Home, Pause/Success/Fail hierarchy, safe-area regressions, reviewed renders, and delivery provenance.
 
 - [Infinite Randomized Eight-Gem Levels v1](INFINITE_RANDOM_LEVELS_V1_REPORT.md) - full 18-gem seeded selection, local eight-slot chains, forward-only targets and screens, five-background mapping, persistence, regressions, and delivery provenance.
