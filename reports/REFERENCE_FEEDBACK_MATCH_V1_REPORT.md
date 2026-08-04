@@ -67,7 +67,18 @@ The clips are mono 48 kHz Ogg derivatives with no normalization, EQ, pitch chang
 - `MOTION_PROFILE: PASS` with zero per-gem process callbacks, zero gameplay resource loads after initialization, seven cached active audio-event mappings, zero retained bounded effects, and zero node delta.
 - `REFERENCE_FEEDBACK_MATCH_CAPTURE: PASS` using Godot 4.6.3 Compatibility/ANGLE at 720 x 1600.
 - The four reviewed renders prove a rigid merge result with a four-coin cluster, one compact coin route, a large visible HUD-layer target check, and exact `400 -> 550` settlement.
-- APK export/signature/ZIP checks, source/delivery commit and tags, and ADB status are recorded after the release export below.
+- Source commit: `1c1478e7ab07c86d6e2083e71bdaada0135818d2`; source tag: `reference-feedback-match-v1-source`.
+
+## Android delivery
+
+- APK: `build/android/reference-feedback-match-v1.apk`
+- Size: `102,827,861` bytes; modified `2026-08-04 09:21:28 +05:00`.
+- SHA-256: `16A44ECD5FA4F796E7DD0604DB25FD411F4CDE6D7951BC35B5C925D42C9B1995`.
+- Godot 4.6.3 exported the `Android` debug preset from the clean source tag. This is an installable validation build; no store-release keystore is claimed.
+- ZIP validation: 377 entries; `AndroidManifest.xml`, `classes.dex`, and `lib/arm64-v8a/libgodot_android.so` are present; `reports/`, `tools/`, and `assets/generated/` are absent.
+- `apksigner` verifies APK Signature Schemes v2 and v3 with one RSA-2048 signer.
+- Delivery tag: `reference-feedback-match-v1`.
+- `adb devices -l` returned no connected device. Installation, phone performance, listening balance, and haptics remain the manual checks below rather than claimed results.
 
 ## Manual phone checklist
 

@@ -1,5 +1,19 @@
 # Build Manifest
 
+# Reference Feedback Match v1
+
+- File: `reference-feedback-match-v1.apk`
+- Path: `D:\Owais\game\build\android\reference-feedback-match-v1.apk`
+- Size: `102,827,861` bytes
+- Modified: `2026-08-04 09:21:28 +05:00`
+- SHA-256: `16A44ECD5FA4F796E7DD0604DB25FD411F4CDE6D7951BC35B5C925D42C9B1995`
+- Source commit: `1c1478e7ab07c86d6e2083e71bdaada0135818d2` (`fix: match reference feedback and audio`)
+- Source tag: `reference-feedback-match-v1-source`
+- Delivery tag: `reference-feedback-match-v1`
+- Export: Godot 4.6.3 `Android` debug preset from the clean source milestone; installable validation signing, not a store-release keystore claim.
+- Validation: `GAMEPLAY_UI_FEEL_TESTS`, `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, `GEM18_CHAIN_TESTS`, `PRODUCTION_UI_FINALIZATION_TESTS`, and `MOTION_PROFILE` passed. Four real 720 x 1600 Compatibility/ANGLE captures were reviewed. Standalone APK exists; ZIP has 377 entries with manifest, primary dex, and arm64 Godot runtime; `reports/`, `tools/`, and `assets/generated/` are absent. APK Signature Scheme v2/v3 verification passed with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device; install, launch, phone performance, reference-volume listening, and haptics were not tested.
+
 # Production Gameplay Parity Final v1
 
 - File: `production-gameplay-parity-final-v1.apk`
