@@ -8,7 +8,7 @@
 - Modified: `2026-08-05 01:41:12 +05:00` (`2026-08-04T20:41:12Z`)
 - SHA-256: `E60C83AB649F7F184285770555485F858ACFE03A643ECF1C1D0EF756DB381FBC`
 - Gameplay source commit/tag: `2754502f2481239535427df29b9335988a15200d` / `infinite-random-levels-v1-source`.
-- Clean export source commit/tag: `EXPORT_SOURCE_COMMIT` / `infinite-random-levels-v1-export-source`.
+- Clean export source commit/tag: `436b3a4d40b62223fee2517886f3d1c47bf1796e` / `infinite-random-levels-v1-export-source`.
 - Delivery tag: `infinite-random-levels-v1`.
 - Export: Godot 4.6.3 `Android` debug preset; validation signing, not a store-release keystore claim.
 - Validation: all seven suites passed, including 200 generated levels. APK has 405 ZIP entries; `build/`, `reports/`, `tools/`, Python, and PowerShell entries are absent. APK Signature Scheme v2/v3 verification passed with one signer.
