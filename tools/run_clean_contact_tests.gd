@@ -43,7 +43,7 @@ func _run() -> void:
 	_test_asset_mapping_and_clean_diamond()
 	_test_table_layout_physics_alignment()
 	_test_physical_rail_geometry()
-	_test_aim_guide_contained_by_sloped_rails()
+	_test_push_guide_is_removed()
 	_test_perspective_view_presentation()
 	_test_visible_collision_calibration()
 	_test_calibrated_wall_contacts()
@@ -246,13 +246,13 @@ func _test_launcher_spawn_lifecycle() -> void:
 	_assert(controller.lifecycle_name() == "READY_TO_AIM", "Restart must reset lifecycle to READY_TO_AIM")
 
 func _test_score_and_chain_runtime_path() -> void:
-	_assert(GameConfig.merge_coin_reward_for_result_level(6) == 350 and GameConfig.merge_coin_reward_for_result_level(7) == 800 and GameConfig.merge_coin_reward_for_result_level(8) == 1800, "L6-L8 merges must award escalating high-tier coins")
+	_assert(GameConfig.target_coin_reward_for_result_level(6) == 350 and GameConfig.target_coin_reward_for_result_level(7) == 800 and GameConfig.target_coin_reward_for_result_level(8) == 1800, "L6-L8 targets must retain escalating configured coin rewards")
 	var controller = GameScene.instantiate()
 	controller._ready()
 	controller.pieces.append(_piece(100, 1, Vector2(300, 500)))
 	controller.pieces.append(_piece(101, 1, Vector2(360, 500)))
 	controller._process(0.0)
-	_assert(controller.coins == 10, "A confirmed Pearl merge must award the Ruby coins once")
+	_assert(controller.coins == 0 and controller.effects_layer.coin_rewards.is_empty(), "An ordinary Pearl merge must not award or animate coins")
 	_assert(controller.chain_multiplier == 1, "A single confirmed merge must use x1")
 	var no_merge_coins: int = controller.coins
 	controller.pieces.append(_piece(102, 1, Vector2(160, 500)))
@@ -265,14 +265,21 @@ func _test_score_and_chain_runtime_path() -> void:
 	confirmed_events.append({"level": 2})
 	confirmed_events.append({"level": 3})
 	chain_controller._apply_confirmed_merge_events(confirmed_events)
-	_assert(chain_controller.coins == 60, "Pearl merge plus Ruby chain must award 10 + (25 x2) coins")
+	_assert(chain_controller.coins == 0 and chain_controller.effects_layer.coin_rewards.is_empty(), "An ordinary Pearl/Ruby chain must not award or animate coins")
 	_assert(chain_controller.chain_multiplier == 2, "A two-merge resolution must end at x2")
 	var high_tier_controller = GameScene.instantiate()
 	high_tier_controller._ready()
 	var high_tier_events: Array[Dictionary] = [{"level": 6, "depth": 0, "result_id": 6100, "midpoint": Vector2(360.0, 620.0)}]
 	high_tier_controller._apply_confirmed_merge_events(high_tier_events)
-	_assert(high_tier_controller.coins == 350, "A confirmed L6 merge must award its high-tier coins exactly once")
-	_assert(high_tier_controller.effects_layer.coin_rewards.size() == GameConfig.MAJOR_COIN_BURST_COUNT and high_tier_controller.effects_layer.score_popups.is_empty(), "A rewarded L6 merge must create one major coin burst and no legacy score popup")
+	_assert(high_tier_controller.coins == 0, "A confirmed L6 merge must remain coin-free while L5 is the active target")
+	_assert(high_tier_controller.effects_layer.coin_rewards.is_empty() and high_tier_controller.effects_layer.merge_impacts.size() == 1, "A non-target high-tier merge must create only its bounded impact")
+	var target_controller = GameScene.instantiate()
+	target_controller._ready()
+	target_controller.target_index = 1
+	var target_events: Array[Dictionary] = [{"level": 7, "depth": 0, "result_id": 6200, "midpoint": Vector2(360.0, 620.0)}]
+	target_controller._apply_confirmed_merge_events(target_events)
+	_assert(target_controller.coins == GameConfig.target_coin_reward_for_result_level(7), "The active L7 target must award its configured coins exactly once")
+	_assert(target_controller.effects_layer.coin_rewards.size() == GameConfig.MAJOR_COIN_BURST_COUNT, "The active L7 target must create exactly four visible coin records")
 	chain_controller.merge_presentations.clear()
 	chain_controller.launcher_state = chain_controller.LauncherState.RESOLVING
 	chain_controller.get_active_piece().is_active_launcher = false
@@ -470,9 +477,11 @@ func _test_expanded_portrait_table_bottom_anchor() -> void:
 func _test_sound_and_haptics_feedback_routing() -> void:
 	var audio_fixture = AudioFeedbackServiceType.new()
 	root.add_child(audio_fixture)
-	_assert(audio_fixture.has_ambience() and audio_fixture.ambience_is_ready(), "Reference music must start once and remain a continuously looping ambience player")
+	_assert(not audio_fixture.has_ambience() and not audio_fixture.ambience_is_ready(), "The mixed reference recording must not create an active background player")
 	_assert(audio_fixture.cached_stream_count() == GameConfig.AUDIO_TONES.size(), "Every confirmed gem event must remain prebuilt in the bounded audio cache")
-	_assert(ResourceLoader.exists("res://assets/runtime/audio/reference_music_loop.ogg"), "The reference-derived continuous music loop must exist")
+	_assert(ResourceLoader.exists("res://assets/runtime/audio/reference_music_loop.ogg"), "The retired mixed derivative must remain preserved for provenance")
+	var audio_source := FileAccess.get_file_as_string("res://scripts/audio_feedback_service.gd")
+	_assert(not audio_source.contains("reference_music_loop.ogg") and not audio_source.contains("ReferenceMusicLoop"), "Production audio must not preload or instantiate the contaminated loop")
 	audio_fixture.queue_free()
 	var controller = GameScene.instantiate()
 	controller._ready()
@@ -510,7 +519,7 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	controller.haptics_feedback.clear_trace()
 	var merge_events: Array[Dictionary] = [{"level": 2, "depth": 0}, {"level": 3, "depth": 1}]
 	controller._apply_confirmed_merge_events(merge_events)
-	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_2") == 1 and _event_count(controller.audio_feedback.emitted_events, "merge_3") == 1 and _event_count(controller.audio_feedback.emitted_events, "chain") == 1, "A confirmed chain must use the earlier tiered gem tones without restarting music")
+	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_2") == 1 and _event_count(controller.audio_feedback.emitted_events, "merge_3") == 1 and _event_count(controller.audio_feedback.emitted_events, "chain") == 1, "A confirmed chain must use the tiered gem tones without background music")
 	_assert(_event_count(controller.haptics_feedback.emitted_events, "merge") == 1 and _event_count(controller.haptics_feedback.emitted_events, "chain") == 1, "Confirmed direct and chain merges must use distinct haptics")
 	controller.audio_feedback.clear_trace()
 	controller.haptics_feedback.clear_trace()
@@ -597,21 +606,11 @@ func _test_physical_rail_geometry() -> void:
 	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
 	_assert(controller_source.contains("GameConfig.table_left_at(board_top)") and controller_source.contains("GameConfig.table_right_at(board_bottom)"), "Debug overlay must read the exact same table interpolation as physical rails")
 
-func _test_aim_guide_contained_by_sloped_rails() -> void:
-	GameConfig.configure_viewport(GameConfig.VIEWPORT_SIZE)
-	var radius := GameConfig.gem_collision_radius(1)
-	var launch_y := GameConfig.launch_y()
-	var lanes := [
-		GameConfig.table_left_at(launch_y) + radius,
-		GameConfig.table_center_x(),
-		GameConfig.table_right_at(launch_y) - radius,
-	]
-	for x in lanes:
-		var start_y := GameConfig.vertical_lane_top_y(float(x), 5.0) + 8.0
-		_assert(float(x) >= GameConfig.table_left_at(start_y) + 5.0 and float(x) <= GameConfig.table_right_at(start_y) - 5.0, "Aim guide start must remain inside both sloped rails at lane x=%0.1f" % float(x))
-		_assert(start_y < launch_y - radius - 8.0, "Every legal launcher lane must retain a visible contained guide segment")
+func _test_push_guide_is_removed() -> void:
 	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
-	_assert(controller_source.contains("GameConfig.vertical_lane_top_y(active.position.x, 5.0)"), "Production aim guide must use the shared sloped-rail lane intersection")
+	var config_source := FileAccess.get_file_as_string("res://scripts/game_config.gd")
+	_assert(not controller_source.contains("_draw_aim_guide") and not controller_source.contains("AIM_GUIDE"), "Production rendering must contain no vertical push/aim guide")
+	_assert(not config_source.contains("AIM_GUIDE_WIDTH") and not config_source.contains("AIM_GUIDE_ALPHA"), "Removed push-guide tuning must not remain active in GameConfig")
 
 func _test_perspective_view_presentation() -> void:
 	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP), GameConfig.GEM_PERSPECTIVE_SCALE_BACK), "Back-table perspective scale must use the configured minimum")

@@ -1,5 +1,17 @@
 # AI Knowledge Base
 
+## Reference target reward correction guardrails v3
+
+- The reference-video truth is target-only reward presentation: coin sequences occur near `14.6 s`, `46.6 s`, and `58.0 s`, each at a target event. Do not create coin records or change run coins for an ordinary merge.
+- Keep `begin_merge_feedback()` impact-only and route the four coins only through `begin_target_coin_reward()` after controller target qualification. `GameController` owns the exact integer; HUD/effects only queue and reconcile arrival chunks.
+- Preserve four coins, draw radius `14.5`, burst `0.38 s`, flight `1.70/1.75 s`, stagger `0.09 s`, compact radii `44/48`, foreground host layering, 32-record cap, and final-coin victory wait.
+- No background player is active. `reference_music_loop.ogg` is a contaminated mixed derivative kept for provenance, not a runtime preload. Keep the 15 bounded gem tones, typed contact thresholds, cooldowns, three-player cap, sound toggle, and service-owned haptics. Add clean music/coin audio only from separate supplied files.
+- Do not restore the vertical push/aim guide or its constants. Preserve the horizontal coral danger line and all authoritative table/rail/launcher/drag geometry.
+- Preserve rigid silhouettes, L5 -> L7 -> L8 target order, target proxy/handoff, unlimited launcher, physics constants, contact-only merge rules, danger grace, reset cleanup, and isolated result overlay.
+- After related changes, run gameplay-feel, clean-contact, Level 1, 18-gem, production UI, and motion-profile suites; capture ready/no-guide, ordinary/no-coins, and target/four-coins evidence; then export and verify a standalone APK.
+
+This section supersedes the active-music, every-merge reward, and launcher-guide guardrails below.
+
 ## Reference audio and foreground reward guardrails v2
 
 - This section supersedes the Reference Feedback Match audio/layering values below. Preserve Level 1 L5→L7→L8, rigid gem silhouettes, exact confirmed-event coins, four-token reward count, launcher flow, physics constants, and final-coin/hold/overlay order.

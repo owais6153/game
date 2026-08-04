@@ -112,8 +112,6 @@ const COIN_DRAW_RADIUS := 14.5
 const COIN_COUNTER_PULSE_DURATION := 0.14
 const COIN_EFFECT_LIMIT := 32
 const COIN_HUD_FALLBACK_DESTINATION := Vector2(78.0, 244.0)
-const AIM_GUIDE_WIDTH := 2.0
-const AIM_GUIDE_ALPHA := 0.58
 const TARGET_COLLECTION_DURATION := 0.84
 const TARGET_COLLECTION_FADE_START := 0.78
 const TARGET_COLLECTION_POP_SCALE := 1.08
@@ -167,7 +165,9 @@ const TARGET_LEVEL := 5
 ## unchanged; this bounds merge eligibility for manually created higher tiers.
 const MAX_GEM_LEVEL := 18
 const DANGER_GRACE_DURATION := 0.75 # default 0.75 s; safe 0.65–0.90
-const MERGE_COIN_REWARD_BY_RESULT_LEVEL := {
+## These values are awarded only when a confirmed result fulfills the active
+## target. Ordinary merges advance the board without changing run coins.
+const TARGET_COIN_REWARD_BY_RESULT_LEVEL := {
 	2: 10,
 	3: 25,
 	4: 60,
@@ -176,16 +176,15 @@ const MERGE_COIN_REWARD_BY_RESULT_LEVEL := {
 	7: 800,
 	8: 1800,
 }
-## Compatibility alias for older tests/tools. Production presents this exact
-## confirmed-event value as run coins, not an abstract score.
-const MERGE_SCORE_BY_RESULT_LEVEL := MERGE_COIN_REWARD_BY_RESULT_LEVEL
-## Feedback routing is presentation-only. The user-supplied reference music is
-## one continuously looping bed. Confirmed gameplay events use the earlier
-## bounded gem tones; movement never starts or restarts the music.
+## Compatibility aliases for older tools. Production calls the target-named
+## accessor so reward ownership stays explicit.
+const MERGE_COIN_REWARD_BY_RESULT_LEVEL := TARGET_COIN_REWARD_BY_RESULT_LEVEL
+const MERGE_SCORE_BY_RESULT_LEVEL := TARGET_COIN_REWARD_BY_RESULT_LEVEL
+## Feedback routing is presentation-only. Confirmed gameplay events use the
+## bounded gem tones. No background track is active until separate clean music
+## and reward-source files are supplied.
 const AUDIO_MAX_CONCURRENT_PLAYERS := 3
 const AUDIO_SAMPLE_RATE := 22050.0
-const AUDIO_AMBIENCE_DURATION := 1.80
-const AUDIO_AMBIENCE_VOLUME := 0.34
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
 	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.46, "brightness": 0.82, "fall": 0.64},
@@ -246,7 +245,10 @@ const HAPTICS_BY_EVENT := {
 }
 
 static func merge_coin_reward_for_result_level(level: int) -> int:
-	return int(MERGE_COIN_REWARD_BY_RESULT_LEVEL.get(level, 0))
+	return target_coin_reward_for_result_level(level)
+
+static func target_coin_reward_for_result_level(level: int) -> int:
+	return int(TARGET_COIN_REWARD_BY_RESULT_LEVEL.get(level, 0))
 
 static func merge_score_for_result_level(level: int) -> int:
 	return merge_coin_reward_for_result_level(level)

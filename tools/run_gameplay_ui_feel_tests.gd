@@ -77,7 +77,7 @@ func _test_control_hierarchy_and_contained_previews() -> void:
 	_assert(hud.coin_icon != null and hud.coin_icon.get_parent().name == "CoinValueRow", "The run total must use the shared supplied-art coin identity")
 	_assert(AssetCatalogType.COIN_REWARD.resource_path == "res://assets/runtime/effects/coin_reward_reference_v2.png" and maxi(AssetCatalogType.COIN_REWARD.get_width(), AssetCatalogType.COIN_REWARD.get_height()) == 256, "HUD and reward flights must share the simple reference-scale coin texture")
 	_assert(GameConfig.COIN_DRAW_RADIUS > 12.5 and GameConfig.COIN_DRAW_RADIUS <= 15.0, "Flight coins must be only slightly larger and remain reference-sized")
-	_assert(GameConfig.DANGER_LINE_COLOR == Color("e85f52"), "The launcher push guide and danger line must share one centralized coral color")
+	_assert(GameConfig.DANGER_LINE_COLOR == Color("e85f52"), "The actual danger boundary must retain its centralized coral color")
 	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must use a responsive utility HBoxContainer")
 	_assert(hud.target_panel.get_parent() == hud.target_anchor, "The active target must be independently anchored above the table")
 	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must share the simple native panel system")
@@ -133,7 +133,7 @@ func _test_pause_freeze_resume_and_restart_cleanup() -> void:
 	controller.danger_timers[8123] = 0.5
 	controller.merge_presentations.append(_merge_event(8123, 7))
 	controller.pending_target_presentations[8123] = true
-	controller.effects_layer.begin_merge_feedback(_merge_event(8124, 2), 10)
+	controller.effects_layer.begin_merge_feedback(_merge_event(8124, 2))
 	controller.result_overlay.present(false, controller.score)
 	var ghost := Sprite2D.new()
 	controller.effects_layer.add_child(ghost)
@@ -157,16 +157,16 @@ func _test_pause_freeze_resume_and_restart_cleanup() -> void:
 
 func _test_duplicate_merge_is_exactly_once() -> void:
 	var controller = await _new_controller()
-	var event := _merge_event(7001, 2)
+	var event := _merge_event(7001, 5)
 	var duplicate_events: Array[Dictionary] = [event, event.duplicate(true)]
 	controller._apply_confirmed_merge_events(duplicate_events)
-	_assert(controller.coins == GameConfig.merge_coin_reward_for_result_level(2), "Duplicate confirmed result ID must award coins exactly once")
+	_assert(controller.coins == GameConfig.target_coin_reward_for_result_level(5), "Duplicate confirmed target result ID must award coins exactly once")
 	_assert(controller.merge_presentations.size() == 1, "Duplicate confirmed result ID must create one merge presentation")
-	_assert(controller.effects_layer.coin_rewards.size() == GameConfig.COIN_BURST_COUNT and controller.effects_layer.merge_impacts.size() == 1, "Duplicate confirmed result ID must create one bounded coin burst and one impact")
+	_assert(controller.effects_layer.coin_rewards.size() == GameConfig.COIN_BURST_COUNT and controller.effects_layer.merge_impacts.size() == 1, "Duplicate confirmed target result ID must create one bounded coin burst and one impact")
 	_assert(_count_name(controller.presentation_events_for_result(7001), "merge_confirmed") == 1, "Duplicate confirmed result ID must trace merge confirmation exactly once")
 	var replay_events: Array[Dictionary] = [event.duplicate(true)]
 	controller._apply_confirmed_merge_events(replay_events)
-	_assert(controller.coins == GameConfig.merge_coin_reward_for_result_level(2), "Replayed production event must not duplicate coins")
+	_assert(controller.coins == GameConfig.target_coin_reward_for_result_level(5), "Replayed production target event must not duplicate coins")
 	_assert(controller.merge_presentations.size() == 1 and controller.effects_layer.coin_rewards.size() == GameConfig.COIN_BURST_COUNT, "Replayed production event must not duplicate visuals")
 	_assert(controller.processed_merge_result_ids.size() == 1, "Exactly-once guard must retain one processed merge result")
 	await _dispose_controller(controller)
@@ -174,13 +174,19 @@ func _test_duplicate_merge_is_exactly_once() -> void:
 
 func _test_reference_coin_reward_path() -> void:
 	var controller = await _new_controller()
-	var reward := GameConfig.merge_coin_reward_for_result_level(7)
+	controller.target_index = 1
+	var ordinary_events: Array[Dictionary] = [_merge_event(7050, 6)]
+	controller._apply_confirmed_merge_events(ordinary_events)
+	controller._refresh_hud()
+	_assert(controller.coins == 0 and controller.gameplay_ui.displayed_coin_value() == 0 and controller.gameplay_ui.pending_coin_value() == 0, "An ordinary non-target merge must not award or queue coins")
+	_assert(controller.effects_layer.active_coin_count() == 0 and controller.effects_layer.merge_impacts.size() == 1, "An ordinary merge must keep its impact while spawning no coin flight")
+	var reward := GameConfig.target_coin_reward_for_result_level(7)
 	var events: Array[Dictionary] = [_merge_event(7051, 7)]
 	controller._apply_confirmed_merge_events(events)
 	controller._refresh_hud()
 	_assert(controller.coins == reward, "Confirmed L7 merge must update the exact authoritative run coins immediately")
 	_assert(controller.gameplay_ui.displayed_coin_value() == 0 and controller.gameplay_ui.pending_coin_value() == reward, "Visible coins must wait for reward flight arrivals")
-	_assert(controller.effects_layer.active_coin_count() == GameConfig.MAJOR_COIN_BURST_COUNT, "L7 must create the bounded major coin burst")
+	_assert(controller.effects_layer.active_coin_count() == GameConfig.MAJOR_COIN_BURST_COUNT, "Active-target L7 must create the bounded four-coin burst")
 	var first_coin: Dictionary = controller.effects_layer.coin_rewards[0]
 	var last_coin: Dictionary = controller.effects_layer.coin_rewards[-1]
 	_assert(GameConfig.COIN_BURST_COUNT == 4 and GameConfig.MAJOR_COIN_BURST_COUNT == 4, "Every reward must match the four visible reference coins")
@@ -197,7 +203,7 @@ func _test_reference_coin_reward_path() -> void:
 	_assert(controller.effects_layer.active_coin_count() == 0, "All coin sprites must expire after their bounded flights")
 	_assert(controller.gameplay_ui.displayed_coin_value() == reward and controller.gameplay_ui.pending_coin_value() == 0, "Staggered arrivals must reconcile the visible and authoritative coin totals exactly")
 	_assert(controller.gameplay_ui.score_label.text == "800", "Coin counter must show the completed compact run total")
-	_assert(controller.audio_feedback.emitted_events.count("merge_7") == 1 and not controller.audio_feedback.emitted_events.any(func(name): return String(name).begins_with("coin_")), "One earlier L7 gem tone must play without layered coin sounds or restarting music")
+	_assert(controller.audio_feedback.emitted_events.count("merge_7") == 1 and not controller.audio_feedback.emitted_events.any(func(name): return String(name).begins_with("coin_")), "One L7 gem tone must play without layered coin sounds or background music")
 	_assert(controller.haptics_feedback.emitted_events.count("coin_collect") == 1, "Only the final coin may emit the light collection haptic")
 	await _dispose_controller(controller)
 
@@ -316,13 +322,15 @@ func _test_effect_counts_are_bounded() -> void:
 	root.add_child(layer)
 	await process_frame
 	var major_event := _merge_event(7999, 7)
-	layer.begin_merge_feedback(major_event, GameConfig.merge_coin_reward_for_result_level(7), Vector2(80.0, 220.0))
+	layer.begin_merge_feedback(major_event)
+	layer.begin_target_coin_reward(major_event, GameConfig.target_coin_reward_for_result_level(7), Vector2(80.0, 220.0))
 	_assert(bool(layer.merge_impacts[0].major_reward) and int(layer.merge_impacts[0].spark_count) == GameConfig.MAJOR_MERGE_SPARK_COUNT, "L7 feedback must use the bounded major-reward burst")
 	_assert(layer.coin_rewards.size() == GameConfig.MAJOR_COIN_BURST_COUNT and bool(layer.coin_rewards[0].major_reward), "L7 must use the longer major coin flight")
 	for index in range(40):
 		var event := _merge_event(8000 + index, 2 + index % 4)
 		event.depth = index % 4
-		layer.begin_merge_feedback(event, 10 + index, Vector2(80.0, 220.0))
+		layer.begin_merge_feedback(event)
+		layer.begin_target_coin_reward(event, 10 + index, Vector2(80.0, 220.0))
 	_assert(layer.coin_rewards.size() <= GameConfig.COIN_EFFECT_LIMIT and layer.merge_impacts.size() <= 12, "Crowded merge feedback must cap coin flights and impact bursts")
 	_assert(layer.active_effect_count() <= GameConfig.COIN_EFFECT_LIMIT + 16, "All transient gameplay effects must remain bounded without a duplicate world-space target burst")
 	layer.update_effects(GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.COIN_EFFECT_LIMIT) + 1.0)

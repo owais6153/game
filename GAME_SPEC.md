@@ -2,6 +2,17 @@
 
 ## Scope
 
+## Reference target reward correction v3
+
+- Level 1 remains exactly L5, then L7, then L8. Frame review of the supplied reference confirms three coin sequences at approximately `14.6 s`, `46.6 s`, and `58.0 s`; each coincides with a target result. There is no ordinary-merge coin flight.
+- Ordinary confirmed merges keep rigid result/impact presentation, tiered gem audio, chain feedback, and exactly-once processing, but award zero run coins and create zero coin-flight records.
+- A confirmed result matching the active target is the sole currency/reward source. It uses the existing target-tier reward table and chain multiplier, registers the exact pending HUD value, and creates exactly four ordered foreground coins at the confirmed midpoint. The counter still advances by integer arrival chunks and reconciles exactly.
+- No background music is active. The reference recording contains music and reward sounds in one mixed track, so `reference_music_loop.ogg` is preserved only for provenance and is not preloaded or played. The 15 bounded gem one-shots remain active. Clean continuous music and coin audio require separately supplied source files.
+- The vertical launcher push/aim guide is removed completely. The coral horizontal danger line remains the only gameplay boundary overlay; table, rails, drag limits, launch coordinates, and input behavior are unchanged.
+- Target collection/handoff, four-coin size/path, foreground layering, L5/L7/L8 qualification, final-coin victory gate, launcher lifecycle, physics, contacts, radii, danger grace, and reset behavior remain unchanged.
+
+This section supersedes the reward-source, background-music, and launcher-guide statements recorded below.
+
 ## Reference audio and reward layering v2
 
 - Level 1 remains exactly one L5 target, then L7, then L8. No level data, launcher queue, reward integer, merge rule, collision geometry, danger rule, or result qualification changes in this presentation correction.

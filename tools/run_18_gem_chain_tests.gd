@@ -177,10 +177,10 @@ func _test_controller_merge_score_and_launcher_guard() -> void:
 	var direct_events: Array[Dictionary] = []
 	direct_events.append({"level": 2, "depth": 0})
 	controller._apply_confirmed_merge_events(direct_events)
-	_assert(controller.coins == GameConfig.merge_coin_reward_for_result_level(2), "Coins must increment once for one confirmed merge")
+	_assert(controller.coins == 0, "An ordinary confirmed merge must not increment target-only coins")
 	var no_events: Array[Dictionary] = []
 	controller._apply_confirmed_merge_events(no_events)
-	_assert(controller.coins == GameConfig.merge_coin_reward_for_result_level(2), "Empty/non-confirmed merge events must not award coins")
+	_assert(controller.coins == 0, "Empty/non-confirmed merge events must not award coins")
 	_assert(controller.get_active_piece() != null and controller.pieces.filter(func(piece: GemPiece) -> bool: return piece.is_active_launcher).size() == 1, "Merge validation must preserve the one-active-launcher invariant")
 	controller.queue_free()
 
@@ -209,7 +209,7 @@ func _test_motion_regression_guards() -> void:
 	# physics/reward-feedback milestone updates only centralized feel values.
 	_assert(GameConfig.GEM_COLLISION_RADIUS[1] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[3] == 33.0 and GameConfig.GEM_COLLISION_RADIUS[8] == 32.0, "Reordered tiers must retain their asset-calibrated collider values")
 	_assert(is_equal_approx(GameConfig.LAUNCH_SPEED, 1160.0) and is_equal_approx(GameConfig.VELOCITY_DAMPING_PER_SECOND, 185.0) and is_equal_approx(GameConfig.COLLISION_RESTITUTION, 0.30) and is_equal_approx(GameConfig.COLLISION_TANGENTIAL_FRICTION, 0.07), "Approved reference-parity motion constants must remain centralized")
-	_assert(GameConfig.merge_coin_reward_for_result_level(6) == 350 and GameConfig.merge_coin_reward_for_result_level(7) == 800 and GameConfig.merge_coin_reward_for_result_level(8) == 1800, "Active Level 1 high-tier results must retain escalating coin rewards")
+	_assert(GameConfig.target_coin_reward_for_result_level(6) == 350 and GameConfig.target_coin_reward_for_result_level(7) == 800 and GameConfig.target_coin_reward_for_result_level(8) == 1800, "Active Level 1 targets must retain escalating configured coin rewards")
 	var flight_piece := _piece(99, 7, Vector2(360.0, 700.0))
 	flight_piece.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 	SimulationType.new().step([flight_piece], 1.0 / 60.0, MergeType.new())

@@ -1,5 +1,16 @@
 # Architecture
 
+## Reference target reward and audio correction boundary v3
+
+- `GameController._apply_confirmed_merge_events()` remains the sole currency authority, but reward qualification is now explicit: `result_level == active_target_tier()`. Only that branch reads `GameConfig.target_coin_reward_for_result_level()`, registers the HUD pending integer, increments authoritative `coins`, and calls the target-coin API. All unique confirmed events still receive merge presentation/audio/haptics.
+- `GameplayEffectsLayer.begin_merge_feedback()` owns merge impacts only. `begin_target_coin_reward()` is the separate target-qualified entry point for the four bounded coin records. This API split prevents ordinary merge animation work from accidentally restoring coin flights.
+- `GameplayHudLayer` remains a snapshot consumer and arrival reconciler. It cannot qualify targets or award currency. Coin and target proxies still render in its foreground host above gameplay/HUD cards; Pause and Results keep their higher layers.
+- `AudioFeedbackService` initializes 15 cached gem-event streams and three reusable players. It does not preload `reference_music_loop.ogg`, create an ambience player, or derive gameplay decisions from sound. The mixed Ogg stays under `assets/runtime/audio/` only as preserved provenance until separate clean sources are supplied.
+- `GameController._draw()` renders the rail-derived horizontal danger line and merge/debug presentation only. No vertical launcher guide method or tuning remains. Launcher position/clamp/input and table geometry are untouched.
+- Simulation, merge eligibility, rigid gem rendering, collection removal/travel, L5 -> L7 -> L8 progression, final-coin victory gating, launcher lifecycle, danger timing, and full reset remain outside this correction and unchanged.
+
+This boundary supersedes the reward ownership, active ambience, and aim-guide statements below.
+
 ## Reference audio and reward layering boundary v2
 
 - `GameController` again instantiates `AudioFeedbackService`. The service preloads one reference-derived Ogg music resource, duplicates it once, enables `AudioStreamOggVorbis.loop`, and starts one dedicated `AudioStreamPlayer` during `_ready()`. No controller movement/contact route calls the music player.

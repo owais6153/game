@@ -435,10 +435,14 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		merge_event.source_texture = AssetCatalogType.gem_texture(maxi(1, result_level - 1))
 		merge_event.result_texture = AssetCatalogType.gem_texture(result_level)
 		chain_multiplier = resolution_multiplier
-		var awarded_coins := GameConfig.merge_coin_reward_for_result_level(result_level) * chain_multiplier
-		if gameplay_ui != null:
-			gameplay_ui.begin_coin_reward(awarded_coins)
-		coins += awarded_coins
+		# The reference awards and animates coins only when the current target is
+		# fulfilled. Ordinary merges keep their impact/gem feedback but do not
+		# change the currency counter or create coin records.
+		var awarded_coins := GameConfig.target_coin_reward_for_result_level(result_level) * chain_multiplier if completes_active_target else 0
+		if awarded_coins > 0:
+			if gameplay_ui != null:
+				gameplay_ui.begin_coin_reward(awarded_coins)
+			coins += awarded_coins
 		# Chain resolution remains immediate and deterministic; this only staggers its visuals.
 		merge_event.elapsed = -float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
 		merge_event.first_frame_visible = false
@@ -449,8 +453,10 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			var initial_transform := _merge_result_visual_transform(0.0, result_id)
 			gem_sprite_layer.set_presentation_transform(result_id, initial_transform.scale, initial_transform.rotation, initial_transform.offset, true)
 		if effects_layer != null:
-			var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
-			effects_layer.begin_merge_feedback(merge_event, awarded_coins, coin_destination)
+			effects_layer.begin_merge_feedback(merge_event)
+			if awarded_coins > 0:
+				var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
+				effects_layer.begin_target_coin_reward(merge_event, awarded_coins, coin_destination)
 		audio_feedback.emit_event("merge_%d" % result_level)
 		if int(merge_event.get("depth", 0)) > 0:
 			audio_feedback.emit_event("chain")
@@ -807,9 +813,8 @@ func _route_collision_feedback() -> void:
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:
-	# The supplied artwork is drawn by Sprite2D nodes. This dynamic line is kept
-	# above the clean table art so it always shares the authoritative rail bounds.
-	_draw_aim_guide()
+	# The supplied artwork is drawn by Sprite2D nodes. Only the actual danger
+	# boundary is overlaid; the user-rejected vertical push guide is absent.
 	var danger_y := GameConfig.danger_line_y()
 	var danger_start := Vector2(GameConfig.table_left_at(danger_y) + 8.0, danger_y)
 	var danger_end := Vector2(GameConfig.table_right_at(danger_y) - 8.0, danger_y)
@@ -821,21 +826,6 @@ func _draw() -> void:
 		_draw_merge_presentation(presentation)
 	if debug_calibration_enabled:
 		_draw_calibration_debug(ThemeDB.fallback_font)
-
-func _draw_aim_guide() -> void:
-	if launcher_state != LauncherState.READY_TO_AIM or collection_in_progress or win_qualified or failed:
-		return
-	var active := get_active_piece()
-	if active == null or not active.is_settled():
-		return
-	var lane_top := GameConfig.vertical_lane_top_y(active.position.x, 5.0)
-	var start := Vector2(active.position.x, lane_top + 8.0)
-	var finish := Vector2(active.position.x, active.position.y - active.radius - 8.0)
-	if start.y >= finish.y - 8.0:
-		return
-	var color := Color(GameConfig.DANGER_LINE_COLOR, GameConfig.AIM_GUIDE_ALPHA)
-	draw_line(start, finish, color, GameConfig.AIM_GUIDE_WIDTH, true)
-	draw_circle(start, 4.0, Color(GameConfig.DANGER_LINE_COLOR, GameConfig.AIM_GUIDE_ALPHA * 0.9))
 
 func _draw_calibration_debug(font: Font) -> void:
 	var board_top := GameConfig.board_top()

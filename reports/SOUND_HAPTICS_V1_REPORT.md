@@ -99,3 +99,12 @@ Manual phone checklist for this superseding audio path: confirm there is no cont
 - Focused `GAMEPLAY_UI_FEEL_TESTS` and `CLEAN_CONTACT_TESTS` pass, including music-loop readiness, cache completeness, movement-independent routing, contact throttling, tiered merge tones, singular result audio, and no coin-audio layering. Full suite/export and physical-device listening status are recorded in `REFERENCE_AUDIO_LAYERING_V2_REPORT.md`.
 
 Manual phone checklist: verify the reference music is continuous with no audible restart on launch/contact; confirm gem impacts are short and do not chatter; compare L5/L7/L8 merge and target cues at normal media volume; confirm there are no coin ticks; test sound toggle; then verify target/final haptics on hardware.
+
+## Reference Target Reward Correction v3 update
+
+- The `25.05-26.90 s` derivative was not clean music: the supplied recording is one mixed track and the chosen window contains embedded reward audio. Production therefore no longer preloads `reference_music_loop.ogg` or creates an ambience player. The file remains preserved for provenance.
+- Reliable independent music/coin balance cannot be produced from that mixed recording alone. Separate clean continuous-music and coin-effect files are required before either layer is restored.
+- The 15 initialization-cached launch/contact/tiered-merge/chain/target/result/button gem tones remain active through three reusable players. Separate coin audio remains disabled; haptic routing is unchanged.
+- Frame review also corrects the prior `46.55-48.45 s` label: that sequence is the second target reward, not an ordinary merge reward. Coins and the final light coin haptic now occur only on active-target rewards.
+
+Manual phone checklist for this superseding path: confirm there is no background loop or captured coin contamination; verify short gem contacts/merges remain audible without chatter; confirm ordinary merges emit no coin sound/haptic; then supply clean separated music and coin files for final listening calibration.

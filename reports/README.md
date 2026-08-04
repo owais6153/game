@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Reference Target Reward Correction v3](REFERENCE_TARGET_REWARD_CORRECTION_V3_REPORT.md) - frame-verified target-only coins, inactive contaminated music loop, removed push guide, regression/render evidence, and APK provenance.
+
 - [Reference Audio + Reward Layering v2](REFERENCE_AUDIO_LAYERING_V2_REPORT.md) - continuous reference music, restored bounded gem cues, front-layer coin/target travel, L5→L7→L8 target handoff, guide-color parity, regression/render evidence, and APK provenance.
 
 - [Reference Feedback Match v1](REFERENCE_FEEDBACK_MATCH_V1_REPORT.md) - rigid gem silhouettes, measured four-coin reward choreography, stronger target check payoff, reference-derived audio with no invented music, regression/render evidence, and APK provenance.

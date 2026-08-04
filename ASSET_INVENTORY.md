@@ -1,12 +1,21 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Reference target reward correction v3
+
+| Purpose | Preserved source | Runtime asset | Current status |
+| --- | --- | --- | --- |
+| Mixed music/reward derivative | `WhatsApp Video 2026-07-28 at 2.47.02 AM.mp4`, input window `25.05-26.90 s` | `assets/runtime/audio/reference_music_loop.ogg` | Preserved but inactive. Production does not preload or play it because the source contains embedded reward audio. Separate clean music and coin files are required for reliable independent mixing. |
+| Target-only animated coin | `assets/generated/reference_match_coin_source.png` | `assets/runtime/effects/coin_reward_reference_v2.png` | Active in HUD and exactly four target-qualified foreground reward records. Ordinary merges create zero coin records. |
+
+The preserved reference recording SHA-256 remains `29EFA393864912DDB77E3851E034E8F2E457F489AF5D6AB6BADC0CEA13979DA3`. No audio file was deleted or destructively modified in this correction.
+
 ## Reference audio and reward layering v2
 
 | Purpose | Preserved source | Active runtime asset | Audit |
 | --- | --- | --- | --- |
-| Continuous reference music | `WhatsApp Video 2026-07-28 at 2.47.02 AM.mp4`, input window `25.05-26.90 s` | `assets/runtime/audio/reference_music_loop.ogg` | `1.800 s`, mono 48 kHz, 21,001 bytes; SHA-256 `F6620082833E5481282320ADCEAAB23C6F92A5EE497C29A5C093684F2EC0428F`. The body uses `25.10-26.85 s`; the final 50 ms crossfades source tail `26.85-26.90 s` into head `25.05-25.10 s`, returning to the same source point at the loop seam. No gain, EQ, pitch, or synthesis was applied. |
+| Retired mixed reference loop | `WhatsApp Video 2026-07-28 at 2.47.02 AM.mp4`, input window `25.05-26.90 s` | `assets/runtime/audio/reference_music_loop.ogg` | `1.800 s`, mono 48 kHz, 21,001 bytes; SHA-256 `F6620082833E5481282320ADCEAAB23C6F92A5EE497C29A5C093684F2EC0428F`. The body uses `25.10-26.85 s`; the final 50 ms crossfades source tail `26.85-26.90 s` into head `25.05-25.10 s`. This historical v2 row is superseded above: the file is no longer active. |
 
-The preserved recording hash remains `29EFA393864912DDB77E3851E034E8F2E457F489AF5D6AB6BADC0CEA13979DA3`. The prior `reference_launch.ogg`, `reference_contact.ogg`, `reference_merge_reward.ogg`, and `reference_target_reward.ogg` derivatives remain recorded below for provenance but are no longer preloaded or routed by production. The active loop is presentation-only and cannot affect simulation, currency, target qualification, or collision.
+The preserved recording hash remains `29EFA393864912DDB77E3851E034E8F2E457F489AF5D6AB6BADC0CEA13979DA3`. The prior `reference_launch.ogg`, `reference_contact.ogg`, `reference_merge_reward.ogg`, `reference_target_reward.ogg`, and mixed loop remain recorded for provenance but are no longer preloaded or routed by production.
 
 ## Reference feedback match v1
 
@@ -15,7 +24,7 @@ The preserved recording hash remains `29EFA393864912DDB77E3851E034E8F2E457F489AF
 | HUD and animated reward coin | `assets/generated/reference_match_coin_source.png` (built-in image generation; SHA-256 `8F9319B4090B3D1311A048125296446CF19752652C3313BBE5319B2ECFEADEFF`) | `assets/runtime/effects/coin_reward_reference_v2.png` (256 x 256 RGBA; SHA-256 `8D834D6B963EDA9AA3CF68259D345E5C70CB8FD561C2F77813C8DD57F29F88F5`) | Original simple gold/star-gem token generated on a chroma background; runtime copy was non-destructively keyed, square-cropped, Lanczos-resized, and alpha-validated. `assets/generated/.gdignore` keeps the 1,254 px source out of import/export. |
 | Launch cue | `WhatsApp Video 2026-07-28 at 2.47.02 AM.mp4`, 5.98-6.38 s | `assets/runtime/audio/reference_launch.ogg` | 0.400 s, mono 48 kHz, 8,110 bytes; no gain/EQ/pitch processing. |
 | Contact cue | same supplied reference, 6.90-7.32 s | `assets/runtime/audio/reference_contact.ogg` | 0.420 s, mono 48 kHz, 8,605 bytes; no gain/EQ/pitch processing. |
-| Ordinary merge/coin reward | same supplied reference, 46.55-48.45 s | `assets/runtime/audio/reference_merge_reward.ogg` | 1.900 s, mono 48 kHz, 25,771 bytes; one combined reference sequence replaces layered procedural cues. |
+| Second target reward (previously mislabeled ordinary) | same supplied reference, 46.55-48.45 s | `assets/runtime/audio/reference_merge_reward.ogg` | 1.900 s, mono 48 kHz, 25,771 bytes; preserved inactive derivative. Frame re-review confirms this sequence belongs to the second target event. |
 | Target merge/reward | same supplied reference, 14.45-17.10 s | `assets/runtime/audio/reference_target_reward.ogg` | 2.650 s, mono 48 kHz, 32,215 bytes; one combined reference sequence aligns with result/target/coin presentation. |
 
 The supplied reference recording is preserved unchanged at SHA-256 `29EFA393864912DDB77E3851E034E8F2E457F489AF5D6AB6BADC0CEA13979DA3`. Ogg conversion changes only the container/codec needed for Godot playback; it does not normalize, synthesize, or remix the captured audio. All audio and coin assets are presentation-only and cannot affect simulation, currency, target qualification, or collision.

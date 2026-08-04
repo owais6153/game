@@ -1,5 +1,13 @@
 # Changelog
 
+## Reference Target Reward Correction v3
+
+- Re-reviewed the full supplied reference at one-second cadence and each reward interval at `0.2 s` cadence. Confirmed that visible coins occur only with the three target events near `14.6 s`, `46.6 s`, and `58.0 s`; corrected the previous misclassification of the second event as an ordinary merge reward.
+- Split `GameplayEffectsLayer.begin_merge_feedback()` from `begin_target_coin_reward()`. Ordinary merges now create only their bounded impact and gem/chain feedback; active-target results alone award currency, queue the visible counter, and create four ordered foreground coins.
+- Retired the mixed `reference_music_loop.ogg` from production routing because its source window contains embedded reward audio. The derivative remains preserved for audit, but `AudioFeedbackService` owns no ambience player until separate clean source files are supplied. The existing 15 cached gem one-shots remain active.
+- Removed the vertical push/aim guide, its renderer, and its two centralized tuning constants. The horizontal danger line remains unchanged.
+- Added target-only reward, ordinary-merge zero-coin, inactive-mixed-audio, push-guide absence, exactly-once, reset, win-wait, and bounded-effect regression coverage plus a dedicated 720 x 1600 capture tool/report.
+
 ## Reference Audio + Reward Layering v2
 
 - Reclassified the previously event-mapped reference-video audio as continuous background music. Added a seamless `1.80 s`, mono 48 kHz runtime loop from the supplied reference and restored `AudioFeedbackService` as the production boundary; movement never controls the music player.

@@ -1,21 +1,16 @@
 class_name AudioFeedbackService
 extends Node
 
-const REFERENCE_MUSIC: AudioStream = preload("res://assets/runtime/audio/reference_music_loop.ogg")
-
-## Production audio keeps the reference music as one continuous loop and uses
-## short cached gem tones only for confirmed controller events. Simulation
-## movement never controls the music player.
+## Production audio currently uses only short cached gem tones for confirmed
+## controller events. The supplied recording contains music and reward sounds
+## in one mixed track, so it is deliberately not used as a runtime music bed.
 var enabled := true:
 	set(value):
 		enabled = value
-		_sync_ambience_volume()
 var emitted_events: Array[String] = []
 var _last_played_at: Dictionary = {}
 var _players: Array[AudioStreamPlayer] = []
 var _stream_cache: Dictionary = {}
-var _ambience_player: AudioStreamPlayer
-var _ambience_stream: AudioStream
 var _clock := 0.0
 var _variation_index := 0
 
@@ -26,7 +21,6 @@ func _ready() -> void:
 		player.bus = "Master"
 		add_child(player)
 		_players.append(player)
-	_setup_ambience()
 
 func _process(delta: float) -> void:
 	_clock += delta
@@ -62,10 +56,10 @@ func cached_stream_count() -> int:
 	return _stream_cache.size()
 
 func ambience_is_ready() -> bool:
-	return _ambience_player != null and _ambience_stream != null and _ambience_player.playing
+	return false
 
 func has_ambience() -> bool:
-	return _ambience_stream != null
+	return false
 
 func _build_stream_cache() -> void:
 	if not _stream_cache.is_empty():
@@ -137,21 +131,3 @@ func _build_crystal_stream(tone: Dictionary, seed: int) -> AudioStreamWAV:
 	stream.stereo = false
 	stream.data = samples
 	return stream
-
-func _setup_ambience() -> void:
-	_ambience_stream = REFERENCE_MUSIC.duplicate()
-	if _ambience_stream is AudioStreamOggVorbis:
-		(_ambience_stream as AudioStreamOggVorbis).loop = true
-		(_ambience_stream as AudioStreamOggVorbis).loop_offset = 0.0
-	_ambience_player = AudioStreamPlayer.new()
-	_ambience_player.name = "ReferenceMusicLoop"
-	_ambience_player.bus = "Master"
-	_ambience_player.stream = _ambience_stream
-	add_child(_ambience_player)
-	_sync_ambience_volume()
-	_ambience_player.play()
-
-func _sync_ambience_volume() -> void:
-	if _ambience_player == null:
-		return
-	_ambience_player.volume_db = linear_to_db(GameConfig.AUDIO_AMBIENCE_VOLUME) if enabled else -80.0

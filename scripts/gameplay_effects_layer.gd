@@ -20,7 +20,7 @@ func _ready() -> void:
 	variation.variation_embolden = 0.75
 	_font = variation
 
-func begin_merge_feedback(merge_event: Dictionary, awarded_coins: int, coin_destination: Vector2 = GameConfig.COIN_HUD_FALLBACK_DESTINATION) -> void:
+func begin_merge_feedback(merge_event: Dictionary) -> void:
 	var delay := float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
 	var midpoint: Vector2 = merge_event.get("midpoint", Vector2.ZERO)
 	var result_id := int(merge_event.get("result_id", -1))
@@ -36,8 +36,20 @@ func begin_merge_feedback(merge_event: Dictionary, awarded_coins: int, coin_dest
 		"spark_count": GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 8,
 		"major_reward": major_reward,
 	})
-	if awarded_coins > 0:
-		_spawn_coin_reward(result_id, midpoint, coin_destination, awarded_coins, delay, major_reward)
+	_cap_effects()
+	queue_redraw()
+
+## Coin flights are a target-completion reward, never ordinary merge feedback.
+## Keeping this as a separate API prevents future merge presentation changes
+## from accidentally restoring coins on every valid collision merge.
+func begin_target_coin_reward(merge_event: Dictionary, awarded_coins: int, coin_destination: Vector2 = GameConfig.COIN_HUD_FALLBACK_DESTINATION) -> void:
+	if awarded_coins <= 0:
+		return
+	var delay := float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
+	var midpoint: Vector2 = merge_event.get("midpoint", Vector2.ZERO)
+	var result_id := int(merge_event.get("result_id", -1))
+	var major_reward := int(merge_event.get("level", 1)) >= GameConfig.MAJOR_REWARD_TIER
+	_spawn_coin_reward(result_id, midpoint, coin_destination, awarded_coins, delay, major_reward)
 	_cap_effects()
 	queue_redraw()
 
