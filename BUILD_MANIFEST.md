@@ -1,5 +1,19 @@
 # Build Manifest
 
+# Production Gameplay Parity Final v1
+
+- File: `production-gameplay-parity-final-v1.apk`
+- Path: `D:\Owais\game\build\android\production-gameplay-parity-final-v1.apk`
+- Size: `102,674,715` bytes
+- Modified: `2026-08-04 07:50:41 +05:00`
+- SHA-256: `132FA633E3208C707D2BA8EF80D5F41A119A061F9608EC0A5C0BC68A06F36E78`
+- Source commit: `2f2dbafa96bcb13e423bc8a49e2cbb0306beb2d3` (`feat: finalize production gameplay parity`)
+- Source tag: `production-gameplay-parity-final-v1-source`
+- Delivery tag: `production-gameplay-parity-final-v1`
+- Export: Godot 4.6.3 `Android` debug preset from the clean source milestone.
+- Validation: parse/import passed; `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, `GAMEPLAY_UI_FEEL_TESTS`, `GEM18_CHAIN_TESTS`, `PRODUCTION_UI_FINALIZATION_TESTS`, and `MOTION_PROFILE` passed. Four real 720 x 1600 Compatibility/ANGLE captures were reviewed. Standalone APK exists; ZIP has 363 entries with manifest, primary dex, and arm64 Godot runtime; `reports/` and `tools/` are absent. APK Signature Scheme v2/v3 verification passed with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device; install, launch, phone performance, audio balance, and haptics were not tested.
+
 ## Reference Gameplay + Coin Parity v1
 
 - File: `reference-gameplay-coin-parity-v1.apk`

@@ -61,4 +61,12 @@ Four real 720 x 1600 Compatibility/ANGLE captures were reviewed under `reports/p
 
 ## APK and device status
 
-APK provenance, size, timestamp, SHA-256, ZIP/package checks, signature verification, commit, and tag are recorded here and in `BUILD_MANIFEST.md` after the final standalone export. Connected-device status must be recorded truthfully; successful export is not phone testing.
+- APK: `D:\Owais\game\build\android\production-gameplay-parity-final-v1.apk`
+- Size: `102,674,715 bytes`
+- Modified: `2026-08-04 07:50:41 +05:00`
+- SHA-256: `132FA633E3208C707D2BA8EF80D5F41A119A061F9608EC0A5C0BC68A06F36E78`
+- Source commit/tag: `2f2dbafa96bcb13e423bc8a49e2cbb0306beb2d3` / `production-gameplay-parity-final-v1-source`
+- Delivery tag: `production-gameplay-parity-final-v1`
+- APK ZIP: 363 entries; `AndroidManifest.xml`, primary dex, and arm64 Godot runtime present; no `reports/` or `tools/` entries.
+- Signature: APK Signature Scheme v2 and v3 verified; one RSA-2048 signer.
+- `adb devices -l` completed with no attached device. Installation, launch, phone frame rate, loudness balance, touch feel, and haptics are not claimed.
