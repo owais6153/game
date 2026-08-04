@@ -1,5 +1,15 @@
 # Architecture
 
+## Reference animation and supplied-audio boundary v4
+
+- `GameController._apply_confirmed_merge_events()` remains the only target/reward authority. Every unique result routes its tiered merge cue and rigid presentation; only the active-target branch awards the integer, creates four coin records, and emits one `coin_reward` event.
+- `GameplayEffectsLayer` owns transient drawing only. Merge records contain a deterministic result-color splash seed/duration; target reward records contain exactly four ordered cubic flights. Both remain under `GameplayHudLayer.reward_foreground_host`, above live gems/cards and below confirmation/Pause/Results.
+- `GemSpriteLayer` and the merge proxy preserve the original texture aspect. Merge emphasis is a centered uniform scalar only. Splash geometry, coin paths, target proxy travel, and HUD fades cannot write position, radius, velocity, rotation, or scale into simulation state.
+- `TargetRewardOverlay` owns one green-check confirmation. `GameplayHudLayer` reuses its two existing target ghosts for an in-place opacity handoff and fades the existing target panel; it does not allocate targets, qualify results, or reorder L5 -> L7 -> L8.
+- `AudioFeedbackService` preloads the two runtime Ogg derivatives. A dedicated looping player starts the supplied music during `_ready()` and is never addressed by movement/controller events. Three reusable one-shot players retain the bounded event cache; the supplied coin stream occupies only the `coin_reward` cache entry and is played unpitched.
+- The session audio toggle stops/resumes the continuous player and stops active one-shots. Contact thresholds/cooldowns/concurrency remain presentation-only. `BoardSimulation`, `ContactMergeService`, table geometry, launcher lifecycle, danger state, and result state do not depend on audio or animation.
+
+
 ## Reference target reward and audio correction boundary v3
 
 - `GameController._apply_confirmed_merge_events()` remains the sole currency authority, but reward qualification is now explicit: `result_level == active_target_tier()`. Only that branch reads `GameConfig.target_coin_reward_for_result_level()`, registers the HUD pending integer, increments authoritative `coins`, and calls the target-coin API. All unique confirmed events still receive merge presentation/audio/haptics.

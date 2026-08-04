@@ -1,5 +1,15 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Reference animation and supplied-audio polish v4
+
+| Purpose | Preserved source | Active runtime derivative | Audit |
+| --- | --- | --- | --- |
+| Target-only coin cue | `assets/sound/coin-sound.mp3` | `assets/runtime/audio/supplied_coin_reward_v4.ogg` | Source: 41,472 bytes, 1.30 s, SHA-256 `AF8A9EC4D8B718703980C28B58C851AACF515DA9FC1E2D90AC592D1295D0EF76`. Runtime: 25,523 bytes, 0.98 s, SHA-256 `B2008F0331507EBDCF4F5FC008EFE9DCF2FDCC64D4515C1A21E0D2746F1C501A`; leading silence trimmed non-destructively, 12 ms fade-in and 75 ms fade-out, Ogg quality 6, no gain/EQ/pitch change. |
+| Continuous background music | `assets/sound/gem_merge_music_loop.wav` | `assets/runtime/audio/supplied_background_music_v4.ogg` | Source: 5,242,892 bytes, 29.72 s PCM16 stereo 44.1 kHz, SHA-256 `AF055BE7F2BFC356778B3D1343CB442B46FAE753070EF671F90DD6889789AB2C`. Runtime: 518,102 bytes, 29.72 s, SHA-256 `C214AE23E35B5A2BD5D9038C84E13FCF40CE759AA970D781243EB864C46BB86E`; full-duration Ogg quality 5, no trim/gain/EQ/pitch processing. |
+
+Runtime measurements are coin mean/max `-27.5/-6.9 dBFS` and music mean/max `-15.5/-1.0 dBFS`. The music player applies linear `0.14` (about `-17.1 dB`) at runtime, giving an estimated played music mean/max near `-32.6/-18.1 dBFS` before device/bus effects. The two files remain separate: music loops independently and one coin cue is routed only by active-target qualification.
+
+
 ## Reference target reward correction v3
 
 | Purpose | Preserved source | Runtime asset | Current status |

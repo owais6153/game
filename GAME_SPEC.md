@@ -2,6 +2,18 @@
 
 ## Scope
 
+## Reference animation and supplied-audio polish v4
+
+- Level 1 remains L5, then L7, then L8. Ordinary merges never award coins; only a unique confirmed result matching the active target creates the target reward and exactly four visible coins.
+- A merge uses a fast `0.34 s` presentation: source pull `0.08 s`, one centered uniform result pop (`0.72 -> 1.12 -> 1.0`), and one `0.26 s` irregular result-color splash behind the rigid gem. There is no squash, stretch, rotation, secondary wobble, ring, or ray burst.
+- Target coins use the shared supplied-art token at `17 px` draw radius. They pop for `0.22 s`, then follow four ordered foreground arcs over `1.58-1.66 s`; their integer values still reconcile only at HUD arrival.
+- The collected target remains a foreground-only proxy, reaches the card over `0.62 s`, and leaves no physics body. A large green check holds for `0.94 s`; the completed card then fades in place for `0.24 s`, pauses for `0.10 s`, and the new centered target fades in for `0.24 s`.
+- `assets/sound/gem_merge_music_loop.wav` is the preserved clean background source. Its runtime Ogg loops continuously from service initialization at linear gain `0.14`; movement and gameplay events never start or restart it.
+- `assets/sound/coin-sound.mp3` is the preserved clean target-reward cue. One trimmed runtime Ogg plays once per target qualification, independently of the background player. The existing bounded launch/contact/tiered-merge/target/result gem cues remain dominant event layers.
+- The sound toggle controls both players. Physics, colliders, rails, momentum, contact/merge eligibility, launcher timing, danger behavior, reward integers, and result qualification are unchanged.
+
+This section supersedes the animation and audio presentation values recorded below.
+
 ## Reference target reward correction v3
 
 - Level 1 remains exactly L5, then L7, then L8. Frame review of the supplied reference confirms three coin sequences at approximately `14.6 s`, `46.6 s`, and `58.0 s`; each coincides with a target result. There is no ordinary-merge coin flight.

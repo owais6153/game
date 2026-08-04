@@ -814,18 +814,18 @@ func _animate_target_swap(previous_texture: Texture2D, next_texture: Texture2D) 
 	var center := reward_foreground_host.to_local(icon_rect.get_center())
 	var fitted_size := icon_rect.size
 	_prepare_target_ghost(target_swap_outgoing, previous_texture, center, fitted_size, 1.0)
-	_prepare_target_ghost(target_swap_incoming, next_texture, center + GameConfig.TARGET_SWAP_INCOMING_OFFSET, fitted_size, GameConfig.TARGET_SWAP_INCOMING_SCALE)
+	_prepare_target_ghost(target_swap_incoming, next_texture, center, fitted_size, GameConfig.TARGET_SWAP_INCOMING_SCALE)
 	target_swap_incoming.modulate.a = 0.0
 	target_icon.modulate.a = 0.0
+	target_panel.modulate = Color.WHITE
 	_target_swap_tween = create_tween().set_parallel(true)
 	_target_swap_tween.set_pause_mode(Tween.TWEEN_PAUSE_STOP)
-	_target_swap_tween.tween_property(target_swap_outgoing, "position", center + GameConfig.TARGET_SWAP_OUTGOING_OFFSET, GameConfig.TARGET_SWAP_DURATION).set_delay(GameConfig.TARGET_SWAP_START_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_target_swap_tween.tween_property(target_swap_outgoing, "scale", target_swap_outgoing.scale * GameConfig.TARGET_SWAP_OUTGOING_SCALE, GameConfig.TARGET_SWAP_DURATION).set_delay(GameConfig.TARGET_SWAP_START_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	_target_swap_tween.tween_property(target_swap_outgoing, "modulate:a", 0.0, GameConfig.TARGET_SWAP_DURATION * 0.82).set_delay(GameConfig.TARGET_SWAP_START_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	var incoming_delay := GameConfig.TARGET_SWAP_START_DELAY + GameConfig.TARGET_SWAP_DURATION * 0.14
-	_target_swap_tween.tween_property(target_swap_incoming, "position", center, GameConfig.TARGET_SWAP_DURATION * 0.82).set_delay(incoming_delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_target_swap_tween.tween_property(target_swap_incoming, "scale", _target_ghost_scale(next_texture, fitted_size), GameConfig.TARGET_SWAP_DURATION * 0.82).set_delay(incoming_delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_target_swap_tween.tween_property(target_swap_incoming, "modulate:a", 1.0, GameConfig.TARGET_SWAP_DURATION * 0.64).set_delay(incoming_delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	var outgoing_duration := GameConfig.TARGET_SWAP_OUTGOING_FADE_DURATION
+	_target_swap_tween.tween_property(target_swap_outgoing, "modulate:a", 0.0, outgoing_duration).set_delay(GameConfig.TARGET_SWAP_START_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_target_swap_tween.tween_property(target_panel, "modulate:a", 0.0, outgoing_duration).set_delay(GameConfig.TARGET_SWAP_START_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var incoming_delay := GameConfig.TARGET_SWAP_START_DELAY + outgoing_duration + GameConfig.TARGET_SWAP_GAP_DURATION
+	_target_swap_tween.tween_property(target_swap_incoming, "modulate:a", 1.0, GameConfig.TARGET_SWAP_INCOMING_FADE_DURATION).set_delay(incoming_delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_target_swap_tween.tween_property(target_panel, "modulate:a", 1.0, GameConfig.TARGET_SWAP_INCOMING_FADE_DURATION).set_delay(incoming_delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_target_swap_tween.finished.connect(_finish_target_swap)
 
 
@@ -847,6 +847,8 @@ func _finish_target_swap() -> void:
 	if target_icon != null:
 		target_icon.scale = Vector2.ONE
 		target_icon.modulate = Color.WHITE
+	if target_panel != null:
+		target_panel.modulate = Color.WHITE
 	if target_swap_outgoing != null:
 		target_swap_outgoing.visible = false
 	if target_swap_incoming != null:

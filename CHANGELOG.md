@@ -1,5 +1,14 @@
 # Changelog
 
+## Reference Animation + Supplied Audio Polish v4
+
+- Re-reviewed the first reference target sequence frame by frame. Replaced the slow generic ring/ray impact with one short result-color splash and shortened the rigid merge pop to `0.34 s`; no collision or gem presentation path can squash, stretch, rotate, or kick the artwork.
+- Preserved the target-only reward rule and exactly four coins, enlarged them from `14.5` to `17 px`, shortened their initial pop, and shaped one higher ordered foreground flight into the COINS counter.
+- Replaced the directional old/new target travel with the reference sequence: a held large green check over the completed target, an in-place card fade, a short empty beat, and a centered next-target fade-in.
+- Preserved the two user-supplied audio originals under `assets/sound/`. Added separate optimized runtime Ogg derivatives; one dedicated player loops clean background music continuously at `0.14` gain, while one unpitched coin cue fires only on target qualification. Existing gem/contact/merge cues remain separate and dominant.
+- Added toggle/readiness, target-only coin-audio, rigid-silhouette, splash, exact-four-coin, centered-target-handoff, timing, layering, and unchanged-physics regressions plus six reviewed ANGLE frames.
+
+
 ## Reference Target Reward Correction v3
 
 - Re-reviewed the full supplied reference at one-second cadence and each reward interval at `0.2 s` cadence. Confirmed that visible coins occur only with the three target events near `14.6 s`, `46.6 s`, and `58.0 s`; corrected the previous misclassification of the second event as an ordinary merge reward.

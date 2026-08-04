@@ -280,6 +280,7 @@ func _test_score_and_chain_runtime_path() -> void:
 	target_controller._apply_confirmed_merge_events(target_events)
 	_assert(target_controller.coins == GameConfig.target_coin_reward_for_result_level(7), "The active L7 target must award its configured coins exactly once")
 	_assert(target_controller.effects_layer.coin_rewards.size() == GameConfig.MAJOR_COIN_BURST_COUNT, "The active L7 target must create exactly four visible coin records")
+	_assert(_event_count(target_controller.audio_feedback.emitted_events, "coin_reward") == 1, "The active target reward must emit the supplied coin cue exactly once")
 	chain_controller.merge_presentations.clear()
 	chain_controller.launcher_state = chain_controller.LauncherState.RESOLVING
 	chain_controller.get_active_piece().is_active_launcher = false
@@ -477,11 +478,18 @@ func _test_expanded_portrait_table_bottom_anchor() -> void:
 func _test_sound_and_haptics_feedback_routing() -> void:
 	var audio_fixture = AudioFeedbackServiceType.new()
 	root.add_child(audio_fixture)
-	_assert(not audio_fixture.has_ambience() and not audio_fixture.ambience_is_ready(), "The mixed reference recording must not create an active background player")
-	_assert(audio_fixture.cached_stream_count() == GameConfig.AUDIO_TONES.size(), "Every confirmed gem event must remain prebuilt in the bounded audio cache")
-	_assert(ResourceLoader.exists("res://assets/runtime/audio/reference_music_loop.ogg"), "The retired mixed derivative must remain preserved for provenance")
+	_assert(audio_fixture.has_ambience() and audio_fixture.ambience_is_ready(), "The independently supplied clean music must own one continuous ready player")
+	_assert(audio_fixture.music_volume_linear() <= 0.16, "Background music must remain softly gain-staged below coin and merge events")
+	_assert(audio_fixture.cached_stream_count() == GameConfig.AUDIO_TONES.size(), "Every confirmed gem/coin event must remain prebuilt in the bounded audio cache")
+	_assert(ResourceLoader.exists("res://assets/runtime/audio/supplied_background_music_v4.ogg") and ResourceLoader.exists("res://assets/runtime/audio/supplied_coin_reward_v4.ogg"), "Optimized clean music and coin runtime derivatives must exist independently")
 	var audio_source := FileAccess.get_file_as_string("res://scripts/audio_feedback_service.gd")
-	_assert(not audio_source.contains("reference_music_loop.ogg") and not audio_source.contains("ReferenceMusicLoop"), "Production audio must not preload or instantiate the contaminated loop")
+	_assert(audio_source.contains("supplied_background_music_v4.ogg") and audio_source.contains("supplied_coin_reward_v4.ogg") and not audio_source.contains("reference_music_loop.ogg"), "Production audio must use only the separate supplied clean sources")
+	audio_fixture.enabled = false
+	_assert(not audio_fixture.ambience_is_ready(), "Disabling audio must stop both continuous music and event players")
+	audio_fixture.enabled = true
+	_assert(audio_fixture.ambience_is_ready(), "Re-enabling audio must resume the independent continuous music player")
+	audio_fixture.emit_event("coin_reward")
+	_assert(_event_count(audio_fixture.emitted_events, "coin_reward") == 1, "The supplied coin cue must route as one bounded event")
 	audio_fixture.queue_free()
 	var controller = GameScene.instantiate()
 	controller._ready()
@@ -519,7 +527,7 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	controller.haptics_feedback.clear_trace()
 	var merge_events: Array[Dictionary] = [{"level": 2, "depth": 0}, {"level": 3, "depth": 1}]
 	controller._apply_confirmed_merge_events(merge_events)
-	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_2") == 1 and _event_count(controller.audio_feedback.emitted_events, "merge_3") == 1 and _event_count(controller.audio_feedback.emitted_events, "chain") == 1, "A confirmed chain must use the tiered gem tones without background music")
+	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_2") == 1 and _event_count(controller.audio_feedback.emitted_events, "merge_3") == 1 and _event_count(controller.audio_feedback.emitted_events, "chain") == 1 and _event_count(controller.audio_feedback.emitted_events, "coin_reward") == 0, "An ordinary chain must keep tiered gem tones and emit no coin cue")
 	_assert(_event_count(controller.haptics_feedback.emitted_events, "merge") == 1 and _event_count(controller.haptics_feedback.emitted_events, "chain") == 1, "Confirmed direct and chain merges must use distinct haptics")
 	controller.audio_feedback.clear_trace()
 	controller.haptics_feedback.clear_trace()
@@ -539,7 +547,7 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	var win_coin_finish := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
 	win_controller.effects_layer.update_effects(win_coin_finish)
 	win_controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
-	_assert(_event_count(win_controller.audio_feedback.emitted_events, "win") == 1 and _event_count(win_controller.haptics_feedback.emitted_events, "win") == 1, "Win overlay must emit one bounded rewarding finish cue without restarting music")
+	_assert(_event_count(win_controller.audio_feedback.emitted_events, "win") == 1 and _event_count(win_controller.haptics_feedback.emitted_events, "win") == 1, "Win overlay must emit one bounded finish cue without adding a music event")
 	var fail_controller = GameScene.instantiate()
 	fail_controller._ready()
 	fail_controller.haptics_feedback.allow_platform_vibration = false

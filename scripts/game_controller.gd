@@ -458,6 +458,8 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 				var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
 				effects_layer.begin_target_coin_reward(merge_event, awarded_coins, coin_destination)
 		audio_feedback.emit_event("merge_%d" % result_level)
+		if awarded_coins > 0:
+			audio_feedback.emit_event("coin_reward")
 		if int(merge_event.get("depth", 0)) > 0:
 			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
@@ -715,9 +717,9 @@ func _merge_result_visual_transform(elapsed: float, result_id: int) -> Dictionar
 	else:
 		var settle_duration := maxf(0.001, GameConfig.MERGE_PRESENTATION_DURATION - GameConfig.MERGE_RESULT_POP_DURATION)
 		var settle_t := clampf((elapsed - GameConfig.MERGE_RESULT_POP_DURATION) / settle_duration, 0.0, 1.0)
-		# A damped settle retains the reference's readable rubbery rebound while
-		# ending exactly on the untouched simulation transform.
-		uniform_scale = 1.0 + (GameConfig.MERGE_RESULT_POP_SCALE - 1.0) * exp(-4.2 * settle_t) * cos(settle_t * PI * 1.65)
+		# The reference uses one quick overshoot and clean settle. A second wobble
+		# made the result feel slow and never belongs to the physics transform.
+		uniform_scale = lerpf(GameConfig.MERGE_RESULT_POP_SCALE, 1.0, smoothstep(0.0, 1.0, settle_t))
 	# The reference never changes a piece's silhouette. Merge emphasis is one
 	# centered uniform pop only: no squash, stretch, tilt, or presentation kick.
 	return {"scale": Vector2.ONE * uniform_scale, "uniform_scale": uniform_scale, "offset": Vector2.ZERO, "rotation": 0.0}

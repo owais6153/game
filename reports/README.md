@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Reference Animation + Supplied Audio Polish v4](REFERENCE_ANIMATION_AUDIO_POLISH_V4_REPORT.md) - frame-matched rigid merge splash/pop, four target-only foreground coins, rewarded centered target handoff, supplied separated audio, regression/render evidence, and delivery provenance.
+
 - [Reference Target Reward Correction v3](REFERENCE_TARGET_REWARD_CORRECTION_V3_REPORT.md) - frame-verified target-only coins, inactive contaminated music loop, removed push guide, regression/render evidence, and APK provenance.
 
 - [Reference Audio + Reward Layering v2](REFERENCE_AUDIO_LAYERING_V2_REPORT.md) - continuous reference music, restored bounded gem cues, front-layer coin/target travel, L5→L7→L8 target handoff, guide-color parity, regression/render evidence, and APK provenance.

@@ -108,3 +108,13 @@ Manual phone checklist: verify the reference music is continuous with no audible
 - Frame review also corrects the prior `46.55-48.45 s` label: that sequence is the second target reward, not an ordinary merge reward. Coins and the final light coin haptic now occur only on active-target rewards.
 
 Manual phone checklist for this superseding path: confirm there is no background loop or captured coin contamination; verify short gem contacts/merges remain audible without chatter; confirm ordinary merges emit no coin sound/haptic; then supply clean separated music and coin files for final listening calibration.
+
+## Reference Animation + Supplied Audio Polish v4 update
+
+- The requested separate originals now exist: `assets/sound/gem_merge_music_loop.wav` is the clean 29.72-second music source and `assets/sound/coin-sound.mp3` is the clean 1.30-second coin source. Both originals are preserved unchanged; documented Ogg derivatives live under `assets/runtime/audio/`.
+- `AudioFeedbackService` owns one independent looping music player at linear gain `0.14` and three reusable one-shot players. Music starts during service initialization, is never triggered/restarted by movement, and follows the existing audio toggle.
+- The supplied coin cue is a single unpitched `coin_reward` cache entry. `GameController` emits it once only when a unique confirmed result qualifies the current target. Ordinary merges retain their earlier tiered gem sounds and emit no coin cue.
+- Runtime analysis measured the Ogg music at `-15.5 dBFS` mean / `-1.0 dBFS` max before the service gain; expected playback is approximately `-32.6/-18.1 dBFS`. The coin derivative measures `-27.5/-6.9 dBFS` and plays at unity event gain, while merge L2-L8 event gains remain `0.56-0.85`.
+- Automated validation covers independent resource paths, continuous-player readiness, toggle stop/resume, bounded cache/player count, target-only coin routing, ordinary-merge exclusion, and unchanged contact cooldowns. Dummy-audio tests do not prove phone-speaker loudness.
+
+Manual phone checklist: listen through one full 29.72-second loop and seam; confirm music stays soft and does not restart on launch/drag/contact/merge; confirm ordinary merges use only gem cues; confirm one coin cue on each L5/L7/L8 reward; confirm coin and high-tier merge cues dominate the music without clipping; verify the audio toggle stops/resumes both layers. Haptic feel remains unchanged and still requires hardware validation.

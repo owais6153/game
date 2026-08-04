@@ -1,5 +1,16 @@
 # AI Knowledge Base
 
+## Reference animation and supplied-audio guardrails v4
+
+- Preserve target order L5 -> L7 -> L8 and target-only rewards. Ordinary merges create one impact and tiered gem cue but zero coin records, zero currency, and zero coin sound. A qualifying target creates exactly four coin records and one supplied `coin_reward` cue.
+- Merge presentation stays rigid and fast: total `0.34 s`, pull `0.08 s`, uniform `0.72 -> 1.12 -> 1.0` pop, `0.26 s` deterministic irregular color splash. Never restore contact deformation, non-uniform scale, rotation, lift, second wobble, ring, or ray sparks.
+- Preserve coin count `4`, draw radius `17`, burst `0.22 s`, flights `1.58/1.66 s`, rank stagger `0.15 s`, compact radii `48/52`, foreground host, exact arrival reconciliation, and final-coin victory wait.
+- Target collection stays `0.62 s`, opaque through 90%, with a `0.94 s` large green check. Target handoff is centered: hold delay `0.78 s`, outgoing fade `0.24 s`, gap `0.10 s`, incoming fade `0.24 s`, both positional offsets zero.
+- Keep originals unchanged at `assets/sound/coin-sound.mp3` and `assets/sound/gem_merge_music_loop.wav`; runtime derivatives belong only under `assets/runtime/audio/`. Music is a dedicated continuous loop at `0.14` linear gain. Only the target-qualified event plays the supplied coin cue. Movement must never control music.
+- Keep the earlier gem/contact/merge tones, three-player cap, thresholds, cooldowns, and sound-toggle boundary. Do not merge coin audio into the music asset or extract/reintroduce the mixed reference-video loop.
+- Preserve the removed push guide, rigid gem artwork, table/rail geometry, physics constants, collision and merge rules, launcher flow, danger timing, reset cleanup, and isolated results. After related work, run all six suites, capture the six v4 proof states, export, and verify one standalone APK.
+
+
 ## Reference target reward correction guardrails v3
 
 - The reference-video truth is target-only reward presentation: coin sequences occur near `14.6 s`, `46.6 s`, and `58.0 s`, each at a target event. Do not create coin records or change run coins for an ordinary merge.
