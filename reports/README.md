@@ -1,6 +1,6 @@
 # Milestone reports
 
-- [Production Gameplay Parity Final v1](PRODUCTION_GAMEPLAY_PARITY_FINAL_V1_REPORT.md) - final L5/L7/L8 Level 1 loop, rail-contained edge guide, lively bounded pile response, directional contact/merge animation, supplied-art multi-lane coin rewards, stronger original mix, real render evidence, regression/profile proof, and APK provenance.
+- [Reference Feedback Match v1](REFERENCE_FEEDBACK_MATCH_V1_REPORT.md) - rigid gem silhouettes, measured four-coin reward choreography, stronger target check payoff, reference-derived audio with no invented music, regression/render evidence, and APK provenance.
 
 - [Production Gameplay Parity Final v1](PRODUCTION_GAMEPLAY_PARITY_FINAL_V1_REPORT.md) - final L5/L7/L8 Level 1 loop, rail-contained edge guide, lively bounded pile response, directional contact/merge animation, supplied-art multi-lane coin rewards, stronger original mix, real render evidence, regression/profile proof, and APK provenance.
 

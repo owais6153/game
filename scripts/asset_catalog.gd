@@ -12,7 +12,7 @@ const DIAMOND_CLEAN: Texture2D = preload("res://assets/runtime/gems_body_v2/diam
 const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_soft_shadow.png")
 ## Cropped mobile derivative of the supplied glossy coin artwork. The original
 ## remains untouched under assets/buttons and this texture is presentation-only.
-const COIN_REWARD: Texture2D = preload("res://assets/runtime/effects/coin_reward.png")
+const COIN_REWARD: Texture2D = preload("res://assets/runtime/effects/coin_reward_reference_v2.png")
 ## Supplied HUD art. Regions are drawn directly from this source sheet so the
 ## game uses the approved art, not recreated panel look-alikes.
 const HUD_BUTTON_SHEET: Texture2D = preload("res://assets/buttons/Generated image 10.png")

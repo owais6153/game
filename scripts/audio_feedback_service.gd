@@ -1,10 +1,9 @@
 class_name AudioFeedbackService
 extends Node
 
-## Original procedural crystal synth. It makes short glass-like transients from
-## inharmonic partials, a controlled bright noise tick, and exponential decay.
-## No external or copyrighted samples are used; all tones are generated at run time.
-var enabled := true:
+## Retired compatibility source. Production instantiates
+## `ReferenceAudioFeedbackService`; this legacy service is silent by default.
+var enabled := false:
 	set(value):
 		enabled = value
 		_sync_ambience_volume()

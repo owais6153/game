@@ -15,8 +15,9 @@ var _presentation_scales: Dictionary = {}
 var _presentation_offsets: Dictionary = {}
 var _presentation_rotations: Dictionary = {}
 var _presentation_elevated: Dictionary = {}
-## Short contact squash applied to the same visual child and multiplied after
-## reward scale. It never reaches the physics-mirroring root or live radius.
+## Retained empty compatibility dictionaries for older development harnesses.
+## Production contact feedback never writes a transform: live silhouettes stay
+## rigid before, during, and after every confirmed collision.
 var _impact_scales: Dictionary = {}
 var _impact_angles: Dictionary = {}
 var _impact_offsets: Dictionary = {}
@@ -137,9 +138,10 @@ func set_presentation_scale(piece_id: int, multiplier: float) -> void:
 	_presentation_scales[piece_id] = Vector2.ONE * clampf(multiplier, 0.48, 1.32)
 
 func set_presentation_transform(piece_id: int, scale: Vector2, rotation: float, offset: Vector2, elevated: bool = false) -> void:
-	_presentation_scales[piece_id] = Vector2(clampf(scale.x, 0.48, 1.32), clampf(scale.y, 0.48, 1.32))
-	_presentation_rotations[piece_id] = clampf(rotation, -0.20, 0.20)
-	_presentation_offsets[piece_id] = offset.limit_length(GameConfig.MERGE_RESULT_LIFT * 1.25)
+	var uniform_scale := clampf((scale.x + scale.y) * 0.5, 0.48, 1.32)
+	_presentation_scales[piece_id] = Vector2.ONE * uniform_scale
+	_presentation_rotations[piece_id] = 0.0
+	_presentation_offsets[piece_id] = offset.limit_length(24.0)
 	_presentation_elevated[piece_id] = elevated
 
 func clear_presentation_scale(piece_id: int) -> void:
@@ -155,12 +157,10 @@ func clear_presentation_scales() -> void:
 	_presentation_elevated.clear()
 
 func set_impact_scale(piece_id: int, multiplier: float) -> void:
-	_impact_scales[piece_id] = Vector2.ONE * clampf(multiplier, 0.82, 1.12)
+	clear_impact_scale(piece_id)
 
 func set_impact_transform(piece_id: int, scale: Vector2, normal: Vector2, offset: Vector2 = Vector2.ZERO) -> void:
-	_impact_scales[piece_id] = Vector2(clampf(scale.x, 0.80, 1.16), clampf(scale.y, 0.80, 1.16))
-	_impact_angles[piece_id] = normal.normalized().angle() if not normal.is_zero_approx() else 0.0
-	_impact_offsets[piece_id] = offset.limit_length(GameConfig.IMPACT_VISUAL_KICK_DISTANCE)
+	clear_impact_scale(piece_id)
 
 func clear_impact_scale(piece_id: int) -> void:
 	_impact_scales.erase(piece_id)

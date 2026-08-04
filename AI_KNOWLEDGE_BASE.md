@@ -1,5 +1,16 @@
 # AI Knowledge Base
 
+## Reference feedback match guardrails v1
+
+- This section supersedes the older production-parity feedback guardrails below. Level 1 stays L5, L7, L8 with the L1-L4 unlimited queue and the existing final-coin/hold/overlay order.
+- Gems must retain rigid silhouettes. Production collision routing must not call an impact transform. Merge presentation may use uniform scale only: no independent X/Y scale, rotation, lift, or kick. Physics roots and calibrated radii remain untouched.
+- Every confirmed merge creates exactly four coin records. Preserve burst `0.38 s`, flight `1.70/1.75 s`, stagger `0.09 s`, radius `44/48`, draw radius `12.5`, ordered ranks `[0,1,2,3]`, exact integer reconciliation, and the 32-record safety cap.
+- HUD and reward coins must share `assets/runtime/effects/coin_reward_reference_v2.png` through `AssetCatalog.COIN_REWARD`. Preserve the generated source under `assets/generated/`; artwork never owns currency or physics.
+- Production audio is `ReferenceAudioFeedbackService` with four preloaded Ogg derivatives and no ambience. Do not restore procedural synthesis, the crystal/mallet/shaker loop, pitch variation, or separate coin burst/flight/collect sounds. Keep typed thresholds, cooldowns, three-player cap, and service-only haptics.
+- Target collection is `0.84 s`, late fade begins at `0.78`, and the bounded arrival confirmation lasts `0.58 s`. Preserve the layer-40 `TargetRewardOverlay`; drawing this effect in the world layer hides it behind the target card. It cannot retain a physics body, alter targets early, or block reset cleanup.
+- Preserve physics tuning exactly: launch `1160`, damping `185`, restitution `0.24/0.22/0.12` walls and `0.30` pieces, friction `0.07`, merge momentum/cap `0.62/420`, rails, radii, epsilons, and danger grace.
+- After feedback changes, run gameplay-feel, clean-contact, Level 1, 18-gem, production UI, and motion-profile suites; capture rigid merge, four-coin cluster/flight, and target check evidence; then export and verify a standalone APK.
+
 ## Production gameplay parity final guardrails v1
 
 - This section supersedes the older reference-coin and physics-feedback guardrails below. Preserve Level 1 objectives in order: L5, L7, L8; the L1-L4 mixed bag; unlimited launcher; confirmed-result collection; and final-coin/hold/overlay ordering.

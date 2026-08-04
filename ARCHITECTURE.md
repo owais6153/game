@@ -1,5 +1,14 @@
 # Architecture
 
+## Reference feedback correction boundary v1
+
+- `GameController` instantiates `ReferenceAudioFeedbackService`, not the retired procedural `AudioFeedbackService`. The active service preloads four user-reference-derived Ogg resources, maps only allowed typed controller events, uses the existing three-player/cooldown boundary, applies no pitch variation, and owns no ambience player.
+- Confirmed contact telemetry remains typed and thresholded but never creates a gem transform. `GemSpriteLayer.set_presentation_transform()` normalizes any requested scale to one uniform scalar and forces zero presentation rotation. This makes a changing live silhouette impossible from the production collision/merge routes.
+- `GameplayEffectsLayer` owns exactly four reward records per confirmed merge. They form one compact deterministic cluster, depart in `[0,1,2,3]` order, follow one bounded cubic route, and emit integer arrival chunks; controller coins remain authoritative at confirmation.
+- `CoinVisuals` draws `AssetCatalog.COIN_REWARD` without horizontal flip/squash. `AssetCatalog` maps the 256 px keyed derivative, while its generated source is preserved outside Godot import under `assets/generated/`.
+- Target qualification remains separate from presentation. The collected body still leaves simulation before proxy travel; arrival calls the snapshot-free `TargetRewardOverlay` owned by layer-40 `GameplayHudLayer`, so the bounded ring/check/spark confirmation renders above the target card. The existing controller path alone advances L5 -> L7 -> L8.
+- No physics owner changed: `BoardSimulation`, `ContactMergeService`, `GemPiece`, table/rail geometry, radii, restitution, momentum, currency authority, launcher lifecycle, danger handling, and result qualification are unchanged.
+
 ## Production gameplay parity boundary v1
 
 - `LevelConfig.level_1()` is the sole ordered objective definition: L5, L7, then L8. `GameController` still registers only unique confirmed merge results, completes the existing visual collection, advances one index, and qualifies victory only after the third objective.

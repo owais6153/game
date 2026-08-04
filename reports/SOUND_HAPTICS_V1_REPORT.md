@@ -79,3 +79,13 @@
 - The 18 one-shots, three-player cap, typed gem/wall thresholds, cooldowns, sound toggle, and haptic mappings remain intact. `run_clean_contact_tests.gd` verifies cache completeness and minimum production mix values; the motion profile reports `cached_audio_streams=18` and no gameplay resource loads.
 
 Manual phone listening checklist: confirm speech-free ambience is clearly present but below merge/coin events; confirm repeated contacts do not chatter; confirm L5, L7, and L8 merge pitches rise without clipping; confirm coin burst/flight/arrival read as one sequence; test a quiet room and typical media volume; then verify final-coin and merge haptics on hardware. No connected device means these listening/haptic items remain open.
+
+## Reference Feedback Match v1 update
+
+- Production now instantiates `ReferenceAudioFeedbackService`; the earlier procedural service remains only as a silent compatibility source for historical tools. No ambience player is created, so the crystal/mallet/shaker music is absent.
+- Four Ogg streams are preloaded from the user-supplied reference recording: launch `5.98-6.38 s`, contact `6.90-7.32 s`, ordinary merge/reward `46.55-48.45 s`, and target merge/reward `14.45-17.10 s`. Conversion retained mono 48 kHz content without gain, EQ, pitch, or synthesis.
+- Merge confirmation routes one combined `merge_reward` or `target_reward` sample. Separate `coin_burst`, `coin_flight`, `coin_collect`, level-pitched merge, chain, target-arrival, and win-overlay sounds are not layered over it.
+- Gem/wall contact still requires confirmed physical contact, typed strength thresholds, cooldowns, and the three-player cap. Haptics remain dedicated and unchanged; only final coin emits the light coin haptic.
+- Automated cache/resource/no-ambience, threshold/cooldown, rigid-contact, reward routing, target ordering, and reset checks pass in the focused suites. Phone-speaker balance and haptic feel remain pending a connected Android device.
+
+Manual phone checklist for this superseding audio path: confirm there is no continuous music; compare launch/contact/ordinary merge/target reward directly with the supplied recording; verify repeated contacts do not chatter; confirm the combined reward sample does not double with coin arrivals; verify final-coin and target haptics remain singular.

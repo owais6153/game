@@ -1,6 +1,6 @@
 extends Node2D
 
-const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.gd")
+const AudioFeedbackServiceType = preload("res://scripts/reference_audio_feedback_service.gd")
 const HapticsServiceType = preload("res://scripts/haptics_service.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
@@ -60,7 +60,6 @@ var result_overlay: ResultOverlayLayer
 var presentation_event_trace: Array[Dictionary] = []
 var process_frame_index := 0
 var piece_visual_feedbacks: Dictionary = {}
-var piece_impact_feedbacks: Dictionary = {}
 ## Developer-only inspection aid. F8 toggles it in editor/desktop builds; it
 ## starts disabled and has no input or gameplay authority on Android.
 var debug_calibration_enabled := false
@@ -100,7 +99,6 @@ func _process(delta: float) -> void:
 	if effects_layer != null:
 		effects_layer.update_effects(delta)
 	_update_piece_visual_feedbacks(delta)
-	_update_piece_impact_feedbacks(delta)
 	if failed:
 		_sync_gems_and_mark_visibility()
 		_refresh_hud()
@@ -333,7 +331,6 @@ func restart() -> void:
 	presentation_event_trace.clear()
 	process_frame_index = 0
 	piece_visual_feedbacks.clear()
-	piece_impact_feedbacks.clear()
 	chain_multiplier = 1
 	danger_timers.clear()
 	won = false
@@ -352,7 +349,6 @@ func restart() -> void:
 		effects_layer.clear()
 	if gem_sprite_layer != null:
 		gem_sprite_layer.clear_presentation_scales()
-		gem_sprite_layer.clear_impact_scales()
 	_advance_launcher_lifecycle()
 	if gem_sprite_layer != null:
 		_sync_gems_and_mark_visibility()
@@ -433,6 +429,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if result_id >= 0:
 			processed_merge_result_ids[result_id] = true
 		var result_level: int = int(merge_event.level)
+		var completes_active_target := result_level == active_target_tier()
 		# Cache all presentation resources at confirmation time. The draw path
 		# never loads textures or performs catalog analysis/lookups per frame.
 		merge_event.source_texture = AssetCatalogType.gem_texture(maxi(1, result_level - 1))
@@ -454,15 +451,12 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if effects_layer != null:
 			var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
 			effects_layer.begin_merge_feedback(merge_event, awarded_coins, coin_destination)
-		audio_feedback.emit_event("merge_%d" % result_level)
-		if awarded_coins > 0:
-			audio_feedback.emit_event("coin_burst")
+		audio_feedback.emit_event("target_reward" if completes_active_target else "merge_reward")
 		if int(merge_event.get("depth", 0)) > 0:
-			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
 		else:
 			haptics_feedback.emit_event("major_merge" if result_level >= GameConfig.MAJOR_REWARD_TIER else "merge")
-		if result_level == active_target_tier():
+		if completes_active_target:
 			if result_id >= 0 and not counted_target_result_ids.has(result_id):
 				pending_target_presentations[result_id] = merge_event
 		resolution_multiplier += 1
@@ -516,12 +510,10 @@ func _trigger_failure() -> void:
 	pending_target_presentations.clear()
 	merge_presentations.clear()
 	piece_visual_feedbacks.clear()
-	piece_impact_feedbacks.clear()
 	collection_in_progress = false
 	_cancel_target_collection()
 	if gem_sprite_layer != null:
 		gem_sprite_layer.clear_presentation_scales()
-		gem_sprite_layer.clear_impact_scales()
 	if effects_layer != null:
 		effects_layer.clear()
 	audio_feedback.emit_event("fail")
@@ -640,7 +632,6 @@ func _finish_target_collection() -> void:
 		effects_layer.begin_target_arrival(destination, level)
 	if gameplay_ui != null:
 		gameplay_ui.pulse_target()
-	audio_feedback.emit_event("target_collect")
 	haptics_feedback.emit_event("target_collect")
 	_trace_presentation_event("collection_animation_completed", result_id)
 	target_progress += 1
@@ -683,7 +674,6 @@ func _update_win_presentation(delta: float) -> void:
 		if result_overlay.present(true, score):
 			win_presented = true
 			_trace_presentation_event("win_overlay_started", final_target_result_id)
-			audio_feedback.emit_event("win")
 			haptics_feedback.emit_event("win")
 
 func _sync_gems_and_mark_visibility() -> void:
@@ -723,13 +713,9 @@ func _merge_result_visual_transform(elapsed: float, result_id: int) -> Dictionar
 		# A damped settle retains the reference's readable rubbery rebound while
 		# ending exactly on the untouched simulation transform.
 		uniform_scale = 1.0 + (GameConfig.MERGE_RESULT_POP_SCALE - 1.0) * exp(-4.2 * settle_t) * cos(settle_t * PI * 1.65)
-	var t := clampf(elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)
-	var stretch := sin(PI * clampf(elapsed / maxf(0.001, GameConfig.MERGE_RESULT_POP_DURATION), 0.0, 1.0))
-	var scale := Vector2(uniform_scale * (1.0 - 0.055 * stretch), uniform_scale * (1.0 + 0.075 * stretch))
-	var lift := -GameConfig.MERGE_RESULT_LIFT * sin(PI * t)
-	var direction := -1.0 if posmod(result_id, 2) == 0 else 1.0
-	var rotation := direction * GameConfig.MERGE_RESULT_TILT_RADIANS * sin(PI * t) * (1.0 - t * 0.35)
-	return {"scale": scale, "uniform_scale": uniform_scale, "offset": Vector2(0.0, lift), "rotation": rotation}
+	# The reference never changes a piece's silhouette. Merge emphasis is one
+	# centered uniform pop only: no squash, stretch, tilt, or presentation kick.
+	return {"scale": Vector2.ONE * uniform_scale, "uniform_scale": uniform_scale, "offset": Vector2.ZERO, "rotation": 0.0}
 
 func _update_piece_visual_feedbacks(delta: float) -> void:
 	if gem_sprite_layer == null or piece_visual_feedbacks.is_empty():
@@ -753,42 +739,6 @@ func _update_piece_visual_feedbacks(delta: float) -> void:
 			piece_visual_feedbacks.erase(piece_id)
 		else:
 			gem_sprite_layer.set_presentation_scale(int(piece_id), scale)
-
-func _begin_piece_impact_visual(piece_id: int, strength: float, normal: Vector2 = Vector2.RIGHT) -> void:
-	if piece_id < 0 or gem_sprite_layer == null:
-		return
-	var intensity := clampf(strength / GameConfig.LAUNCH_SPEED, 0.25, 1.0)
-	var contact_normal := normal.normalized() if not normal.is_zero_approx() else Vector2.RIGHT
-	piece_impact_feedbacks[piece_id] = {"elapsed": 0.0, "duration": GameConfig.IMPACT_VISUAL_DURATION, "intensity": intensity, "normal": contact_normal}
-	var squash := lerpf(0.98, GameConfig.IMPACT_VISUAL_MIN_SCALE, intensity)
-	var cross := lerpf(1.02, GameConfig.IMPACT_VISUAL_CROSS_SCALE, intensity)
-	gem_sprite_layer.set_impact_transform(piece_id, Vector2(squash, cross), contact_normal)
-
-func _update_piece_impact_feedbacks(delta: float) -> void:
-	if gem_sprite_layer == null or piece_impact_feedbacks.is_empty():
-		return
-	for piece_id in piece_impact_feedbacks.keys():
-		var feedback: Dictionary = piece_impact_feedbacks[piece_id]
-		feedback.elapsed = float(feedback.get("elapsed", 0.0)) + delta
-		var t := clampf(float(feedback.elapsed) / maxf(0.001, float(feedback.duration)), 0.0, 1.0)
-		var intensity := float(feedback.get("intensity", 1.0))
-		var squash := lerpf(0.98, GameConfig.IMPACT_VISUAL_MIN_SCALE, intensity)
-		var overshoot := lerpf(1.012, GameConfig.IMPACT_VISUAL_OVERSHOOT_SCALE, intensity)
-		var cross := lerpf(1.02, GameConfig.IMPACT_VISUAL_CROSS_SCALE, intensity)
-		var axis_scale: Vector2
-		if t <= 0.40:
-			var rebound := 1.0 - pow(1.0 - t / 0.40, 3.0)
-			axis_scale = Vector2(lerpf(squash, overshoot, rebound), lerpf(cross, 0.95, rebound))
-		else:
-			var settle := smoothstep(0.40, 1.0, t)
-			axis_scale = Vector2(lerpf(overshoot, 1.0, settle), lerpf(0.95, 1.0, settle))
-		var normal: Vector2 = feedback.get("normal", Vector2.RIGHT)
-		var kick := normal * GameConfig.IMPACT_VISUAL_KICK_DISTANCE * intensity * sin(PI * t) * (1.0 - t * 0.45)
-		if t >= 1.0:
-			gem_sprite_layer.clear_impact_scale(int(piece_id))
-			piece_impact_feedbacks.erase(piece_id)
-		else:
-			gem_sprite_layer.set_impact_transform(int(piece_id), axis_scale, normal, kick)
 
 func _has_live_piece(piece_id: int) -> bool:
 	for piece in pieces:
@@ -836,14 +786,11 @@ func _on_restart_requested() -> void:
 	restart()
 
 func _on_coin_flight_started(_result_id: int) -> void:
-	if audio_feedback != null:
-		audio_feedback.emit_event("coin_flight")
+	pass
 
 func _on_coin_arrived(_result_id: int, value: int, final_coin: bool) -> void:
 	if gameplay_ui != null:
 		gameplay_ui.collect_coin_chunk(value, final_coin)
-	if audio_feedback != null:
-		audio_feedback.emit_event("coin_collect", 1.0 if final_coin else 0.72)
 	if final_coin and haptics_feedback != null:
 		haptics_feedback.emit_event("coin_collect")
 
@@ -856,11 +803,8 @@ func _route_collision_feedback() -> void:
 		var normal: Vector2 = impact.get("normal", Vector2.RIGHT)
 		if kind == "wall":
 			if strength >= GameConfig.WALL_CONTACT_SOUND_THRESHOLD:
-				_begin_piece_impact_visual(int(impact.get("piece_id", -1)), strength, normal)
 				audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75))
 		elif strength >= GameConfig.GEM_CONTACT_SOUND_THRESHOLD:
-			_begin_piece_impact_visual(int(impact.get("first_id", -1)), strength, -normal)
-			_begin_piece_impact_visual(int(impact.get("second_id", -1)), strength, normal)
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:

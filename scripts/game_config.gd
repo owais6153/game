@@ -82,48 +82,41 @@ const CONTACT_EPSILON := 0.20
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.68 # reference-paced emergence; presentation only
-const MERGE_SOURCE_PULL_DURATION := 0.12
-const MERGE_RESULT_START_SCALE := 0.52
-const MERGE_RESULT_POP_SCALE := 1.26
-const MERGE_RESULT_POP_DURATION := 0.30
-const MERGE_RESULT_LIFT := 18.0
-const MERGE_RESULT_TILT_RADIANS := 0.075
+const MERGE_PRESENTATION_DURATION := 0.50 # measured rigid result beat; presentation only
+const MERGE_SOURCE_PULL_DURATION := 0.10
+const MERGE_RESULT_START_SCALE := 0.62
+const MERGE_RESULT_POP_SCALE := 1.20
+const MERGE_RESULT_POP_DURATION := 0.22
 const MERGE_PULSE_SCALE := 1.20
 const SCORE_POPUP_DURATION := 0.62
 const SCORE_POPUP_RISE := 36.0
 const MAJOR_REWARD_TIER := 6
-const MAJOR_MERGE_EFFECT_DURATION := 0.78
+const MAJOR_MERGE_EFFECT_DURATION := 0.56
 const MAJOR_SCORE_POPUP_DURATION := 1.05
 const MAJOR_SCORE_POPUP_RISE := 58.0
-const MAJOR_MERGE_EFFECT_SCALE := 1.55
-const MAJOR_MERGE_SPARK_COUNT := 16
-## Reference-style run-coin reward. Coins scatter at the confirmed merge point,
-## then fly to the HUD in bounded staggered arcs while the visible count rises.
-const COIN_BURST_COUNT := 10
-const MAJOR_COIN_BURST_COUNT := 14
-const COIN_BURST_DURATION := 0.46
-const COIN_FLIGHT_DURATION := 1.18
-const MAJOR_COIN_FLIGHT_DURATION := 1.28
-const COIN_FLIGHT_STAGGER := 0.065
-const COIN_SPAWN_STAGGER := 0.018
-const COIN_BURST_RADIUS := 82.0
-const MAJOR_COIN_BURST_RADIUS := 106.0
-const COIN_DRAW_RADIUS := 15.0
-const COIN_COUNTER_PULSE_DURATION := 0.24
-const COIN_EFFECT_LIMIT := 56
+const MAJOR_MERGE_EFFECT_SCALE := 1.16
+const MAJOR_MERGE_SPARK_COUNT := 8
+## The supplied reference visibly uses four rigid coin tokens. They form one
+## compact cluster, then travel as one readable staggered group to the HUD.
+const COIN_BURST_COUNT := 4
+const MAJOR_COIN_BURST_COUNT := 4
+const COIN_BURST_DURATION := 0.38
+const COIN_FLIGHT_DURATION := 1.70
+const MAJOR_COIN_FLIGHT_DURATION := 1.75
+const COIN_FLIGHT_STAGGER := 0.09
+const COIN_SPAWN_STAGGER := 0.025
+const COIN_BURST_RADIUS := 44.0
+const MAJOR_COIN_BURST_RADIUS := 48.0
+const COIN_DRAW_RADIUS := 12.5
+const COIN_COUNTER_PULSE_DURATION := 0.14
+const COIN_EFFECT_LIMIT := 32
 const COIN_HUD_FALLBACK_DESTINATION := Vector2(78.0, 244.0)
 const AIM_GUIDE_WIDTH := 2.0
 const AIM_GUIDE_ALPHA := 0.58
-const IMPACT_VISUAL_DURATION := 0.22
-const IMPACT_VISUAL_MIN_SCALE := 0.84
-const IMPACT_VISUAL_CROSS_SCALE := 1.12
-const IMPACT_VISUAL_OVERSHOOT_SCALE := 1.08
-const IMPACT_VISUAL_KICK_DISTANCE := 5.0
-const TARGET_COLLECTION_DURATION := 0.62
-const TARGET_COLLECTION_FADE_START := 0.68
-const TARGET_COLLECTION_POP_SCALE := 1.16
-const TARGET_PANEL_PULSE_DURATION := 0.22
+const TARGET_COLLECTION_DURATION := 0.84
+const TARGET_COLLECTION_FADE_START := 0.78
+const TARGET_COLLECTION_POP_SCALE := 1.08
+const TARGET_PANEL_PULSE_DURATION := 0.58
 const PRESENTATION_EVENT_TRACE_LIMIT := 128
 const MERGE_MOMENTUM_TRANSFER := 0.62 # bounded average of source momentum
 const MERGE_MAX_SPAWN_SPEED := 420.0 # prevents an upgrade from shooting through a cluster
@@ -179,40 +172,37 @@ const MERGE_COIN_REWARD_BY_RESULT_LEVEL := {
 ## Compatibility alias for older tests/tools. Production presents this exact
 ## confirmed-event value as run coins, not an abstract score.
 const MERGE_SCORE_BY_RESULT_LEVEL := MERGE_COIN_REWARD_BY_RESULT_LEVEL
-## Feedback routing is presentation-only. Values are safe for short Android UI
-## cues and never feed simulation, score, or lifecycle code.
-const AUDIO_SAMPLE_RATE := 22050.0
+## Feedback routing is presentation-only. Every audible stream is a bounded
+## derivative of the user-supplied reference recording; there is no music bed
+## and no procedural synthesis in production.
 const AUDIO_MAX_CONCURRENT_PLAYERS := 3
+## Parse-only compatibility for the retired procedural service source. The
+## production controller never instantiates it; zero volume keeps it silent if
+## an old development tool loads it directly.
+const AUDIO_SAMPLE_RATE := 22050.0
 const AUDIO_AMBIENCE_DURATION := 6.0
-const AUDIO_AMBIENCE_VOLUME := 0.34
+const AUDIO_AMBIENCE_VOLUME := 0.0
+const AUDIO_TONES := {}
 const GEM_CONTACT_SOUND_THRESHOLD := 170.0
 const WALL_CONTACT_SOUND_THRESHOLD := 220.0
 const CONTACT_SOUND_COOLDOWN := 0.075
 const AUDIO_COOLDOWN_BY_EVENT := {
-	"gem_contact": CONTACT_SOUND_COOLDOWN, "wall_contact": 0.11, "launch": 0.05, "merge_2": 0.04, "merge_3": 0.04,
-	"merge_4": 0.03, "merge_5": 0.03, "merge_6": 0.03, "merge_7": 0.03, "merge_8": 0.03, "chain": 0.04, "win": 0.25,
-	"target_collect": 0.16, "fail": 0.25, "button": 0.05,
-	"coin_burst": 0.08, "coin_flight": 0.20, "coin_collect": 0.05,
+	"gem_contact": CONTACT_SOUND_COOLDOWN,
+	"wall_contact": 0.11,
+	"launch": 0.05,
+	"merge_reward": 0.16,
+	"target_reward": 0.25,
+	"fail": 0.25,
+	"button": 0.05,
 }
-const AUDIO_TONES := {
-	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
-	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.46, "brightness": 0.82, "fall": 0.64},
-	"wall_contact": {"frequency": 760.0, "duration": 0.065, "volume": 0.32, "brightness": 0.34, "fall": 0.58},
-	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.56, "brightness": 0.60, "fall": 1.16},
-	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.60, "brightness": 0.68, "fall": 1.20},
-	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.65, "brightness": 0.76, "fall": 1.24},
-	"merge_5": {"frequency": 1318.0, "duration": 0.19, "volume": 0.70, "brightness": 0.88, "fall": 1.30},
-	"merge_6": {"frequency": 1480.0, "duration": 0.24, "volume": 0.75, "brightness": 0.90, "fall": 1.32},
-	"merge_7": {"frequency": 1661.0, "duration": 0.27, "volume": 0.80, "brightness": 0.92, "fall": 1.34},
-	"merge_8": {"frequency": 1760.0, "duration": 0.30, "volume": 0.85, "brightness": 0.94, "fall": 1.36},
-	"chain": {"frequency": 1568.0, "duration": 0.13, "volume": 0.70, "brightness": 0.92, "fall": 1.24},
-	"target_collect": {"frequency": 1760.0, "duration": 0.22, "volume": 0.82, "brightness": 0.94, "fall": 1.34},
-	"win": {"frequency": 1318.0, "duration": 0.34, "volume": 0.90, "brightness": 0.96, "fall": 1.55},
-	"fail": {"frequency": 523.0, "duration": 0.24, "volume": 0.58, "brightness": 0.33, "fall": 0.56},
-	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.30, "brightness": 0.55, "fall": 0.84},
-	"coin_burst": {"frequency": 820.0, "duration": 0.15, "volume": 0.72, "brightness": 0.88, "fall": 1.18},
-	"coin_flight": {"frequency": 1160.0, "duration": 0.18, "volume": 0.42, "brightness": 0.70, "fall": 0.92},
-	"coin_collect": {"frequency": 1760.0, "duration": 0.085, "volume": 0.58, "brightness": 0.96, "fall": 1.42},
+const AUDIO_EVENT_VOLUME := {
+	"launch": 1.0,
+	"gem_contact": 1.0,
+	"wall_contact": 0.86,
+	"merge_reward": 1.0,
+	"target_reward": 1.0,
+	"fail": 0.86,
+	"button": 0.78,
 }
 const HAPTICS_BY_EVENT := {
 	"launch": {"duration_ms": 18, "amplitude": 0.22},

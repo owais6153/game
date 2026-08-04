@@ -1,12 +1,16 @@
 # Asset Inventory — Background, Table, and Gems v1
 
-## Production gameplay parity coin v1
+## Reference feedback match v1
 
-| Purpose | Preserved supplied source | Active runtime asset | Audit |
+| Purpose | Preserved source | Active runtime asset | Audit |
 | --- | --- | --- | --- |
-| HUD and animated reward coin | `assets/buttons/ChatGPT Image Aug 4, 2026, 07_10_27 AM.png` (1024 x 1536 ARGB) | `assets/runtime/effects/coin_reward.png` (256 x 256 ARGB) | Alpha-visible bounds measured as source x `178..846`, y `382..1022`; square crop x `130`, y `320`, side `765`, then high-quality bicubic resize. Original is untouched. |
+| HUD and animated reward coin | `assets/generated/reference_match_coin_source.png` (built-in image generation; SHA-256 `8F9319B4090B3D1311A048125296446CF19752652C3313BBE5319B2ECFEADEFF`) | `assets/runtime/effects/coin_reward_reference_v2.png` (256 x 256 RGBA; SHA-256 `8D834D6B963EDA9AA3CF68259D345E5C70CB8FD561C2F77813C8DD57F29F88F5`) | Original simple gold/star-gem token generated on a chroma background; runtime copy was non-destructively keyed, square-cropped, Lanczos-resized, and alpha-validated. `assets/generated/.gdignore` keeps the 1,254 px source out of import/export. |
+| Launch cue | `WhatsApp Video 2026-07-28 at 2.47.02 AM.mp4`, 5.98-6.38 s | `assets/runtime/audio/reference_launch.ogg` | 0.400 s, mono 48 kHz, 8,110 bytes; no gain/EQ/pitch processing. |
+| Contact cue | same supplied reference, 6.90-7.32 s | `assets/runtime/audio/reference_contact.ogg` | 0.420 s, mono 48 kHz, 8,605 bytes; no gain/EQ/pitch processing. |
+| Ordinary merge/coin reward | same supplied reference, 46.55-48.45 s | `assets/runtime/audio/reference_merge_reward.ogg` | 1.900 s, mono 48 kHz, 25,771 bytes; one combined reference sequence replaces layered procedural cues. |
+| Target merge/reward | same supplied reference, 14.45-17.10 s | `assets/runtime/audio/reference_target_reward.ogg` | 2.650 s, mono 48 kHz, 32,215 bytes; one combined reference sequence aligns with result/target/coin presentation. |
 
-`AssetCatalog.COIN_REWARD` is the only runtime mapping. `CoinIcon` and `GameplayEffectsLayer` share `CoinVisuals`; neither artwork nor alpha bounds affect currency, collision geometry, merge eligibility, or table layout. Evidence PNGs under `reports/production-gameplay-parity-final-v1/` are development-only and excluded from Android export.
+The supplied reference recording is preserved unchanged at SHA-256 `29EFA393864912DDB77E3851E034E8F2E457F489AF5D6AB6BADC0CEA13979DA3`. Ogg conversion changes only the container/codec needed for Godot playback; it does not normalize, synthesize, or remix the captured audio. All audio and coin assets are presentation-only and cannot affect simulation, currency, target qualification, or collision.
 
 ## Production gameplay parity coin v1
 

@@ -5,6 +5,7 @@ const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const CoinIconType = preload("res://scripts/coin_icon.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
+const TargetRewardOverlayType = preload("res://scripts/target_reward_overlay.gd")
 const SNAPSHOT_KEYS := ["level_number", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level"]
 
 signal settings_requested
@@ -28,6 +29,7 @@ var level_label: Label
 var target_panel: Control
 var target_header_label: Label
 var target_icon: TextureRect
+var target_reward_overlay: Control
 var settings_button: TextureButton
 var pause_blocker: Control
 var pause_dimmer: ColorRect
@@ -187,6 +189,8 @@ func is_pause_visible() -> bool:
 
 func pulse_target() -> void:
 	_build_once()
+	if target_reward_overlay != null:
+		target_reward_overlay.play(target_collection_destination())
 	_kill_tween(_target_pulse_tween)
 	target_panel.pivot_offset = _node_center(target_panel)
 	target_panel.scale = Vector2.ONE
@@ -251,6 +255,8 @@ func reset_presentation() -> void:
 	if target_icon != null:
 		target_icon.scale = Vector2.ONE
 		target_icon.modulate = Color.WHITE
+	if target_reward_overlay != null:
+		target_reward_overlay.reset()
 	if target_panel != null:
 		target_panel.scale = Vector2.ONE
 	if settings_button != null:
@@ -287,6 +293,10 @@ func _build_once() -> void:
 	add_child(root_control)
 	root_control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_hud()
+	target_reward_overlay = TargetRewardOverlayType.new()
+	target_reward_overlay.name = "TargetRewardOverlay"
+	root_control.add_child(target_reward_overlay)
+	target_reward_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_pause_popup()
 
 
@@ -731,8 +741,8 @@ func _animate_coin_change() -> void:
 	score_label.pivot_offset = _node_center(score_label)
 	coin_icon.pivot_offset = _node_center(coin_icon)
 	score_label.scale = Vector2.ONE * 1.13
-	coin_icon.scale = Vector2.ONE * 1.32
-	coin_icon.rotation = -0.12
+	coin_icon.scale = Vector2.ONE * 1.14
+	coin_icon.rotation = 0.0
 	if not is_inside_tree():
 		score_label.scale = Vector2.ONE
 		coin_icon.scale = Vector2.ONE

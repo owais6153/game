@@ -48,26 +48,24 @@ func _spawn_coin_reward(result_id: int, midpoint: Vector2, destination: Vector2,
 	var flight_duration := GameConfig.MAJOR_COIN_FLIGHT_DURATION if major_reward else GameConfig.COIN_FLIGHT_DURATION
 	var base_value: int = int(awarded_coins / coin_count)
 	var remainder := awarded_coins % coin_count
+	var cluster_offsets: Array[Vector2] = [
+		Vector2(-0.55, -0.18),
+		Vector2(-0.18, -0.64),
+		Vector2(0.36, -0.42),
+		Vector2(0.16, 0.12),
+	]
 	for index in range(coin_count):
-		var seed := absi(result_id * 37 + index * 101)
-		var normalized := float(index) / maxf(1.0, float(coin_count - 1))
-		var fan := normalized * 2.0 - 1.0
-		var jitter_x := float(seed % 17 - 8) * 2.8
-		var lateral := fan * burst_radius * 0.92 + jitter_x
-		var height := burst_radius * (0.54 + float(seed % 7) * 0.055) + (1.0 - absf(fan)) * 22.0
-		var scatter := midpoint + Vector2(lateral, -height)
-		var lane := posmod(index * 3 + result_id, 4)
-		# The first control pulls the burst decisively to the left of the central
-		# target card; the second fans it back into the coin HUD. This avoids the
-		# old perfect halo/straight-bead path seen in the latest recording.
-		var control_a := scatter + Vector2(-58.0 - float(lane) * 48.0, -38.0 - float(posmod(index * 3, 5)) * 25.0)
-		var control_b := destination + Vector2(42.0 + float(posmod(index * 5, 4)) * 58.0, 66.0 + float(posmod(index * 7, 4)) * 54.0)
-		var flight_rank := posmod(index * 5, coin_count - 1) if index < coin_count - 1 else coin_count - 1
+		var scatter: Vector2 = midpoint + cluster_offsets[index] * burst_radius
+		# Four coins follow one compact high arc, spaced like the supplied
+		# reference. There are no screen-wide multi-lanes or permuted departures.
+		var arc_height := 74.0 + float(index) * 8.0
+		var control_a := Vector2(lerpf(scatter.x, destination.x, 0.34), minf(scatter.y, destination.y) - arc_height)
+		var control_b := Vector2(lerpf(scatter.x, destination.x, 0.78), destination.y + 54.0 + float(index) * 7.0)
 		coin_rewards.append({
 			"result_id": result_id,
 			"index": index,
 			"count": coin_count,
-			"flight_rank": flight_rank,
+			"flight_rank": index,
 			"value": base_value + (1 if index < remainder else 0),
 			"start": midpoint,
 			"scatter": scatter,
@@ -77,9 +75,9 @@ func _spawn_coin_reward(result_id: int, midpoint: Vector2, destination: Vector2,
 			"elapsed": -delay,
 			"flight_duration": flight_duration,
 			"spawn_delay": float(index) * GameConfig.COIN_SPAWN_STAGGER,
-			"base_scale": 0.84 + float(seed % 8) * 0.045 + (0.08 if major_reward else 0.0),
-			"rotation": fan * 0.22 + float(seed % 9 - 4) * 0.035,
-			"spin_speed": (12.0 + float(seed % 7) * 1.35) * (-1.0 if index % 3 == 0 else 1.0),
+			"base_scale": 1.04 if major_reward else 1.0,
+			"rotation": 0.0,
+			"spin_speed": 0.0,
 			"arrived": false,
 			"major_reward": major_reward,
 		})
@@ -247,37 +245,46 @@ func _draw_coin_reward(effect: Dictionary) -> void:
 	var destination: Vector2 = effect.destination
 	if elapsed < GameConfig.COIN_BURST_DURATION:
 		var outward := 1.0 - pow(1.0 - burst_t, 2.6)
-		var lift_control := start + Vector2((scatter.x - start.x) * 0.34, -58.0 - float(index % 4) * 8.0)
+		var lift_control := start + Vector2((scatter.x - start.x) * 0.34, -28.0 - float(index) * 4.0)
 		var inverse_burst := 1.0 - outward
 		position = start * inverse_burst * inverse_burst + lift_control * 2.0 * inverse_burst * outward + scatter * outward * outward
-		scale *= 0.34 + sin(burst_t * PI) * 0.86 + burst_t * 0.12
+		scale *= 0.48 + sin(burst_t * PI) * 0.58 + burst_t * 0.08
 	elif elapsed < flight_start:
 		var wait_t := (elapsed - GameConfig.COIN_BURST_DURATION) / maxf(0.001, flight_start - GameConfig.COIN_BURST_DURATION)
 		position = scatter + Vector2(sin(wait_t * PI * 2.0 + index) * 2.5, -sin(wait_t * PI) * 8.0)
 		scale *= 1.0 + sin(wait_t * PI) * 0.12
 	else:
 		var flight_t := clampf((elapsed - flight_start) / float(effect.flight_duration), 0.0, 1.0)
-		var eased := 1.0 - pow(1.0 - flight_t, 2.25)
+		var eased := smoothstep(0.0, 1.0, flight_t)
 		var inverse := 1.0 - eased
 		position = scatter * inverse * inverse * inverse + control_a * 3.0 * inverse * inverse * eased + control_b * 3.0 * inverse * eased * eased + destination * eased * eased * eased
-		scale *= lerpf(1.08, 0.64, eased) * (1.0 + sin(flight_t * PI * 4.0 + index) * 0.055)
-		var trail_alpha := sin(PI * flight_t) * 0.30
-		if trail_alpha > 0.01:
-			draw_circle(position + (control_a - destination).normalized() * 12.0, GameConfig.COIN_DRAW_RADIUS * scale * 0.34, Color(1.0, 0.80, 0.18, trail_alpha))
-	var spin := elapsed * float(effect.get("spin_speed", 15.0)) + float(index) * 0.73
-	var rotation := float(effect.get("rotation", 0.0)) + sin(spin * 0.45) * 0.10
+		scale *= lerpf(1.0, 0.82, eased)
+	var spin := 0.0
+	var rotation := 0.0
 	CoinVisualsType.draw_coin(self, position, GameConfig.COIN_DRAW_RADIUS * scale, 1.0, spin, rotation)
 
 func _draw_target_arrival(effect: Dictionary) -> void:
 	var t := clampf(float(effect.elapsed) / GameConfig.TARGET_PANEL_PULSE_DURATION, 0.0, 1.0)
 	var center: Vector2 = effect.position
-	var color := GameConfig.gem_color(int(effect.level)).lightened(0.35)
-	color.a = 1.0 - t
-	draw_arc(center, 18.0 + t * 38.0, 0.0, TAU, 28, color, 3.0)
-	for index in range(6):
-		var direction := Vector2.from_angle(float(index) * TAU / 6.0)
-		var sparkle_center := center + direction * (25.0 + t * 20.0)
-		draw_circle(sparkle_center, 3.8 * (1.0 - t), Color(1.0, 0.91, 0.42, 1.0 - t))
+	var reveal := smoothstep(0.0, 0.18, t)
+	var fade := 1.0 - smoothstep(0.68, 1.0, t)
+	var pulse := 1.0 + sin(PI * clampf(t / 0.46, 0.0, 1.0)) * 0.16
+	draw_circle(center, 25.0 * pulse, Color(1.0, 0.91, 0.43, 0.28 * fade))
+	draw_arc(center, 26.0 + t * 34.0, 0.0, TAU, 32, Color(1.0, 0.86, 0.28, 0.90 * fade), 4.0)
+	# The reference target card answers with one large green confirmation mark.
+	var check_color := Color(0.38, 0.82, 0.27, reveal * fade)
+	var check_shadow := Color(0.15, 0.38, 0.11, reveal * fade * 0.72)
+	var check_start := center + Vector2(-13.0, 0.0) * pulse
+	var check_mid := center + Vector2(-3.0, 11.0) * pulse
+	var check_end := center + Vector2(17.0, -13.0) * pulse
+	draw_line(check_start + Vector2(1.5, 2.0), check_mid + Vector2(1.5, 2.0), check_shadow, 8.0, true)
+	draw_line(check_mid + Vector2(1.5, 2.0), check_end + Vector2(1.5, 2.0), check_shadow, 8.0, true)
+	draw_line(check_start, check_mid, check_color, 6.0, true)
+	draw_line(check_mid, check_end, check_color, 6.0, true)
+	for index in range(8):
+		var direction := Vector2.from_angle(float(index) * TAU / 8.0)
+		var sparkle_center := center + direction * (32.0 + t * 24.0)
+		draw_circle(sparkle_center, 3.4 * fade, Color(1.0, 0.93, 0.48, fade))
 
 func _draw_launch_impact(effect: Dictionary) -> void:
 	var t := clampf(float(effect.elapsed) / 0.16, 0.0, 1.0)

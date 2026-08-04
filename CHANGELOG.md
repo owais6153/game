@@ -1,5 +1,14 @@
 # Changelog
 
+## Reference Feedback Match v1
+
+- Removed directional contact squash, cross-stretch, kick, merge lift, tilt, and anisotropic scale. Collision telemetry now routes thresholded audio only, while merge results use a centered uniform `0.62 -> 1.20 -> 1.0` pop and preserve their exact silhouette.
+- Corrected the reward from 10/14 animated coins to exactly four for every merge. The four coins use a tight `44-48 px` cluster, ordered departures, one compact curved route, stable circular artwork, a `12.5 px` draw radius, and a restrained counter pulse.
+- Replaced the ornate supplied coin derivative with a new original simple gold/star-gem token generated for this project. The generated source is preserved under `assets/generated/`; its keyed, cropped 256 px runtime derivative is shared by the HUD and reward effect.
+- Strengthened target arrival without adding coins: collection lasts `0.84 s`, remains opaque through 78%, and ends with a `0.58 s` gold ring, large green check, eight sparks, and the existing panel pulse. `TargetRewardOverlay` renders the confirmation above the HUD card so the target artwork cannot hide it.
+- Removed the production procedural music/one-shot service from the controller. Production now preloads four Ogg clips derived from exact windows in the user-supplied reference recording; there is no ambience loop and no separate coin burst/flight/arrival sound layering.
+- Preserved L5 -> L7 -> L8 progression and all simulation, geometry, currency, launcher, danger, haptic, reset, and final-coin overlay guarantees. Added rigid-silhouette, four-coin, compact-path, target-confirmation, reference-audio provenance/cache, and no-ambience regressions.
+
 ## Production Gameplay Parity Final v1
 
 - Changed Level 1's sequential objectives to L5, then L7, then L8 while preserving the L1-L4 mixed unlimited launcher, confirmed-result collection gates, danger failure, full reset, and final overlay ordering.
