@@ -8,7 +8,7 @@
 - Modified: `2026-08-05 03:48:13 +05:00` (`2026-08-04T22:48:13Z`)
 - SHA-256: `104DE160B3B4C14432DFB89C9C657D921F2C0D2C15B4F9D5348EBDA6B9DE3972`
 - Gameplay source commit/tag: `fea8710fd9e16a8c79f95d0cf12727731ef75d16` / `production-screen-flow-v1-source`.
-- Clean export source commit/tag: `EXPORT_SOURCE_COMMIT` / `production-screen-flow-v1-export-source`.
+- Clean export source commit/tag: `de96c7f45684414a4e98c87c6500f8dd5c82accb` / `production-screen-flow-v1-export-source`.
 - Delivery tag: `production-screen-flow-v1`.
 - Export: Godot 4.6.3 `Android` debug preset; validation signing, not a store-release keystore claim.
 - Validation: all seven suites and four reviewed 720 x 1600 Compatibility/ANGLE renders passed. APK has 409 ZIP entries; `build/`, `reports/`, `tools/`, Python, and PowerShell entries are absent. APK Signature Scheme v2/v3 verification passed with one signer.
