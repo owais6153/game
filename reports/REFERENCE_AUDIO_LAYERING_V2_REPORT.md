@@ -73,9 +73,11 @@ Four reviewed 720×1600 Compatibility/ANGLE frames are stored under `reports/ref
 
 ## Delivery provenance
 
-- Source commit/tag: recorded in the delivery update as `reference-audio-layering-v2-source`.
-- Delivery commit/tag: recorded after APK manifest finalization as `reference-audio-layering-v2`.
-- APK: `build/android/reference-audio-layering-v2.apk`; exact size, timestamp, SHA-256, validation, and device status are recorded in `BUILD_MANIFEST.md` after export.
+- Source commit/tag: `7a619981ff5bc8a572b11c62d19dd0362a00ec5f` / `reference-audio-layering-v2-source`.
+- Delivery tag: `reference-audio-layering-v2` on the manifest/report-only delivery commit.
+- APK: `build/android/reference-audio-layering-v2.apk`, 102,852,681 bytes, modified `2026-08-04 10:36:38 +05:00`, SHA-256 `2876EE74B74E2A011C8572A381F1BB45DABB58C92F0F98DE90D2F214CDE44DDC`.
+- Package validation: 379 ZIP entries; manifest, primary dex, and arm64 Godot runtime present; zero `reports/`, `tools/`, or `assets/generated/` entries; APK Signature Scheme v2/v3 verified with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device. Installation, on-phone launch/performance, listening, and haptics are not claimed.
 
 ## Manual device checklist
 

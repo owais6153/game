@@ -1,5 +1,19 @@
 # Build Manifest
 
+# Reference Audio + Reward Layering v2
+
+- File: `reference-audio-layering-v2.apk`
+- Path: `D:\Owais\game\build\android\reference-audio-layering-v2.apk`
+- Size: `102,852,681` bytes
+- Modified: `2026-08-04 10:36:38 +05:00`
+- SHA-256: `2876EE74B74E2A011C8572A381F1BB45DABB58C92F0F98DE90D2F214CDE44DDC`
+- Source commit: `7a619981ff5bc8a572b11c62d19dd0362a00ec5f` (`Finalize reference audio and reward layering v2`)
+- Source tag: `reference-audio-layering-v2-source`
+- Delivery tag: `reference-audio-layering-v2`
+- Export: Godot 4.6.3 `Android` debug preset from the clean source milestone; installable validation signing, not a store-release keystore claim.
+- Validation: `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, `GAMEPLAY_UI_FEEL_TESTS`, `GEM18_CHAIN_TESTS`, `PRODUCTION_UI_FINALIZATION_TESTS`, and `MOTION_PROFILE` passed. Four 720×1600 Compatibility/ANGLE captures were reviewed. Standalone APK exists; ZIP has 379 entries with manifest, primary dex, and arm64 Godot runtime; `reports/`, `tools/`, and `assets/generated/` are absent. APK Signature Scheme v2/v3 verification passed with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device; install, launch, phone performance, continuous-loop listening, gem-sound balance, and haptics were not tested.
+
 # Reference Feedback Match v1
 
 - File: `reference-feedback-match-v1.apk`
