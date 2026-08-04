@@ -3,6 +3,13 @@ extends RefCounted
 
 ## Presentation-only texture catalog. Simulation must never read these resources.
 const TROPICAL_BACKGROUND: Texture2D = preload("res://assets/runtime/backgrounds/tropical_beach.png")
+const LEVEL_BACKGROUNDS: Array[Texture2D] = [
+	preload("res://assets/runtime/backgrounds/level_bg_1.png"),
+	preload("res://assets/runtime/backgrounds/level_bg_2.png"),
+	preload("res://assets/runtime/backgrounds/level_bg_3.png"),
+	preload("res://assets/runtime/backgrounds/level_bg_4.png"),
+	preload("res://assets/runtime/backgrounds/level_bg_5.png"),
+]
 const NEW_TABLE: Texture2D = preload("res://assets/runtime/table/new_table_v1.png")
 const PEARL: Texture2D = preload("res://assets/runtime/gems_body_v2/pearl.png")
 const RUBY: Texture2D = preload("res://assets/runtime/gems_body_v2/ruby.png")
@@ -69,15 +76,30 @@ const GEM_TIER_TEXTURES := {
 ## icons, launcher gems, targets, and merge results must resolve through it.
 const GEM_IDS := {1: "pearl", 2: "obsidian", 3: "jade", 4: "aquamarine", 5: "peridot", 6: "pink_tourmaline", 7: "ruby", 8: "sapphire", 9: "emerald", 10: "watermelon_tourmaline", 11: "morganite", 12: "garnet", 13: "amethyst", 14: "citrine", 15: "orange_sapphire", 16: "royal_sapphire", 17: "diamond", 18: "blue_diamond"}
 const GEM_DISPLAY_NAMES := {1: "Pearl", 2: "Obsidian", 3: "Jade", 4: "Aquamarine", 5: "Peridot", 6: "Pink Tourmaline", 7: "Ruby", 8: "Sapphire", 9: "Emerald", 10: "Watermelon Tourmaline", 11: "Morganite", 12: "Garnet", 13: "Amethyst", 14: "Citrine", 15: "Orange Sapphire", 16: "Royal Sapphire", 17: "Diamond", 18: "Blue Diamond"}
+static var active_gem_identity_by_tier: Dictionary = {}
+
+static func set_active_level_mapping(mapping: Dictionary) -> void:
+	active_gem_identity_by_tier = mapping.duplicate(true)
+
+static func reset_active_level_mapping() -> void:
+	active_gem_identity_by_tier.clear()
+
+static func identity_for_local_tier(level: int) -> int:
+	return int(active_gem_identity_by_tier.get(level, level))
+
+static func background_texture(index: int) -> Texture2D:
+	return LEVEL_BACKGROUNDS[posmod(index, LEVEL_BACKGROUNDS.size())]
 
 static func gem_entry(level: int) -> Dictionary:
-	return {"tier": level, "id": String(GEM_IDS.get(level, "unknown")), "name": String(GEM_DISPLAY_NAMES.get(level, "Unknown")), "texture": gem_texture(level), "texture_path": gem_resource_path(level), "collision_radius": GameConfig.gem_collision_radius(level), "visual_scale": visual_scale(level)}
+	var identity := identity_for_local_tier(level)
+	return {"tier": level, "identity": identity, "id": String(GEM_IDS.get(identity, "unknown")), "name": String(GEM_DISPLAY_NAMES.get(identity, "Unknown")), "texture": gem_texture(level), "texture_path": gem_resource_path(level), "collision_radius": GameConfig.gem_collision_radius(level), "visual_scale": visual_scale(level)}
 
 static func gem_name(level: int) -> String:
-	return String(GEM_DISPLAY_NAMES.get(level, "Unknown"))
+	return String(GEM_DISPLAY_NAMES.get(identity_for_local_tier(level), "Unknown"))
 
 static func gem_texture(level: int) -> Texture2D:
-	var cached := GEM_TIER_TEXTURES.get(level) as Texture2D
+	var identity := identity_for_local_tier(level)
+	var cached := GEM_TIER_TEXTURES.get(identity) as Texture2D
 	if cached != null:
 		return cached
 	match level:

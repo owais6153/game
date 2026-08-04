@@ -8,6 +8,10 @@
 
 The supplied filename is recorded only as provenance; no license or ownership claim is inferred. Source and runtime mean/max measurements are `-12.4/-0.5 dBFS` and `-12.4/0.0 dBFS`. The player applies linear gain `0.10` (`-20 dB`), for an estimated played mean/max near `-32.4/-20.0 dBFS`. The prior v4 music derivative remains preserved but inactive. `supplied_coin_reward_v4.ogg` remains a separate target-only cue.
 
+## Infinite randomized level backgrounds v1
+
+Five preserved 941 x 1672 supplied sources under `assets/bg/` map in sorted filename order to `assets/runtime/backgrounds/level_bg_1.png` through `level_bg_5.png`. Runtime files are non-destructive 720 x 1280 Lanczos derivatives used only for presentation. Their SHA-256 values are `C058360DF4AA02C11A9A5EF6D357E2346377A0D2E975768A8FC684A77B0FAFC2`, `59326738EA32349D7D263313F149D8A73807860A50E89EFAAFD4C014DB3A40BE`, `0F98392083125406F996F3F1523F3717A7FCCC2F78C1C5D458DC5BF9DF4B4CEE`, `9DE42880F94BF3DF3C22AFFDD9EDA42026A8A3B02F8914992707385411FB8888`, and `61D59C0BE7B3AE75F01738CB11015E3140A32A77AFBA76120B33C2D7F8CDE88B`. Background selection has no table, rail, collider, merge, reward, or input authority.
+
 ## Reference scale contrast v1
 
 No raster or audio asset changed. Frame comparison changed only code-owned geometry: the same existing alpha-trimmed L1-L8 textures now map to the `30/33/36/39/42/45/48/51 px` base-radius ladder. The target collection proxy uses the identical per-axis live-body mapping before its uniform presentation pop, so no new derivative or destructive resize is required.

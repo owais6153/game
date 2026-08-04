@@ -6,11 +6,12 @@ const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const CoinIconType = preload("res://scripts/coin_icon.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
 const TargetRewardOverlayType = preload("res://scripts/target_reward_overlay.gd")
-const SNAPSHOT_KEYS := ["level_number", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level"]
+const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level"]
 
 signal settings_requested
 signal resume_requested
 signal restart_requested
+signal home_requested
 
 var root_control: Control
 var hud_canvas: Control
@@ -40,6 +41,7 @@ var pause_safe_margin: MarginContainer
 var pause_panel: PanelContainer
 var resume_button: Button
 var restart_button: Button
+var home_button: Button
 
 var _built := false
 var _snapshot: Dictionary = {}
@@ -99,6 +101,13 @@ func update_snapshot(snapshot: Dictionary) -> void:
 			_set_coin_label(_displayed_coins)
 			if had_snapshot:
 				_animate_coin_change()
+
+	var identity_order: Array = snapshot.get("gem_identity_order", []) as Array
+	if _snapshot.get("gem_identity_order", []) != identity_order:
+		for index in range(mini(8, progression_icons.size())):
+			var local_tier := index + 1
+			progression_icons[index].texture = AssetCatalogType.gem_texture(local_tier)
+			progression_frames[index].tooltip_text = AssetCatalogType.gem_name(local_tier)
 
 	var next_level := int(snapshot.get("next_level", 1))
 	if int(_snapshot.get("next_level", -1)) != next_level:
@@ -708,6 +717,10 @@ func _build_pause_popup() -> void:
 	restart_button.tooltip_text = "Restart Level 1"
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
 	column.add_child(restart_button)
+	home_button = _button("PauseHomeButton", "HOME", Vector2(310.0, 64.0), "SecondaryButton")
+	home_button.tooltip_text = "Return to home"
+	home_button.pressed.connect(func() -> void: home_requested.emit())
+	column.add_child(home_button)
 
 
 func _button(node_name: String, text: String, minimum: Vector2, variation: StringName) -> Button:

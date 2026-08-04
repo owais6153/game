@@ -8,12 +8,17 @@ const ResultOverlayScene = preload("res://scenes/ui/ResultOverlay.tscn")
 const LevelConfigType = preload("res://scripts/level_config.gd")
 const GameplayHudScene = preload("res://scenes/ui/GameplayHud.tscn")
 const GameplayEffectsLayerType = preload("res://scripts/gameplay_effects_layer.gd")
+const ProgressionSaveServiceType = preload("res://scripts/progression_save_service.gd")
+const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
 var merge_service := ContactMergeService.new()
 var next_piece_id := 1
 var level_config: Dictionary = LevelConfigType.level_1()
+var level_number := 1
+var level_seed := 0
+var level_start_coins := 0
 var next_level := 1
 var next_queue_index := 0
 var target_progress := 0
@@ -57,6 +62,7 @@ var gem_sprite_layer: GemSpriteLayer
 var gameplay_ui: GameplayHudLayer
 var effects_layer: GameplayEffectsLayer
 var result_overlay: ResultOverlayLayer
+var home_overlay: HomeOverlayLayer
 var presentation_event_trace: Array[Dictionary] = []
 var process_frame_index := 0
 var piece_visual_feedbacks: Dictionary = {}
@@ -77,7 +83,12 @@ enum LauncherState {
 var launcher_state: LauncherState = LauncherState.SPAWNING_NEXT
 
 func _ready() -> void:
-	_configure_level_1()
+	var saved := ProgressionSaveServiceType.load_progress()
+	level_number = int(saved.level_number)
+	level_seed = int(saved.seed)
+	coins = int(saved.total_coins)
+	level_start_coins = coins
+	_configure_generated_level(level_number, level_seed)
 	_setup_asset_presentation()
 	_refresh_background_fill()
 	var viewport := get_viewport()
@@ -90,6 +101,8 @@ func _ready() -> void:
 	_sync_gems_and_mark_visibility()
 	_refresh_hud()
 	queue_redraw()
+	if OS.has_feature("mobile"):
+		_show_home()
 
 func _process(delta: float) -> void:
 	process_frame_index += 1
@@ -203,7 +216,8 @@ func hud_snapshot() -> Dictionary:
 		if not piece.consumed:
 			highest_level = maxi(highest_level, piece.level)
 	return {
-		"level_number": 1,
+		"level_number": level_number,
+		"gem_identity_order": _active_identity_order(),
 		"current_level": active.level if active != null else next_level,
 		"next_level": next_level,
 		"coins": coins,
@@ -220,6 +234,13 @@ func hud_snapshot() -> Dictionary:
 		"sound_enabled": audio_feedback.enabled if audio_feedback != null else true,
 		"vibration_enabled": haptics_feedback.enabled if haptics_feedback != null else true,
 	}
+
+func _active_identity_order() -> Array[int]:
+	var order: Array[int] = []
+	var mapping: Dictionary = level_config.get("gem_identity_by_tier", {})
+	for tier in range(1, 9):
+		order.append(int(mapping.get(tier, tier)))
+	return order
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F8:
@@ -320,9 +341,9 @@ func restart() -> void:
 	merge_service.clear()
 	merge_presentations.clear()
 	next_piece_id = 1
-	_configure_level_1()
+	_configure_generated_level(level_number, level_seed)
 	active_piece_id = -1
-	score = 0
+	score = level_start_coins
 	target_progress = 0
 	target_index = 0
 	counted_target_result_ids.clear()
@@ -360,7 +381,7 @@ func restart() -> void:
 
 func _setup_asset_presentation() -> void:
 	var background := Sprite2D.new()
-	background.texture = AssetCatalogType.TROPICAL_BACKGROUND
+	background.texture = AssetCatalogType.background_texture(int(level_config.get("background_index", 0)))
 	background_sprite = background
 	background.z_index = -20
 	add_child(background)
@@ -379,6 +400,7 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.settings_requested.connect(_on_settings_requested)
 	gameplay_ui.resume_requested.connect(_on_resume_requested)
 	gameplay_ui.restart_requested.connect(_on_restart_requested)
+	gameplay_ui.home_requested.connect(_show_home)
 	effects_layer = GameplayEffectsLayerType.new()
 	effects_layer.z_index = 0
 	gameplay_ui.attach_reward_foreground(effects_layer)
@@ -387,6 +409,11 @@ func _setup_asset_presentation() -> void:
 	result_overlay = ResultOverlayScene.instantiate() as ResultOverlayLayer
 	add_child(result_overlay)
 	result_overlay.retry_requested.connect(_on_restart_requested)
+	result_overlay.next_level_requested.connect(_on_next_level_requested)
+	result_overlay.home_requested.connect(_show_home)
+	home_overlay = HomeOverlayType.new()
+	add_child(home_overlay)
+	home_overlay.play_requested.connect(_on_home_play_requested)
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
@@ -471,10 +498,19 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		resolution_multiplier += 1
 
 func _configure_level_1() -> void:
-	level_config = LevelConfigType.level_1()
+	_configure_generated_level(1, LevelConfigType.seed_for_level(1))
+
+func _configure_generated_level(requested_level: int, requested_seed: int) -> void:
+	level_number = maxi(1, requested_level)
+	level_seed = requested_seed
+	level_config = LevelConfigType.generated(level_number, level_seed)
+	AssetCatalogType.set_active_level_mapping(level_config.get("gem_identity_by_tier", {}))
 	merge_service.max_result_level = int(level_config.active_tier_max)
 	next_queue_index = 0
 	next_level = LevelConfigType.initial_launcher_level(level_config)
+	if background_sprite != null:
+		background_sprite.texture = AssetCatalogType.background_texture(int(level_config.get("background_index", 0)))
+		_refresh_background_fill()
 
 func target_sequence() -> Array:
 	return level_config.get("target_sequence", []) as Array
@@ -527,7 +563,7 @@ func _trigger_failure() -> void:
 		effects_layer.clear()
 	audio_feedback.emit_event("fail")
 	haptics_feedback.emit_event("fail")
-	result_overlay.present(false, score)
+	result_overlay.present(false, score, level_number, active_target_tier())
 
 func _update_merge_presentations(delta: float) -> void:
 	var completed: Array[Dictionary] = []
@@ -680,7 +716,8 @@ func _update_win_presentation(delta: float) -> void:
 		return
 	win_hold_elapsed += delta
 	if win_hold_elapsed >= GameConfig.WIN_PRESENTATION_HOLD:
-		if result_overlay.present(true, score):
+		var completed_tier := int((target_sequence().back() as Dictionary).get("tier", 8))
+		if result_overlay.present(true, score, level_number, completed_tier):
 			win_presented = true
 			_trace_presentation_event("win_overlay_started", final_target_result_id)
 			audio_feedback.emit_event("win")
@@ -794,6 +831,35 @@ func _on_restart_requested() -> void:
 		get_tree().paused = false
 	audio_feedback.emit_event("button")
 	restart()
+
+func _on_next_level_requested() -> void:
+	if not won:
+		_on_restart_requested()
+		return
+	level_number += 1
+	level_seed = LevelConfigType.seed_for_level(level_number)
+	level_start_coins = coins
+	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
+	restart()
+
+func _show_home() -> void:
+	if home_overlay == null:
+		return
+	if gameplay_ui != null:
+		gameplay_ui.hide_pause(false)
+	if result_overlay != null:
+		result_overlay.dismiss()
+	home_overlay.present(level_number, coins)
+	if is_inside_tree():
+		get_tree().paused = true
+
+func _on_home_play_requested() -> void:
+	if home_overlay != null:
+		home_overlay.dismiss()
+	if is_inside_tree():
+		get_tree().paused = false
+	if audio_feedback != null:
+		audio_feedback.emit_event("button")
 
 func _on_coin_flight_started(_result_id: int) -> void:
 	pass

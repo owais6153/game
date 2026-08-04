@@ -590,6 +590,8 @@ func _test_inset_table_and_viewport_safety() -> void:
 	_assert(GameConfig.DANGER_LINE_Y > GameConfig.BOARD_TOP and GameConfig.DANGER_LINE_Y < GameConfig.BOARD_BOTTOM and GameConfig.LAUNCH_Y > GameConfig.DANGER_LINE_Y and GameConfig.LAUNCH_Y < GameConfig.BOARD_BOTTOM, "Danger line and launcher must remain inside physical table bounds")
 
 func _test_asset_mapping_and_clean_diamond() -> void:
+	var active_mapping := AssetCatalogType.active_gem_identity_by_tier.duplicate(true)
+	AssetCatalogType.reset_active_level_mapping()
 	for level in range(1, GameConfig.MAX_GEM_LEVEL + 1):
 		var path := AssetCatalogType.gem_resource_path(level)
 		_assert(path.ends_with("tier_%02d.png" % AssetCatalogType.GEM_TIER_SOURCE_INDEX[level]), "Gem level %d must use its approved reordered supplied texture" % level)
@@ -597,6 +599,7 @@ func _test_asset_mapping_and_clean_diamond() -> void:
 	_assert(ResourceLoader.exists(AssetCatalogType.TROPICAL_BACKGROUND.resource_path) and ResourceLoader.exists(AssetCatalogType.NEW_TABLE.resource_path), "Background and newly supplied table runtime textures must exist")
 	_assert(AssetCatalogType.NEW_TABLE.resource_path.ends_with("new_table_v1.png"), "Old coral table must not remain active")
 	_assert(ResourceLoader.exists(AssetCatalogType.shadow_resource_path()), "Presentation-only soft shadow texture must exist")
+	AssetCatalogType.set_active_level_mapping(active_mapping)
 
 func _test_table_layout_physics_alignment() -> void:
 	for y in [GameConfig.BOARD_TOP, GameConfig.DANGER_LINE_Y, GameConfig.LAUNCH_Y, GameConfig.BOARD_BOTTOM]:

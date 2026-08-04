@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Infinite Randomized Eight-Gem Levels v1](INFINITE_RANDOM_LEVELS_V1_REPORT.md) - full 18-gem seeded selection, local eight-slot chains, forward-only targets and screens, five-background mapping, persistence, regressions, and delivery provenance.
+
 - [New Background Music v1](NEW_BACKGROUND_MUSIC_V1_REPORT.md) - supplied-source provenance, runtime conversion and gain, routing boundaries, automated validation, listening checklist, and delivery provenance.
 
 - [Reference Scale Contrast v1](REFERENCE_SCALE_CONTRAST_V1_REPORT.md) - direct reference-frame scale findings, stronger shared L1-L8 visual/physics ladder, non-physical enlarged target collection, silhouette-continuity fix, tests, renders, and delivery provenance.

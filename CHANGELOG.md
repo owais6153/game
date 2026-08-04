@@ -1,5 +1,13 @@
 # Changelog
 
+## Infinite Randomized Eight-Gem Levels v1 - 2026-08-05
+
+- Replaced the single hard-coded level definition with deterministic infinite generated levels.
+- Each level selects eight unique identities from all 18 supplied gems, shuffles their local L1-L8 merge order, updates every board/HUD/target/result texture consistently, and shows the full chain in the existing eight-slot MERGE PATH.
+- Added seeded local L1-L4 launcher sequences, three ascending local L5-L8 targets, five randomized runtime backgrounds, identical Retry regeneration, saved level/seed/coin continuation, and direct NEXT LEVEL advancement.
+- Added mobile Home/Continue plus Home actions on Pause and result screens; removed the completed-level replay route in favor of forward-only progression.
+- Added 200-level determinism, uniqueness, reachability, catalog coverage, background coverage, and variety tests while preserving all six existing gameplay/UI/profile suites.
+
 ## New Background Music v1 - 2026-08-04
 
 - Preserved the newly supplied MP3 and created a full-duration, metadata-stripped Ogg runtime derivative without gain, EQ, pitch, or trimming changes.

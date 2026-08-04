@@ -6,6 +6,8 @@ const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
 
 signal retry_requested
+signal next_level_requested
+signal home_requested
 
 ## Dedicated result UI. It owns only its backdrop and panel; gameplay roots,
 ## gem sprites, simulation state, and reward timing are never modified here.
@@ -25,6 +27,7 @@ var result_icon: TextureRect
 var fail_badge: PanelContainer
 var score_label: Label
 var retry_button: Button
+var home_button: Button
 var _entrance_tween: Tween
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 
@@ -47,7 +50,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
-func present(won: bool, score: int) -> bool:
+func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8) -> bool:
 	_build_ui()
 	if visible_result:
 		return false
@@ -57,13 +60,13 @@ func present(won: bool, score: int) -> bool:
 	present_count += 1
 	title_label.text = "LEVEL COMPLETE" if won else "TRY AGAIN"
 	celebration_label.visible = won
-	subtitle_label.text = "BOTH TARGETS COLLECTED" if won else "THE TABLE REACHED THE DANGER LINE"
+	subtitle_label.text = "LEVEL %d COMPLETE" % level_number if won else "THE TABLE REACHED THE DANGER LINE"
 	result_icon.visible = won
-	result_icon.texture = AssetCatalogType.gem_texture(8) if won else null
+	result_icon.texture = AssetCatalogType.gem_texture(result_tier) if won else null
 	fail_badge.visible = not won
 	score_label.text = "COINS  %s" % ScoreFormatterType.format(score)
-	retry_button.text = "REPLAY" if won else "RETRY"
-	retry_button.tooltip_text = "Replay Level 1" if won else "Retry Level 1"
+	retry_button.text = "NEXT LEVEL" if won else "RETRY"
+	retry_button.tooltip_text = "Continue to Level %d" % (level_number + 1) if won else "Retry Level %d" % level_number
 	root_control.visible = true
 	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
 	_start_entrance()
@@ -204,8 +207,21 @@ func _build_ui() -> void:
 	retry_button.focus_mode = Control.FOCUS_ALL
 	retry_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	retry_button.mouse_filter = Control.MOUSE_FILTER_STOP
-	retry_button.pressed.connect(func() -> void: retry_requested.emit())
+	retry_button.pressed.connect(_on_action_pressed)
 	column.add_child(retry_button)
+	home_button = Button.new()
+	home_button.name = "ResultHomeButton"
+	home_button.text = "HOME"
+	home_button.theme_type_variation = "SecondaryButton"
+	home_button.custom_minimum_size = Vector2(320.0, 64.0)
+	home_button.pressed.connect(func() -> void: home_requested.emit())
+	column.add_child(home_button)
+
+func _on_action_pressed() -> void:
+	if result_won:
+		next_level_requested.emit()
+	else:
+		retry_requested.emit()
 
 
 func _start_entrance() -> void:

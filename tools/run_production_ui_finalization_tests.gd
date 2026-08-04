@@ -140,7 +140,7 @@ func _test_popup_composition_and_states() -> void:
 	_assert(result.panel is PanelContainer, "Win and Fail must use the same simple native panel system as gameplay")
 	_assert(result.present(true, 125500), "First result presentation must succeed")
 	_assert(not result.present(true, 125500) and result.present_count == 1, "Repeated final-state signals must not duplicate overlays")
-	_assert(result.title_label.text == "LEVEL COMPLETE" and result.retry_button.text == "REPLAY" and result.score_label.text == "COINS  125.5K", "Win must use success-specific copy, coin total, and a valid replay action")
+	_assert(result.title_label.text == "LEVEL COMPLETE" and result.retry_button.text == "NEXT LEVEL" and result.score_label.text == "COINS  125.5K", "Win must use success-specific copy, coin total, and a valid forward-only action")
 	_assert(result.result_icon.visible and not result.fail_badge.visible, "Win must show the final target artwork without failure art")
 	result.dismiss()
 	_assert(result.present(false, 9999), "Fail result must present after dismissal")

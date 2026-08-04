@@ -12,6 +12,13 @@
 - Keep music gain at `0.10` unless a listening-backed audio-only milestone retunes it; documented safe range is `0.08-0.12`.
 - Never route background playback from movement or contact. Keep the v4 coin cue separate and target-only, and do not replace tiered gem/contact sounds with the music stream.
 
+## Infinite randomized-level guardrails v1
+
+- A generated level must contain exactly eight unique identities from global catalog L1-L18 and exactly one identity for each local rank L1-L8. Never randomize simulation ranks independently from the saved mapping.
+- All visual identity lookups must pass through `AssetCatalog`; physics and merging must remain local-rank-only. Never let artwork identity define radius, eligibility, reward, or containment.
+- Launcher ranks remain local L1-L4. Targets remain three unique, strictly ascending local L5-L8 entries. Retry must preserve seed/configuration; only NEXT LEVEL may increment and generate a new configuration.
+- Preserve forward-only flow: no level tree, previous-level action, or completed-level replay. Keep Home/Continue, Retry after failure, and NEXT LEVEL after success.
+
 ## Reference scale contrast guardrails v1
 
 - Preserve active L1-L8 radii exactly as `30/33/36/39/42/45/48/51 px`; endpoint contrast is `1.70x`. The same centralized value must continue to drive live visual diameter and circular physics after perspective scaling.

@@ -12,6 +12,13 @@
 - The dedicated player uses linear gain `0.10`; it starts independently and movement/contact cannot trigger or restart it.
 - Target coin audio remains a separate target-only stream. Gem/contact/merge cues, animations, physics, rewards, and Level 1 L5 -> L7 -> L8 progression are unchanged.
 
+## Infinite randomized eight-gem levels v1
+
+- Every level selects eight unique identities from the full 18-gem catalog, shuffles them, and assigns them to that level's local L1-L8 merge ranks. Two equal local ranks still merge only through confirmed contact into the next local rank; local L8 remains terminal for that level.
+- The complete generated eight-gem order is shown in the existing MERGE PATH. Launcher entries use only local L1-L4. Three unique targets use local L5-L8 and are sorted strictly upward; Level 1 retains the verified L5 -> L7 -> L8 rank pacing while its identities are randomized.
+- A level seed deterministically owns gem order, launcher sequence, targets, and one of five backgrounds. Retry preserves the same configuration; completing the final target exposes NEXT LEVEL, increments without limit, generates a new seed, and saves level/seed/coins. No level-tree or previous-level route exists.
+- Home/Continue, Pause, Level Complete/Next Level, and Fail/Retry/Home are modal UI states outside simulation. Physics, colliders, merge eligibility, target-only coins, feedback animation, audio, danger, and table geometry remain unchanged.
+
 ## Scope
 
 ## Reference animation and supplied-audio polish v4

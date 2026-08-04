@@ -12,6 +12,13 @@
 - `GameConfig.AUDIO_MUSIC_VOLUME = 0.10` remains the centralized mix value. Target coin and tiered gem one-shots stay on their existing independent cached players and confirmed-event routes.
 - The preserved MP3 is source provenance; only its optimized derivative is used at runtime. This presentation-only change does not enter simulation, collision, merge, reward, or controller state.
 
+## Infinite generated-level boundary v1
+
+- `LevelConfig.generated(level_number, seed)` is the sole generator. Its immutable dictionary owns eight unique catalog identities mapped to local L1-L8, launcher sequence, ascending targets, background index, and seed.
+- Simulation, `GemPiece`, `ContactMergeService`, collision, radii, and rewards continue to consume only local L1-L8 ranks. `AssetCatalog.active_gem_identity_by_tier` translates local rank to the selected global identity at the presentation boundary for board sprites, NEXT, TARGET, MERGE PATH, collection, and results.
+- `ProgressionSaveService` persists only level number, seed, and banked coins. Retry reconstructs the same definition; NEXT LEVEL advances, derives the next seed, saves, and performs the existing full controller reset.
+- `HomeOverlayLayer`, `GameplayHudLayer`, and `ResultOverlayLayer` remain modal presentation owners. They emit intent signals and never duplicate progression, queue, target, physics, or reward rules.
+
 ## Reference scale contrast and target-proxy boundary v1
 
 - `GameConfig.GEM_COLLISION_RADIUS` remains the sole live L1-L8 size authority, now `30/33/36/39/42/45/48/51 px`. `GemPiece.base_radius`, perspective-scaled live radius, `GemSpriteLayer` body diameter, pair contact, merge eligibility, rails, and launcher clamp consume that same geometry.
