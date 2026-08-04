@@ -1,5 +1,17 @@
 # Architecture
 
+## New background music routing boundary v1
+
+- `AudioFeedbackService` preloads `supplied_background_music_v5.ogg` into its single dedicated looping music player; no movement, collision, merge, or reward path owns playback position.
+- `GameConfig.AUDIO_MUSIC_VOLUME = 0.10` remains the centralized mix value. Target coin and tiered gem one-shots stay on their existing independent cached players and confirmed-event routes.
+- The preserved MP3 is source provenance; only its optimized derivative is used at runtime. This presentation-only change does not enter simulation, collision, merge, reward, or controller state.
+
+## New background music routing boundary v1
+
+- `AudioFeedbackService` preloads `supplied_background_music_v5.ogg` into its single dedicated looping music player; no movement, collision, merge, or reward path owns playback position.
+- `GameConfig.AUDIO_MUSIC_VOLUME = 0.10` remains the centralized mix value. Target coin and tiered gem one-shots stay on their existing independent cached players and confirmed-event routes.
+- The preserved MP3 is source provenance; only its optimized derivative is used at runtime. This presentation-only change does not enter simulation, collision, merge, reward, or controller state.
+
 ## Reference scale contrast and target-proxy boundary v1
 
 - `GameConfig.GEM_COLLISION_RADIUS` remains the sole live L1-L8 size authority, now `30/33/36/39/42/45/48/51 px`. `GemPiece.base_radius`, perspective-scaled live radius, `GemSpriteLayer` body diameter, pair contact, merge eligibility, rails, and launcher clamp consume that same geometry.

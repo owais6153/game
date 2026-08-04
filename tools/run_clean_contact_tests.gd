@@ -503,11 +503,11 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	var audio_fixture = AudioFeedbackServiceType.new()
 	root.add_child(audio_fixture)
 	_assert(audio_fixture.has_ambience() and audio_fixture.ambience_is_ready(), "The independently supplied clean music must own one continuous ready player")
-	_assert(audio_fixture.music_volume_linear() <= 0.16, "Background music must remain softly gain-staged below coin and merge events")
+	_assert(is_equal_approx(audio_fixture.music_volume_linear(), 0.10), "The louder new background source must use its approved soft event-subordinate gain")
 	_assert(audio_fixture.cached_stream_count() == GameConfig.AUDIO_TONES.size(), "Every confirmed gem/coin event must remain prebuilt in the bounded audio cache")
-	_assert(ResourceLoader.exists("res://assets/runtime/audio/supplied_background_music_v4.ogg") and ResourceLoader.exists("res://assets/runtime/audio/supplied_coin_reward_v4.ogg"), "Optimized clean music and coin runtime derivatives must exist independently")
+	_assert(ResourceLoader.exists("res://assets/runtime/audio/supplied_background_music_v5.ogg") and ResourceLoader.exists("res://assets/runtime/audio/supplied_coin_reward_v4.ogg"), "Optimized new music and coin runtime derivatives must exist independently")
 	var audio_source := FileAccess.get_file_as_string("res://scripts/audio_feedback_service.gd")
-	_assert(audio_source.contains("supplied_background_music_v4.ogg") and audio_source.contains("supplied_coin_reward_v4.ogg") and not audio_source.contains("reference_music_loop.ogg"), "Production audio must use only the separate supplied clean sources")
+	_assert(audio_source.contains("supplied_background_music_v5.ogg") and audio_source.contains("supplied_coin_reward_v4.ogg") and not audio_source.contains("supplied_background_music_v4.ogg") and not audio_source.contains("reference_music_loop.ogg"), "Production audio must use only the new music and separate coin source")
 	audio_fixture.enabled = false
 	_assert(not audio_fixture.ambience_is_ready(), "Disabling audio must stop both continuous music and event players")
 	audio_fixture.enabled = true

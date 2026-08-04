@@ -207,7 +207,7 @@ func _test_reference_coin_reward_path() -> void:
 	_assert(controller.gameplay_ui.displayed_coin_value() == reward and controller.gameplay_ui.pending_coin_value() == 0, "Staggered arrivals must reconcile the visible and authoritative coin totals exactly")
 	_assert(controller.gameplay_ui.score_label.text == "800", "Coin counter must show the completed compact run total")
 	_assert(controller.audio_feedback.emitted_events.count("merge_7") == 1 and controller.audio_feedback.emitted_events.count("coin_reward") == 1, "One L7 merge tone and one supplied coin cue must accompany the target-only reward")
-	_assert(controller.audio_feedback.has_ambience() and controller.audio_feedback.ambience_is_ready() and controller.audio_feedback.music_volume_linear() <= 0.16, "Clean music must run continuously at a soft event-subordinate gain")
+	_assert(controller.audio_feedback.has_ambience() and controller.audio_feedback.ambience_is_ready() and is_equal_approx(controller.audio_feedback.music_volume_linear(), 0.10), "The new music must run continuously at its soft event-subordinate gain")
 	_assert(controller.haptics_feedback.emitted_events.count("coin_collect") == 1, "Only the final coin may emit the light collection haptic")
 	await _dispose_controller(controller)
 

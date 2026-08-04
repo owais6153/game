@@ -1,7 +1,7 @@
 class_name AudioFeedbackService
 extends Node
 
-const SuppliedBackgroundMusic: AudioStream = preload("res://assets/runtime/audio/supplied_background_music_v4.ogg")
+const SuppliedBackgroundMusic: AudioStream = preload("res://assets/runtime/audio/supplied_background_music_v5.ogg")
 const SuppliedCoinReward: AudioStream = preload("res://assets/runtime/audio/supplied_coin_reward_v4.ogg")
 
 ## Confirmed controller events use cached one-shots. Independently supplied

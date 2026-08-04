@@ -184,7 +184,7 @@ const MERGE_SCORE_BY_RESULT_LEVEL := TARGET_COIN_REWARD_BY_RESULT_LEVEL
 ## loop has its own dedicated player and always stays below event feedback.
 const AUDIO_MAX_CONCURRENT_PLAYERS := 3
 const AUDIO_SAMPLE_RATE := 22050.0
-const AUDIO_MUSIC_VOLUME := 0.14
+const AUDIO_MUSIC_VOLUME := 0.10
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
 	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.46, "brightness": 0.82, "fall": 0.64},

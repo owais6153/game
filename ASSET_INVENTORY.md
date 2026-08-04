@@ -1,5 +1,13 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## New background music v1
+
+| Purpose | Preserved source | Active runtime derivative | Audit |
+| --- | --- | --- | --- |
+| Continuous background music | `assets/sound/sonican-uplifting-loop-cheerful-happiness-297034.mp3` | `assets/runtime/audio/supplied_background_music_v5.ogg` | Source: 2,817,044 bytes, 88.032625 s, MP3 256 kb/s stereo 44.1 kHz, SHA-256 `62778A13E946CF221388AB1AE935386C9144256E88C385CA1153210A4478CE43`. Runtime: 1,767,914 bytes, 88.032653 s, Vorbis stereo 44.1 kHz quality 5, SHA-256 `1D2124D6B5C15CE09F8823A57BD2DBB2DEEA01CDDDCA33B297379F1ED1A64E3F`; full duration, metadata stripped, with no gain/EQ/pitch/trim processing. |
+
+The supplied filename is recorded only as provenance; no license or ownership claim is inferred. Source and runtime mean/max measurements are `-12.4/-0.5 dBFS` and `-12.4/0.0 dBFS`. The player applies linear gain `0.10` (`-20 dB`), for an estimated played mean/max near `-32.4/-20.0 dBFS`. The prior v4 music derivative remains preserved but inactive. `supplied_coin_reward_v4.ogg` remains a separate target-only cue.
+
 ## Reference scale contrast v1
 
 No raster or audio asset changed. Frame comparison changed only code-owned geometry: the same existing alpha-trimmed L1-L8 textures now map to the `30/33/36/39/42/45/48/51 px` base-radius ladder. The target collection proxy uses the identical per-axis live-body mapping before its uniform presentation pop, so no new derivative or destructive resize is required.

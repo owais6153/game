@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [New Background Music v1](NEW_BACKGROUND_MUSIC_V1_REPORT.md) - supplied-source provenance, runtime conversion and gain, routing boundaries, automated validation, listening checklist, and delivery provenance.
+
 - [Reference Scale Contrast v1](REFERENCE_SCALE_CONTRAST_V1_REPORT.md) - direct reference-frame scale findings, stronger shared L1-L8 visual/physics ladder, non-physical enlarged target collection, silhouette-continuity fix, tests, renders, and delivery provenance.
 
 - [Merge Animation Revert + L1-L8 Size Calibration v1](MERGE_ANIMATION_SIZE_CALIBRATION_V1_REPORT.md) - rejected splash removal, restored prior rigid ring/ray merge beat, shared moderate L1-L8 visual/physics sizes, regression evidence, and delivery provenance.

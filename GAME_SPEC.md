@@ -1,5 +1,17 @@
 # Game Spec — Clean Contact Merge v1
 
+## New background music v1
+
+- `assets/runtime/audio/supplied_background_music_v5.ogg`, derived without trim or signal processing from the preserved user-supplied MP3, is the active continuous background track.
+- The dedicated player uses linear gain `0.10`; it starts independently and movement/contact cannot trigger or restart it.
+- Target coin audio remains a separate target-only stream. Gem/contact/merge cues, animations, physics, rewards, and Level 1 L5 -> L7 -> L8 progression are unchanged.
+
+## New background music v1
+
+- `assets/runtime/audio/supplied_background_music_v5.ogg`, derived without trim or signal processing from the preserved user-supplied MP3, is the active continuous background track.
+- The dedicated player uses linear gain `0.10`; it starts independently and movement/contact cannot trigger or restart it.
+- Target coin audio remains a separate target-only stream. Gem/contact/merge cues, animations, physics, rewards, and Level 1 L5 -> L7 -> L8 progression are unchanged.
+
 ## Scope
 
 ## Reference animation and supplied-audio polish v4

@@ -1,5 +1,13 @@
 # Changelog
 
+## New Background Music v1 - 2026-08-04
+
+- Preserved the newly supplied MP3 and created a full-duration, metadata-stripped Ogg runtime derivative without gain, EQ, pitch, or trimming changes.
+- Replaced only the continuously looping background stream; movement still cannot trigger or restart it.
+- Reduced music gain from `0.14` to `0.10` to preserve the established mix priority for target coins and gem/merge cues.
+- Kept the supplied target coin cue separate and target-only; no animation, physics, reward, target, launcher, or progression behavior changed.
+- Updated routing/gain regressions and passed all six gameplay, UI, contact, lifecycle, catalog, and motion-profile suites.
+
 ## Reference Scale Contrast v1 - 2026-08-04
 
 - Re-reviewed reference frames around ordinary clusters and target completions and replaced the too-subtle two-pixel ladder with the L1-L8 `30/33/36/39/42/45/48/51 px` visual/physics ladder (`1.70x` endpoint contrast).

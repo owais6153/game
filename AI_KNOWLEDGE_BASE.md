@@ -1,5 +1,17 @@
 # AI Knowledge Base
 
+## New background music guardrails v1
+
+- Keep `supplied_background_music_v5.ogg` as the active continuous track and preserve its original MP3 under `assets/sound/`.
+- Keep music gain at `0.10` unless a listening-backed audio-only milestone retunes it; documented safe range is `0.08-0.12`.
+- Never route background playback from movement or contact. Keep the v4 coin cue separate and target-only, and do not replace tiered gem/contact sounds with the music stream.
+
+## New background music guardrails v1
+
+- Keep `supplied_background_music_v5.ogg` as the active continuous track and preserve its original MP3 under `assets/sound/`.
+- Keep music gain at `0.10` unless a listening-backed audio-only milestone retunes it; documented safe range is `0.08-0.12`.
+- Never route background playback from movement or contact. Keep the v4 coin cue separate and target-only, and do not replace tiered gem/contact sounds with the music stream.
+
 ## Reference scale contrast guardrails v1
 
 - Preserve active L1-L8 radii exactly as `30/33/36/39/42/45/48/51 px`; endpoint contrast is `1.70x`. The same centralized value must continue to drive live visual diameter and circular physics after perspective scaling.

@@ -1,5 +1,7 @@
 # Sound + Haptics v1 Report
 
+> Current background-music routing is superseded by [New Background Music v1](NEW_BACKGROUND_MUSIC_V1_REPORT.md): the user-supplied v5 derivative loops continuously at `0.10`. Existing confirmed-event gem, coin, and haptic boundaries remain unchanged.
+
 ## Scope and baseline
 
 - Starting verified baseline: `2dc007575457fec112acabc51b7d6dcfb9f06462` / `progression-hud-v1`.
