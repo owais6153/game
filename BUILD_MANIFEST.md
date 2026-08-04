@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Asset-matched Home + transparent logo v1
+
+- APK: `build/android/assets-ui-screen-match-v1.apk`
+- Size: 118,277,818 bytes
+- Export timestamp: 2026-08-04T23:22:27Z (2026-08-05 Asia/Karachi)
+- SHA-256: `7AAB0C4A93F29DC6B40B44D511BDC3A2DB40AC04C4456E6342791F932319824F`
+- Source commit/tag: `84d855a` / `assets-ui-screen-match-v1-source`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`
+- Validation: all seven regression suites PASS; production UI safe-area suite PASS; real 720 x 1600 Compatibility/ANGLE capture PASS and reviewed; export signed successfully; 411 APK entries with zero packaged source/report/build paths.
+- Device status: ADB reported no connected device; physical-device validation is not claimed.
+
 # Branded Production Screen Flow v1
 
 - File: `production-screen-flow-v1.apk`

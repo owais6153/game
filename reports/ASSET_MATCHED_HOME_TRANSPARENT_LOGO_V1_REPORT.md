@@ -24,5 +24,7 @@ No simulation, collider, merge, launcher, target, coin, sound, reward, seeded-le
 - `git diff --check`: PASS.
 - All seven regression suites: PASS (infinite levels, Level 1 flow, clean contact, gameplay UI/feel, 18-gem chain, production UI, and motion profile).
 - Real 720 x 1600 Compatibility/ANGLE capture: PASS and visually reviewed. Home has no opaque logo rectangle, clipping, overlap, or gameplay HUD leakage.
-- Standalone APK: pending final export.
+- Standalone APK: `build/android/assets-ui-screen-match-v1.apk`, 118,277,818 bytes, SHA-256 `7AAB0C4A93F29DC6B40B44D511BDC3A2DB40AC04C4456E6342791F932319824F`.
+- APK audit: export signed successfully; 411 ZIP entries; zero packaged `.gd`, `reports/`, `build/`, or `.git/` paths.
+- Connected-device validation: ADB reported no connected device; physical-device review is not claimed.
 - Connected-device validation: not performed unless a device is detected during final delivery checks.
