@@ -1,5 +1,20 @@
 # Build Manifest
 
+# Reference Scale Contrast v1
+
+- File: `reference-scale-contrast-v1.apk`
+- Path: `D:\Owais\game\build\android\reference-scale-contrast-v1.apk`
+- Size: `104,471,551` bytes
+- Modified: `2026-08-04 22:53:04 +05:00` (`2026-08-04T17:53:04Z`)
+- SHA-256: `61CDB16C4CDB8654108E540ACA3526AE743683A3D8D3630996ADFC0BC09AD9AF`
+- Gameplay source commit/tag: `0f410a56f8396a22fedaa108dc07dde8f44ae2f7` / `reference-scale-contrast-v1-source`.
+- Clean export source commit/tag: `EXPORT_SOURCE_COMMIT` / `reference-scale-contrast-v1-export-source`.
+- Delivery tag: `reference-scale-contrast-v1`.
+- Export: Godot 4.6.3 `Android` debug preset; installable validation signing, not a store-release keystore claim.
+- Validation: all six regression/profile suites and two reviewed 720 x 1600 Compatibility/ANGLE proof frames passed. APK has 387 ZIP entries with manifest, primary dex, and arm64 Godot runtime; `build/`, `reports/`, `tools/`, and `assets/generated/` entries are absent. APK Signature Scheme v2/v3 verification passed with one RSA-2048 signer.
+- Device status: `adb devices -l` returned an empty device list; installation, launch, phone feel, listening, and haptics are not claimed.
+
+
 # Merge Animation Revert + L1-L8 Size Calibration v1
 
 - File: `merge-animation-size-calibration-v1.apk`
