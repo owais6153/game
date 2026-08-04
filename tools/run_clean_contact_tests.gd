@@ -81,11 +81,17 @@ func _resolve(items: Array[GemPiece]) -> Dictionary:
 func _test_contact_merges() -> void:
 	var empty: Array[GemPiece] = []
 	_assert(empty.is_empty(), "Board must start empty before the controller creates the launcher")
-	var pearls: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500))]
+	var pearl_a := _piece(1, 1, Vector2(300, 500))
+	var pearl_b := _piece(2, 1, Vector2(300, 500))
+	pearl_b.position.x = pearl_a.position.x + pearl_a.radius + pearl_b.radius
+	var pearls: Array[GemPiece] = [pearl_a, pearl_b]
 	var pearl_result := _resolve(pearls)
 	_assert(pearl_result.pieces.size() == 1 and pearl_result.pieces[0].level == 2, "Contacting Pearl + Pearl must create one Ruby")
 	_assert(is_equal_approx(pearl_result.pieces[0].base_radius, GameConfig.gem_collision_radius(2)), "A merge result must immediately use its upgraded visual/physics radius")
-	var rubies: Array[GemPiece] = [_piece(1, 2, Vector2(300, 500)), _piece(2, 2, Vector2(360, 500))]
+	var ruby_a := _piece(1, 2, Vector2(300, 500))
+	var ruby_b := _piece(2, 2, Vector2(300, 500))
+	ruby_b.position.x = ruby_a.position.x + ruby_a.radius + ruby_b.radius
+	var rubies: Array[GemPiece] = [ruby_a, ruby_b]
 	var ruby_result := _resolve(rubies)
 	_assert(ruby_result.pieces.size() == 1 and ruby_result.pieces[0].level == 3, "Contacting Ruby + Ruby must create one Emerald")
 
@@ -96,11 +102,20 @@ func _test_rejections() -> void:
 	_assert(_resolve(cross).pieces.size() == 2, "Pearl + Ruby must not merge")
 
 func _test_one_piece_once_per_cycle() -> void:
-	var items: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500)), _piece(3, 1, Vector2(420, 500))]
+	var first := _piece(1, 1, Vector2(300, 500))
+	var second := _piece(2, 1, Vector2(300, 500))
+	second.position.x = first.position.x + first.radius + second.radius
+	var third := _piece(3, 1, Vector2(300, 500))
+	third.position.x = second.position.x + second.radius + third.radius
+	var items: Array[GemPiece] = [first, second, third]
 	_assert(_resolve(items).pieces.size() == 2, "A source piece must not merge twice in one cycle")
 
 func _test_contact_chain_merges() -> void:
-	var items: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500)), _piece(3, 2, Vector2(330, 500))]
+	var first := _piece(1, 1, Vector2(300, 500))
+	var second := _piece(2, 1, Vector2(300, 500))
+	second.position.x = first.position.x + first.radius + second.radius
+	var midpoint := (first.position + second.position) * 0.5
+	var items: Array[GemPiece] = [first, second, _piece(3, 2, midpoint)]
 	var merger = MergeType.new()
 	merger.capture_contact(items[0], items[1])
 	var result := merger.resolve(items, 100)
@@ -108,7 +123,10 @@ func _test_contact_chain_merges() -> void:
 	_assert(result.merge_count == 2 and result.chain_depth == 1, "A contact chain must record exactly one chained resolution")
 
 func _test_distant_piece_does_not_chain() -> void:
-	var items: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500)), _piece(3, 2, Vector2(520, 500))]
+	var first := _piece(1, 1, Vector2(300, 500))
+	var second := _piece(2, 1, Vector2(300, 500))
+	second.position.x = first.position.x + first.radius + second.radius
+	var items: Array[GemPiece] = [first, second, _piece(3, 2, Vector2(520, 500))]
 	var merger = MergeType.new()
 	merger.capture_contact(items[0], items[1])
 	var result := merger.resolve(items, 100)
@@ -116,7 +134,11 @@ func _test_distant_piece_does_not_chain() -> void:
 
 func _test_chain_depth_cap() -> void:
 	var merger := MergeType.new()
-	var items: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500)), _piece(3, 2, Vector2(330, 500)), _piece(4, 3, Vector2(330, 500)), _piece(5, 4, Vector2(330, 500))]
+	var first := _piece(1, 1, Vector2(300, 500))
+	var second := _piece(2, 1, Vector2(300, 500))
+	second.position.x = first.position.x + first.radius + second.radius
+	var midpoint := (first.position + second.position) * 0.5
+	var items: Array[GemPiece] = [first, second, _piece(3, 2, midpoint), _piece(4, 3, midpoint), _piece(5, 4, midpoint)]
 	merger.capture_contact(items[0], items[1])
 	var result := merger.resolve(items, 100)
 	_assert(result.chain_depth <= GameConfig.MERGE_CHAIN_DEPTH_CAP, "Chain processing must remain capped")
@@ -429,7 +451,8 @@ func _test_wide_viewport_center_alignment() -> void:
 
 func _test_merge_momentum_is_bounded_and_contained() -> void:
 	var first := _piece(1, 1, Vector2(300, 500))
-	var second := _piece(2, 1, Vector2(360, 500))
+	var second := _piece(2, 1, Vector2(300, 500))
+	second.position.x = first.position.x + first.radius + second.radius
 	first.velocity = Vector2(900, -600)
 	second.velocity = Vector2(900, -600)
 	var merger := MergeType.new()
@@ -672,7 +695,7 @@ func _test_visible_collision_calibration() -> void:
 	for level in range(1, 9):
 		var piece := _piece(1000 + level, level, Vector2(360.0, 700.0))
 		_assert(piece.base_radius > previous_radius, "L%d visual and physics body must be larger than L%d" % [level, level - 1])
-		_assert(piece.base_radius >= 36.0 and piece.base_radius <= 50.0, "L%d must stay inside the approved moderate 36-50px radius range" % level)
+		_assert(piece.base_radius >= 30.0 and piece.base_radius <= 51.0, "L%d must stay inside the approved moderate 30-51px radius range" % level)
 		previous_radius = piece.base_radius
 	_assert(is_equal_approx(GameConfig.PIECE_RADIUS, GameConfig.gem_collision_radius(8)), "The largest active collider guard must match L8")
 	var controller = GameScene.instantiate()

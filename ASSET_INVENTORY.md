@@ -1,5 +1,9 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Reference scale contrast v1
+
+No raster or audio asset changed. Frame comparison changed only code-owned geometry: the same existing alpha-trimmed L1-L8 textures now map to the `30/33/36/39/42/45/48/51 px` base-radius ladder. The target collection proxy uses the identical per-axis live-body mapping before its uniform presentation pop, so no new derivative or destructive resize is required.
+
 ## Merge animation revert and active-tier size calibration v1
 
 No raster or audio asset changed. The preserved sources, alpha-trimmed runtime derivatives, and `calibration_manifest.json` mappings remain byte-for-byte unchanged. L1-L8 sizing is now a code-owned `36/38/40/42/44/46/48/50 px` base-radius ladder; `GemSpriteLayer` maps each already-trimmed body to that diameter while `GemPiece` uses the same value for its circle collider. Artwork, alpha bounds, shadows, and effects do not independently define physics.

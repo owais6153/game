@@ -1,5 +1,14 @@
 # Changelog
 
+## Reference Scale Contrast v1 - 2026-08-04
+
+- Re-reviewed reference frames around ordinary clusters and target completions and replaced the too-subtle two-pixel ladder with the L1-L8 `30/33/36/39/42/45/48/51 px` visual/physics ladder (`1.70x` endpoint contrast).
+- Confirmed that target status does not need a larger live collider: the reference emphasis occurs during the result/collection presentation.
+- Increased only the removed-body target collection proxy pop from `1.10x` to `1.18x`; the normal merge result still uses its existing `1.20x` rigid pop.
+- Fixed the collection proxy to inherit the live gem's exact independent X/Y texture mapping before the uniform pop, eliminating the prior apparent shrink and silhouette change on target travel.
+- Preserved the 80 px TARGET HUD slot and all merge, coin, handoff, audio, reward, launcher, danger, physics-tuning, and level-flow behavior.
+- Added exact size-ratio, proxy mapping, target-pop, collision/contact, containment, flow, UI, performance, and rendered-proof coverage.
+
 ## Merge Animation Revert + L1-L8 Size Calibration v1 - 2026-08-04
 
 - Removed the rejected irregular merge color splash and restored the immediately previous rigid `0.50 s` pull/pop/settle plus bounded flash, ring, and eight-ray impact.

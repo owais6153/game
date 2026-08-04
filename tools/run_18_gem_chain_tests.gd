@@ -207,7 +207,7 @@ func _test_motion_regression_guards() -> void:
 	_assert(not sprite_layer_source.contains("ResourceLoader.load("), "Perspective path must not load resources during gameplay")
 	# The current level uses one moderate, authoritative visual/physics size
 	# ladder. Later catalog tiers remain outside this milestone.
-	var expected_active_radii := [36.0, 38.0, 40.0, 42.0, 44.0, 46.0, 48.0, 50.0]
+	var expected_active_radii := [30.0, 33.0, 36.0, 39.0, 42.0, 45.0, 48.0, 51.0]
 	for level in range(1, 9):
 		_assert(is_equal_approx(GameConfig.gem_collision_radius(level), expected_active_radii[level - 1]), "L%d must retain the approved visual/physics radius" % level)
 		if level > 1:

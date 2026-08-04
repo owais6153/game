@@ -244,7 +244,12 @@ func _test_late_collection_fade_and_body_cleanup() -> void:
 	var proxy: Sprite2D = controller.target_collection.sprite
 	_assert(proxy != null and proxy.get_parent() == controller.effects_layer, "Collection travel must use a visual-only proxy in the effects layer")
 	_assert(controller.effects_layer.get_parent() == controller.gameplay_ui.reward_foreground_host and controller.gameplay_ui.reward_foreground_host.z_index > controller.gameplay_ui.hud_canvas.z_index, "Collection gems and coins must travel in front of live gems and HUD boxes")
-	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION * (GameConfig.TARGET_COLLECTION_FADE_START - 0.06))
+	var collection_base_scale: Vector2 = controller.target_collection.base_scale
+	var expected_collection_diameter: float = physics_radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE[result.level])
+	_assert(is_equal_approx(collection_base_scale.x * proxy.texture.get_size().x, expected_collection_diameter) and is_equal_approx(collection_base_scale.y * proxy.texture.get_size().y, expected_collection_diameter), "Target proxy must inherit the exact live-gem body mapping without shrinking or changing shape")
+	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION * 0.16)
+	_assert(absf(proxy.scale.x / collection_base_scale.x - GameConfig.TARGET_COLLECTION_POP_SCALE) <= 0.01 and GameConfig.TARGET_COLLECTION_POP_SCALE >= 1.16, "A qualified target gem must retain the reference-like enlarged collection beat")
+	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION * (GameConfig.TARGET_COLLECTION_FADE_START - 0.22))
 	_assert(is_equal_approx(float(controller.target_collection.opacity), 1.0) and is_equal_approx(proxy.modulate.a, 1.0), "Collection gem must remain fully visible through the early travel path")
 	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION * 0.10)
 	_assert(float(controller.target_collection.opacity) < 1.0 and float(controller.target_collection.opacity) > 0.15, "Collection fade must begin late and remain readable before arrival")

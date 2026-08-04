@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Reference Scale Contrast v1](REFERENCE_SCALE_CONTRAST_V1_REPORT.md) - direct reference-frame scale findings, stronger shared L1-L8 visual/physics ladder, non-physical enlarged target collection, silhouette-continuity fix, tests, renders, and delivery provenance.
+
 - [Merge Animation Revert + L1-L8 Size Calibration v1](MERGE_ANIMATION_SIZE_CALIBRATION_V1_REPORT.md) - rejected splash removal, restored prior rigid ring/ray merge beat, shared moderate L1-L8 visual/physics sizes, regression evidence, and delivery provenance.
 
 - [Reference Animation + Supplied Audio Polish v4](REFERENCE_ANIMATION_AUDIO_POLISH_V4_REPORT.md) - frame-matched rigid merge splash/pop, four target-only foreground coins, rewarded centered target handoff, supplied separated audio, regression/render evidence, and delivery provenance.

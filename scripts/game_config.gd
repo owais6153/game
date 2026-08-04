@@ -29,14 +29,14 @@ const LAUNCH_Y := 1144.0
 ## artwork, rails, bounds, spawn, drag, danger, and depth interpolation.
 static var portrait_bottom_offset_y := 0.0
 static var viewport_center_offset_x := 0.0
-## Largest active gameplay radius. L1-L8 use a moderate two-pixel progression
-## so every upgrade is visibly larger without either endpoint dominating.
-const PIECE_RADIUS := 50.0
+## Largest active gameplay radius. L1-L8 use a moderate three-pixel progression
+## so the reference-like tier contrast remains readable without oversized ends.
+const PIECE_RADIUS := 51.0
 ## One authoritative radius drives both the alpha-trimmed visual body and its
 ## simple circle collider. Gold rims, glows, shadows and transparent texture
 ## padding never add collision size. L9-L18 remain outside the current level
 ## and retain their earlier 42px fallback. Values stay fixed for a lifetime.
-const GEM_COLLISION_RADIUS := {1: 36.0, 2: 38.0, 3: 40.0, 4: 42.0, 5: 44.0, 6: 46.0, 7: 48.0, 8: 50.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0}
+const GEM_COLLISION_RADIUS := {1: 30.0, 2: 33.0, 3: 36.0, 4: 39.0, 5: 42.0, 6: 45.0, 7: 48.0, 8: 51.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0}
 ## Runtime visual-body expansion maps the opaque gem body to the stable
 ## simple collider; it is a visual calibration only.
 ## Body-only textures are trimmed independently from their former baked
@@ -112,7 +112,7 @@ const COIN_EFFECT_LIMIT := 32
 const COIN_HUD_FALLBACK_DESTINATION := Vector2(78.0, 244.0)
 const TARGET_COLLECTION_DURATION := 0.62
 const TARGET_COLLECTION_FADE_START := 0.90
-const TARGET_COLLECTION_POP_SCALE := 1.10
+const TARGET_COLLECTION_POP_SCALE := 1.18
 const TARGET_PANEL_PULSE_DURATION := 0.94
 const TARGET_SWAP_START_DELAY := 0.78
 const TARGET_SWAP_OUTGOING_FADE_DURATION := 0.24

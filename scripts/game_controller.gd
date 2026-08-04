@@ -587,13 +587,16 @@ func _begin_target_collection(result_id: int, presentation: Dictionary = {}) -> 
 	sprite.texture = entry.texture
 	sprite.position = start
 	var diameter := GameConfig.gem_collision_radius(level) * GameConfig.gem_perspective_scale_at(start.y) * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(level, 1.0))
-	var uniform_scale := diameter / maxf(sprite.texture.get_size().x, sprite.texture.get_size().y)
-	sprite.scale = Vector2.ONE * uniform_scale
+	# Start from the exact live-gem axis mapping so collection never shrinks or
+	# changes the result silhouette. Reward emphasis then multiplies both axes
+	# uniformly and remains presentation-only.
+	var body_scale := Vector2(diameter / sprite.texture.get_size().x, diameter / sprite.texture.get_size().y)
+	sprite.scale = body_scale
 	# Godot canvas z is bounded; this stays above the live gem layer (10)
 	# without exceeding the engine's maximum canvas z range.
 	sprite.z_index = 2
 	(effects_layer if effects_layer != null else gem_sprite_layer).add_child(sprite)
-	target_collection = {"result_id": result_id, "level": level, "sprite": sprite, "start": start, "elapsed": 0.0, "base_scale": Vector2.ONE * uniform_scale, "opacity": 1.0}
+	target_collection = {"result_id": result_id, "level": level, "sprite": sprite, "start": start, "elapsed": 0.0, "base_scale": body_scale, "opacity": 1.0}
 	_trace_presentation_event("collection_animation_started", result_id)
 
 func _update_target_collection(delta: float) -> void:

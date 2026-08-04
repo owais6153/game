@@ -1,5 +1,15 @@
 # AI Knowledge Base
 
+## Reference scale contrast guardrails v1
+
+- Preserve active L1-L8 radii exactly as `30/33/36/39/42/45/48/51 px`; endpoint contrast is `1.70x`. The same centralized value must continue to drive live visual diameter and circular physics after perspective scaling.
+- Do not make target status enlarge a live collider. A qualifying result follows the normal `1.20x` merge pop, leaves `pieces`/danger/merge occupancy, then its visual-only collection proxy uses `1.18x` uniform emphasis.
+- The collection proxy must start from the exact live gem axis mapping (`diameter / texture.width`, `diameter / texture.height`). Do not return to a single `diameter / max_dimension` scalar, which made narrow textures shrink and change silhouette during collection.
+- Keep the TARGET HUD slot at 80 x 80 and aspect-preserving. It is already larger than a normal board presentation and has no physics authority.
+- Any future scale adjustment must compare normal same-tier art against the target-result/collection art, preserve the no-body-during-flight rule, and run the exact size, contact, containment, target-proxy, Level 1, UI, and motion suites.
+
+This section supersedes the `36/38/40/42/44/46/48/50` size ladder below.
+
 ## Merge animation and active-tier size guardrails v1
 
 - The v4 irregular color splash was explicitly rejected. Preserve the restored pre-v4 merge beat: `0.50 s` total, `0.10 s` pull, uniform `0.62 -> 1.20 -> 1.0` pop with damped settle, flash/ring/eight rays, and major `0.56 s` / `1.16x` emphasis. Do not reintroduce the filled splash or droplets.

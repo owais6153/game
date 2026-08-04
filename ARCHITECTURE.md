@@ -1,5 +1,13 @@
 # Architecture
 
+## Reference scale contrast and target-proxy boundary v1
+
+- `GameConfig.GEM_COLLISION_RADIUS` remains the sole live L1-L8 size authority, now `30/33/36/39/42/45/48/51 px`. `GemPiece.base_radius`, perspective-scaled live radius, `GemSpriteLayer` body diameter, pair contact, merge eligibility, rails, and launcher clamp consume that same geometry.
+- Target qualification never changes a live radius. `GameController._begin_target_collection()` first removes the confirmed target body, then creates a presentation-only proxy using the exact live-gem axis mapping: `diameter / texture.width` and `diameter / texture.height`.
+- `TARGET_COLLECTION_POP_SCALE = 1.18` multiplies both proxy axes uniformly. This makes the reward target visibly larger than an ordinary same-tier gem without changing its silhouette or allowing the enlarged presentation to occupy physics.
+- `GameplayHudLayer` retains its existing 80 x 80 aspect-preserving TARGET slot. HUD preview scale, proxy reward scale, and live physics size remain separate responsibilities.
+- This boundary supersedes the `36..50` ladder below. Merge animation, target/coin ownership, foreground layering, audio, controller event order, and simulation tuning are unchanged.
+
 ## Merge animation and active-tier geometry boundary v1
 
 - `GameConfig.GEM_COLLISION_RADIUS` is the sole L1-L8 size authority: `36/38/40/42/44/46/48/50 px`. `GemPiece.base_radius` initializes from it, `GemPiece.radius` applies the shared table-depth perspective scalar, and `GemSpriteLayer` derives the alpha-trimmed texture diameter from that same base radius. Rendering and physics cannot drift independently.
