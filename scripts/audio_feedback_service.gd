@@ -93,7 +93,7 @@ func _build_coin_stream(tone: Dictionary, seed: int, event_name: String) -> Audi
 		phase_c += TAU * base * 3.96 * sweep / GameConfig.AUDIO_SAMPLE_RATE
 		var body := sin(phase_a) * 0.58 + sin(phase_b + 0.24) * (0.22 + brightness * 0.08) + sin(phase_c + 0.51) * (0.08 + brightness * 0.07)
 		var strike := sin(float(frame + seed * 13) * 1.91) * brightness * exp(-normalized * 34.0) * 0.08
-		var sample := clampf((body + strike) * envelope * 0.43, -0.88, 0.88)
+		var sample := clampf((body + strike) * envelope * 0.47, -0.90, 0.90)
 		samples.encode_s16(frame * 2, int(round(sample * 32767.0)))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
@@ -124,7 +124,7 @@ func _build_crystal_stream(tone: Dictionary, seed: int) -> AudioStreamWAV:
 		var body := sin(phase_a) * 0.58 + sin(phase_b) * (0.22 + brightness * 0.12) + sin(phase_c) * (0.07 + brightness * 0.11)
 		var deterministic_noise := sin(float(frame) * 1664525.0 + float(seed) * 1013904223.0)
 		var sparkle := deterministic_noise * brightness * exp(-normalized * 22.0) * 0.10
-		var sample := clampf((body + sparkle) * envelope * 0.40, -0.88, 0.88)
+		var sample := clampf((body + sparkle) * envelope * 0.45, -0.90, 0.90)
 		samples.encode_s16(frame * 2, int(round(sample * 32767.0)))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
@@ -149,22 +149,37 @@ func _sync_ambience_volume() -> void:
 	_ambience_player.volume_db = linear_to_db(GameConfig.AUDIO_AMBIENCE_VOLUME) if enabled else -80.0
 
 func _build_ambience_stream() -> AudioStreamWAV:
-	# A seamless, original six-second crystal/beach bed removes dead air without
-	# allocating audio resources during play. All carrier frequencies complete
-	# whole cycles across the loop, preventing a boundary click.
+	# Original six-second crystal-island loop: a soft bed, twelve bright mallet
+	# pulses at 120 BPM, off-beat glass answers, and restrained sand-shaker ticks.
+	# The rhythmic feedback removes the old low-hum dead air without copying any
+	# source recording or allocating audio resources during play.
 	var duration := GameConfig.AUDIO_AMBIENCE_DURATION
 	var frames := int(GameConfig.AUDIO_SAMPLE_RATE * duration)
+	var lead_notes := PackedFloat32Array([330.0, 392.0, 440.0, 523.25, 440.0, 392.0, 349.23, 440.0, 493.88, 587.33, 493.88, 392.0])
 	var samples := PackedByteArray()
 	samples.resize(frames * 2)
 	for frame in range(frames):
 		var t := float(frame) / GameConfig.AUDIO_SAMPLE_RATE
 		var loop_phase := TAU * t / duration
-		var swell := 0.68 + sin(loop_phase - PI * 0.5) * 0.20
-		var low_wave := sin(TAU * 55.0 * t) * 0.20
-		var soft_wave := sin(TAU * 82.5 * t + 0.45) * 0.12
-		var crystal_air := sin(TAU * 165.0 * t + 1.10) * 0.045
-		var shimmer := sin(TAU * 330.0 * t + 0.30) * (0.012 + 0.010 * (0.5 + 0.5 * sin(loop_phase)))
-		var sample := clampf((low_wave + soft_wave + crystal_air + shimmer) * swell, -0.42, 0.42)
+		var swell := 0.70 + sin(loop_phase - PI * 0.5) * 0.16
+		var low_wave := sin(TAU * 55.0 * t) * 0.13
+		var soft_wave := sin(TAU * 82.5 * t + 0.45) * 0.075
+		var crystal_air := sin(TAU * 165.0 * t + 1.10) * 0.034
+		var beat_position := t * 2.0
+		var beat_index := posmod(int(floor(beat_position)), lead_notes.size())
+		var beat_phase := fposmod(beat_position, 1.0)
+		var mallet_envelope := minf(1.0, beat_phase * 38.0) * exp(-beat_phase * 7.4)
+		var lead_frequency := lead_notes[beat_index]
+		var mallet := (sin(TAU * lead_frequency * t) * 0.20 + sin(TAU * lead_frequency * 2.01 * t + 0.30) * 0.075) * mallet_envelope
+		var offbeat_phase := fposmod(beat_position + 0.5, 1.0)
+		var answer_envelope := minf(1.0, offbeat_phase * 45.0) * exp(-offbeat_phase * 10.0)
+		var answer := sin(TAU * lead_frequency * 1.50 * t + 0.65) * answer_envelope * 0.055
+		var shaker_phase := fposmod(t * 4.0, 1.0)
+		var shaker_envelope := minf(1.0, shaker_phase * 70.0) * exp(-shaker_phase * 18.0)
+		var shaker_noise := sin(float(frame) * 12347.31 + float(beat_index) * 97.0)
+		var shaker := shaker_noise * shaker_envelope * 0.025
+		var shimmer := sin(TAU * 330.0 * t + 0.30) * (0.010 + 0.009 * (0.5 + 0.5 * sin(loop_phase)))
+		var sample := clampf((low_wave + soft_wave + crystal_air + shimmer) * swell + mallet + answer + shaker, -0.64, 0.64)
 		samples.encode_s16(frame * 2, int(round(sample * 32767.0)))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS

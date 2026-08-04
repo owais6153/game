@@ -1,5 +1,9 @@
 # Milestone reports
 
+- [Production Gameplay Parity Final v1](PRODUCTION_GAMEPLAY_PARITY_FINAL_V1_REPORT.md) - final L5/L7/L8 Level 1 loop, rail-contained edge guide, lively bounded pile response, directional contact/merge animation, supplied-art multi-lane coin rewards, stronger original mix, real render evidence, regression/profile proof, and APK provenance.
+
+- [Production Gameplay Parity Final v1](PRODUCTION_GAMEPLAY_PARITY_FINAL_V1_REPORT.md) - final L5/L7/L8 Level 1 loop, rail-contained edge guide, lively bounded pile response, directional contact/merge animation, supplied-art multi-lane coin rewards, stronger original mix, real render evidence, regression/profile proof, and APK provenance.
+
 - [Reference Gameplay + Coin Parity v1](REFERENCE_GAMEPLAY_COIN_PARITY_V1_REPORT.md) - reference-paced aim/merge/contact presentation, exact arrival-counted coin rewards, original coin audio/haptics, four ANGLE captures, full regression evidence, and verified APK.
 
 - [Physics + Reward Feedback v1](PHYSICS_REWARD_FEEDBACK_V1_REPORT.md) - video-guided collision redirection and energy tuning, nonzero L6-L8 rewards, bounded major-merge feedback, audible procedural mix/ambience, full regression evidence, and verified APK.

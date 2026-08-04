@@ -208,7 +208,7 @@ func _test_motion_regression_guards() -> void:
 	# Calibrated collider mapping is preserved while the dedicated
 	# physics/reward-feedback milestone updates only centralized feel values.
 	_assert(GameConfig.GEM_COLLISION_RADIUS[1] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[3] == 33.0 and GameConfig.GEM_COLLISION_RADIUS[8] == 32.0, "Reordered tiers must retain their asset-calibrated collider values")
-	_assert(is_equal_approx(GameConfig.LAUNCH_SPEED, 1160.0) and is_equal_approx(GameConfig.VELOCITY_DAMPING_PER_SECOND, 210.0) and is_equal_approx(GameConfig.COLLISION_RESTITUTION, 0.22) and is_equal_approx(GameConfig.COLLISION_TANGENTIAL_FRICTION, 0.10), "Approved lively-contact motion constants must remain centralized")
+	_assert(is_equal_approx(GameConfig.LAUNCH_SPEED, 1160.0) and is_equal_approx(GameConfig.VELOCITY_DAMPING_PER_SECOND, 185.0) and is_equal_approx(GameConfig.COLLISION_RESTITUTION, 0.30) and is_equal_approx(GameConfig.COLLISION_TANGENTIAL_FRICTION, 0.07), "Approved reference-parity motion constants must remain centralized")
 	_assert(GameConfig.merge_coin_reward_for_result_level(6) == 350 and GameConfig.merge_coin_reward_for_result_level(7) == 800 and GameConfig.merge_coin_reward_for_result_level(8) == 1800, "Active Level 1 high-tier results must retain escalating coin rewards")
 	var flight_piece := _piece(99, 7, Vector2(360.0, 700.0))
 	flight_piece.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)

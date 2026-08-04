@@ -449,7 +449,8 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		_trace_presentation_event("merge_confirmed", result_id)
 		_trace_presentation_event("result_created", result_id)
 		if gem_sprite_layer != null and result_id >= 0:
-			gem_sprite_layer.set_presentation_scale(result_id, GameConfig.MERGE_RESULT_START_SCALE)
+			var initial_transform := _merge_result_visual_transform(0.0, result_id)
+			gem_sprite_layer.set_presentation_transform(result_id, initial_transform.scale, initial_transform.rotation, initial_transform.offset, true)
 		if effects_layer != null:
 			var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
 			effects_layer.begin_merge_feedback(merge_event, awarded_coins, coin_destination)
@@ -534,7 +535,8 @@ func _update_merge_presentations(delta: float) -> void:
 		presentation.elapsed += delta
 		var result_id := int(presentation.get("result_id", -1))
 		if float(presentation.elapsed) >= 0.0 and result_id >= 0 and gem_sprite_layer != null:
-			gem_sprite_layer.set_presentation_scale(result_id, _merge_result_visual_scale(float(presentation.elapsed)))
+			var result_transform := _merge_result_visual_transform(float(presentation.elapsed), result_id)
+			gem_sprite_layer.set_presentation_transform(result_id, result_transform.scale, result_transform.rotation, result_transform.offset, true)
 		var duration_complete := float(presentation.elapsed) >= GameConfig.MERGE_PRESENTATION_DURATION
 		var waits_for_visible_frame := result_id >= 0 and not bool(presentation.get("first_frame_visible", false))
 		if duration_complete and not waits_for_visible_frame:
@@ -705,15 +707,29 @@ func _refresh_hud() -> void:
 		gameplay_ui.update_snapshot(hud_snapshot())
 
 func _merge_result_visual_scale(elapsed: float) -> float:
+	return float(_merge_result_visual_transform(elapsed, 0).uniform_scale)
+
+func _merge_result_visual_transform(elapsed: float, result_id: int) -> Dictionary:
+	var uniform_scale := 1.0
 	if elapsed <= 0.0:
-		return GameConfig.MERGE_RESULT_START_SCALE
-	if elapsed <= GameConfig.MERGE_RESULT_POP_DURATION:
+		uniform_scale = GameConfig.MERGE_RESULT_START_SCALE
+	elif elapsed <= GameConfig.MERGE_RESULT_POP_DURATION:
 		var pop_t := clampf(elapsed / GameConfig.MERGE_RESULT_POP_DURATION, 0.0, 1.0)
 		var pop_eased := 1.0 - pow(1.0 - pop_t, 3.0)
-		return lerpf(GameConfig.MERGE_RESULT_START_SCALE, GameConfig.MERGE_RESULT_POP_SCALE, pop_eased)
-	var settle_duration := maxf(0.001, GameConfig.MERGE_PRESENTATION_DURATION - GameConfig.MERGE_RESULT_POP_DURATION)
-	var settle_t := smoothstep(0.0, 1.0, clampf((elapsed - GameConfig.MERGE_RESULT_POP_DURATION) / settle_duration, 0.0, 1.0))
-	return lerpf(GameConfig.MERGE_RESULT_POP_SCALE, 1.0, settle_t)
+		uniform_scale = lerpf(GameConfig.MERGE_RESULT_START_SCALE, GameConfig.MERGE_RESULT_POP_SCALE, pop_eased)
+	else:
+		var settle_duration := maxf(0.001, GameConfig.MERGE_PRESENTATION_DURATION - GameConfig.MERGE_RESULT_POP_DURATION)
+		var settle_t := clampf((elapsed - GameConfig.MERGE_RESULT_POP_DURATION) / settle_duration, 0.0, 1.0)
+		# A damped settle retains the reference's readable rubbery rebound while
+		# ending exactly on the untouched simulation transform.
+		uniform_scale = 1.0 + (GameConfig.MERGE_RESULT_POP_SCALE - 1.0) * exp(-4.2 * settle_t) * cos(settle_t * PI * 1.65)
+	var t := clampf(elapsed / GameConfig.MERGE_PRESENTATION_DURATION, 0.0, 1.0)
+	var stretch := sin(PI * clampf(elapsed / maxf(0.001, GameConfig.MERGE_RESULT_POP_DURATION), 0.0, 1.0))
+	var scale := Vector2(uniform_scale * (1.0 - 0.055 * stretch), uniform_scale * (1.0 + 0.075 * stretch))
+	var lift := -GameConfig.MERGE_RESULT_LIFT * sin(PI * t)
+	var direction := -1.0 if posmod(result_id, 2) == 0 else 1.0
+	var rotation := direction * GameConfig.MERGE_RESULT_TILT_RADIANS * sin(PI * t) * (1.0 - t * 0.35)
+	return {"scale": scale, "uniform_scale": uniform_scale, "offset": Vector2(0.0, lift), "rotation": rotation}
 
 func _update_piece_visual_feedbacks(delta: float) -> void:
 	if gem_sprite_layer == null or piece_visual_feedbacks.is_empty():
@@ -738,13 +754,15 @@ func _update_piece_visual_feedbacks(delta: float) -> void:
 		else:
 			gem_sprite_layer.set_presentation_scale(int(piece_id), scale)
 
-func _begin_piece_impact_visual(piece_id: int, strength: float) -> void:
+func _begin_piece_impact_visual(piece_id: int, strength: float, normal: Vector2 = Vector2.RIGHT) -> void:
 	if piece_id < 0 or gem_sprite_layer == null:
 		return
 	var intensity := clampf(strength / GameConfig.LAUNCH_SPEED, 0.25, 1.0)
-	piece_impact_feedbacks[piece_id] = {"elapsed": 0.0, "duration": GameConfig.IMPACT_VISUAL_DURATION, "intensity": intensity}
+	var contact_normal := normal.normalized() if not normal.is_zero_approx() else Vector2.RIGHT
+	piece_impact_feedbacks[piece_id] = {"elapsed": 0.0, "duration": GameConfig.IMPACT_VISUAL_DURATION, "intensity": intensity, "normal": contact_normal}
 	var squash := lerpf(0.98, GameConfig.IMPACT_VISUAL_MIN_SCALE, intensity)
-	gem_sprite_layer.set_impact_scale(piece_id, squash)
+	var cross := lerpf(1.02, GameConfig.IMPACT_VISUAL_CROSS_SCALE, intensity)
+	gem_sprite_layer.set_impact_transform(piece_id, Vector2(squash, cross), contact_normal)
 
 func _update_piece_impact_feedbacks(delta: float) -> void:
 	if gem_sprite_layer == null or piece_impact_feedbacks.is_empty():
@@ -756,12 +774,21 @@ func _update_piece_impact_feedbacks(delta: float) -> void:
 		var intensity := float(feedback.get("intensity", 1.0))
 		var squash := lerpf(0.98, GameConfig.IMPACT_VISUAL_MIN_SCALE, intensity)
 		var overshoot := lerpf(1.012, GameConfig.IMPACT_VISUAL_OVERSHOOT_SCALE, intensity)
-		var scale := lerpf(squash, overshoot, 1.0 - pow(1.0 - t / 0.42, 3.0)) if t <= 0.42 else lerpf(overshoot, 1.0, smoothstep(0.42, 1.0, t))
+		var cross := lerpf(1.02, GameConfig.IMPACT_VISUAL_CROSS_SCALE, intensity)
+		var axis_scale: Vector2
+		if t <= 0.40:
+			var rebound := 1.0 - pow(1.0 - t / 0.40, 3.0)
+			axis_scale = Vector2(lerpf(squash, overshoot, rebound), lerpf(cross, 0.95, rebound))
+		else:
+			var settle := smoothstep(0.40, 1.0, t)
+			axis_scale = Vector2(lerpf(overshoot, 1.0, settle), lerpf(0.95, 1.0, settle))
+		var normal: Vector2 = feedback.get("normal", Vector2.RIGHT)
+		var kick := normal * GameConfig.IMPACT_VISUAL_KICK_DISTANCE * intensity * sin(PI * t) * (1.0 - t * 0.45)
 		if t >= 1.0:
 			gem_sprite_layer.clear_impact_scale(int(piece_id))
 			piece_impact_feedbacks.erase(piece_id)
 		else:
-			gem_sprite_layer.set_impact_scale(int(piece_id), scale)
+			gem_sprite_layer.set_impact_transform(int(piece_id), axis_scale, normal, kick)
 
 func _has_live_piece(piece_id: int) -> bool:
 	for piece in pieces:
@@ -826,13 +853,14 @@ func _route_collision_feedback() -> void:
 			debug_contact_points.append({"position": impact.position, "age": 0.0})
 		var kind := String(impact.get("kind", "gem"))
 		var strength := float(impact.get("strength", 0.0))
+		var normal: Vector2 = impact.get("normal", Vector2.RIGHT)
 		if kind == "wall":
 			if strength >= GameConfig.WALL_CONTACT_SOUND_THRESHOLD:
-				_begin_piece_impact_visual(int(impact.get("piece_id", -1)), strength)
+				_begin_piece_impact_visual(int(impact.get("piece_id", -1)), strength, normal)
 				audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75))
 		elif strength >= GameConfig.GEM_CONTACT_SOUND_THRESHOLD:
-			_begin_piece_impact_visual(int(impact.get("first_id", -1)), strength)
-			_begin_piece_impact_visual(int(impact.get("second_id", -1)), strength)
+			_begin_piece_impact_visual(int(impact.get("first_id", -1)), strength, -normal)
+			_begin_piece_impact_visual(int(impact.get("second_id", -1)), strength, normal)
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:
@@ -857,8 +885,11 @@ func _draw_aim_guide() -> void:
 	var active := get_active_piece()
 	if active == null or not active.is_settled():
 		return
-	var start := Vector2(active.position.x, GameConfig.board_top() + 18.0)
+	var lane_top := GameConfig.vertical_lane_top_y(active.position.x, 5.0)
+	var start := Vector2(active.position.x, lane_top + 8.0)
 	var finish := Vector2(active.position.x, active.position.y - active.radius - 8.0)
+	if start.y >= finish.y - 8.0:
+		return
 	var color := Color(1.0, 1.0, 1.0, GameConfig.AIM_GUIDE_ALPHA)
 	draw_line(start, finish, color, GameConfig.AIM_GUIDE_WIDTH, true)
 	draw_circle(start, 4.0, Color(1.0, 0.92, 0.54, GameConfig.AIM_GUIDE_ALPHA * 0.9))
@@ -935,6 +966,10 @@ func _draw_merge_presentation(presentation: Dictionary) -> void:
 		if result_texture == null:
 			return
 		var result_diameter := GameConfig.gem_collision_radius(result_level) * GameConfig.gem_perspective_scale_at(midpoint.y) * 2.0
-		var result_scale := result_diameter / maxf(result_texture.get_size().x, result_texture.get_size().y) * _merge_result_visual_scale(float(presentation.elapsed))
-		var result_size := result_texture.get_size() * result_scale
-		draw_texture_rect(result_texture, Rect2(midpoint - result_size * 0.5, result_size), false)
+		var result_transform := _merge_result_visual_transform(float(presentation.elapsed), result_id)
+		var base_scale := result_diameter / maxf(result_texture.get_size().x, result_texture.get_size().y)
+		var proxy_scale: Vector2 = result_transform.scale
+		var result_position: Vector2 = midpoint + result_transform.offset
+		draw_set_transform(result_position, float(result_transform.rotation), Vector2(base_scale * proxy_scale.x, base_scale * proxy_scale.y))
+		draw_texture_rect(result_texture, Rect2(-result_texture.get_size() * 0.5, result_texture.get_size()), false)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

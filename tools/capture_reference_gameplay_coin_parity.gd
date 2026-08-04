@@ -1,10 +1,10 @@
 extends SceneTree
 
-## Development-only deterministic evidence for the reference-paced reward pass.
-## It captures the ready aim guide and three phases of one confirmed major merge.
+## Development-only deterministic evidence for the final production-parity pass.
+## It captures the edge-lane guide and three phases of a confirmed major merge.
 const GameScene = preload("res://scenes/Game.tscn")
 const GemPieceType = preload("res://scripts/gem_piece.gd")
-const OUTPUT_DIR := "res://reports/reference-gameplay-parity-v1/final-screenshots/"
+const OUTPUT_DIR := "res://reports/production-gameplay-parity-final-v1/final-screenshots/"
 
 
 func _init() -> void:
@@ -16,7 +16,12 @@ func _run() -> void:
 	var fixture := await _new_fixture(Vector2i(720, 1600))
 	var controller = fixture.controller
 	await _settle()
-	await _capture(fixture.viewport, "01-ready-aim-guide.png")
+	var active: GemPiece = controller.get_active_piece()
+	active.position.x = GameConfig.table_right_at(active.position.y) - active.radius
+	controller._sync_gems_and_mark_visibility()
+	controller.queue_redraw()
+	await _settle(0.03)
+	await _capture(fixture.viewport, "01-contained-edge-aim-guide.png")
 
 	controller.coins = 400
 	controller._refresh_hud()
@@ -54,7 +59,7 @@ func _run() -> void:
 
 	fixture.viewport.queue_free()
 	await process_frame
-	print("REFERENCE_GAMEPLAY_COIN_PARITY_CAPTURE: PASS")
+	print("PRODUCTION_GAMEPLAY_PARITY_FINAL_CAPTURE: PASS")
 	quit(0)
 
 

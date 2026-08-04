@@ -62,11 +62,11 @@ func _test_catalog_identity() -> void:
 func _test_level_sequence() -> void:
 	var config := LevelConfigType.level_1()
 	var sequence: Array = config.target_sequence
-	_assert(sequence.size() == 2, "Level 1 must define exactly two sequential targets")
-	_assert(int(sequence[0].tier) == 7 and int(sequence[0].quantity) == 1 and int(sequence[1].tier) == 8 and int(sequence[1].quantity) == 1, "Level 1 must require exactly L7 then L8")
+	_assert(sequence.size() == 3, "Level 1 must define exactly three sequential targets")
+	_assert(int(sequence[0].tier) == 5 and int(sequence[0].quantity) == 1 and int(sequence[1].tier) == 7 and int(sequence[1].quantity) == 1 and int(sequence[2].tier) == 8 and int(sequence[2].quantity) == 1, "Level 1 must require exactly L5 then L7 then L8")
 	_assert((config.spawnable_tiers as Array).size() == 4 and (config.launcher_sequence as Array).size() >= 8, "Level 1 needs controlled low-tier variety rather than a straight-line L1/L1 loop")
 	_assert(not config.has("shot_limit"), "Level 1 must not define a shot limit")
-	_assert(int(config.active_tier_max) == 8, "Level 1 must permit L7 then L8 objectives without direct high-tier launches")
+	_assert(int(config.active_tier_max) == 8, "Level 1 must permit L5, L7, and L8 objectives without direct high-tier launches")
 
 func _test_unlimited_launcher() -> void:
 	var controller = GameScene.instantiate()
@@ -178,9 +178,9 @@ func _test_target_collection_during_shot_preserves_unlimited_flow() -> void:
 	controller._ready()
 	var fired = controller.get_active_piece()
 	controller.launch_active_piece()
-	var target_result := _piece(9100, 7, Vector2(360.0, 720.0))
+	var target_result := _piece(9100, 5, Vector2(360.0, 720.0))
 	controller.pieces.append(target_result)
-	var events: Array[Dictionary] = [{"level": 7, "depth": 0, "result_id": 9100}]
+	var events: Array[Dictionary] = [{"level": 5, "depth": 0, "result_id": 9100}]
 	controller._apply_confirmed_merge_events(events)
 	controller._sync_gems_and_mark_visibility()
 	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION + 0.01)
@@ -249,19 +249,21 @@ func _test_sequential_target_completion() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
 	var waiting_launcher = controller.get_active_piece()
-	_complete_target(controller, 7, 1001)
+	_complete_target(controller, 5, 1001)
 	_assert_event_order(controller, 1001, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed"])
-	_assert(controller.target_index == 1 and controller.target_progress == 0 and not controller.win_qualified, "Collected L7 must advance to the L8 target without victory")
+	_assert(controller.target_index == 1 and controller.target_progress == 0 and not controller.win_qualified, "Collected L5 must advance to the L7 target without victory")
 	_assert(controller.get_active_piece() == waiting_launcher and controller.lifecycle_name() == "READY_TO_AIM", "First target collection must preserve the waiting unlimited launcher")
-	_complete_target(controller, 8, 1002)
-	_assert(controller.target_index == 2 and controller.win_qualified and not controller.win_presented, "Collected L8 must qualify only after collection animation")
+	_complete_target(controller, 7, 1002)
+	_assert(controller.target_index == 2 and not controller.win_qualified, "Collected L7 must advance to the final L8 target without victory")
+	_complete_target(controller, 8, 1003)
+	_assert(controller.target_index == 3 and controller.win_qualified and not controller.win_presented, "Collected L8 must qualify only after collection animation")
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(not controller.win_presented, "Win overlay must not cover the visible final coin flight")
 	var coin_finish := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
 	controller.effects_layer.update_effects(coin_finish)
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(controller.win_presented, "Win overlay must follow final coin collection completion")
-	_assert_event_order(controller, 1002, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed", "win_overlay_started"])
+	_assert_event_order(controller, 1003, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed", "win_overlay_started"])
 	controller.restart()
 	_assert(controller.target_index == 0 and controller.target_progress == 0 and not controller.collection_in_progress, "Restart must restore target sequence safely")
 	controller.queue_free()

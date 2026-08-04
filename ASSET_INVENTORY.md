@@ -1,5 +1,21 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Production gameplay parity coin v1
+
+| Purpose | Preserved supplied source | Active runtime asset | Audit |
+| --- | --- | --- | --- |
+| HUD and animated reward coin | `assets/buttons/ChatGPT Image Aug 4, 2026, 07_10_27 AM.png` (1024 x 1536 ARGB) | `assets/runtime/effects/coin_reward.png` (256 x 256 ARGB) | Alpha-visible bounds measured as source x `178..846`, y `382..1022`; square crop x `130`, y `320`, side `765`, then high-quality bicubic resize. Original is untouched. |
+
+`AssetCatalog.COIN_REWARD` is the only runtime mapping. `CoinIcon` and `GameplayEffectsLayer` share `CoinVisuals`; neither artwork nor alpha bounds affect currency, collision geometry, merge eligibility, or table layout. Evidence PNGs under `reports/production-gameplay-parity-final-v1/` are development-only and excluded from Android export.
+
+## Production gameplay parity coin v1
+
+| Purpose | Preserved supplied source | Active runtime asset | Audit |
+| --- | --- | --- | --- |
+| HUD and animated reward coin | `assets/buttons/ChatGPT Image Aug 4, 2026, 07_10_27 AM.png` (1024 x 1536 ARGB) | `assets/runtime/effects/coin_reward.png` (256 x 256 ARGB) | Alpha-visible bounds measured as source x `178..846`, y `382..1022`; square crop x `130`, y `320`, side `765`, then high-quality bicubic resize. Original is untouched. |
+
+`AssetCatalog.COIN_REWARD` is the only runtime mapping. `CoinIcon` and `GameplayEffectsLayer` share `CoinVisuals`; neither artwork nor alpha bounds affect currency, collision geometry, merge eligibility, or table layout. Evidence PNGs under `reports/production-gameplay-parity-final-v1/` are development-only and excluded from Android export.
+
 ## Production UI polish v4
 
 No production raster asset was added, regenerated, or destructively modified. Source originals under `assets/gems/` remain untouched. Table sprites and all dynamic UI previews continue to resolve through `AssetCatalog.GEM_TIER_TEXTURES`, whose calibrated runtime textures are non-destructive alpha-trimmed derivatives of those originals.

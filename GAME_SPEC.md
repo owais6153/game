@@ -2,6 +2,18 @@
 
 ## Scope
 
+## Production gameplay parity final v1
+
+- Level 1 uses the existing L1-L4 mixed unlimited launcher and exactly three sequential confirmed-result objectives: one L5, then one L7, then one L8. Collection animation advances each objective; only the final L8 qualifies victory.
+- Launch speed remains `1160 px/s`. Reference-feel motion uses centralized delta-based damping `185`, side/top/bottom restitution `0.24/0.22/0.12`, equal-mass piece restitution `0.30`, approach-only tangential friction `0.07`, merge momentum transfer `0.62`, and a `420 px/s` merge-result cap. Rails, radii, contact epsilon, merge eligibility, danger rules, and launcher lifecycle are unchanged.
+- The ready aim guide computes its first visible Y from the same sloped-rail interpolation as containment. Its line and start dot stay inside the table at center and legal edge lanes; it retains no input, raycast, trajectory, or simulation authority.
+- Merge presentation lasts `0.68 s`: source ghosts pull for `0.12 s`; the result lifts up to `18 px`, tilts, stretches, grows from `0.52` through a `1.26` overshoot, and dampens exactly back to the live physics root. Confirmed impacts squash along their contact normal for `0.22 s`. All transforms stay on presentation children.
+- Confirmed merge rewards remain exact run COINS. Each reward creates 10 coins normally or 14 at L6+, using the supplied glossy coin through a 256 px runtime derivative. Coins pop as a varied upward fan, depart in a deterministic permuted order across four curved lanes, pass left of the target, and arrive at the live HUD icon. The visible counter advances only on arrival and reconciles to the authoritative integer.
+- Audio remains original and cached: 18 one-shots plus one six-second loop. The production mix uses a rhythmic crystal-island ambience bed and clearer launch/contact/merge/target/coin/result cues behind the existing cooldown, concurrency, sound-toggle, and haptic-service boundaries.
+- Final victory waits for the last visible coin, the existing hold, and exactly one result overlay. Restart clears targets, currency, effects, contact animation, danger state, and launcher state to one ready piece.
+
+This section supersedes the historical reference-coin and physics-feedback values recorded below.
+
 ## Reference-paced coin gameplay feedback v1
 
 - The player's run reward is presented as **COINS**, not score. Confirmed merge events remain the sole currency source, use the same exact L2-L8 reward integers and chain multiplier, and are guarded once per result ID. The controller's legacy `score` property is only a compatibility alias for `coins`.

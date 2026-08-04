@@ -43,6 +43,7 @@ func _run() -> void:
 	_test_asset_mapping_and_clean_diamond()
 	_test_table_layout_physics_alignment()
 	_test_physical_rail_geometry()
+	_test_aim_guide_contained_by_sloped_rails()
 	_test_perspective_view_presentation()
 	_test_visible_collision_calibration()
 	_test_calibrated_wall_contacts()
@@ -283,9 +284,10 @@ func _test_score_and_chain_runtime_path() -> void:
 func _test_win_stops_spawning() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
-	_complete_current_target(controller, 7, 300)
-	_complete_current_target(controller, 8, 301)
-	_assert(controller.won, "Collecting the sequential L7 then L8 targets must qualify win exactly once")
+	_complete_current_target(controller, 5, 300)
+	_complete_current_target(controller, 7, 301)
+	_complete_current_target(controller, 8, 302)
+	_assert(controller.won, "Collecting the sequential L5, L7, then L8 targets must qualify win exactly once")
 	_assert(controller.win_qualified and not controller.win_presented, "Final L8 collection must qualify the win before its overlay is presented")
 	var count: int = controller.pieces.size()
 	var reward_frames := ceili((GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + GameConfig.WIN_PRESENTATION_HOLD + 0.2) * 60.0)
@@ -300,10 +302,11 @@ func _test_win_visual_sequence_and_overlay_isolation() -> void:
 	controller.pieces.append(witness)
 	controller.gem_sprite_layer.sync_gems(controller.pieces)
 	var witness_sprite: Sprite2D = controller.gem_sprite_layer._sprites.get(witness.id)
-	_complete_current_target(controller, 7, 310)
-	_complete_current_target(controller, 8, 311)
+	_complete_current_target(controller, 5, 310)
+	_complete_current_target(controller, 7, 311)
+	_complete_current_target(controller, 8, 312)
 	var expected := ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed"]
-	_assert(controller.presentation_events_for_result(311) == expected, "Final L8 target must preserve the exact pre-overlay visual and cleanup order")
+	_assert(controller.presentation_events_for_result(312) == expected, "Final L8 target must preserve the exact pre-overlay visual and cleanup order")
 	_assert(not controller.win_presented, "Win overlay must wait for final collection plus celebration hold")
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(not controller.win_presented, "Win overlay must not cover the final coin flight")
@@ -311,7 +314,7 @@ func _test_win_visual_sequence_and_overlay_isolation() -> void:
 	controller.effects_layer.update_effects(coin_finish)
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(controller.win_presented and controller.result_overlay.visible_result, "Win overlay must present only after final collection and celebration hold")
-	_assert(controller.presentation_events_for_result(311) == expected + ["win_overlay_started"], "Win trace must append one overlay start after final target confirmation")
+	_assert(controller.presentation_events_for_result(312) == expected + ["win_overlay_started"], "Win trace must append one overlay start after final target confirmation")
 	_assert(witness_sprite != null and witness_sprite.texture == AssetCatalogType.gem_texture(2) and witness_sprite.modulate == Color.WHITE, "Result backdrop must not change any surviving gem texture or modulation")
 
 func _complete_current_target(controller, level: int, result_id: int) -> void:
@@ -425,6 +428,7 @@ func _test_merge_momentum_is_bounded_and_contained() -> void:
 	var result := merger.resolve([first, second], 100)
 	var upgraded: GemPiece = result.pieces[0]
 	_assert(upgraded.velocity.length() <= GameConfig.MERGE_MAX_SPAWN_SPEED + 0.01, "Upgraded-gem momentum must remain bounded")
+	_assert(upgraded.velocity.length() >= 350.0, "Upgraded gem must retain enough bounded momentum to visibly rearrange a crowded pile")
 	_assert(upgraded.position.x >= GameConfig.table_left_at(upgraded.position.y) + upgraded.radius and upgraded.position.x <= GameConfig.table_right_at(upgraded.position.y) - upgraded.radius and upgraded.position.y >= GameConfig.BOARD_TOP + upgraded.radius and upgraded.position.y <= GameConfig.BOARD_BOTTOM - upgraded.radius, "Upgraded gem must spawn inside table rail bounds")
 
 func _test_progression_hud_snapshot_and_queue() -> void:
@@ -432,7 +436,7 @@ func _test_progression_hud_snapshot_and_queue() -> void:
 	controller._ready()
 	var first: Dictionary = controller.hud_snapshot()
 	_assert(int(first.current_level) == 1 and int(first.next_level) == 2, "HUD previews must match the varied Level 1 opening queue")
-	_assert(int(first.target_level) == 7, "HUD target highlight must match Level 1 L7 target")
+	_assert(int(first.target_level) == 5, "HUD target highlight must match Level 1 L5 target")
 	controller.launch_active_piece()
 	for frame in range(200): controller._process(1.0 / 60.0)
 	var after_shot: Dictionary = controller.hud_snapshot()
@@ -467,6 +471,8 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	var audio_fixture = AudioFeedbackServiceType.new()
 	root.add_child(audio_fixture)
 	_assert(audio_fixture.ambience_is_ready(), "Original procedural ambience must be cached, looped, and ready at initialization")
+	_assert(audio_fixture.cached_stream_count() == GameConfig.AUDIO_TONES.size(), "Every feedback event must remain prebuilt in the bounded audio cache")
+	_assert(GameConfig.AUDIO_AMBIENCE_VOLUME >= 0.30 and float(GameConfig.AUDIO_TONES.merge_8.volume) >= 0.80 and float(GameConfig.AUDIO_TONES.coin_collect.volume) >= 0.55, "Production mix must keep ambience, high-tier merges, and coin arrivals clearly audible")
 	audio_fixture.queue_free()
 	var controller = GameScene.instantiate()
 	controller._ready()
@@ -484,10 +490,13 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD - 1.0, "first_id": impact_first.id, "second_id": impact_second.id})
 	controller._route_collision_feedback()
 	_assert(controller.audio_feedback.emitted_events.is_empty(), "Sub-threshold collision must not emit audio")
-	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0, "first_id": impact_first.id, "second_id": impact_second.id})
+	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0, "normal": Vector2.RIGHT, "first_id": impact_first.id, "second_id": impact_second.id})
 	controller._route_collision_feedback()
 	_assert(controller.piece_impact_feedbacks.has(impact_first.id) and controller.piece_impact_feedbacks.has(impact_second.id), "Confirmed gem contact must start presentation-only impact feedback on both bodies")
-	_assert(float(controller.gem_sprite_layer._impact_scales.get(impact_first.id, 1.0)) < 1.0 and float(controller.gem_sprite_layer._impact_scales.get(impact_second.id, 1.0)) < 1.0, "Impact feedback must begin with a visible child-only squash")
+	var first_impact_scale: Vector2 = controller.gem_sprite_layer._impact_scales.get(impact_first.id, Vector2.ONE)
+	var second_impact_scale: Vector2 = controller.gem_sprite_layer._impact_scales.get(impact_second.id, Vector2.ONE)
+	_assert(first_impact_scale.x < 1.0 and first_impact_scale.y > 1.0 and second_impact_scale.x < 1.0 and second_impact_scale.y > 1.0, "Impact feedback must begin with a directional child-only squash and cross-axis stretch")
+	_assert(controller.gem_sprite_layer._impact_angles.has(impact_first.id) and controller.gem_sprite_layer._impact_axes.has(impact_first.id), "Directional squash must be aligned by the dedicated presentation-only impact axis")
 	controller.simulation._collision_impacts.append({"kind": "gem", "strength": GameConfig.GEM_CONTACT_SOUND_THRESHOLD + 100.0, "first_id": impact_first.id, "second_id": impact_second.id})
 	controller._route_collision_feedback()
 	_assert(_event_count(controller.audio_feedback.emitted_events, "gem_contact") == 1, "Gem contact audio must be throttled")
@@ -513,8 +522,9 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	var win_controller = GameScene.instantiate()
 	win_controller._ready()
 	win_controller.haptics_feedback.allow_platform_vibration = false
-	_complete_current_target(win_controller, 7, 700)
-	_complete_current_target(win_controller, 8, 701)
+	_complete_current_target(win_controller, 5, 700)
+	_complete_current_target(win_controller, 7, 701)
+	_complete_current_target(win_controller, 8, 702)
 	win_controller.audio_feedback.clear_trace()
 	win_controller.haptics_feedback.clear_trace()
 	win_controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
@@ -587,6 +597,22 @@ func _test_physical_rail_geometry() -> void:
 	_assert(not scene_source.contains("CollisionShape2D") and not scene_source.contains("StaticBody2D"), "No stale vertical or rectangular Godot rail collider may remain enabled")
 	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
 	_assert(controller_source.contains("GameConfig.table_left_at(board_top)") and controller_source.contains("GameConfig.table_right_at(board_bottom)"), "Debug overlay must read the exact same table interpolation as physical rails")
+
+func _test_aim_guide_contained_by_sloped_rails() -> void:
+	GameConfig.configure_viewport(GameConfig.VIEWPORT_SIZE)
+	var radius := GameConfig.gem_collision_radius(1)
+	var launch_y := GameConfig.launch_y()
+	var lanes := [
+		GameConfig.table_left_at(launch_y) + radius,
+		GameConfig.table_center_x(),
+		GameConfig.table_right_at(launch_y) - radius,
+	]
+	for x in lanes:
+		var start_y := GameConfig.vertical_lane_top_y(float(x), 5.0) + 8.0
+		_assert(float(x) >= GameConfig.table_left_at(start_y) + 5.0 and float(x) <= GameConfig.table_right_at(start_y) - 5.0, "Aim guide start must remain inside both sloped rails at lane x=%0.1f" % float(x))
+		_assert(start_y < launch_y - radius - 8.0, "Every legal launcher lane must retain a visible contained guide segment")
+	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
+	_assert(controller_source.contains("GameConfig.vertical_lane_top_y(active.position.x, 5.0)"), "Production aim guide must use the shared sloped-rail lane intersection")
 
 func _test_perspective_view_presentation() -> void:
 	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP), GameConfig.GEM_PERSPECTIVE_SCALE_BACK), "Back-table perspective scale must use the configured minimum")
@@ -665,7 +691,7 @@ func _test_collision_audio_uses_confirmed_contact() -> void:
 	second.position.x = first.position.x + first.radius + second.radius
 	simulation.step(no_contact, 0.0, merger)
 	var impacts := simulation.consume_collision_impacts()
-	_assert(impacts.any(func(impact: Dictionary): return String(impact.get("kind", "")) == "gem" and impact.has("position") and int(impact.get("first_id", -1)) == first.id and int(impact.get("second_id", -1)) == second.id), "Gem feedback telemetry must identify both bodies at the confirmed contact point")
+	_assert(impacts.any(func(impact: Dictionary): return String(impact.get("kind", "")) == "gem" and impact.has("position") and impact.has("normal") and int(impact.get("first_id", -1)) == first.id and int(impact.get("second_id", -1)) == second.id), "Gem feedback telemetry must identify both bodies and the contact normal at the confirmed contact point")
 
 func _test_shadow_presentation_is_collision_free() -> void:
 	var controller = GameScene.instantiate()

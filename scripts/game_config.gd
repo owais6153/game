@@ -67,26 +67,28 @@ const GEM_VISUAL_Z_TIE_STRIDE := 8
 # The default/range notes are the approved safe tuning envelope for this prototype.
 const DRAG_HIT_RADIUS_MULTIPLIER := 1.8 # default 1.8; safe 1.5–2.0
 const LAUNCH_SPEED := 1160.0 # approved parity range 1120–1200
-const VELOCITY_DAMPING_PER_SECOND := 210.0 # lively-contact range 190–230
+const VELOCITY_DAMPING_PER_SECOND := 185.0 # reference-parity range 175–205
 const SLEEP_SPEED := 9.0 # stable-settle range 8–11
-const SIDE_WALL_RESTITUTION := 0.20 # contained redirection range 0.16–0.24
-const TOP_WALL_RESTITUTION := 0.16 # visible but controlled rebound range 0.12–0.20
-const BOTTOM_WALL_RESTITUTION := 0.10 # containment-only range 0.08–0.12
+const SIDE_WALL_RESTITUTION := 0.24 # contained redirection range 0.20–0.28
+const TOP_WALL_RESTITUTION := 0.22 # visible but controlled rebound range 0.18–0.25
+const BOTTOM_WALL_RESTITUTION := 0.12 # containment-only range 0.10–0.14
 ## True coefficient of restitution used by the equal-mass impulse equation.
 ## This is intentionally a soft bounce: contact separates instead of retaining
 ## inward velocity, without turning the table into frictionless billiards.
-const COLLISION_RESTITUTION := 0.22 # controlled separating response range 0.18–0.28
-const COLLISION_TANGENTIAL_FRICTION := 0.10 # applied once per approaching impact; range 0.06–0.14
+const COLLISION_RESTITUTION := 0.30 # lively separating response range 0.26–0.34
+const COLLISION_TANGENTIAL_FRICTION := 0.07 # applied once per approaching impact; range 0.05–0.10
 const MAX_PIECE_SPEED := 1200.0 # containment guard; preserves natural launch/collision speed
 const CONTACT_EPSILON := 0.20
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.62 # reference-paced emergence; presentation only
-const MERGE_SOURCE_PULL_DURATION := 0.14
-const MERGE_RESULT_START_SCALE := 0.56
-const MERGE_RESULT_POP_SCALE := 1.20
-const MERGE_RESULT_POP_DURATION := 0.36
+const MERGE_PRESENTATION_DURATION := 0.68 # reference-paced emergence; presentation only
+const MERGE_SOURCE_PULL_DURATION := 0.12
+const MERGE_RESULT_START_SCALE := 0.52
+const MERGE_RESULT_POP_SCALE := 1.26
+const MERGE_RESULT_POP_DURATION := 0.30
+const MERGE_RESULT_LIFT := 18.0
+const MERGE_RESULT_TILT_RADIANS := 0.075
 const MERGE_PULSE_SCALE := 1.20
 const SCORE_POPUP_DURATION := 0.62
 const SCORE_POPUP_RISE := 36.0
@@ -100,28 +102,31 @@ const MAJOR_MERGE_SPARK_COUNT := 16
 ## then fly to the HUD in bounded staggered arcs while the visible count rises.
 const COIN_BURST_COUNT := 10
 const MAJOR_COIN_BURST_COUNT := 14
-const COIN_BURST_DURATION := 0.55
+const COIN_BURST_DURATION := 0.46
 const COIN_FLIGHT_DURATION := 1.18
-const MAJOR_COIN_FLIGHT_DURATION := 1.32
-const COIN_FLIGHT_STAGGER := 0.075
-const COIN_BURST_RADIUS := 72.0
-const MAJOR_COIN_BURST_RADIUS := 92.0
-const COIN_DRAW_RADIUS := 11.0
-const COIN_COUNTER_PULSE_DURATION := 0.18
+const MAJOR_COIN_FLIGHT_DURATION := 1.28
+const COIN_FLIGHT_STAGGER := 0.065
+const COIN_SPAWN_STAGGER := 0.018
+const COIN_BURST_RADIUS := 82.0
+const MAJOR_COIN_BURST_RADIUS := 106.0
+const COIN_DRAW_RADIUS := 15.0
+const COIN_COUNTER_PULSE_DURATION := 0.24
 const COIN_EFFECT_LIMIT := 56
 const COIN_HUD_FALLBACK_DESTINATION := Vector2(78.0, 244.0)
 const AIM_GUIDE_WIDTH := 2.0
 const AIM_GUIDE_ALPHA := 0.58
-const IMPACT_VISUAL_DURATION := 0.16
-const IMPACT_VISUAL_MIN_SCALE := 0.92
-const IMPACT_VISUAL_OVERSHOOT_SCALE := 1.045
+const IMPACT_VISUAL_DURATION := 0.22
+const IMPACT_VISUAL_MIN_SCALE := 0.84
+const IMPACT_VISUAL_CROSS_SCALE := 1.12
+const IMPACT_VISUAL_OVERSHOOT_SCALE := 1.08
+const IMPACT_VISUAL_KICK_DISTANCE := 5.0
 const TARGET_COLLECTION_DURATION := 0.62
 const TARGET_COLLECTION_FADE_START := 0.68
 const TARGET_COLLECTION_POP_SCALE := 1.16
 const TARGET_PANEL_PULSE_DURATION := 0.22
 const PRESENTATION_EVENT_TRACE_LIMIT := 128
-const MERGE_MOMENTUM_TRANSFER := 0.45 # bounded average of source momentum
-const MERGE_MAX_SPAWN_SPEED := 300.0 # prevents an upgrade from shooting through a cluster
+const MERGE_MOMENTUM_TRANSFER := 0.62 # bounded average of source momentum
+const MERGE_MAX_SPAWN_SPEED := 420.0 # prevents an upgrade from shooting through a cluster
 const CHAIN_PRESENTATION_STAGGER := 0.05 # visual cadence only; merge logic remains immediate
 const NEXT_LAUNCHER_READY_DELAY := 0.04 # after bounded handoff and any presentation gate
 ## A released gem gives the launcher lane time to clear, then becomes a normal
@@ -179,7 +184,7 @@ const MERGE_SCORE_BY_RESULT_LEVEL := MERGE_COIN_REWARD_BY_RESULT_LEVEL
 const AUDIO_SAMPLE_RATE := 22050.0
 const AUDIO_MAX_CONCURRENT_PLAYERS := 3
 const AUDIO_AMBIENCE_DURATION := 6.0
-const AUDIO_AMBIENCE_VOLUME := 0.16
+const AUDIO_AMBIENCE_VOLUME := 0.34
 const GEM_CONTACT_SOUND_THRESHOLD := 170.0
 const WALL_CONTACT_SOUND_THRESHOLD := 220.0
 const CONTACT_SOUND_COOLDOWN := 0.075
@@ -190,24 +195,24 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"coin_burst": 0.08, "coin_flight": 0.20, "coin_collect": 0.05,
 }
 const AUDIO_TONES := {
-	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.30, "brightness": 0.38, "fall": 0.78},
-	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.28, "brightness": 0.82, "fall": 0.64},
-	"wall_contact": {"frequency": 760.0, "duration": 0.065, "volume": 0.20, "brightness": 0.34, "fall": 0.58},
-	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.36, "brightness": 0.60, "fall": 1.16},
-	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.39, "brightness": 0.68, "fall": 1.20},
-	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.42, "brightness": 0.76, "fall": 1.24},
-	"merge_5": {"frequency": 1318.0, "duration": 0.19, "volume": 0.46, "brightness": 0.88, "fall": 1.30},
-	"merge_6": {"frequency": 1480.0, "duration": 0.24, "volume": 0.50, "brightness": 0.90, "fall": 1.32},
-	"merge_7": {"frequency": 1661.0, "duration": 0.27, "volume": 0.55, "brightness": 0.92, "fall": 1.34},
-	"merge_8": {"frequency": 1760.0, "duration": 0.30, "volume": 0.60, "brightness": 0.94, "fall": 1.36},
-	"chain": {"frequency": 1568.0, "duration": 0.13, "volume": 0.42, "brightness": 0.92, "fall": 1.24},
-	"target_collect": {"frequency": 1760.0, "duration": 0.22, "volume": 0.58, "brightness": 0.94, "fall": 1.34},
-	"win": {"frequency": 1318.0, "duration": 0.34, "volume": 0.62, "brightness": 0.96, "fall": 1.55},
-	"fail": {"frequency": 523.0, "duration": 0.24, "volume": 0.38, "brightness": 0.33, "fall": 0.56},
-	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.20, "brightness": 0.55, "fall": 0.84},
-	"coin_burst": {"frequency": 820.0, "duration": 0.15, "volume": 0.42, "brightness": 0.88, "fall": 1.18},
-	"coin_flight": {"frequency": 1160.0, "duration": 0.18, "volume": 0.24, "brightness": 0.70, "fall": 0.92},
-	"coin_collect": {"frequency": 1760.0, "duration": 0.085, "volume": 0.31, "brightness": 0.96, "fall": 1.42},
+	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
+	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.46, "brightness": 0.82, "fall": 0.64},
+	"wall_contact": {"frequency": 760.0, "duration": 0.065, "volume": 0.32, "brightness": 0.34, "fall": 0.58},
+	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.56, "brightness": 0.60, "fall": 1.16},
+	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.60, "brightness": 0.68, "fall": 1.20},
+	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.65, "brightness": 0.76, "fall": 1.24},
+	"merge_5": {"frequency": 1318.0, "duration": 0.19, "volume": 0.70, "brightness": 0.88, "fall": 1.30},
+	"merge_6": {"frequency": 1480.0, "duration": 0.24, "volume": 0.75, "brightness": 0.90, "fall": 1.32},
+	"merge_7": {"frequency": 1661.0, "duration": 0.27, "volume": 0.80, "brightness": 0.92, "fall": 1.34},
+	"merge_8": {"frequency": 1760.0, "duration": 0.30, "volume": 0.85, "brightness": 0.94, "fall": 1.36},
+	"chain": {"frequency": 1568.0, "duration": 0.13, "volume": 0.70, "brightness": 0.92, "fall": 1.24},
+	"target_collect": {"frequency": 1760.0, "duration": 0.22, "volume": 0.82, "brightness": 0.94, "fall": 1.34},
+	"win": {"frequency": 1318.0, "duration": 0.34, "volume": 0.90, "brightness": 0.96, "fall": 1.55},
+	"fail": {"frequency": 523.0, "duration": 0.24, "volume": 0.58, "brightness": 0.33, "fall": 0.56},
+	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.30, "brightness": 0.55, "fall": 0.84},
+	"coin_burst": {"frequency": 820.0, "duration": 0.15, "volume": 0.72, "brightness": 0.88, "fall": 1.18},
+	"coin_flight": {"frequency": 1160.0, "duration": 0.18, "volume": 0.42, "brightness": 0.70, "fall": 0.92},
+	"coin_collect": {"frequency": 1760.0, "duration": 0.085, "volume": 0.58, "brightness": 0.96, "fall": 1.42},
 }
 const HAPTICS_BY_EVENT := {
 	"launch": {"duration_ms": 18, "amplitude": 0.22},
@@ -296,3 +301,21 @@ static func table_right_at(y_position: float) -> float:
 
 static func table_playable_width_at(y_position: float) -> float:
 	return table_right_at(y_position) - table_left_at(y_position)
+
+
+static func vertical_lane_top_y(x_position: float, radius: float = 0.0) -> float:
+	# Find the first vertical point where the requested X (plus its optional
+	# body margin) fits inside both sloped rails. Aim guides and launcher lanes
+	# use this same authoritative geometry instead of escaping through the top.
+	var top := board_top()
+	var bottom := board_bottom()
+	var left_top := table_left_at(top) + radius
+	var right_top := table_right_at(top) - radius
+	if x_position >= left_top and x_position <= right_top:
+		return top
+	var denominator := TABLE_INNER_LEFT_TOP - TABLE_INNER_LEFT_BOTTOM
+	if x_position < left_top:
+		var left_t := (TABLE_INNER_LEFT_TOP + viewport_center_offset_x + radius - x_position) / maxf(0.001, denominator)
+		return lerpf(top, bottom, clampf(left_t, 0.0, 1.0))
+	var right_t := (x_position - (TABLE_INNER_RIGHT_TOP + viewport_center_offset_x - radius)) / maxf(0.001, denominator)
+	return lerpf(top, bottom, clampf(right_t, 0.0, 1.0))

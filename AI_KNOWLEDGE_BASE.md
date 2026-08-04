@@ -1,5 +1,16 @@
 # AI Knowledge Base
 
+## Production gameplay parity final guardrails v1
+
+- This section supersedes the older reference-coin and physics-feedback guardrails below. Preserve Level 1 objectives in order: L5, L7, L8; the L1-L4 mixed bag; unlimited launcher; confirmed-result collection; and final-coin/hold/overlay ordering.
+- Preserve launch speed `1160`, damping `185` (safe `175-205`), sleep `9`, side/top/bottom restitution `0.24/0.22/0.12`, piece restitution `0.30` (safe `0.26-0.34`), approach-only tangent friction `0.07` (safe `0.05-0.10`), merge momentum `0.62`, and cap `420`. Do not change rails, radii, contact epsilon, merge rules, or danger timing as incidental feel work.
+- Aim-guide endpoints must use `GameConfig.vertical_lane_top_y()` and the authoritative rail functions. Do not restore a fixed `board_top + offset` start, which escapes the narrow upper table at edge lanes.
+- Keep impact and merge transforms on `GemSpriteLayer` presentation children. Contact normals are telemetry only. Never write animation offset/scale/rotation/z into `GemPiece`, its physics root, radii, velocity, merge candidates, or containment.
+- Preserve `assets/buttons/ChatGPT Image Aug 4, 2026, 07_10_27 AM.png` as the untouched supplied source and `assets/runtime/effects/coin_reward.png` as its 256 px runtime derivative. HUD and reward flights must resolve the same `AssetCatalog.COIN_REWARD`; artwork never defines currency or physics.
+- Reward cadence remains 10/14 records with a 56-record cap, `0.46 s` fan, `1.18/1.28 s` flights, and `0.065 s` rank stagger. Permuted ranks must keep the last record last so visible currency and the final haptic reconcile exactly.
+- Audio truth is 18 cached one-shots plus one cached six-second rhythmic ambience loop. Keep the centralized production volumes, three-player cap, contact thresholds/cooldowns, sound toggle, and service-only haptics. On-phone loudness and vibration still require hardware verification.
+- After gameplay work, run clean-contact, Level 1, gameplay-feel, 18-gem, production-UI, and motion-profile suites. Inspect the four real captures under `reports/production-gameplay-parity-final-v1/final-screenshots/`.
+
 ## Reference gameplay + coin parity guardrails v1
 
 - The current player-facing currency is COINS. Preserve `GameController.coins` as the exact confirmed-event value and `score` only as a compatibility alias. Do not award currency from coin arrival, drawing, contact telemetry, HUD code, or sound.

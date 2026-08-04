@@ -1,5 +1,14 @@
 # Changelog
 
+## Production Gameplay Parity Final v1
+
+- Changed Level 1's sequential objectives to L5, then L7, then L8 while preserving the L1-L4 mixed unlimited launcher, confirmed-result collection gates, danger failure, full reset, and final overlay ordering.
+- Retuned centralized feel values without changing launch speed, table rails, calibrated radii, or merge eligibility: damping `210 -> 185`, side/top/bottom restitution `0.20/0.16/0.10 -> 0.24/0.22/0.12`, piece restitution `0.22 -> 0.30`, tangential friction `0.10 -> 0.07`, and merge momentum/cap `0.45/300 -> 0.62/420`.
+- Added rail-contained edge-lane guide geometry, collision-normal telemetry, directional squash/cross-stretch/kick, and a lifted/tilted/anisotropic merge-result overshoot with presentation-only elevated ordering.
+- Integrated the supplied glossy coin through a non-destructive 256 px transparent runtime derivative; HUD and rewards now share it. Replaced the former halo/one-curve bead pattern with an upward fan, four varied cubic lanes, permuted departure order, scale/spin variation, and a stronger counter pulse.
+- Rebalanced the original procedural mix, added rhythmic crystal/mallet/shaker ambience, and retained the existing cached-stream, threshold, cooldown, concurrency, toggle, and haptic boundaries.
+- Added L5/L7/L8 flow, sloped-guide, bounded momentum, directional-impact, supplied-coin mapping, multi-lane reward, mix, and presentation-root regressions; all gameplay/UI suites and the motion profile pass, with four reviewed Compatibility/ANGLE captures.
+
 ## Reference Gameplay + Coin Parity v1
 
 - Replaced player-facing SCORE copy with COINS in gameplay and result UI while preserving the exact confirmed-merge reward table, chain multiplication, exactly-once result guard, and a compatibility `score` property for older tools.

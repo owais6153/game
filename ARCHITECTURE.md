@@ -1,5 +1,15 @@
 # Architecture
 
+## Production gameplay parity boundary v1
+
+- `LevelConfig.level_1()` is the sole ordered objective definition: L5, L7, then L8. `GameController` still registers only unique confirmed merge results, completes the existing visual collection, advances one index, and qualifies victory only after the third objective.
+- `GameConfig` remains the single feel and table authority. `vertical_lane_top_y()` analytically intersects a vertical launcher lane with the same trapezoid used by rendering, drag clamps, containment, and danger width; the guide cannot invent a second table shape.
+- `BoardSimulation` still owns motion and equal-mass impulses. Contact telemetry now includes the already-computed normal solely for feedback. `GemSpriteLayer` composes a presentation node, impact-axis node, and inverse-rotated artwork node so squash aligns to contact without rotating the supplied gem identity or modifying the physics-mirroring root.
+- Merge lift, tilt, non-uniform scale, temporary local z elevation, source ghosts, impact flash, and sparks are presentation only. `GemPiece.position`, radius, perspective scale, velocity, contact capture, merge eligibility, and rails never read those transforms.
+- `AssetCatalog.COIN_REWARD` preloads the documented 256 px runtime derivative. `CoinVisuals` draws the same texture in HUD and rewards. `GameplayEffectsLayer` owns bounded fan/cubic-lane records and arrival signals; controller currency is still updated exactly once at confirmation and the HUD only reconciles presentation arrivals.
+- `AudioFeedbackService` still builds 18 reusable mono one-shots and one loop at initialization. The richer ambience and louder event mix cannot feed controller decisions; contact sounds remain thresholded/typed/cooled down and haptics remain service-owned.
+- Development tests, capture tool, report, and screenshot evidence remain under `tools/` and `reports/`, which are excluded from Android export.
+
 ## Reference gameplay + coin feedback boundary v1
 
 - `GameController.coins` is the canonical exact run currency. `_apply_confirmed_merge_events()` remains the sole reward authority and registers the pending HUD reward before updating the controller integer. `score` delegates to the same value only for compatibility; neither HUD nor effects can award currency.

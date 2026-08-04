@@ -70,3 +70,12 @@
 - Merge confirmation emits the burst, the first flight phase emits one travel cue per result, and staggered HUD arrivals emit throttled collection ticks. Only the final coin routes the light 16 ms / 0.20 haptic, preventing vibration chatter.
 - Feedback still originates only from confirmed controller events or thresholded contact telemetry. Sound/haptic toggles cannot affect run coins, simulation, merge eligibility, targets, launcher flow, or outcomes.
 - Automated routing/cache/cooldown/counter reconciliation tests pass. `adb devices -l` returned no connected device, so listening balance and haptic feel are not claimed.
+
+## Production Gameplay Parity Final v1 update
+
+- The user recording measured about `-34 dBFS` overall with a `-34.5 dBFS` median 100 ms window, versus about `-19.6 dBFS` overall and `-26.5 dBFS` median in the supplied reference. This is a comparison target, not a claim of perceptual equality on an Android speaker.
+- Central ambience gain is `0.34` (`0.16` previously). Event linear gains are now launch `0.48`, gem/wall contact `0.46/0.32`, merge L2-L8 `0.56..0.85`, chain `0.70`, target `0.82`, win/fail `0.90/0.58`, and coin burst/flight/collect `0.72/0.42/0.58`.
+- The cached six-second ambience remains fully original and procedural, but now combines a restrained tonal bed with 120 BPM crystal-mallet pulses, off-beat glass answers, and bounded shaker ticks. No reference audio was sampled or copied.
+- The 18 one-shots, three-player cap, typed gem/wall thresholds, cooldowns, sound toggle, and haptic mappings remain intact. `run_clean_contact_tests.gd` verifies cache completeness and minimum production mix values; the motion profile reports `cached_audio_streams=18` and no gameplay resource loads.
+
+Manual phone listening checklist: confirm speech-free ambience is clearly present but below merge/coin events; confirm repeated contacts do not chatter; confirm L5, L7, and L8 merge pitches rise without clipping; confirm coin burst/flight/arrival read as one sequence; test a quiet room and typical media volume; then verify final-coin and merge haptics on hardware. No connected device means these listening/haptic items remain open.

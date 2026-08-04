@@ -394,8 +394,8 @@ func _build_score_panel() -> Control:
 	center.add_child(row)
 	coin_icon = CoinIconType.new()
 	coin_icon.name = "CoinIcon"
-	coin_icon.custom_minimum_size = Vector2(28.0, 28.0)
-	coin_icon.pivot_offset = Vector2(14.0, 14.0)
+	coin_icon.custom_minimum_size = Vector2(32.0, 32.0)
+	coin_icon.pivot_offset = Vector2(16.0, 16.0)
 	row.add_child(coin_icon)
 	score_label = _label("0", UiDesignSystemType.SCORE_FONT_SIZE, UiDesignSystemType.COLOR_TEXT)
 	score_label.name = "CoinValue"
@@ -730,16 +730,19 @@ func _animate_coin_change() -> void:
 	_kill_tween(_coin_icon_tween)
 	score_label.pivot_offset = _node_center(score_label)
 	coin_icon.pivot_offset = _node_center(coin_icon)
-	score_label.scale = Vector2.ONE * 1.10
-	coin_icon.scale = Vector2.ONE * 1.24
+	score_label.scale = Vector2.ONE * 1.13
+	coin_icon.scale = Vector2.ONE * 1.32
+	coin_icon.rotation = -0.12
 	if not is_inside_tree():
 		score_label.scale = Vector2.ONE
 		coin_icon.scale = Vector2.ONE
+		coin_icon.rotation = 0.0
 		return
 	_score_tween = create_tween()
 	_score_tween.tween_property(score_label, "scale", Vector2.ONE, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_coin_icon_tween = create_tween()
+	_coin_icon_tween = create_tween().set_parallel(true)
 	_coin_icon_tween.tween_property(coin_icon, "scale", Vector2.ONE, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_coin_icon_tween.tween_property(coin_icon, "rotation", 0.0, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _animate_next_swap() -> void:

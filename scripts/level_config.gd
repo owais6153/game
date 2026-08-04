@@ -15,9 +15,9 @@ static func level_1() -> Dictionary:
 		# former repeated same-line L1/L1 pattern from auto-solving the targets.
 		"launcher_sequence": [1, 2, 1, 3, 2, 1, 4, 2, 3, 1],
 		# Unlimited launches are still bounded by the existing danger-line fail.
-		# Exactly two sequential objectives: create L7, collect it, then create L8
-		# from two more L7 results. The mixed low-tier bag makes placement matter.
-		"target_sequence": [{"tier": 7, "quantity": 1}, {"tier": 8, "quantity": 1}],
+		# The first objective teaches the target loop early. L7 and L8 then retain
+		# the longer placement challenge without changing the unlimited launcher.
+		"target_sequence": [{"tier": 5, "quantity": 1}, {"tier": 7, "quantity": 1}, {"tier": 8, "quantity": 1}],
 		"starting_board": [],
 	}
 
