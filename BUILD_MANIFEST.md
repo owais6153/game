@@ -1,5 +1,20 @@
 # Build Manifest
 
+# New Background Music v1
+
+- File: `new-background-music-v1.apk`
+- Path: `D:\Owais\game\build\android\new-background-music-v1.apk`
+- Size: `109,063,713` bytes
+- Modified: `2026-08-05 00:09:11 +05:00` (`2026-08-04T19:09:11Z`)
+- SHA-256: `615AAA1A67040EDCE68BAA45FF01740A3C85E0EFFDFFF3D486935E3064CD3BF8`
+- Gameplay source commit/tag: `25f83f74b23a1fa19bc121a950b834f7d8bcdc4c` / `new-background-music-v1-source`.
+- Clean export source commit/tag: `EXPORT_SOURCE_COMMIT` / `new-background-music-v1-export-source`.
+- Delivery tag: `new-background-music-v1`.
+- Export: Godot 4.6.3 `Android` debug preset; installable validation signing, not a store-release keystore claim.
+- Validation: all six regression/profile suites passed. APK has 391 ZIP entries; `build/`, `reports/`, `tools/`, Python, and PowerShell entries are absent. APK Signature Scheme v2/v3 verification passed with one RSA-2048 signer.
+- Device status: `adb devices` returned an empty device list; installation, launch, phone feel, listening, and haptics are not claimed.
+
+
 # Reference Scale Contrast v1
 
 - File: `reference-scale-contrast-v1.apk`

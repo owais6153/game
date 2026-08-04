@@ -40,6 +40,9 @@ Not claimed without a connected device. On-device review should confirm:
 
 - Baseline commit: `5efe68fd741265a1332c97c60a6875430925e07a`
 - Baseline tag: `new-background-music-v1-baseline`
-- Source commit/tag: pending finalization
-- Export-source commit/tag: pending finalization
-- Delivery tag and APK audit: pending finalization
+- Source commit/tag: `25f83f74b23a1fa19bc121a950b834f7d8bcdc4c` / `new-background-music-v1-source`
+- Export-source commit/tag: `EXPORT_SOURCE_COMMIT` / `new-background-music-v1-export-source`
+- Delivery tag: `new-background-music-v1`
+- APK: `build/android/new-background-music-v1.apk`; 109,063,713 bytes; SHA-256 `615AAA1A67040EDCE68BAA45FF01740A3C85E0EFFDFFF3D486935E3064CD3BF8`
+- APK validation: 391 ZIP entries with forbidden project/build sources absent; v2/v3 signature verification passed with one RSA-2048 signer.
+- Device status: ADB returned an empty list, so installation, launch, phone listening, and haptics are not claimed.
