@@ -1,5 +1,16 @@
 # AI Knowledge Base
 
+## Reference audio and foreground reward guardrails v2
+
+- This section supersedes the Reference Feedback Match audio/layering values below. Preserve Level 1 L5→L7→L8, rigid gem silhouettes, exact confirmed-event coins, four-token reward count, launcher flow, physics constants, and final-coin/hold/overlay order.
+- Production audio is `AudioFeedbackService`: one continuously looping `assets/runtime/audio/reference_music_loop.ogg` plus 15 cached earlier gem one-shots. Movement/contact events may emit only their short tone; they must never start, stop, seek, or restart the music player. `ReferenceAudioFeedbackService` and its four Ogg event slices are inactive historical sources.
+- Keep separate `coin_burst`, `coin_flight`, and `coin_collect` audio disabled. Coin arrivals may update the visible integer and final light haptic only. Preserve typed gem/wall thresholds, event cooldowns, three-player cap, toggle behavior, and service-only haptics.
+- Every merge still creates exactly four ordered coin records. Preserve burst `0.38 s`, flight `1.70/1.75 s`, stagger `0.09 s`, radius `44/48`, draw radius `14.5`, exact integer reconciliation, and the 32-record cap.
+- `GameplayEffectsLayer` must remain a child of `GameplayHudLayer.reward_foreground_host`; do not move coin or target travel back to the world canvas. Preserve local order HUD `0` < foreground `10` < target confirmation `20` < Pause `30`, with Results on CanvasLayer `50`.
+- Target swaps reuse the two prebuilt foreground sprites. L5/L7 moves top-left while fading and L7/L8 enters from the right. Never allocate target-transition nodes during snapshot updates, count progress in HUD code, or restore the duplicate world `target_arrivals` burst.
+- The push guide and danger line share `GameConfig.DANGER_LINE_COLOR`. Guide endpoints remain rail-derived and presentation-only.
+- After changes here, run gameplay-feel, clean-contact, Level 1, 18-gem, production UI, and motion-profile suites; capture foreground coin/target evidence; export and verify a standalone APK. Phone listening/haptics require an attached device.
+
 ## Reference feedback match guardrails v1
 
 - This section supersedes the older production-parity feedback guardrails below. Level 1 stays L5, L7, L8 with the L1-L4 unlimited queue and the existing final-coin/hold/overlay order.

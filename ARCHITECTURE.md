@@ -1,5 +1,15 @@
 # Architecture
 
+## Reference audio and reward layering boundary v2
+
+- `GameController` again instantiates `AudioFeedbackService`. The service preloads one reference-derived Ogg music resource, duplicates it once, enables `AudioStreamOggVorbis.loop`, and starts one dedicated `AudioStreamPlayer` during `_ready()`. No controller movement/contact route calls the music player.
+- Confirmed controller events route only to 15 initialization-cached gem one-shots through three reusable players and centralized cooldowns. `ReferenceAudioFeedbackService` and its four event slices remain historical provenance only and are not instantiated. Coin-flight signals update presentation currency/haptics but do not emit audio.
+- `GameplayHudLayer` owns one `RewardForegroundHost` at local z `10` inside CanvasLayer `40`. `GameplayEffectsLayer` is attached there, so its four coin records and the collection proxy draw above the z `0` HUD and default world canvas. `TargetRewardOverlay` uses z `20`, Pause z `30`, and `ResultOverlayLayer` remains CanvasLayer `50`.
+- Two `Sprite2D` target ghosts are built once under the foreground host. Snapshot identity changes reuse them for outgoing top-left fade and incoming right-to-center fade. They read the controller snapshot only; they never qualify, count, or reorder targets.
+- The old `GameplayEffectsLayer.target_arrivals` world effect was removed. Target completion now has one UI confirmation plus the target-identity handoff. All foreground records remain bounded and reset-safe.
+- `GameConfig.DANGER_LINE_COLOR` is the single color authority for both the danger line and launcher guide; existing rail geometry still owns guide containment.
+- Simulation, merge service, live gem rendering, table geometry, radii, velocities, currency authority, target sequence, launcher lifecycle, danger, and result qualification are outside this boundary and unchanged.
+
 ## Reference feedback correction boundary v1
 
 - `GameController` instantiates `ReferenceAudioFeedbackService`, not the retired procedural `AudioFeedbackService`. The active service preloads four user-reference-derived Ogg resources, maps only allowed typed controller events, uses the existing three-player/cooldown boundary, applies no pitch variation, and owns no ambience player.

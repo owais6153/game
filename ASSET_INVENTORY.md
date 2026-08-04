@@ -1,5 +1,13 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Reference audio and reward layering v2
+
+| Purpose | Preserved source | Active runtime asset | Audit |
+| --- | --- | --- | --- |
+| Continuous reference music | `WhatsApp Video 2026-07-28 at 2.47.02 AM.mp4`, input window `25.05-26.90 s` | `assets/runtime/audio/reference_music_loop.ogg` | `1.800 s`, mono 48 kHz, 21,001 bytes; SHA-256 `F6620082833E5481282320ADCEAAB23C6F92A5EE497C29A5C093684F2EC0428F`. The body uses `25.10-26.85 s`; the final 50 ms crossfades source tail `26.85-26.90 s` into head `25.05-25.10 s`, returning to the same source point at the loop seam. No gain, EQ, pitch, or synthesis was applied. |
+
+The preserved recording hash remains `29EFA393864912DDB77E3851E034E8F2E457F489AF5D6AB6BADC0CEA13979DA3`. The prior `reference_launch.ogg`, `reference_contact.ogg`, `reference_merge_reward.ogg`, and `reference_target_reward.ogg` derivatives remain recorded below for provenance but are no longer preloaded or routed by production. The active loop is presentation-only and cannot affect simulation, currency, target qualification, or collision.
+
 ## Reference feedback match v1
 
 | Purpose | Preserved source | Active runtime asset | Audit |

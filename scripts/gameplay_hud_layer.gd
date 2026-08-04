@@ -29,6 +29,9 @@ var level_label: Label
 var target_panel: Control
 var target_header_label: Label
 var target_icon: TextureRect
+var reward_foreground_host: Node2D
+var target_swap_outgoing: Sprite2D
+var target_swap_incoming: Sprite2D
 var target_reward_overlay: Control
 var settings_button: TextureButton
 var pause_blocker: Control
@@ -124,10 +127,12 @@ func update_snapshot(snapshot: Dictionary) -> void:
 	var target_level := int(snapshot.get("target_level", 1))
 	if int(_snapshot.get("target_level", -1)) != target_level:
 		var target_name := AssetCatalogType.gem_name(target_level)
-		target_icon.texture = AssetCatalogType.gem_texture(target_level)
+		var previous_texture := target_icon.texture
+		var next_texture := AssetCatalogType.gem_texture(target_level)
+		target_icon.texture = next_texture
 		target_icon.tooltip_text = "Target: %s" % target_name
 		if had_snapshot:
-			_animate_target_swap()
+			_animate_target_swap(previous_texture, next_texture)
 
 	var level_number := int(snapshot.get("level_number", 1))
 	level_label.text = "LEVEL %d" % level_number
@@ -208,6 +213,13 @@ func target_collection_destination() -> Vector2:
 	return target_icon.get_global_rect().get_center()
 
 
+func attach_reward_foreground(item: Node2D) -> void:
+	_build_once()
+	if item == null or item.get_parent() == reward_foreground_host:
+		return
+	reward_foreground_host.add_child(item)
+
+
 func coin_collection_destination() -> Vector2:
 	if coin_icon == null or not coin_icon.is_inside_tree():
 		return GameConfig.COIN_HUD_FALLBACK_DESTINATION
@@ -255,6 +267,10 @@ func reset_presentation() -> void:
 	if target_icon != null:
 		target_icon.scale = Vector2.ONE
 		target_icon.modulate = Color.WHITE
+	if target_swap_outgoing != null:
+		target_swap_outgoing.visible = false
+	if target_swap_incoming != null:
+		target_swap_incoming.visible = false
 	if target_reward_overlay != null:
 		target_reward_overlay.reset()
 	if target_panel != null:
@@ -293,11 +309,31 @@ func _build_once() -> void:
 	add_child(root_control)
 	root_control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_hud()
+	_build_reward_foreground()
 	target_reward_overlay = TargetRewardOverlayType.new()
 	target_reward_overlay.name = "TargetRewardOverlay"
+	target_reward_overlay.z_index = 20
 	root_control.add_child(target_reward_overlay)
 	target_reward_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_pause_popup()
+	pause_blocker.z_index = 30
+
+
+func _build_reward_foreground() -> void:
+	reward_foreground_host = Node2D.new()
+	reward_foreground_host.name = "RewardForegroundHost"
+	reward_foreground_host.z_index = 10
+	root_control.add_child(reward_foreground_host)
+	target_swap_outgoing = Sprite2D.new()
+	target_swap_outgoing.name = "OutgoingTargetGem"
+	target_swap_outgoing.z_index = 5
+	target_swap_outgoing.visible = false
+	reward_foreground_host.add_child(target_swap_outgoing)
+	target_swap_incoming = Sprite2D.new()
+	target_swap_incoming.name = "IncomingTargetGem"
+	target_swap_incoming.z_index = 6
+	target_swap_incoming.visible = false
+	reward_foreground_host.add_child(target_swap_incoming)
 
 
 func _build_hud() -> void:
@@ -769,18 +805,52 @@ func _animate_next_swap() -> void:
 	_next_tween.tween_property(next_icon, "modulate:a", 1.0, UiDesignSystemType.ICON_SWAP_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
-func _animate_target_swap() -> void:
+func _animate_target_swap(previous_texture: Texture2D, next_texture: Texture2D) -> void:
 	_kill_tween(_target_swap_tween)
-	target_icon.pivot_offset = _node_center(target_icon)
-	target_icon.scale = Vector2.ONE * 0.84
-	target_icon.modulate = Color(1.0, 1.0, 1.0, 0.30)
-	if not is_inside_tree():
+	if previous_texture == null or next_texture == null or not is_inside_tree():
+		_finish_target_swap()
+		return
+	var icon_rect := target_icon.get_global_rect()
+	var center := reward_foreground_host.to_local(icon_rect.get_center())
+	var fitted_size := icon_rect.size
+	_prepare_target_ghost(target_swap_outgoing, previous_texture, center, fitted_size, 1.0)
+	_prepare_target_ghost(target_swap_incoming, next_texture, center + GameConfig.TARGET_SWAP_INCOMING_OFFSET, fitted_size, GameConfig.TARGET_SWAP_INCOMING_SCALE)
+	target_swap_incoming.modulate.a = 0.0
+	target_icon.modulate.a = 0.0
+	_target_swap_tween = create_tween().set_parallel(true)
+	_target_swap_tween.set_pause_mode(Tween.TWEEN_PAUSE_STOP)
+	_target_swap_tween.tween_property(target_swap_outgoing, "position", center + GameConfig.TARGET_SWAP_OUTGOING_OFFSET, GameConfig.TARGET_SWAP_DURATION).set_delay(GameConfig.TARGET_SWAP_START_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_target_swap_tween.tween_property(target_swap_outgoing, "scale", target_swap_outgoing.scale * GameConfig.TARGET_SWAP_OUTGOING_SCALE, GameConfig.TARGET_SWAP_DURATION).set_delay(GameConfig.TARGET_SWAP_START_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_target_swap_tween.tween_property(target_swap_outgoing, "modulate:a", 0.0, GameConfig.TARGET_SWAP_DURATION * 0.82).set_delay(GameConfig.TARGET_SWAP_START_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var incoming_delay := GameConfig.TARGET_SWAP_START_DELAY + GameConfig.TARGET_SWAP_DURATION * 0.14
+	_target_swap_tween.tween_property(target_swap_incoming, "position", center, GameConfig.TARGET_SWAP_DURATION * 0.82).set_delay(incoming_delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_target_swap_tween.tween_property(target_swap_incoming, "scale", _target_ghost_scale(next_texture, fitted_size), GameConfig.TARGET_SWAP_DURATION * 0.82).set_delay(incoming_delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_target_swap_tween.tween_property(target_swap_incoming, "modulate:a", 1.0, GameConfig.TARGET_SWAP_DURATION * 0.64).set_delay(incoming_delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_target_swap_tween.finished.connect(_finish_target_swap)
+
+
+func _prepare_target_ghost(sprite: Sprite2D, texture: Texture2D, center: Vector2, fitted_size: Vector2, scale_multiplier: float) -> void:
+	sprite.texture = texture
+	sprite.position = center
+	sprite.scale = _target_ghost_scale(texture, fitted_size) * scale_multiplier
+	sprite.modulate = Color.WHITE
+	sprite.visible = true
+
+
+func _target_ghost_scale(texture: Texture2D, fitted_size: Vector2) -> Vector2:
+	var texture_size := texture.get_size()
+	var fit := minf(fitted_size.x / maxf(texture_size.x, 1.0), fitted_size.y / maxf(texture_size.y, 1.0))
+	return Vector2.ONE * fit
+
+
+func _finish_target_swap() -> void:
+	if target_icon != null:
 		target_icon.scale = Vector2.ONE
 		target_icon.modulate = Color.WHITE
-		return
-	_target_swap_tween = create_tween().set_parallel(true)
-	_target_swap_tween.tween_property(target_icon, "scale", Vector2.ONE, UiDesignSystemType.ICON_SWAP_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_target_swap_tween.tween_property(target_icon, "modulate:a", 1.0, UiDesignSystemType.ICON_SWAP_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if target_swap_outgoing != null:
+		target_swap_outgoing.visible = false
+	if target_swap_incoming != null:
+		target_swap_incoming.visible = false
 
 
 func _on_settings_button_down() -> void:

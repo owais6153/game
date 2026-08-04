@@ -22,6 +22,7 @@ const TABLE_INNER_LEFT_BOTTOM := 44.0
 const TABLE_INNER_RIGHT_TOP := 542.0
 const TABLE_INNER_RIGHT_BOTTOM := 676.0
 const DANGER_LINE_Y := 1046.0
+const DANGER_LINE_COLOR := Color("e85f52")
 const LAUNCH_Y := 1144.0
 ## Expanded portrait screens keep the HUD top-anchored but move the complete
 ## table coordinate system to the physical bottom. This offset is shared by
@@ -107,7 +108,7 @@ const COIN_FLIGHT_STAGGER := 0.09
 const COIN_SPAWN_STAGGER := 0.025
 const COIN_BURST_RADIUS := 44.0
 const MAJOR_COIN_BURST_RADIUS := 48.0
-const COIN_DRAW_RADIUS := 12.5
+const COIN_DRAW_RADIUS := 14.5
 const COIN_COUNTER_PULSE_DURATION := 0.14
 const COIN_EFFECT_LIMIT := 32
 const COIN_HUD_FALLBACK_DESTINATION := Vector2(78.0, 244.0)
@@ -117,6 +118,12 @@ const TARGET_COLLECTION_DURATION := 0.84
 const TARGET_COLLECTION_FADE_START := 0.78
 const TARGET_COLLECTION_POP_SCALE := 1.08
 const TARGET_PANEL_PULSE_DURATION := 0.58
+const TARGET_SWAP_DURATION := 0.42
+const TARGET_SWAP_START_DELAY := 0.30
+const TARGET_SWAP_OUTGOING_OFFSET := Vector2(-72.0, -42.0)
+const TARGET_SWAP_INCOMING_OFFSET := Vector2(64.0, 0.0)
+const TARGET_SWAP_OUTGOING_SCALE := 0.72
+const TARGET_SWAP_INCOMING_SCALE := 0.92
 const PRESENTATION_EVENT_TRACE_LIMIT := 128
 const MERGE_MOMENTUM_TRANSFER := 0.62 # bounded average of source momentum
 const MERGE_MAX_SPAWN_SPEED := 420.0 # prevents an upgrade from shooting through a cluster
@@ -172,17 +179,30 @@ const MERGE_COIN_REWARD_BY_RESULT_LEVEL := {
 ## Compatibility alias for older tests/tools. Production presents this exact
 ## confirmed-event value as run coins, not an abstract score.
 const MERGE_SCORE_BY_RESULT_LEVEL := MERGE_COIN_REWARD_BY_RESULT_LEVEL
-## Feedback routing is presentation-only. Every audible stream is a bounded
-## derivative of the user-supplied reference recording; there is no music bed
-## and no procedural synthesis in production.
+## Feedback routing is presentation-only. The user-supplied reference music is
+## one continuously looping bed. Confirmed gameplay events use the earlier
+## bounded gem tones; movement never starts or restarts the music.
 const AUDIO_MAX_CONCURRENT_PLAYERS := 3
-## Parse-only compatibility for the retired procedural service source. The
-## production controller never instantiates it; zero volume keeps it silent if
-## an old development tool loads it directly.
 const AUDIO_SAMPLE_RATE := 22050.0
-const AUDIO_AMBIENCE_DURATION := 6.0
-const AUDIO_AMBIENCE_VOLUME := 0.0
-const AUDIO_TONES := {}
+const AUDIO_AMBIENCE_DURATION := 1.80
+const AUDIO_AMBIENCE_VOLUME := 0.34
+const AUDIO_TONES := {
+	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
+	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.46, "brightness": 0.82, "fall": 0.64},
+	"wall_contact": {"frequency": 760.0, "duration": 0.065, "volume": 0.32, "brightness": 0.34, "fall": 0.58},
+	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.56, "brightness": 0.60, "fall": 1.16},
+	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.60, "brightness": 0.68, "fall": 1.20},
+	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.65, "brightness": 0.76, "fall": 1.24},
+	"merge_5": {"frequency": 1318.0, "duration": 0.19, "volume": 0.70, "brightness": 0.88, "fall": 1.30},
+	"merge_6": {"frequency": 1480.0, "duration": 0.24, "volume": 0.75, "brightness": 0.90, "fall": 1.32},
+	"merge_7": {"frequency": 1661.0, "duration": 0.27, "volume": 0.80, "brightness": 0.92, "fall": 1.34},
+	"merge_8": {"frequency": 1760.0, "duration": 0.30, "volume": 0.85, "brightness": 0.94, "fall": 1.36},
+	"chain": {"frequency": 1568.0, "duration": 0.13, "volume": 0.70, "brightness": 0.92, "fall": 1.24},
+	"target_collect": {"frequency": 1760.0, "duration": 0.22, "volume": 0.82, "brightness": 0.94, "fall": 1.34},
+	"win": {"frequency": 1318.0, "duration": 0.34, "volume": 0.90, "brightness": 0.96, "fall": 1.55},
+	"fail": {"frequency": 523.0, "duration": 0.24, "volume": 0.58, "brightness": 0.33, "fall": 0.56},
+	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.30, "brightness": 0.55, "fall": 0.84},
+}
 const GEM_CONTACT_SOUND_THRESHOLD := 170.0
 const WALL_CONTACT_SOUND_THRESHOLD := 220.0
 const CONTACT_SOUND_COOLDOWN := 0.075
@@ -190,11 +210,21 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN,
 	"wall_contact": 0.11,
 	"launch": 0.05,
-	"merge_reward": 0.16,
-	"target_reward": 0.25,
+	"merge_2": 0.04,
+	"merge_3": 0.04,
+	"merge_4": 0.03,
+	"merge_5": 0.03,
+	"merge_6": 0.03,
+	"merge_7": 0.03,
+	"merge_8": 0.03,
+	"chain": 0.04,
+	"target_collect": 0.16,
+	"win": 0.25,
 	"fail": 0.25,
 	"button": 0.05,
 }
+## Compatibility only for the retired extracted-event service. Production
+## does not route these reference slices to movement, contact, or rewards.
 const AUDIO_EVENT_VOLUME := {
 	"launch": 1.0,
 	"gem_contact": 1.0,

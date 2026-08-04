@@ -1,6 +1,6 @@
 extends Node2D
 
-const AudioFeedbackServiceType = preload("res://scripts/reference_audio_feedback_service.gd")
+const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.gd")
 const HapticsServiceType = preload("res://scripts/haptics_service.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/gem_sprite_layer.gd")
@@ -374,14 +374,14 @@ func _setup_asset_presentation() -> void:
 	gem_sprite_layer = GemSpriteLayerType.new()
 	gem_sprite_layer.z_index = 10
 	add_child(gem_sprite_layer)
-	effects_layer = GameplayEffectsLayerType.new()
-	effects_layer.z_index = 20
-	add_child(effects_layer)
 	gameplay_ui = GameplayHudScene.instantiate() as GameplayHudLayer
 	add_child(gameplay_ui)
 	gameplay_ui.settings_requested.connect(_on_settings_requested)
 	gameplay_ui.resume_requested.connect(_on_resume_requested)
 	gameplay_ui.restart_requested.connect(_on_restart_requested)
+	effects_layer = GameplayEffectsLayerType.new()
+	effects_layer.z_index = 0
+	gameplay_ui.attach_reward_foreground(effects_layer)
 	effects_layer.coin_flight_started.connect(_on_coin_flight_started)
 	effects_layer.coin_arrived.connect(_on_coin_arrived)
 	result_overlay = ResultOverlayScene.instantiate() as ResultOverlayLayer
@@ -451,8 +451,9 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if effects_layer != null:
 			var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
 			effects_layer.begin_merge_feedback(merge_event, awarded_coins, coin_destination)
-		audio_feedback.emit_event("target_reward" if completes_active_target else "merge_reward")
+		audio_feedback.emit_event("merge_%d" % result_level)
 		if int(merge_event.get("depth", 0)) > 0:
+			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
 		else:
 			haptics_feedback.emit_event("major_merge" if result_level >= GameConfig.MAJOR_REWARD_TIER else "merge")
@@ -621,17 +622,14 @@ func _update_target_collection(delta: float) -> void:
 
 func _finish_target_collection() -> void:
 	var result_id := int(target_collection.get("result_id", -1))
-	var level := int(target_collection.get("level", active_target_tier()))
-	var destination: Vector2 = target_collection.get("destination", gameplay_ui.target_collection_destination() if gameplay_ui != null else GameConfig.TARGET_COLLECTION_DESTINATION)
 	var sprite: Sprite2D = target_collection.get("sprite")
 	if sprite != null:
 		sprite.queue_free()
 	target_collection.clear()
 	collection_in_progress = false
-	if effects_layer != null:
-		effects_layer.begin_target_arrival(destination, level)
 	if gameplay_ui != null:
 		gameplay_ui.pulse_target()
+	audio_feedback.emit_event("target_collect")
 	haptics_feedback.emit_event("target_collect")
 	_trace_presentation_event("collection_animation_completed", result_id)
 	target_progress += 1
@@ -674,6 +672,7 @@ func _update_win_presentation(delta: float) -> void:
 		if result_overlay.present(true, score):
 			win_presented = true
 			_trace_presentation_event("win_overlay_started", final_target_result_id)
+			audio_feedback.emit_event("win")
 			haptics_feedback.emit_event("win")
 
 func _sync_gems_and_mark_visibility() -> void:
@@ -815,7 +814,7 @@ func _draw() -> void:
 	var danger_start := Vector2(GameConfig.table_left_at(danger_y) + 8.0, danger_y)
 	var danger_end := Vector2(GameConfig.table_right_at(danger_y) - 8.0, danger_y)
 	draw_dashed_line(danger_start, danger_end, Color(0.26, 0.12, 0.07, 0.28), 7.0, 11.0)
-	draw_dashed_line(danger_start, danger_end, Color("e85f52"), 3.5, 11.0)
+	draw_dashed_line(danger_start, danger_end, GameConfig.DANGER_LINE_COLOR, 3.5, 11.0)
 	# Draw the non-physical source ghosts first. The new simulated gem is then
 	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
 	for presentation in merge_presentations:
@@ -834,9 +833,9 @@ func _draw_aim_guide() -> void:
 	var finish := Vector2(active.position.x, active.position.y - active.radius - 8.0)
 	if start.y >= finish.y - 8.0:
 		return
-	var color := Color(1.0, 1.0, 1.0, GameConfig.AIM_GUIDE_ALPHA)
+	var color := Color(GameConfig.DANGER_LINE_COLOR, GameConfig.AIM_GUIDE_ALPHA)
 	draw_line(start, finish, color, GameConfig.AIM_GUIDE_WIDTH, true)
-	draw_circle(start, 4.0, Color(1.0, 0.92, 0.54, GameConfig.AIM_GUIDE_ALPHA * 0.9))
+	draw_circle(start, 4.0, Color(GameConfig.DANGER_LINE_COLOR, GameConfig.AIM_GUIDE_ALPHA * 0.9))
 
 func _draw_calibration_debug(font: Font) -> void:
 	var board_top := GameConfig.board_top()

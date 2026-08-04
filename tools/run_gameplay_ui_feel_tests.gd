@@ -76,6 +76,8 @@ func _test_control_hierarchy_and_contained_previews() -> void:
 	_assert(hud.hud_margin.get_node("HudRows/ScoreNextRow") is HBoxContainer, "COINS and NEXT must use the responsive row below the merge path")
 	_assert(hud.coin_icon != null and hud.coin_icon.get_parent().name == "CoinValueRow", "The run total must use the shared supplied-art coin identity")
 	_assert(AssetCatalogType.COIN_REWARD.resource_path == "res://assets/runtime/effects/coin_reward_reference_v2.png" and maxi(AssetCatalogType.COIN_REWARD.get_width(), AssetCatalogType.COIN_REWARD.get_height()) == 256, "HUD and reward flights must share the simple reference-scale coin texture")
+	_assert(GameConfig.COIN_DRAW_RADIUS > 12.5 and GameConfig.COIN_DRAW_RADIUS <= 15.0, "Flight coins must be only slightly larger and remain reference-sized")
+	_assert(GameConfig.DANGER_LINE_COLOR == Color("e85f52"), "The launcher push guide and danger line must share one centralized coral color")
 	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must use a responsive utility HBoxContainer")
 	_assert(hud.target_panel.get_parent() == hud.target_anchor, "The active target must be independently anchored above the table")
 	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must share the simple native panel system")
@@ -88,6 +90,8 @@ func _test_control_hierarchy_and_contained_previews() -> void:
 	hud.update_snapshot(_snapshot(125500, 2, 3, 7, 0, 1, false))
 	_assert(hud.next_icon.texture == AssetCatalogType.gem_texture(3), "NEXT preview must replace stale queue artwork when identity changes")
 	_assert(hud.target_icon.texture == AssetCatalogType.gem_texture(7), "Sequential target preview must replace stale target artwork when identity changes")
+	_assert(hud.target_swap_outgoing.visible and hud.target_swap_incoming.visible, "A completed target must fade toward the top-left while the next target enters from the right")
+	_assert(hud.target_swap_outgoing.get_parent() == hud.reward_foreground_host and hud.reward_foreground_host.z_index < hud.target_reward_overlay.z_index and hud.target_reward_overlay.z_index < hud.pause_blocker.z_index, "Moving target gems must render above HUD boxes while confirmations and pause remain above them")
 	_assert(hud.score_label.text == "125.5K", "HUD coins must use the shared compact formatter")
 	_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Formatted coin text must fit its dynamic panel without clipping")
 	var gameplay_buttons := _buttons_below(hud.hud_margin)
@@ -193,7 +197,7 @@ func _test_reference_coin_reward_path() -> void:
 	_assert(controller.effects_layer.active_coin_count() == 0, "All coin sprites must expire after their bounded flights")
 	_assert(controller.gameplay_ui.displayed_coin_value() == reward and controller.gameplay_ui.pending_coin_value() == 0, "Staggered arrivals must reconcile the visible and authoritative coin totals exactly")
 	_assert(controller.gameplay_ui.score_label.text == "800", "Coin counter must show the completed compact run total")
-	_assert(controller.audio_feedback.emitted_events.count("merge_reward") == 1 and not controller.audio_feedback.emitted_events.any(func(name): return String(name).begins_with("coin_")), "One extracted reference reward clip must replace layered procedural coin sounds")
+	_assert(controller.audio_feedback.emitted_events.count("merge_7") == 1 and not controller.audio_feedback.emitted_events.any(func(name): return String(name).begins_with("coin_")), "One earlier L7 gem tone must play without layered coin sounds or restarting music")
 	_assert(controller.haptics_feedback.emitted_events.count("coin_collect") == 1, "Only the final coin may emit the light collection haptic")
 	await _dispose_controller(controller)
 
@@ -229,6 +233,7 @@ func _test_late_collection_fade_and_body_cleanup() -> void:
 	_assert(not controller.gem_sprite_layer._sprites.has(result_id), "Removed target body must have no live gameplay sprite after synchronization")
 	var proxy: Sprite2D = controller.target_collection.sprite
 	_assert(proxy != null and proxy.get_parent() == controller.effects_layer, "Collection travel must use a visual-only proxy in the effects layer")
+	_assert(controller.effects_layer.get_parent() == controller.gameplay_ui.reward_foreground_host and controller.gameplay_ui.reward_foreground_host.z_index > controller.gameplay_ui.hud_canvas.z_index, "Collection gems and coins must travel in front of live gems and HUD boxes")
 	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION * (GameConfig.TARGET_COLLECTION_FADE_START - 0.06))
 	_assert(is_equal_approx(float(controller.target_collection.opacity), 1.0) and is_equal_approx(proxy.modulate.a, 1.0), "Collection gem must remain fully visible through the early travel path")
 	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION * 0.20)
@@ -236,10 +241,10 @@ func _test_late_collection_fade_and_body_cleanup() -> void:
 	_assert(not controller.pieces.any(func(piece): return piece.id == result_id), "Late fade must never restore an invisible physics body")
 	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION)
 	_assert(not controller.collection_in_progress and controller.target_index == 1 and not controller.win_qualified, "First L5 arrival must activate only L7 after collection finishes")
-	_assert(controller.effects_layer.target_arrivals.size() == 1 and GameConfig.TARGET_PANEL_PULSE_DURATION >= 0.50, "Target arrival must retain the reference-sized check-and-burst confirmation")
 	_assert(controller.gameplay_ui.target_reward_overlay.is_reward_active(), "Target confirmation must render above the HUD card instead of being hidden beneath it")
 	controller._refresh_hud()
 	_assert(controller.gameplay_ui.target_icon.texture == AssetCatalogType.gem_texture(7), "HUD must switch from L5 to L7 only after collection completes")
+	_assert(controller.gameplay_ui.target_swap_outgoing.visible and controller.gameplay_ui.target_swap_incoming.visible, "L5 must exit faded toward the top-left while L7 fades in from the right")
 	var expected: Array[String] = ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed"]
 	_assert(controller.presentation_events_for_result(result_id) == expected, "First target must preserve the exact visible-merge/cleanup/collection order")
 	await process_frame
@@ -318,11 +323,8 @@ func _test_effect_counts_are_bounded() -> void:
 		var event := _merge_event(8000 + index, 2 + index % 4)
 		event.depth = index % 4
 		layer.begin_merge_feedback(event, 10 + index, Vector2(80.0, 220.0))
-	for index in range(10):
-		layer.begin_target_arrival(Vector2(100.0 + index * 10.0, 140.0), 7)
 	_assert(layer.coin_rewards.size() <= GameConfig.COIN_EFFECT_LIMIT and layer.merge_impacts.size() <= 12, "Crowded merge feedback must cap coin flights and impact bursts")
-	_assert(layer.target_arrivals.size() <= 4, "Target arrival feedback must retain a small bounded count")
-	_assert(layer.active_effect_count() <= GameConfig.COIN_EFFECT_LIMIT + 16, "All transient gameplay effects must remain bounded")
+	_assert(layer.active_effect_count() <= GameConfig.COIN_EFFECT_LIMIT + 16, "All transient gameplay effects must remain bounded without a duplicate world-space target burst")
 	layer.update_effects(GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.COIN_EFFECT_LIMIT) + 1.0)
 	_assert(layer.active_effect_count() == 0, "Expired transient effects must release all presentation records")
 	layer.queue_free()

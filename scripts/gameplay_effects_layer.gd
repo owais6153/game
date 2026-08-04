@@ -10,7 +10,6 @@ signal coin_arrived(result_id: int, value: int, final_coin: bool)
 var score_popups: Array[Dictionary] = []
 var merge_impacts: Array[Dictionary] = []
 var coin_rewards: Array[Dictionary] = []
-var target_arrivals: Array[Dictionary] = []
 var launch_impacts: Array[Dictionary] = []
 var _coin_flights_started: Dictionary = {}
 var _font: Font
@@ -82,12 +81,6 @@ func _spawn_coin_reward(result_id: int, midpoint: Vector2, destination: Vector2,
 			"major_reward": major_reward,
 		})
 
-func begin_target_arrival(position: Vector2, level: int) -> void:
-	target_arrivals.append({"position": position, "level": level, "elapsed": 0.0})
-	if target_arrivals.size() > 4:
-		target_arrivals.pop_front()
-	queue_redraw()
-
 func begin_launch(position: Vector2, level: int) -> void:
 	launch_impacts.append({"position": position, "level": level, "elapsed": 0.0})
 	if launch_impacts.size() > 4:
@@ -112,14 +105,11 @@ func update_effects(delta: float) -> void:
 			coin_arrived.emit(result_id, int(coin.value), final_coin)
 			if final_coin:
 				_coin_flights_started.erase(result_id)
-	for arrival in target_arrivals:
-		arrival.elapsed = float(arrival.get("elapsed", 0.0)) + delta
 	for launch in launch_impacts:
 		launch.elapsed = float(launch.get("elapsed", 0.0)) + delta
 	score_popups = score_popups.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.SCORE_POPUP_DURATION)))
 	merge_impacts = merge_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.MERGE_PRESENTATION_DURATION)))
 	coin_rewards = coin_rewards.filter(func(item: Dictionary) -> bool: return not bool(item.get("arrived", false)))
-	target_arrivals = target_arrivals.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < GameConfig.TARGET_PANEL_PULSE_DURATION)
 	launch_impacts = launch_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < 0.16)
 	queue_redraw()
 
@@ -127,7 +117,6 @@ func clear() -> void:
 	score_popups.clear()
 	merge_impacts.clear()
 	coin_rewards.clear()
-	target_arrivals.clear()
 	launch_impacts.clear()
 	_coin_flights_started.clear()
 	queue_redraw()
@@ -154,7 +143,7 @@ func shift_world(delta: Vector2) -> void:
 	queue_redraw()
 
 func active_effect_count() -> int:
-	return score_popups.size() + merge_impacts.size() + coin_rewards.size() + target_arrivals.size() + launch_impacts.size()
+	return score_popups.size() + merge_impacts.size() + coin_rewards.size() + launch_impacts.size()
 
 func active_coin_count() -> int:
 	return coin_rewards.size()
@@ -174,8 +163,6 @@ func _draw() -> void:
 		_draw_coin_reward(coin)
 	for popup in score_popups:
 		_draw_score_popup(popup)
-	for arrival in target_arrivals:
-		_draw_target_arrival(arrival)
 	for launch in launch_impacts:
 		_draw_launch_impact(launch)
 
@@ -262,29 +249,6 @@ func _draw_coin_reward(effect: Dictionary) -> void:
 	var spin := 0.0
 	var rotation := 0.0
 	CoinVisualsType.draw_coin(self, position, GameConfig.COIN_DRAW_RADIUS * scale, 1.0, spin, rotation)
-
-func _draw_target_arrival(effect: Dictionary) -> void:
-	var t := clampf(float(effect.elapsed) / GameConfig.TARGET_PANEL_PULSE_DURATION, 0.0, 1.0)
-	var center: Vector2 = effect.position
-	var reveal := smoothstep(0.0, 0.18, t)
-	var fade := 1.0 - smoothstep(0.68, 1.0, t)
-	var pulse := 1.0 + sin(PI * clampf(t / 0.46, 0.0, 1.0)) * 0.16
-	draw_circle(center, 25.0 * pulse, Color(1.0, 0.91, 0.43, 0.28 * fade))
-	draw_arc(center, 26.0 + t * 34.0, 0.0, TAU, 32, Color(1.0, 0.86, 0.28, 0.90 * fade), 4.0)
-	# The reference target card answers with one large green confirmation mark.
-	var check_color := Color(0.38, 0.82, 0.27, reveal * fade)
-	var check_shadow := Color(0.15, 0.38, 0.11, reveal * fade * 0.72)
-	var check_start := center + Vector2(-13.0, 0.0) * pulse
-	var check_mid := center + Vector2(-3.0, 11.0) * pulse
-	var check_end := center + Vector2(17.0, -13.0) * pulse
-	draw_line(check_start + Vector2(1.5, 2.0), check_mid + Vector2(1.5, 2.0), check_shadow, 8.0, true)
-	draw_line(check_mid + Vector2(1.5, 2.0), check_end + Vector2(1.5, 2.0), check_shadow, 8.0, true)
-	draw_line(check_start, check_mid, check_color, 6.0, true)
-	draw_line(check_mid, check_end, check_color, 6.0, true)
-	for index in range(8):
-		var direction := Vector2.from_angle(float(index) * TAU / 8.0)
-		var sparkle_center := center + direction * (32.0 + t * 24.0)
-		draw_circle(sparkle_center, 3.4 * fade, Color(1.0, 0.93, 0.48, fade))
 
 func _draw_launch_impact(effect: Dictionary) -> void:
 	var t := clampf(float(effect.elapsed) / 0.16, 0.0, 1.0)

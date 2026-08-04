@@ -89,3 +89,13 @@ Manual phone listening checklist: confirm speech-free ambience is clearly presen
 - Automated cache/resource/no-ambience, threshold/cooldown, rigid-contact, reward routing, target ordering, and reset checks pass in the focused suites. Phone-speaker balance and haptic feel remain pending a connected Android device.
 
 Manual phone checklist for this superseding audio path: confirm there is no continuous music; compare launch/contact/ordinary merge/target reward directly with the supplied recording; verify repeated contacts do not chatter; confirm the combined reward sample does not double with coin arrivals; verify final-coin and target haptics remain singular.
+
+## Reference Audio + Reward Layering v2 update
+
+- The supplied reference comparison proved that the musical content inside the earlier four event slices was continuous background material, not a movement/contact cue. Production now instantiates `AudioFeedbackService`, starts `assets/runtime/audio/reference_music_loop.ogg` once during `_ready()`, loops it continuously, and never restarts it from controller events.
+- The loop is a documented `1.80 s`, mono 48 kHz derivative of reference window `25.05-26.90 s`, with a 50 ms circular seam crossfade and no gain, EQ, pitch, or synthesis. Central music gain is `0.34` and follows the existing session sound toggle.
+- Earlier cached gem sounds are restored for launch, typed gem/wall contact, tiered L2-L8 merges, chain, target collection, win, fail, and button. Three reusable players and centralized cooldowns remain. Separate coin burst/flight/arrival audio stays disabled, and the four prior extracted event slices are inactive.
+- Target collection emits one `target_collect` tone at confirmed arrival; the final overlay emits one bounded `win` tone. Haptics remain unchanged and service-owned.
+- Focused `GAMEPLAY_UI_FEEL_TESTS` and `CLEAN_CONTACT_TESTS` pass, including music-loop readiness, cache completeness, movement-independent routing, contact throttling, tiered merge tones, singular result audio, and no coin-audio layering. Full suite/export and physical-device listening status are recorded in `REFERENCE_AUDIO_LAYERING_V2_REPORT.md`.
+
+Manual phone checklist: verify the reference music is continuous with no audible restart on launch/contact; confirm gem impacts are short and do not chatter; compare L5/L7/L8 merge and target cues at normal media volume; confirm there are no coin ticks; test sound toggle; then verify target/final haptics on hardware.

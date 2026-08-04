@@ -5,7 +5,7 @@ const SimulationType = preload("res://scripts/board_simulation.gd")
 const MergeType = preload("res://scripts/merge_service.gd")
 const GemVisualsType = preload("res://scripts/gem_visuals.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
-const AudioFeedbackServiceType = preload("res://scripts/reference_audio_feedback_service.gd")
+const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.gd")
 const GameScene = preload("res://scenes/Game.tscn")
 var failures: Array[String] = []
 
@@ -470,9 +470,9 @@ func _test_expanded_portrait_table_bottom_anchor() -> void:
 func _test_sound_and_haptics_feedback_routing() -> void:
 	var audio_fixture = AudioFeedbackServiceType.new()
 	root.add_child(audio_fixture)
-	_assert(not audio_fixture.has_ambience(), "Production must remove the invented procedural music bed")
-	_assert(audio_fixture.cached_stream_count() == GameConfig.AUDIO_EVENT_VOLUME.size(), "Every allowed reference-derived feedback event must remain preloaded in the bounded audio cache")
-	_assert(ResourceLoader.exists("res://assets/runtime/audio/reference_launch.ogg") and ResourceLoader.exists("res://assets/runtime/audio/reference_contact.ogg") and ResourceLoader.exists("res://assets/runtime/audio/reference_merge_reward.ogg") and ResourceLoader.exists("res://assets/runtime/audio/reference_target_reward.ogg"), "All four reference-derived runtime clips must exist")
+	_assert(audio_fixture.has_ambience() and audio_fixture.ambience_is_ready(), "Reference music must start once and remain a continuously looping ambience player")
+	_assert(audio_fixture.cached_stream_count() == GameConfig.AUDIO_TONES.size(), "Every confirmed gem event must remain prebuilt in the bounded audio cache")
+	_assert(ResourceLoader.exists("res://assets/runtime/audio/reference_music_loop.ogg"), "The reference-derived continuous music loop must exist")
 	audio_fixture.queue_free()
 	var controller = GameScene.instantiate()
 	controller._ready()
@@ -505,19 +505,18 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	controller.audio_feedback.clear_trace()
 	controller.simulation._collision_impacts.append({"kind": "wall", "strength": GameConfig.WALL_CONTACT_SOUND_THRESHOLD + 100.0, "piece_id": impact_first.id})
 	controller._route_collision_feedback()
-	_assert(_event_count(controller.audio_feedback.emitted_events, "wall_contact") == 1, "Wall contact must use its own soft crystal event")
+	_assert(_event_count(controller.audio_feedback.emitted_events, "wall_contact") == 1, "Wall contact must use its earlier short gem event")
 	controller.audio_feedback.clear_trace()
 	controller.haptics_feedback.clear_trace()
 	var merge_events: Array[Dictionary] = [{"level": 2, "depth": 0}, {"level": 3, "depth": 1}]
 	controller._apply_confirmed_merge_events(merge_events)
-	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_reward") == 1, "A confirmed chain must use one throttled extracted reference reward sequence")
+	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_2") == 1 and _event_count(controller.audio_feedback.emitted_events, "merge_3") == 1 and _event_count(controller.audio_feedback.emitted_events, "chain") == 1, "A confirmed chain must use the earlier tiered gem tones without restarting music")
 	_assert(_event_count(controller.haptics_feedback.emitted_events, "merge") == 1 and _event_count(controller.haptics_feedback.emitted_events, "chain") == 1, "Confirmed direct and chain merges must use distinct haptics")
 	controller.audio_feedback.clear_trace()
 	controller.haptics_feedback.clear_trace()
-	controller.audio_feedback._process(float(GameConfig.AUDIO_COOLDOWN_BY_EVENT.merge_reward) + 0.01)
 	var major_events: Array[Dictionary] = [{"level": 6, "depth": 0, "result_id": 699, "midpoint": Vector2(360.0, 620.0)}]
 	controller._apply_confirmed_merge_events(major_events)
-	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_reward") == 1, "A confirmed major merge must use the extracted reference reward cue")
+	_assert(_event_count(controller.audio_feedback.emitted_events, "merge_6") == 1, "A confirmed major merge must use its earlier tiered gem tone")
 	_assert(_event_count(controller.haptics_feedback.emitted_events, "major_merge") == 1, "A confirmed major merge must use the dedicated stronger haptic")
 	var win_controller = GameScene.instantiate()
 	win_controller._ready()
@@ -531,7 +530,7 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	var win_coin_finish := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
 	win_controller.effects_layer.update_effects(win_coin_finish)
 	win_controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
-	_assert(win_controller.audio_feedback.emitted_events.is_empty() and _event_count(win_controller.haptics_feedback.emitted_events, "win") == 1, "Win overlay must not replay or layer another sound over the completed reference target sequence")
+	_assert(_event_count(win_controller.audio_feedback.emitted_events, "win") == 1 and _event_count(win_controller.haptics_feedback.emitted_events, "win") == 1, "Win overlay must emit one bounded rewarding finish cue without restarting music")
 	var fail_controller = GameScene.instantiate()
 	fail_controller._ready()
 	fail_controller.haptics_feedback.allow_platform_vibration = false

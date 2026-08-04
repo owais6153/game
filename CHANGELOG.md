@@ -1,5 +1,14 @@
 # Changelog
 
+## Reference Audio + Reward Layering v2
+
+- Reclassified the previously event-mapped reference-video audio as continuous background music. Added a seamless `1.80 s`, mono 48 kHz runtime loop from the supplied reference and restored `AudioFeedbackService` as the production boundary; movement never controls the music player.
+- Restored the earlier cached launch/contact/tiered-merge/chain/target/win/fail/button gem tones, while keeping separate coin burst/flight/arrival sounds disabled. Typed contact thresholds, cooldowns, sound toggle, three-player cap, and haptics remain service-owned.
+- Moved `GameplayEffectsLayer` into the layer-40 HUD `RewardForegroundHost`. Four slightly larger coins and the collection proxy now travel above live gems and HUD cards, with confirmation, Pause, and Results kept above them.
+- Removed the duplicate world-space target arrival burst. Added reusable outgoing/incoming target ghosts: completed L5/L7 fades toward the top-left, and L7/L8 fades/slides in from the right without rebuilding UI nodes.
+- Centralized the coral danger-line color and reused it for the ready-state push guide. No physics, progression, currency, launcher, collision, danger, or result behavior changed.
+- Updated focused audio/contact/reward/layering regressions, asset provenance, architecture/knowledge documentation, and milestone reporting.
+
 ## Reference Feedback Match v1
 
 - Removed directional contact squash, cross-stretch, kick, merge lift, tilt, and anisotropic scale. Collision telemetry now routes thresholded audio only, while merge results use a centered uniform `0.62 -> 1.20 -> 1.0` pop and preserve their exact silhouette.

@@ -2,6 +2,17 @@
 
 ## Scope
 
+## Reference audio and reward layering v2
+
+- Level 1 remains exactly one L5 target, then L7, then L8. No level data, launcher queue, reward integer, merge rule, collision geometry, danger rule, or result qualification changes in this presentation correction.
+- The reference-derived music is one `1.80 s` seamless Ogg loop started once by `AudioFeedbackService`. Movement, launch, contact, merge, coin travel, and target travel never start or restart it; the existing session sound toggle controls both music and event cues.
+- Confirmed launch/contact/merge/target/result events use the earlier cached gem-tone language. There are 15 bounded one-shots, three reusable players, typed contact thresholds, and existing cooldowns. The four previously extracted event slices and all separate coin sounds are inactive in production.
+- Every reward still creates exactly four ordered coin records. Their draw radius is `14.5` design px, and `GameplayEffectsLayer` is attached to the layer-40 HUD's `RewardForegroundHost`, so coin arcs and the collected target proxy stay above live gems and HUD boxes. Pause, target confirmation, and the result overlay retain higher presentation layers.
+- Target arrival uses one HUD confirmation. The duplicate world-space arrival burst is removed. After L5 or L7 completes, a prebuilt ghost of the old target moves toward the top-left while fading; the new L7 or L8 target fades and slides in from the right. These transitions allocate no per-snapshot nodes and cannot advance target state.
+- The ready-state push guide uses the same centralized coral color as the danger line. It retains the existing rail-derived endpoints and no input, raycast, trajectory, collision, or simulation authority.
+
+This section supersedes the audio, reward-layering, coin-size, and target-arrival presentation statements recorded below.
+
 ## Production gameplay parity final v1
 
 - Level 1 uses the existing L1-L4 mixed unlimited launcher and exactly three sequential confirmed-result objectives: one L5, then one L7, then one L8. Collection animation advances each objective; only the final L8 qualifies victory.
