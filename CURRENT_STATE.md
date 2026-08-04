@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** Asset-matched Home + transparent logo v1. Home now uses the supplied tropical full-screen direction with a floating alpha-matted GEM RUSH logo, responsive Level/Coins card, and glossy coral Play/Continue action. The infinite forward-only eight-gem level system and all gameplay behavior remain unchanged. Source: `84d855a` / `assets-ui-screen-match-v1-source`; clean export record: `403624d` / `assets-ui-screen-match-v1-export-source`; delivery tag: `assets-ui-screen-match-v1`. APK: `build/android/assets-ui-screen-match-v1.apk` (118,277,818 bytes; SHA-256 `7AAB0C4A93F29DC6B40B44D511BDC3A2DB40AC04C4456E6342791F932319824F`). All seven suites and the reviewed ANGLE capture pass. ADB found no device, so physical-device review is not claimed.
+
 ## Asset-matched Home + transparent logo v1 (2026-08-05)
 
 - Home now follows the supplied tropical UI direction: full-bleed beach artwork, a floating transparent GEM RUSH hero, a compact cream Level/Coins card, and a large coral Play/Continue action. The prior dark dimmer and generic framed-logo/card composition are retired.

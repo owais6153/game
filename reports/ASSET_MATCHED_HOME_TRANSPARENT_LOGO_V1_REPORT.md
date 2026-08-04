@@ -2,6 +2,8 @@
 
 Date: 2026-08-05
 
+Delivery provenance: source `84d855a` / `assets-ui-screen-match-v1-source`; export record `403624d` / `assets-ui-screen-match-v1-export-source`; final tag `assets-ui-screen-match-v1`.
+
 ## Outcome
 
 Home now uses the supplied UI language instead of the interim generic card: a full tropical backdrop, floating GEM RUSH logo, compact Level/Coins status, and large glossy coral Play/Continue control. No level tree was introduced.
