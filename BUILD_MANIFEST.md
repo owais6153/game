@@ -1,5 +1,19 @@
 # Build Manifest
 
+# Reference Target Reward Correction v3
+
+- File: `reference-target-reward-correction-v3.apk`
+- Path: `D:\Owais\game\build\android\reference-target-reward-correction-v3.apk`
+- Size: `102,848,585` bytes
+- Modified: `2026-08-04 11:45:35 +05:00`
+- SHA-256: `7BEDDD928F29CAD89E05CDB410EFF6203E8DC6612D265614E84D4FBD440A4B7D`
+- Source commit: `77daaa0c69de40140f546217f004d37abc556473` (`fix: make coin rewards target-only`)
+- Source tag: `reference-target-reward-correction-v3-source`
+- Delivery tag: `reference-target-reward-correction-v3`
+- Export: Godot 4.6.3 `Android` debug preset from the clean source milestone; installable validation signing, not a store-release keystore claim.
+- Validation: `GAMEPLAY_UI_FEEL_TESTS`, `CLEAN_CONTACT_TESTS`, `LEVEL_1_FLOW_TESTS`, `GEM18_CHAIN_TESTS`, `PRODUCTION_UI_FINALIZATION_TESTS`, and `MOTION_PROFILE` passed. Four 720 x 1600 Compatibility/ANGLE captures were reviewed, including zero ordinary-merge coin records and exactly four active-target records. Standalone APK exists; ZIP has 379 entries with manifest, primary dex, and arm64 Godot runtime; `reports/`, `tools/`, and `assets/generated/` are absent. APK Signature Scheme v2/v3 verification passed with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device; install, launch, phone performance, audio listening, and haptics were not tested.
+
 # Reference Audio + Reward Layering v2
 
 - File: `reference-audio-layering-v2.apk`

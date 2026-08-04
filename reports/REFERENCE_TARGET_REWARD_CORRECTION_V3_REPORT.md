@@ -39,7 +39,13 @@ This milestone corrects the last three reported mismatches: coin rewards are tar
 
 Four reviewed production frames are stored under `reports/reference-target-reward-correction-v3/final-screenshots/`: ready board with no vertical guide; ordinary L6 impact with zero coins; active L5 target with exactly four coins; and the four target coins crossing the HUD foreground.
 
-Source/delivery commits and tags, APK structure/signature, and connected-device status are added here and to `BUILD_MANIFEST.md` after the clean source milestone is packaged.
+## Delivery provenance
+
+- Source commit/tag: `77daaa0c69de40140f546217f004d37abc556473` / `reference-target-reward-correction-v3-source`.
+- Delivery tag: `reference-target-reward-correction-v3` on the manifest/report delivery commit.
+- APK: `build/android/reference-target-reward-correction-v3.apk`, 102,848,585 bytes, modified `2026-08-04 11:45:35 +05:00`, SHA-256 `7BEDDD928F29CAD89E05CDB410EFF6203E8DC6612D265614E84D4FBD440A4B7D`.
+- Package validation: 379 ZIP entries; manifest, primary dex, and arm64 Godot runtime present; zero `reports/`, `tools/`, or `assets/generated/` entries; APK Signature Schemes v2/v3 verified with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device. Installation, on-phone launch/performance, audio listening, and haptics are not claimed.
 
 ## Manual audio requirement
 
