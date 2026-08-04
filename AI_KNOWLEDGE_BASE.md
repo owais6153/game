@@ -9,6 +9,7 @@
 - Keep originals unchanged at `assets/sound/coin-sound.mp3` and `assets/sound/gem_merge_music_loop.wav`; runtime derivatives belong only under `assets/runtime/audio/`. Music is a dedicated continuous loop at `0.14` linear gain. Only the target-qualified event plays the supplied coin cue. Movement must never control music.
 - Keep the earlier gem/contact/merge tones, three-player cap, thresholds, cooldowns, and sound-toggle boundary. Do not merge coin audio into the music asset or extract/reintroduce the mixed reference-video loop.
 - Preserve the removed push guide, rigid gem artwork, table/rail geometry, physics constants, collision and merge rules, launcher flow, danger timing, reset cleanup, and isolated results. After related work, run all six suites, capture the six v4 proof states, export, and verify one standalone APK.
+- Keep Android export exclusions for both `tools/*` and `build/*`; temporary analysis frames and logs under the git-ignored build directory must never inflate a delivery APK.
 
 
 ## Reference target reward correction guardrails v3

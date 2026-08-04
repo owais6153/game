@@ -49,13 +49,15 @@ The music derivative is a full-duration Ogg conversion without gain/EQ/pitch pro
 - `PRODUCTION_UI_FINALIZATION_TESTS: PASS`
 - `MOTION_PROFILE: PASS`; crowded-board worst process sample `6.889 ms`, resource loads after initialization `0`, cached event streams `16`, node delta `0`.
 - `REFERENCE_ANIMATION_AUDIO_POLISH_V4_CAPTURE: PASS`; all six 720 x 1600 ANGLE frames were reviewed.
+- Packaging audit rejected an intermediate 148,942,401-byte APK after detecting temporary `build/reference_animation_analysis/` frames in its PCK. The Android preset now excludes `build/*`; only the clean replacement is eligible for delivery.
 
 The regression suite proves ordinary merges have no coin records/cue, a target reward has exactly four records and one coin cue, the music player is independent and toggle-safe, target movement stays foreground, the check/handoff timings remain bounded, and the complete physics signature is unchanged.
 
 ## Delivery
 
 - Clean pre-change baseline: `a64e220` / `reference-animation-audio-polish-v4-baseline`.
-- Source tag: `reference-animation-audio-polish-v4-source`.
+- Gameplay source: `2aa255ea14dcf1349d339916539e953f82bc8268` / `reference-animation-audio-polish-v4-source`.
+- Clean export-source tag: `reference-animation-audio-polish-v4-export-source`.
 - Final delivery tag and APK provenance are added after the single final Android export.
 - Physical-device status: not yet claimed. The final delivery check will record `adb devices -l`; listening and haptic checks require a connected phone.
 

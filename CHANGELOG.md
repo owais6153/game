@@ -7,6 +7,7 @@
 - Replaced the directional old/new target travel with the reference sequence: a held large green check over the completed target, an in-place card fade, a short empty beat, and a centered next-target fade-in.
 - Preserved the two user-supplied audio originals under `assets/sound/`. Added separate optimized runtime Ogg derivatives; one dedicated player loops clean background music continuously at `0.14` gain, while one unpitched coin cue fires only on target qualification. Existing gem/contact/merge cues remain separate and dominant.
 - Added toggle/readiness, target-only coin-audio, rigid-silhouette, splash, exact-four-coin, centered-target-handoff, timing, layering, and unchanged-physics regressions plus six reviewed ANGLE frames.
+- Tightened the Android export filter to exclude `build/*`; a size audit caught and rejected an intermediate APK that had packaged temporary reference-analysis frames.
 
 
 ## Reference Target Reward Correction v3

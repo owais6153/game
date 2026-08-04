@@ -8,6 +8,7 @@
 - `TargetRewardOverlay` owns one green-check confirmation. `GameplayHudLayer` reuses its two existing target ghosts for an in-place opacity handoff and fades the existing target panel; it does not allocate targets, qualify results, or reorder L5 -> L7 -> L8.
 - `AudioFeedbackService` preloads the two runtime Ogg derivatives. A dedicated looping player starts the supplied music during `_ready()` and is never addressed by movement/controller events. Three reusable one-shot players retain the bounded event cache; the supplied coin stream occupies only the `coin_reward` cache entry and is played unpitched.
 - The session audio toggle stops/resumes the continuous player and stops active one-shots. Contact thresholds/cooldowns/concurrency remain presentation-only. `BoardSimulation`, `ContactMergeService`, table geometry, launcher lifecycle, danger state, and result state do not depend on audio or animation.
+- `export_presets.cfg` excludes `tools/*` and `build/*`. Test logs, frame-analysis derivatives, APKs, and other local build products cannot be packaged into the Godot PCK.
 
 
 ## Reference target reward and audio correction boundary v3
