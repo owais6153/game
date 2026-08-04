@@ -1,5 +1,20 @@
 # Build Manifest
 
+# Merge Animation Revert + L1-L8 Size Calibration v1
+
+- File: `merge-animation-size-calibration-v1.apk`
+- Path: `D:\Owais\game\build\android\merge-animation-size-calibration-v1.apk`
+- Size: `104,471,551` bytes
+- Modified: `2026-08-04 21:04:55 +05:00` (`2026-08-04T16:04:55Z`)
+- SHA-256: `93B8FD867E9389CAC584007EE22523B05F5211A953E01E7AA29D7C3408D41565`
+- Gameplay source commit/tag: `c5487a5d` / `merge-animation-size-calibration-v1-source`.
+- Clean export source commit/tag: `EXPORT_SOURCE_COMMIT` / `merge-animation-size-calibration-v1-export-source`.
+- Delivery tag: `merge-animation-size-calibration-v1`.
+- Export: Godot 4.6.3 `Android` debug preset; installable validation signing, not a store-release keystore claim.
+- Validation: all six regression/profile suites passed. APK has 387 ZIP entries with manifest, primary dex, and arm64 Godot runtime; `build/`, `reports/`, `tools/`, and `assets/generated/` entries are absent. APK Signature Scheme v2/v3 verification passed with one RSA-2048 signer.
+- Device status: `adb devices -l` returned an empty device list; installation, launch, phone feel, listening, and haptics are not claimed.
+
+
 # Reference Animation + Supplied Audio Polish v4
 
 - File: `reference-animation-audio-polish-v4.apk`
