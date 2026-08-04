@@ -19,6 +19,12 @@
 - A level seed deterministically owns gem order, launcher sequence, targets, and one of five backgrounds. Retry preserves the same configuration; completing the final target exposes NEXT LEVEL, increments without limit, generates a new seed, and saves level/seed/coins. No level-tree or previous-level route exists.
 - Home/Continue, Pause, Level Complete/Next Level, and Fail/Retry/Home are modal UI states outside simulation. Physics, colliders, merge eligibility, target-only coins, feedback animation, audio, danger, and table geometry remain unchanged.
 
+## Branded production screen flow v1
+
+- Home is a standalone modal presentation: the gameplay HUD is hidden, the preserved supplied GEM RUSH logo derivative is the primary hero, and saved Level/Coins lead to one PLAY or CONTINUE action.
+- Pause uses Resume, deterministic Restart, and Home. Success presents the completed target, total coins, explicit `LEVEL N -> LEVEL N+1`, NEXT LEVEL, and Home. Failure presents the danger reason, total coins, same-chain Retry promise, Retry, and Home.
+- Home after success banks and prepares the next generated level; Home after failure resets the same seeded level. Continue never returns to a consumed win/fail state. These screens remain outside simulation and do not change physics, targets, rewards, or infinite generation.
+
 ## Scope
 
 ## Reference animation and supplied-audio polish v4

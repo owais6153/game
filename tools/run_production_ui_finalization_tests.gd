@@ -5,6 +5,7 @@ extends SceneTree
 const GameScene = preload("res://scenes/Game.tscn")
 const GameplayHudScene = preload("res://scenes/ui/GameplayHud.tscn")
 const ResultOverlayScene = preload("res://scenes/ui/ResultOverlay.tscn")
+const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
@@ -21,6 +22,7 @@ func _run() -> void:
 	await _test_hud_architecture_and_catalog_mapping()
 	await _test_score_fit_and_state_updates()
 	await _test_popup_composition_and_states()
+	await _test_branded_home_and_forward_result_flow()
 	await _test_responsive_layouts()
 	await _test_safe_areas()
 	await _test_mobile_back_and_duplicate_guards()
@@ -188,6 +190,34 @@ func _test_responsive_layouts() -> void:
 		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Maximum coin total must fit at %s" % str(viewport_size))
 		_assert((metrics.pause as Rect2).get_center().distance_to(bounds.get_center()) <= 2.0, "Pause must remain centered at %s" % str(viewport_size))
 		await _dispose_viewport(fixture.viewport)
+
+func _test_branded_home_and_forward_result_flow() -> void:
+	for viewport_size in [Vector2i(576, 1312), Vector2i(720, 1600), Vector2i(1080, 2400)]:
+		var viewport := SubViewport.new()
+		viewport.size = viewport_size
+		viewport.disable_3d = true
+		root.add_child(viewport)
+		var home: HomeOverlayLayer = HomeOverlayType.new()
+		viewport.add_child(home)
+		await process_frame
+		home.present(12, 125500)
+		await process_frame
+		var metrics := home.layout_metrics()
+		var bounds := Rect2(Vector2.ZERO, Vector2(viewport_size))
+		_assert(home.logo_rect.texture == AssetCatalogType.BRAND_LOGO, "Home must use the supplied Gem Rush logo derivative")
+		_assert(home.play_button.text == "CONTINUE" and home.level_label.text == "LEVEL 12" and home.coins_label.text == "125.5K", "Home must show saved journey state and one clear Continue action")
+		for key in ["panel", "logo", "button"]:
+			_assert(bounds.encloses(metrics[key]), "Branded Home %s must remain inside %s" % [key, str(viewport_size)])
+		_assert((metrics.panel as Rect2).encloses(metrics.logo) and (metrics.panel as Rect2).encloses(metrics.button), "Home logo and action must remain inside its production surface")
+		await _dispose_viewport(viewport)
+	var result_fixture := await _new_result(Vector2i(720, 1600))
+	var result: ResultOverlayLayer = result_fixture.result
+	result.present(true, 125500, 12, 8)
+	_assert(result.transition_label.text == "LEVEL 12  →  LEVEL 13" and result.retry_button.text == "NEXT LEVEL", "Success must communicate explicit forward progression")
+	result.dismiss()
+	result.present(false, 125500, 12, 8)
+	_assert(result.transition_label.text.contains("SAME CHAIN ON RETRY") and result.retry_button.text == "RETRY", "Failure must explain deterministic retry without implying backward progress")
+	await _dispose_viewport(result_fixture.viewport)
 
 
 func _test_safe_areas() -> void:

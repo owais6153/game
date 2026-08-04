@@ -26,6 +26,7 @@ var subtitle_label: Label
 var result_icon: TextureRect
 var fail_badge: PanelContainer
 var score_label: Label
+var transition_label: Label
 var retry_button: Button
 var home_button: Button
 var _entrance_tween: Tween
@@ -65,6 +66,7 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8)
 	result_icon.texture = AssetCatalogType.gem_texture(result_tier) if won else null
 	fail_badge.visible = not won
 	score_label.text = "COINS  %s" % ScoreFormatterType.format(score)
+	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • SAME CHAIN ON RETRY" % level_number
 	retry_button.text = "NEXT LEVEL" if won else "RETRY"
 	retry_button.tooltip_text = "Continue to Level %d" % (level_number + 1) if won else "Retry Level %d" % level_number
 	root_control.visible = true
@@ -130,26 +132,26 @@ func _build_ui() -> void:
 	safe_margin.add_child(center)
 	panel = PanelContainer.new()
 	panel.name = "ResultPanel"
-	panel.custom_minimum_size = Vector2(440.0, 500.0)
-	panel.add_theme_stylebox_override("panel", UiDesignSystemType.simple_popup_panel_style())
+	panel.custom_minimum_size = Vector2(500.0, 680.0)
+	panel.add_theme_stylebox_override("panel", UiDesignSystemType.hero_screen_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(panel)
 	var margin := MarginContainer.new()
 	margin.name = "ResultContentMargin"
-	margin.add_theme_constant_override("margin_left", 38)
-	margin.add_theme_constant_override("margin_top", 28)
-	margin.add_theme_constant_override("margin_right", 38)
-	margin.add_theme_constant_override("margin_bottom", 28)
+	margin.add_theme_constant_override("margin_left", 42)
+	margin.add_theme_constant_override("margin_top", 32)
+	margin.add_theme_constant_override("margin_right", 42)
+	margin.add_theme_constant_override("margin_bottom", 34)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var column := VBoxContainer.new()
 	column.name = "ResultContent"
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 8)
+	column.add_theme_constant_override("separation", 10)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(column)
-	title_label = _label("LEVEL COMPLETE", 34, UiDesignSystemType.COLOR_CORAL)
+	title_label = _label("LEVEL COMPLETE", 39, UiDesignSystemType.COLOR_CORAL)
 	title_label.name = "ResultTitle"
 	title_label.custom_minimum_size = Vector2(0.0, 58.0)
 	title_label.add_theme_constant_override("outline_size", 6)
@@ -166,12 +168,12 @@ func _build_ui() -> void:
 	column.add_child(subtitle_label)
 	var art_slot := CenterContainer.new()
 	art_slot.name = "ResultArtSlot"
-	art_slot.custom_minimum_size = Vector2(140.0, 140.0)
+	art_slot.custom_minimum_size = Vector2(172.0, 172.0)
 	art_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(art_slot)
 	var icon_aspect := AspectRatioContainer.new()
 	icon_aspect.name = "ResultGemSlot"
-	icon_aspect.custom_minimum_size = Vector2(128.0, 128.0)
+	icon_aspect.custom_minimum_size = Vector2(156.0, 156.0)
 	icon_aspect.ratio = 1.0
 	icon_aspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art_slot.add_child(icon_aspect)
@@ -192,10 +194,19 @@ func _build_ui() -> void:
 	fail_mark.add_theme_constant_override("outline_size", 0)
 	fail_badge.add_child(fail_mark)
 	fail_badge.visible = false
+	var reward_card := PanelContainer.new()
+	reward_card.name = "ResultRewardCard"
+	reward_card.custom_minimum_size = Vector2(388.0, 78.0)
+	reward_card.add_theme_stylebox_override("panel", UiDesignSystemType.continue_card_style())
+	column.add_child(reward_card)
 	score_label = _label("COINS  0", 29, UiDesignSystemType.COLOR_TEAL)
 	score_label.name = "ResultScore"
-	score_label.custom_minimum_size = Vector2(0.0, 48.0)
-	column.add_child(score_label)
+	score_label.custom_minimum_size = Vector2(0.0, 68.0)
+	reward_card.add_child(score_label)
+	transition_label = _label("LEVEL 1  →  LEVEL 2", 17, UiDesignSystemType.COLOR_TEXT_MUTED)
+	transition_label.name = "ResultTransition"
+	transition_label.custom_minimum_size = Vector2(0.0, 34.0)
+	column.add_child(transition_label)
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0.0, 6.0)
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -203,7 +214,7 @@ func _build_ui() -> void:
 	retry_button = Button.new()
 	retry_button.name = "ResultActionButton"
 	retry_button.text = "REPLAY"
-	retry_button.custom_minimum_size = Vector2(320.0, 74.0)
+	retry_button.custom_minimum_size = Vector2(388.0, 78.0)
 	retry_button.focus_mode = Control.FOCUS_ALL
 	retry_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	retry_button.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -213,7 +224,7 @@ func _build_ui() -> void:
 	home_button.name = "ResultHomeButton"
 	home_button.text = "HOME"
 	home_button.theme_type_variation = "SecondaryButton"
-	home_button.custom_minimum_size = Vector2(320.0, 64.0)
+	home_button.custom_minimum_size = Vector2(388.0, 66.0)
 	home_button.pressed.connect(func() -> void: home_requested.emit())
 	column.add_child(home_button)
 

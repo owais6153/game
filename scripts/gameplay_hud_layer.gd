@@ -145,6 +145,8 @@ func update_snapshot(snapshot: Dictionary) -> void:
 
 	var level_number := int(snapshot.get("level_number", 1))
 	level_label.text = "LEVEL %d" % level_number
+	if restart_button != null:
+		restart_button.tooltip_text = "Restart Level %d with the same gem chain" % level_number
 	target_header_label.text = "TARGET"
 	_snapshot = snapshot.duplicate()
 
@@ -667,8 +669,8 @@ func _build_pause_popup() -> void:
 	pause_safe_margin.add_child(center)
 	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
-	pause_panel.custom_minimum_size = Vector2(420.0, 408.0)
-	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.simple_popup_panel_style())
+	pause_panel.custom_minimum_size = Vector2(460.0, 520.0)
+	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.hero_screen_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
 	var margin := MarginContainer.new()
@@ -692,7 +694,7 @@ func _build_pause_popup() -> void:
 	title.add_theme_constant_override("outline_size", 6)
 	title.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_CREAM)
 	column.add_child(title)
-	var subtitle := _label("TAKE A BREATHER", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
+	var subtitle := _label("YOUR CHAIN IS SAVED", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
 	subtitle.name = "PauseSubtitle"
 	subtitle.custom_minimum_size = Vector2(0.0, 28.0)
 	column.add_child(subtitle)
@@ -714,7 +716,7 @@ func _build_pause_popup() -> void:
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
 	column.add_child(resume_button)
 	restart_button = _button("PauseRestartButton", "RESTART", Vector2(310.0, 72.0), "SecondaryButton")
-	restart_button.tooltip_text = "Restart Level 1"
+	restart_button.tooltip_text = "Restart with the same gem chain"
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
 	column.add_child(restart_button)
 	home_button = _button("PauseHomeButton", "HOME", Vector2(310.0, 64.0), "SecondaryButton")

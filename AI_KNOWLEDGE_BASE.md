@@ -12,6 +12,13 @@
 - Keep music gain at `0.10` unless a listening-backed audio-only milestone retunes it; documented safe range is `0.08-0.12`.
 - Never route background playback from movement or contact. Keep the v4 coin cue separate and target-only, and do not replace tiered gem/contact sounds with the music stream.
 
+## Branded production screen guardrails v1
+
+- Preserve the supplied logo original under `assets/logo/` and use only `assets/runtime/ui/gem_rush_logo_v1.png` at runtime. Keep it as a contained hero; do not stretch it or treat its opaque background as transparent artwork.
+- Home must hide the gameplay HUD and expose exactly one primary Play/Continue action. All modal content must remain inside safe bounds at 576 x 1312, 720 x 1600, and tall 1080 canvases.
+- Result Home must never resume terminal gameplay: a win prepares the next level; a failure reconstructs the same seeded level. Preserve Next Level after success and Retry after failure.
+- Screen polish must remain presentation-only. Do not dim/change gameplay roots or gem modulate from result UI, and do not move table/physics geometry.
+
 ## Infinite randomized-level guardrails v1
 
 - A generated level must contain exactly eight unique identities from global catalog L1-L18 and exactly one identity for each local rank L1-L8. Never randomize simulation ranks independently from the saved mapping.

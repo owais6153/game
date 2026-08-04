@@ -105,6 +105,20 @@ static func simple_popup_panel_style() -> StyleBoxFlat:
 	style.content_margin_bottom = 0.0
 	return style
 
+static func hero_screen_panel_style() -> StyleBoxFlat:
+	var style := _rounded_style(Color(1.0, 0.975, 0.90, 0.985), Color("f5bf42"), 4, 38, 14, Color(0.0, 0.03, 0.06, 0.42))
+	style.content_margin_left = 0.0
+	style.content_margin_top = 0.0
+	style.content_margin_right = 0.0
+	style.content_margin_bottom = 0.0
+	return style
+
+static func logo_frame_style() -> StyleBoxFlat:
+	return _rounded_style(Color("19150f"), Color("f6c555"), 3, 30, 7, Color(0.25, 0.10, 0.01, 0.30))
+
+static func continue_card_style() -> StyleBoxFlat:
+	return _rounded_style(Color("fffaf0"), Color("e7bd64"), 2, 24, 4, Color(0.10, 0.12, 0.15, 0.18))
+
 
 static func progression_panel_style() -> StyleBoxFlat:
 	var style := _rounded_style(Color(1.0, 0.976, 0.91, 0.96), Color("e5b74f"), 2, 22, 5, Color(0.10, 0.20, 0.22, 0.22))

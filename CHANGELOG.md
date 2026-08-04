@@ -1,5 +1,14 @@
 # Changelog
 
+## Branded Production Screen Flow v1 - 2026-08-05
+
+- Preserved the supplied 1024 x 1024 GEM RUSH logo and created a non-destructive cropped 720 x 563 runtime derivative for mobile UI.
+- Rebuilt Home as a standalone safe-area-aware hero screen with the logo, saved level/coins, responsive Play/Continue action, tagline, and infinite-level promise; gameplay HUD elements are hidden while Home is active.
+- Upgraded Pause to the shared hero surface and clear Resume/Restart/Home hierarchy.
+- Upgraded success with completed target art, total coins, explicit Level N -> Level N+1 copy, Next Level, and Home; upgraded failure with danger explanation, deterministic same-chain Retry copy, Retry, and Home.
+- Corrected result-to-Home routing so success prepares the next generated level and failure resets the same seeded level before Continue.
+- Added narrow/standard/tall Home bounds, supplied-logo mapping, forward/retry copy, and responsive action regressions plus four reviewed 720 x 1600 ANGLE captures.
+
 ## Infinite Randomized Eight-Gem Levels v1 - 2026-08-05
 
 - Replaced the single hard-coded level definition with deterministic infinite generated levels.

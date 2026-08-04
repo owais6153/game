@@ -410,7 +410,7 @@ func _setup_asset_presentation() -> void:
 	add_child(result_overlay)
 	result_overlay.retry_requested.connect(_on_restart_requested)
 	result_overlay.next_level_requested.connect(_on_next_level_requested)
-	result_overlay.home_requested.connect(_show_home)
+	result_overlay.home_requested.connect(_on_result_home_requested)
 	home_overlay = HomeOverlayType.new()
 	add_child(home_overlay)
 	home_overlay.play_requested.connect(_on_home_play_requested)
@@ -827,6 +827,7 @@ func _on_resume_requested() -> void:
 func _on_restart_requested() -> void:
 	if gameplay_ui != null:
 		gameplay_ui.hide_pause(false)
+		gameplay_ui.hide()
 	if is_inside_tree():
 		get_tree().paused = false
 	audio_feedback.emit_event("button")
@@ -842,6 +843,15 @@ func _on_next_level_requested() -> void:
 	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
 	restart()
 
+func _on_result_home_requested() -> void:
+	# Leaving a completed result through Home still banks the win and prepares the
+	# next generated level; Continue can never return to a consumed terminal run.
+	if won:
+		_on_next_level_requested()
+	else:
+		_on_restart_requested()
+	_show_home()
+
 func _show_home() -> void:
 	if home_overlay == null:
 		return
@@ -856,6 +866,8 @@ func _show_home() -> void:
 func _on_home_play_requested() -> void:
 	if home_overlay != null:
 		home_overlay.dismiss()
+	if gameplay_ui != null:
+		gameplay_ui.show()
 	if is_inside_tree():
 		get_tree().paused = false
 	if audio_feedback != null:

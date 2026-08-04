@@ -12,6 +12,12 @@
 - `GameConfig.AUDIO_MUSIC_VOLUME = 0.10` remains the centralized mix value. Target coin and tiered gem one-shots stay on their existing independent cached players and confirmed-event routes.
 - The preserved MP3 is source provenance; only its optimized derivative is used at runtime. This presentation-only change does not enter simulation, collision, merge, reward, or controller state.
 
+## Branded screen-flow presentation boundary v1
+
+- `AssetCatalog.BRAND_LOGO` owns the optimized supplied-logo derivative. `HomeOverlayLayer` is a layer-60 modal with its own safe area, layout metrics, cached theme resources, and one play intent signal; it never owns progression decisions.
+- `GameController._show_home()` hides `GameplayHudLayer`, pauses the tree, and presents saved snapshot values. Continue restores the HUD and unpauses. Result Home routes through controller state: wins advance/save/reset before Home; failures restart the same seed before Home.
+- `ResultOverlayLayer` remains the dedicated layer-50 victory/failure owner. It reads level/coins/final-art arguments, exposes Next/Retry/Home intents, and never alters gameplay roots, gem textures, physics, or qualification timing.
+
 ## Infinite generated-level boundary v1
 
 - `LevelConfig.generated(level_number, seed)` is the sole generator. Its immutable dictionary owns eight unique catalog identities mapped to local L1-L8, launcher sequence, ascending targets, background index, and seed.
