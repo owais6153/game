@@ -25,4 +25,8 @@ The motion profile retained zero per-gem process callbacks, zero gameplay resour
 ## Provenance
 
 - Baseline commit/tag: `a987fa1` / `production-screen-flow-v1-baseline`
-- Source/export/delivery commits, tags, and APK audit: pending finalization
+- Source commit/tag: `fea8710fd9e16a8c79f95d0cf12727731ef75d16` / `production-screen-flow-v1-source`
+- Export-source commit/tag: `EXPORT_SOURCE_COMMIT` / `production-screen-flow-v1-export-source`
+- Delivery tag: `production-screen-flow-v1`
+- APK: `build/android/production-screen-flow-v1.apk`; 116,811,201 bytes; SHA-256 `104DE160B3B4C14432DFB89C9C657D921F2C0D2C15B4F9D5348EBDA6B9DE3972`
+- APK audit: 409 ZIP entries, forbidden project/build sources absent, v2/v3 signature verification passed, and ADB returned no connected device.
