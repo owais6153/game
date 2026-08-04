@@ -57,9 +57,11 @@ The regression suite proves ordinary merges have no coin records/cue, a target r
 
 - Clean pre-change baseline: `a64e220` / `reference-animation-audio-polish-v4-baseline`.
 - Gameplay source: `2aa255ea14dcf1349d339916539e953f82bc8268` / `reference-animation-audio-polish-v4-source`.
-- Clean export-source tag: `reference-animation-audio-polish-v4-export-source`.
-- Final delivery tag and APK provenance are added after the single final Android export.
-- Physical-device status: not yet claimed. The final delivery check will record `adb devices -l`; listening and haptic checks require a connected phone.
+- Clean export source: `038fa786c11a25c7fe3122cd1d87306d8b1c3b08` / `reference-animation-audio-polish-v4-export-source`.
+- Delivery tag: `reference-animation-audio-polish-v4`.
+- APK: `build/android/reference-animation-audio-polish-v4.apk`, 104,471,551 bytes, modified `2026-08-04 14:16:35 +05:00`, SHA-256 `8300A29ECCEA586DF4A681306AB68D8E87FF1A5F2695583892B791C4982F6F7F`.
+- APK audit: 387 ZIP entries; manifest, primary dex, and arm64 Godot runtime present; zero `build/`, `reports/`, `tools/`, or `assets/generated/` entries; v2/v3 signatures verified with one RSA-2048 signer.
+- Device status: `adb devices -l` returned an empty list. Installation, launch, phone performance, listening balance/loop seam, and haptics are not claimed.
 
 ## Manual device checklist
 

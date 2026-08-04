@@ -1,5 +1,21 @@
 # Build Manifest
 
+# Reference Animation + Supplied Audio Polish v4
+
+- File: `reference-animation-audio-polish-v4.apk`
+- Path: `D:\Owais\game\build\android\reference-animation-audio-polish-v4.apk`
+- Size: `104,471,551` bytes
+- Modified: `2026-08-04 14:16:35 +05:00` (`2026-08-04T09:16:35Z`)
+- SHA-256: `8300A29ECCEA586DF4A681306AB68D8E87FF1A5F2695583892B791C4982F6F7F`
+- Gameplay source commit/tag: `2aa255ea14dcf1349d339916539e953f82bc8268` / `reference-animation-audio-polish-v4-source`.
+- Clean export source commit/tag: `038fa786c11a25c7fe3122cd1d87306d8b1c3b08` / `reference-animation-audio-polish-v4-export-source`.
+- Delivery tag: `reference-animation-audio-polish-v4`.
+- Export: Godot 4.6.3 `Android` debug preset from the clean export-source milestone; installable validation signing, not a store-release keystore claim.
+- Validation: all six regression/profile suites passed; six 720 x 1600 Compatibility/ANGLE animation frames passed and were reviewed. APK has 387 ZIP entries with manifest, primary dex, and arm64 Godot runtime; `build/`, `reports/`, `tools/`, and `assets/generated/` entries are absent. APK Signature Scheme v2/v3 verification passed with one RSA-2048 signer.
+- Packaging audit: a 148,942,401-byte intermediate was rejected and replaced after temporary frame-analysis files were detected. `export_presets.cfg` now excludes `build/*`; the hash above belongs only to the clean 104,471,551-byte replacement.
+- Device status: `adb devices -l` returned an empty device list after starting the local daemon; install, launch, phone performance, listening balance, loop-seam quality, and haptics were not tested.
+
+
 # Reference Target Reward Correction v3
 
 - File: `reference-target-reward-correction-v3.apk`
