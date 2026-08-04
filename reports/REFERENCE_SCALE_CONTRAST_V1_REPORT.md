@@ -50,7 +50,7 @@ The recurring Windows root-certificate/exit resource warnings do not change succ
 
 - Baseline tag: `reference-scale-contrast-v1-baseline` at `1137fdc50e36e6a0392e8684a2b02ea35350248d`.
 - Source commit/tag: `0f410a56f8396a22fedaa108dc07dde8f44ae2f7` / `reference-scale-contrast-v1-source`.
-- Clean export source commit/tag: `EXPORT_SOURCE_COMMIT` / `reference-scale-contrast-v1-export-source`.
+- Clean export source commit/tag: `3886dbff6479bfd1bdea5408e9b79a49ab38d766` / `reference-scale-contrast-v1-export-source`.
 - Delivery tag: `reference-scale-contrast-v1`.
 - APK: `build/android/reference-scale-contrast-v1.apk`, 104,471,551 bytes, SHA-256 `61CDB16C4CDB8654108E540ACA3526AE743683A3D8D3630996ADFC0BC09AD9AF`; 387 entries, manifest/dex/arm64 present, forbidden build/report/tool/generated-source entries absent, v2/v3 signature verified with one RSA-2048 signer.
 - Device status: `adb devices -l` returned no connected device; installation, launch, phone feel, listening, and haptics are not claimed.
