@@ -43,7 +43,7 @@ The Windows runner requires an explicit per-suite `--log-file` because simultane
 
 - Baseline tag: `merge-animation-size-calibration-v1-baseline` at `ce34f6e16a2e041f3fc53fc4625c8c4d79f60268`.
 - Source commit/tag: `c5487a5d` / `merge-animation-size-calibration-v1-source`.
-- Clean export source commit/tag: `EXPORT_SOURCE_COMMIT` / `merge-animation-size-calibration-v1-export-source`.
+- Clean export source commit/tag: `5d5e7867d4e465a75dbead63c5aefdef584f4e17` / `merge-animation-size-calibration-v1-export-source`.
 - Delivery tag: `merge-animation-size-calibration-v1`.
 - APK: `build/android/merge-animation-size-calibration-v1.apk`, 104,471,551 bytes, SHA-256 `93B8FD867E9389CAC584007EE22523B05F5211A953E01E7AA29D7C3408D41565`; 387 entries, manifest/dex/arm64 present, forbidden build/report/tool/generated-source entries absent, v2/v3 signature verified with one RSA-2048 signer.
 - Device status: `adb devices -l` returned no connected device; install, launch, phone feel, listening, and haptics are not claimed.
