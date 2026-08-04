@@ -5,7 +5,8 @@
 ## Reference animation and supplied-audio polish v4
 
 - Level 1 remains L5, then L7, then L8. Ordinary merges never award coins; only a unique confirmed result matching the active target creates the target reward and exactly four visible coins.
-- A merge uses a fast `0.34 s` presentation: source pull `0.08 s`, one centered uniform result pop (`0.72 -> 1.12 -> 1.0`), and one `0.26 s` irregular result-color splash behind the rigid gem. There is no squash, stretch, rotation, secondary wobble, ring, or ray burst.
+- A merge uses the restored pre-v4 `0.50 s` presentation: source pull `0.10 s`, one centered uniform result pop (`0.62 -> 1.20 -> 1.0`) with its damped settle, plus the bounded flash/ring/eight-ray impact. The rejected irregular color splash is absent. There is no squash, stretch, rotation, or physics transform.
+- Active Level 1 gem radii increase moderately and strictly by tier: L1-L8 are `36, 38, 40, 42, 44, 46, 48, 50` design px. The same `GameConfig` radius drives both the alpha-trimmed sprite body and its simple circular collider, including perspective scaling.
 - Target coins use the shared supplied-art token at `17 px` draw radius. They pop for `0.22 s`, then follow four ordered foreground arcs over `1.58-1.66 s`; their integer values still reconcile only at HUD arrival.
 - The collected target remains a foreground-only proxy, reaches the card over `0.62 s`, and leaves no physics body. A large green check holds for `0.94 s`; the completed card then fades in place for `0.24 s`, pauses for `0.10 s`, and the new centered target fades in for `0.24 s`.
 - `assets/sound/gem_merge_music_loop.wav` is the preserved clean background source. Its runtime Ogg loops continuously from service initialization at linear gain `0.14`; movement and gameplay events never start or restart it.

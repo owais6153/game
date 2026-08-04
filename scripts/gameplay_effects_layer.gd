@@ -33,8 +33,7 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 		"elapsed": -delay,
 		"duration": GameConfig.MAJOR_MERGE_EFFECT_DURATION if major_reward else GameConfig.MERGE_PRESENTATION_DURATION,
 		"effect_scale": GameConfig.MAJOR_MERGE_EFFECT_SCALE if major_reward else 1.0,
-		"splash_duration": GameConfig.MERGE_SPLASH_DURATION + (0.04 if major_reward else 0.0),
-		"splash_seed": absi(result_id * 31 + result_level * 73),
+		"spark_count": GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 8,
 		"major_reward": major_reward,
 	})
 	_cap_effects()
@@ -183,36 +182,34 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	var elapsed := float(effect.get("elapsed", -1.0))
 	if elapsed < 0.0:
 		return
-	var splash_duration := float(effect.get("splash_duration", GameConfig.MERGE_SPLASH_DURATION))
+	var duration := float(effect.get("duration", GameConfig.MERGE_PRESENTATION_DURATION))
 	var effect_scale := float(effect.get("effect_scale", 1.0))
+	var spark_count := int(effect.get("spark_count", 8))
 	var major_reward := bool(effect.get("major_reward", false))
-	var splash_t := clampf(elapsed / splash_duration, 0.0, 1.0)
-	var expansion := 1.0 - pow(1.0 - splash_t, 3.0)
-	var fade := 1.0 - smoothstep(0.48, 1.0, splash_t)
+	var t := clampf(elapsed / duration, 0.0, 1.0)
+	var impact_t := clampf(elapsed / (0.30 if major_reward else 0.18), 0.0, 1.0)
 	var center: Vector2 = effect.position
-	var color := GameConfig.gem_color(int(effect.level)).lightened(0.10)
-	color.a = fade * (0.94 if major_reward else 0.88)
+	var color := GameConfig.gem_color(int(effect.level)).lightened(0.28)
+	color.a = 1.0 - t
 	var gem_radius := GameConfig.gem_collision_radius(int(effect.level))
-	var seed := int(effect.get("splash_seed", 1))
-	var lobe_count := GameConfig.MERGE_SPLASH_LOBE_COUNT
-	var points := PackedVector2Array()
-	var splash_radius := gem_radius * lerpf(0.42, 1.30, expansion) * effect_scale
-	for index in range(lobe_count * 2):
-		var angle := TAU * float(index) / float(lobe_count * 2) + float(seed % 13) * 0.018
-		var alternating := 0.66 if index % 2 == 0 else 1.0
-		var variation := 0.90 + float(posmod(seed + index * 17, 9)) * 0.025
-		points.append(center + Vector2.from_angle(angle) * splash_radius * alternating * variation)
-	if points.size() >= 3:
-		draw_colored_polygon(points, color)
-	for index in range(4):
-		var angle := TAU * float(index) / 4.0 + float(seed % 7) * 0.11
-		var direction := Vector2.from_angle(angle)
-		var droplet_distance := splash_radius * (0.76 + 0.18 * expansion)
-		var droplet_radius := gem_radius * (0.10 + float(index % 2) * 0.035) * fade
-		draw_circle(center + direction * droplet_distance, droplet_radius, color)
-	var flash_alpha := maxf(0.0, 1.0 - splash_t * 4.0)
+	var ring_radius := (gem_radius * 0.82 + 32.0 * impact_t) * effect_scale
+	var flash_alpha := maxf(0.0, 1.0 - impact_t * 3.4)
 	if flash_alpha > 0.0:
-		draw_circle(center, gem_radius * lerpf(0.38, 0.72, expansion), Color(1.0, 0.96, 0.72, flash_alpha * 0.72))
+		draw_circle(center, gem_radius * (0.56 + impact_t * 0.46) * effect_scale, Color(1.0, 0.96, 0.70, flash_alpha * 0.78))
+	draw_arc(center, ring_radius, 0.0, TAU, 36 if major_reward else 28, color, 5.0 if major_reward else 3.5)
+	if major_reward:
+		var echo_color := Color(1.0, 0.88, 0.34, (1.0 - t) * 0.74)
+		draw_arc(center, ring_radius * (0.58 + 0.24 * impact_t), 0.0, TAU, 32, echo_color, 3.0)
+	for index in range(spark_count):
+		var seed := absi(int(effect.result_id) * 31 + index * 73)
+		var angle := float(index) * TAU / float(spark_count) + float(int(effect.result_id) % 7) * 0.07 + float(seed % 11 - 5) * 0.025
+		var direction := Vector2.from_angle(angle)
+		var length_variation := 0.78 + float(seed % 7) * 0.065
+		var inner := center + direction * (gem_radius * 0.72 + 17.0 * impact_t) * effect_scale
+		var outer := center + direction * (gem_radius * 1.02 + 34.0 * impact_t) * effect_scale * length_variation
+		var sparkle := Color("fff2a8") if index % 2 == 0 else color
+		sparkle.a = (1.0 - impact_t) * 0.92
+		draw_line(inner, outer, sparkle, 3.5 if major_reward else 2.5)
 
 func _draw_score_popup(effect: Dictionary) -> void:
 	var elapsed := float(effect.get("elapsed", -1.0))

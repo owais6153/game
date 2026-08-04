@@ -1,5 +1,12 @@
 # Architecture
 
+## Merge animation and active-tier geometry boundary v1
+
+- `GameConfig.GEM_COLLISION_RADIUS` is the sole L1-L8 size authority: `36/38/40/42/44/46/48/50 px`. `GemPiece.base_radius` initializes from it, `GemPiece.radius` applies the shared table-depth perspective scalar, and `GemSpriteLayer` derives the alpha-trimmed texture diameter from that same base radius. Rendering and physics cannot drift independently.
+- `ContactMergeService` creates an upgraded result with `GameConfig.gem_collision_radius(new_level)`, so a confirmed L1+L1 result immediately changes both its Ruby artwork diameter and circular body to L2 size. Rails, pair contact, merge eligibility, launcher clamp, and audio contact telemetry continue to consume the live radius.
+- `GameplayEffectsLayer` is presentation-only and again owns the pre-v4 flash/ring/eight-ray records. `GameController` applies only a centered uniform `0.62 -> 1.20 -> 1.0` child scale; neither route changes `GemPiece.position`, radius, perspective, velocity, or merge state.
+- The v4 target-only four-coin path, target confirmation and centered handoff, supplied-audio service, and foreground layering are unchanged. This section supersedes only the merge-splash and active L1-L8 radius statements below.
+
 ## Reference animation and supplied-audio boundary v4
 
 - `GameController._apply_confirmed_merge_events()` remains the only target/reward authority. Every unique result routes its tiered merge cue and rigid presentation; only the active-target branch awards the integer, creates four coin records, and emits one `coin_reward` event.

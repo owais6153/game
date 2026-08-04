@@ -29,16 +29,14 @@ const LAUNCH_Y := 1144.0
 ## artwork, rails, bounds, spawn, drag, danger, and depth interpolation.
 static var portrait_bottom_offset_y := 0.0
 static var viewport_center_offset_x := 0.0
-## Largest gameplay radius. Individual values are calibrated to the visible
-## main body of the alpha-trimmed runtime texture for each gem level.
-const PIECE_RADIUS := 42.0
-## These radii are calibrated to the opaque main body after runtime scaling.
-## Gold rims, glows, shadows and transparent texture padding never add collision size.
-## Restore the smooth baseline bodies exactly for the original five tiers.
-## Catalog expansion does not change physics scale: tiers 6–18 use the
-## baseline default radius until a separately scoped design/balance task says
-## otherwise. These are fixed for a piece's entire lifetime.
-const GEM_COLLISION_RADIUS := {1: 42.0, 2: 42.0, 3: 33.0, 4: 42.0, 5: 42.0, 6: 42.0, 7: 42.0, 8: 32.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0}
+## Largest active gameplay radius. L1-L8 use a moderate two-pixel progression
+## so every upgrade is visibly larger without either endpoint dominating.
+const PIECE_RADIUS := 50.0
+## One authoritative radius drives both the alpha-trimmed visual body and its
+## simple circle collider. Gold rims, glows, shadows and transparent texture
+## padding never add collision size. L9-L18 remain outside the current level
+## and retain their earlier 42px fallback. Values stay fixed for a lifetime.
+const GEM_COLLISION_RADIUS := {1: 36.0, 2: 38.0, 3: 40.0, 4: 42.0, 5: 44.0, 6: 46.0, 7: 48.0, 8: 50.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0}
 ## Runtime visual-body expansion maps the opaque gem body to the stable
 ## simple collider; it is a visual calibration only.
 ## Body-only textures are trimmed independently from their former baked
@@ -83,21 +81,20 @@ const CONTACT_EPSILON := 0.20
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.34 # reference splash/pop beat; presentation only
-const MERGE_SOURCE_PULL_DURATION := 0.08
-const MERGE_RESULT_START_SCALE := 0.72
-const MERGE_RESULT_POP_SCALE := 1.12
-const MERGE_RESULT_POP_DURATION := 0.14
-const MERGE_SPLASH_DURATION := 0.26
-const MERGE_SPLASH_LOBE_COUNT := 10
-const MERGE_PULSE_SCALE := 1.12
+const MERGE_PRESENTATION_DURATION := 0.50 # restored rigid ring/ray result beat; presentation only
+const MERGE_SOURCE_PULL_DURATION := 0.10
+const MERGE_RESULT_START_SCALE := 0.62
+const MERGE_RESULT_POP_SCALE := 1.20
+const MERGE_RESULT_POP_DURATION := 0.22
+const MERGE_PULSE_SCALE := 1.20
 const SCORE_POPUP_DURATION := 0.62
 const SCORE_POPUP_RISE := 36.0
 const MAJOR_REWARD_TIER := 6
-const MAJOR_MERGE_EFFECT_DURATION := 0.36
+const MAJOR_MERGE_EFFECT_DURATION := 0.56
 const MAJOR_SCORE_POPUP_DURATION := 1.05
 const MAJOR_SCORE_POPUP_RISE := 58.0
-const MAJOR_MERGE_EFFECT_SCALE := 1.08
+const MAJOR_MERGE_EFFECT_SCALE := 1.16
+const MAJOR_MERGE_SPARK_COUNT := 8
 ## The supplied reference visibly uses four rigid coin tokens. They form one
 ## compact cluster, then travel as one readable staggered group to the HUD.
 const COIN_BURST_COUNT := 4

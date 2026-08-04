@@ -205,9 +205,13 @@ func _test_motion_regression_guards() -> void:
 	_assert(not sprite_layer_source.contains("_alpha_bounds"), "Sprite layer must not calculate alpha bounds during gameplay")
 	_assert(sprite_layer_source.contains("piece.perspective_scale") and sprite_layer_source.contains("gem_visual_z_index"), "Sprite layer must use shared perspective scaling and stable depth ordering")
 	_assert(not sprite_layer_source.contains("ResourceLoader.load("), "Perspective path must not load resources during gameplay")
-	# Calibrated collider mapping is preserved while the dedicated
-	# physics/reward-feedback milestone updates only centralized feel values.
-	_assert(GameConfig.GEM_COLLISION_RADIUS[1] == 42.0 and GameConfig.GEM_COLLISION_RADIUS[3] == 33.0 and GameConfig.GEM_COLLISION_RADIUS[8] == 32.0, "Reordered tiers must retain their asset-calibrated collider values")
+	# The current level uses one moderate, authoritative visual/physics size
+	# ladder. Later catalog tiers remain outside this milestone.
+	var expected_active_radii := [36.0, 38.0, 40.0, 42.0, 44.0, 46.0, 48.0, 50.0]
+	for level in range(1, 9):
+		_assert(is_equal_approx(GameConfig.gem_collision_radius(level), expected_active_radii[level - 1]), "L%d must retain the approved visual/physics radius" % level)
+		if level > 1:
+			_assert(GameConfig.gem_collision_radius(level) > GameConfig.gem_collision_radius(level - 1), "L%d must be larger than L%d" % [level, level - 1])
 	_assert(is_equal_approx(GameConfig.LAUNCH_SPEED, 1160.0) and is_equal_approx(GameConfig.VELOCITY_DAMPING_PER_SECOND, 185.0) and is_equal_approx(GameConfig.COLLISION_RESTITUTION, 0.30) and is_equal_approx(GameConfig.COLLISION_TANGENTIAL_FRICTION, 0.07), "Approved reference-parity motion constants must remain centralized")
 	_assert(GameConfig.target_coin_reward_for_result_level(6) == 350 and GameConfig.target_coin_reward_for_result_level(7) == 800 and GameConfig.target_coin_reward_for_result_level(8) == 1800, "Active Level 1 targets must retain escalating configured coin rewards")
 	var flight_piece := _piece(99, 7, Vector2(360.0, 700.0))

@@ -1,5 +1,13 @@
 # Changelog
 
+## Merge Animation Revert + L1-L8 Size Calibration v1 - 2026-08-04
+
+- Removed the rejected irregular merge color splash and restored the immediately previous rigid `0.50 s` pull/pop/settle plus bounded flash, ring, and eight-ray impact.
+- Preserved all v4 coin count/path/layering, target confirmation/handoff, supplied music/coin sound routing, push-guide removal, reward integers, and L5 -> L7 -> L8 progression.
+- Replaced the non-monotonic current-level radii with the centralized moderate L1-L8 ladder `36/38/40/42/44/46/48/50 px`; render diameter, perspective scale, physical contact, merge eligibility, and rail containment all consume those same values.
+- Kept L9-L18 at their prior `42 px` fallback because they are outside the current Level 1 scope.
+- Added regressions for exact monotonic radii, bounded endpoints, sprite/collider diameter linkage, upgraded-result radius assignment, restored impact records, containment, contact-audio timing, and the complete Level 1/result flow.
+
 ## Reference Animation + Supplied Audio Polish v4
 
 - Re-reviewed the first reference target sequence frame by frame. Replaced the slow generic ring/ray impact with one short result-color splash and shortened the rigid merge pop to `0.34 s`; no collision or gem presentation path can squash, stretch, rotate, or kick the artwork.

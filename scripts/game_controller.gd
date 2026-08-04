@@ -717,9 +717,9 @@ func _merge_result_visual_transform(elapsed: float, result_id: int) -> Dictionar
 	else:
 		var settle_duration := maxf(0.001, GameConfig.MERGE_PRESENTATION_DURATION - GameConfig.MERGE_RESULT_POP_DURATION)
 		var settle_t := clampf((elapsed - GameConfig.MERGE_RESULT_POP_DURATION) / settle_duration, 0.0, 1.0)
-		# The reference uses one quick overshoot and clean settle. A second wobble
-		# made the result feel slow and never belongs to the physics transform.
-		uniform_scale = lerpf(GameConfig.MERGE_RESULT_POP_SCALE, 1.0, smoothstep(0.0, 1.0, settle_t))
+		# Restore the prior damped, uniform settle without changing the rigid
+		# silhouette or feeding presentation scale into the simulation.
+		uniform_scale = 1.0 + (GameConfig.MERGE_RESULT_POP_SCALE - 1.0) * exp(-4.2 * settle_t) * cos(settle_t * PI * 1.65)
 	# The reference never changes a piece's silhouette. Merge emphasis is one
 	# centered uniform pop only: no squash, stretch, tilt, or presentation kick.
 	return {"scale": Vector2.ONE * uniform_scale, "uniform_scale": uniform_scale, "offset": Vector2.ZERO, "rotation": 0.0}

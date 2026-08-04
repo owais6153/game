@@ -84,6 +84,7 @@ func _test_contact_merges() -> void:
 	var pearls: Array[GemPiece] = [_piece(1, 1, Vector2(300, 500)), _piece(2, 1, Vector2(360, 500))]
 	var pearl_result := _resolve(pearls)
 	_assert(pearl_result.pieces.size() == 1 and pearl_result.pieces[0].level == 2, "Contacting Pearl + Pearl must create one Ruby")
+	_assert(is_equal_approx(pearl_result.pieces[0].base_radius, GameConfig.gem_collision_radius(2)), "A merge result must immediately use its upgraded visual/physics radius")
 	var rubies: Array[GemPiece] = [_piece(1, 2, Vector2(300, 500)), _piece(2, 2, Vector2(360, 500))]
 	var ruby_result := _resolve(rubies)
 	_assert(ruby_result.pieces.size() == 1 and ruby_result.pieces[0].level == 3, "Contacting Ruby + Ruby must create one Emerald")
@@ -667,8 +668,25 @@ func _test_visible_collision_calibration() -> void:
 	var pearl_a := _piece(1, 1, Vector2(300, 500))
 	var pearl_b := _piece(2, 1, Vector2(300 + pearl_a.radius * 2.0 + GameConfig.VISIBLE_CONTACT_TOLERANCE * 0.99, 500))
 	_assert(pearl_a.position.distance_to(pearl_b.position) - (pearl_a.radius + pearl_b.radius) <= GameConfig.VISIBLE_CONTACT_TOLERANCE, "Pearl visible first-contact tolerance must remain within one design pixel")
-	var jade := _piece(3, 3, Vector2(500, 500))
-	_assert(jade.radius < GameConfig.PIECE_RADIUS, "Reordered Jade collider must retain its calibrated body-only radius")
+	var previous_radius := 0.0
+	for level in range(1, 9):
+		var piece := _piece(1000 + level, level, Vector2(360.0, 700.0))
+		_assert(piece.base_radius > previous_radius, "L%d visual and physics body must be larger than L%d" % [level, level - 1])
+		_assert(piece.base_radius >= 36.0 and piece.base_radius <= 50.0, "L%d must stay inside the approved moderate 36-50px radius range" % level)
+		previous_radius = piece.base_radius
+	_assert(is_equal_approx(GameConfig.PIECE_RADIUS, GameConfig.gem_collision_radius(8)), "The largest active collider guard must match L8")
+	var controller = GameScene.instantiate()
+	controller._ready()
+	controller.pieces.clear()
+	for level in range(1, 9):
+		controller.pieces.append(_piece(2000 + level, level, Vector2(180.0 + level * 40.0, 700.0)))
+	controller.gem_sprite_layer.sync_gems(controller.pieces)
+	for piece in controller.pieces:
+		var sprite: Sprite2D = controller.gem_sprite_layer._sprites[piece.id]
+		var visible_diameter: float = sprite.scale.y * sprite.texture.get_size().y
+		var expected_diameter: float = piece.base_radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE[piece.level])
+		_assert(is_equal_approx(visible_diameter, expected_diameter), "L%d artwork must derive from the same base radius as its collider" % piece.level)
+	controller.free()
 
 func _test_calibrated_wall_contacts() -> void:
 	var simulation := SimulationType.new()

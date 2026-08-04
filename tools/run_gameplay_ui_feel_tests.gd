@@ -78,7 +78,7 @@ func _test_control_hierarchy_and_contained_previews() -> void:
 	_assert(AssetCatalogType.COIN_REWARD.resource_path == "res://assets/runtime/effects/coin_reward_reference_v2.png" and maxi(AssetCatalogType.COIN_REWARD.get_width(), AssetCatalogType.COIN_REWARD.get_height()) == 256, "HUD and reward flights must share the simple reference-scale coin texture")
 	_assert(GameConfig.COIN_DRAW_RADIUS >= 16.0 and GameConfig.COIN_DRAW_RADIUS <= 18.0, "Four flight coins must remain clearly readable at reference-relative size")
 	_assert(GameConfig.DANGER_LINE_COLOR == Color("e85f52"), "The actual danger boundary must retain its centralized coral color")
-	_assert(GameConfig.MERGE_PRESENTATION_DURATION >= 0.30 and GameConfig.MERGE_PRESENTATION_DURATION <= 0.38 and GameConfig.MERGE_SPLASH_DURATION < GameConfig.MERGE_PRESENTATION_DURATION, "Merge presentation must use the measured quick splash/pop cadence")
+	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.50) and is_equal_approx(GameConfig.MERGE_RESULT_POP_SCALE, 1.20), "Merge presentation must restore the prior readable rigid pop cadence")
 	_assert(GameConfig.TARGET_SWAP_START_DELAY >= 0.72 and GameConfig.TARGET_SWAP_START_DELAY <= 0.86 and GameConfig.TARGET_SWAP_OUTGOING_OFFSET == Vector2.ZERO and GameConfig.TARGET_SWAP_INCOMING_OFFSET == Vector2.ZERO, "Completed target must hold under the check, then fade in place like the reference")
 	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must use a responsive utility HBoxContainer")
 	_assert(hud.target_panel.get_parent() == hud.target_anchor, "The active target must be independently anchored above the table")
@@ -329,7 +329,7 @@ func _test_effect_counts_are_bounded() -> void:
 	var major_event := _merge_event(7999, 7)
 	layer.begin_merge_feedback(major_event)
 	layer.begin_target_coin_reward(major_event, GameConfig.target_coin_reward_for_result_level(7), Vector2(80.0, 220.0))
-	_assert(bool(layer.merge_impacts[0].major_reward) and layer.merge_impacts[0].has("splash_duration") and not layer.merge_impacts[0].has("spark_count"), "L7 feedback must use one bounded reference-style color splash without generic spark rays")
+	_assert(bool(layer.merge_impacts[0].major_reward) and int(layer.merge_impacts[0].spark_count) == GameConfig.MAJOR_MERGE_SPARK_COUNT and not layer.merge_impacts[0].has("splash_duration"), "L7 feedback must restore the bounded ring/ray burst with no color splash")
 	_assert(layer.coin_rewards.size() == GameConfig.MAJOR_COIN_BURST_COUNT and bool(layer.coin_rewards[0].major_reward), "L7 must use the longer major coin flight")
 	for index in range(40):
 		var event := _merge_event(8000 + index, 2 + index % 4)

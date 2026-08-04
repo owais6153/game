@@ -1,5 +1,15 @@
 # AI Knowledge Base
 
+## Merge animation and active-tier size guardrails v1
+
+- The v4 irregular color splash was explicitly rejected. Preserve the restored pre-v4 merge beat: `0.50 s` total, `0.10 s` pull, uniform `0.62 -> 1.20 -> 1.0` pop with damped settle, flash/ring/eight rays, and major `0.56 s` / `1.16x` emphasis. Do not reintroduce the filled splash or droplets.
+- Live gem silhouettes remain rigid. Merge emphasis may use uniform child scale only; contact still causes no squash/stretch. Never write presentation scale, ray/ring geometry, or effect timing into a `GemPiece` or simulation decision.
+- Preserve the exact L1-L8 base-radius ladder `36/38/40/42/44/46/48/50 px`. `GameConfig.GEM_COLLISION_RADIUS` must remain the single visual/physics authority; `GemSpriteLayer` derives visible diameter from it and `GemPiece` applies the same perspective scalar to collision radius. L9-L18 remain `42 px` until their levels are scoped.
+- Alpha measurements are retained in `assets/runtime/gems18/calibrated/calibration_manifest.json`; runtime code must not scan pixels. Any future size change requires updated monotonic/visual-link/contact/containment tests and a calibration report.
+- Preserve every other v4 behavior: target-only four coins, target check and centered fade handoff, continuous supplied music at `0.14`, one supplied target coin cue, push-guide removal, reward values, L5 -> L7 -> L8 order, launcher/danger/reset/result logic, and foreground layer ownership.
+
+This section supersedes only the merge-splash and radius guardrails below.
+
 ## Reference animation and supplied-audio guardrails v4
 
 - Preserve target order L5 -> L7 -> L8 and target-only rewards. Ordinary merges create one impact and tiered gem cue but zero coin records, zero currency, and zero coin sound. A qualifying target creates exactly four coin records and one supplied `coin_reward` cue.

@@ -1,5 +1,9 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Merge animation revert and active-tier size calibration v1
+
+No raster or audio asset changed. The preserved sources, alpha-trimmed runtime derivatives, and `calibration_manifest.json` mappings remain byte-for-byte unchanged. L1-L8 sizing is now a code-owned `36/38/40/42/44/46/48/50 px` base-radius ladder; `GemSpriteLayer` maps each already-trimmed body to that diameter while `GemPiece` uses the same value for its circle collider. Artwork, alpha bounds, shadows, and effects do not independently define physics.
+
 ## Reference animation and supplied-audio polish v4
 
 | Purpose | Preserved source | Active runtime derivative | Audit |
