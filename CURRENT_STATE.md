@@ -1,6 +1,6 @@
 # Current State
 
-**Current milestone:** Production Foundation v1. Persistent independent settings, consistent catalog silhouettes, bounded beginner-to-expert target/launcher progression, and GEM RUSH application branding are implemented. Final source/export commits, APK metadata, complete regression evidence, and device status are recorded at delivery below and in `reports/PRODUCTION_FOUNDATION_V1_REPORT.md`.
+**Current milestone:** Production Foundation v1. Persistent independent settings, consistent catalog silhouettes, bounded beginner-to-expert target/launcher progression, and GEM RUSH application branding are implemented. Source: `8fe30ea652b2ac49c3369fcc9013df64dcaf1692` / `production-foundation-v1-source`. APK: `build/android/production-foundation-v1.apk` (122,878,070 bytes; SHA-256 `F93ADAF33DDA308D3B7F9FFE3E9210D7601B75ECEA77971EA260C8A9632ED1FD`). Eight regression/profile routes pass; package/signature audit passes. No connected device was available.
 
 ## Production Foundation v1 (2026-08-05)
 

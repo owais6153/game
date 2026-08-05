@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Production Foundation v1
+
+- APK: `build/android/production-foundation-v1.apk`
+- Size: 122,878,070 bytes
+- Export timestamp: 2026-08-05T04:37:36Z (2026-08-05 09:37:36 Asia/Karachi)
+- SHA-256: `F93ADAF33DDA308D3B7F9FFE3E9210D7601B75ECEA77971EA260C8A9632ED1FD`
+- Source commit/tag: `8fe30ea652b2ac49c3369fcc9013df64dcaf1692` / `production-foundation-v1-source`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`
+- Validation: parser/import PASS; eight regression/profile routes PASS; standalone APK exists; 415 APK entries with zero packaged source/report/build paths; 24 generated launcher-icon entries; APK Signature Scheme v2/v3 PASS with one signer.
+- Device status: `adb devices -l` returned no connected device; installation, phone UI, launcher icon display, boot splash display, listening, and haptics are not claimed.
+
 ## Production UI motion + Restart restoration v1
 
 - APK: `build/android/production-ui-motion-v1.apk`

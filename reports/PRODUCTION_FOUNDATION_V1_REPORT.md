@@ -27,4 +27,9 @@ The built-in image-generation tool created `assets/generated/gem_rush_app_icon_s
 ## Validation
 
 - `tools/run_production_foundation_tests.gd`: PASS for branding, persistence, independent audio gates, shared gem texture/uniform scale, opening targets, two/three-target cadence, and capped reachability.
-- Full regression, APK export/audit, signing, file-existence, and connected-device status are recorded at final delivery.
+- `run_18_gem_chain_tests.gd`, `run_clean_contact_tests.gd`, `run_gameplay_ui_feel_tests.gd`, `run_infinite_level_tests.gd`, `run_level_1_flow_tests.gd`, and `run_production_ui_finalization_tests.gd`: PASS.
+- `run_motion_profile.gd`: PASS with zero per-gem process callbacks, zero runtime gameplay resource loads, zero node delta, and 16 cached audio streams.
+- Standalone APK: `build/android/production-foundation-v1.apk`, 122,878,070 bytes, SHA-256 `F93ADAF33DDA308D3B7F9FFE3E9210D7601B75ECEA77971EA260C8A9632ED1FD`.
+- Package audit: 415 entries, zero packaged source/report/build paths, 24 launcher-icon resources, and APK Signature Scheme v2/v3 verification with one signer.
+- Source commit/tag: `8fe30ea652b2ac49c3369fcc9013df64dcaf1692` / `production-foundation-v1-source`.
+- `adb devices -l` returned no connected device. Installation, launcher icon/splash appearance, phone listening, and haptics are not claimed.
