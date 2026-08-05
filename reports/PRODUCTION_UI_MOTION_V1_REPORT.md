@@ -2,6 +2,8 @@
 
 Date: 2026-08-05
 
+Delivery provenance: source `a1b214d` / `production-ui-motion-v1-source`; export record `3a27c83` / `production-ui-motion-v1-export-source`; final tag `production-ui-motion-v1`.
+
 ## Supplied-video review
 
 Reviewed all 60.27 seconds of `WhatsApp Video 2026-08-05 at 4.39.25 AM.mp4` (576 x 1312, H.264, 23.96 fps) through 3-second whole-video and 1-second Restart-sequence contact sheets under `reports/production-ui-motion-v1/`.

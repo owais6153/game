@@ -1,5 +1,7 @@
 # Current State
 
+**Current milestone:** Production UI motion + Restart restoration v1. Supplied-video review drove a player-facing Home/Pause correction: no random/infinite/internal copy, no Home journey card, floating Level/Coins presentation, bounded ambient logo/action motion, and compact game-style Pause utilities. Pause Restart now restores the HUD reliably. Source: `a1b214d` / `production-ui-motion-v1-source`; export record: `3a27c83` / `production-ui-motion-v1-export-source`; delivery tag: `production-ui-motion-v1`. APK: `build/android/production-ui-motion-v1.apk` (118,277,818 bytes; SHA-256 `5C8A938AF7815DB48DE7DC499D80D3F650F7FD1B35DBEC953E33490CC97DB947`). All seven suites and reviewed ANGLE captures pass. No connected device was available.
+
 ## Production UI motion + Restart restoration v1 (2026-08-05)
 
 - Review of `WhatsApp Video 2026-08-05 at 4.39.25 AM.mp4` confirmed static, box-heavy Home/Pause presentation and a Restart defect: after Home -> Continue -> Pause -> Restart, the board reset but the HUD stayed hidden.
