@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Production UI motion + Restart restoration v1
+
+- APK: `build/android/production-ui-motion-v1.apk`
+- Size: 118,277,818 bytes
+- Export timestamp: 2026-08-05T01:24:34Z (2026-08-05 Asia/Karachi)
+- SHA-256: `5C8A938AF7815DB48DE7DC499D80D3F650F7FD1B35DBEC953E33490CC97DB947`
+- Source commit/tag: `a1b214d` / `production-ui-motion-v1-source`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`
+- Validation: parser/import PASS; all seven regression suites PASS; Home copy/motion and Restart visibility regressions PASS; real 720 x 1600 Compatibility/ANGLE captures reviewed; export signed; 411 APK entries with zero packaged source/report/build paths.
+- Device status: ADB reported no connected device; physical-device validation is not claimed.
+
 ## Asset-matched Home + transparent logo v1
 
 - APK: `build/android/assets-ui-screen-match-v1.apk`

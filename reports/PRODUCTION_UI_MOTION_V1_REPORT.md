@@ -31,4 +31,6 @@ No simulation, merge eligibility, collider, launcher pacing, target qualificatio
 - Production UI/safe-area/copy/motion: PASS across 576 x 1312, 720 x 1600, and 1080 x 2400.
 - Real 720 x 1600 Compatibility/ANGLE Home/Pause/Result captures: PASS and visually reviewed.
 - All seven regression suites: PASS. Motion profile retains zero per-gem process callbacks, zero runtime gameplay resource loads, and zero UI node delta.
-- APK and device status: pending final delivery checks.
+- Standalone signed APK: `build/android/production-ui-motion-v1.apk`, 118,277,818 bytes, SHA-256 `5C8A938AF7815DB48DE7DC499D80D3F650F7FD1B35DBEC953E33490CC97DB947`.
+- APK audit: 411 ZIP entries and zero packaged `.gd`, `reports/`, `build/`, or `.git/` paths.
+- Device status: ADB reported no connected device; physical-device testing is not claimed.
