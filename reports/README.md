@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Production Gameplay UI Finalization V2](PRODUCTION_GAMEPLAY_UI_V2_REPORT.md) - latest-available-video audit, cohesive gameplay HUD, responsive coin/target/Next presentation, target-state correction, pause/guide/danger polish, performance proof, evidence, and APK provenance.
+
 - [Production Foundation v1](PRODUCTION_FOUNDATION_V1_REPORT.md) - persistent independent settings, shared gem silhouettes, bounded difficulty progression, GEM RUSH icon/splash branding, validation, and delivery provenance.
 
 - [Production UI motion + Restart restoration v1](PRODUCTION_UI_MOTION_V1_REPORT.md) - supplied-video findings, player-facing Home/Pause redesign, ambient motion, Restart HUD restoration, and validation evidence.

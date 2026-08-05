@@ -1,5 +1,15 @@
 # AI Knowledge Base
 
+## Production Gameplay UI V2 guardrails
+
+- Preserve `SafeHudMargin/HudShell/HudRows`: Level/MERGE PATH/Settings belong to `ProgressionHeader`; Coins/Target/Next belong to `ScoreNextRow`; the target remains the expanding central objective.
+- UI reads controller snapshots only. Never duplicate queue, target, progression, reward, launcher, danger, or simulation rules in the HUD.
+- The ready aim guide is presentation-only and must disappear outside `READY_TO_AIM`; it may read `vertical_lane_top_y()` but must never perform input, raycast, trajectory, or launch decisions.
+- Danger-line pulse may read proximity only. Never feed warning strength into `danger_timers`, `DANGER_GRACE_DURATION`, overflow, or fail qualification.
+- Target identity copy and ghost art must change together during the existing swap cadence. Restart must clear the cached HUD snapshot before its first new-run refresh.
+- Preserve the V2 gameplay freeze: no target/launcher generation, scoring, physics, rails, perspective, collider, merge/collection/coin timing, sound/haptic timing, or result-sequence changes in UI work.
+- Run `run_production_ui_finalization_tests.gd`, `run_gameplay_ui_feel_tests.gd`, `run_clean_contact_tests.gd`, and the full suite after editing this composition.
+
 ## Production foundation v1 guardrails
 
 These guardrails supersede older fixed L5 -> L7 -> L8 progression instructions below.

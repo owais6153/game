@@ -1,5 +1,14 @@
 # Game Spec — Clean Contact Merge v1
 
+## Production Gameplay UI Finalization V2
+
+- Gameplay presentation uses one safe-area top shell. Its first row integrates Level, the authoritative eight-gem MERGE PATH, and Settings; its second row balances Coins and Next around a larger central Target objective.
+- Coins show exact values through 9,999, compact suffixes afterward, and retain the exact integer authority. The Next and all eight path icons resolve through the current generated level mapping.
+- Target UI exposes sequential position, authoritative identity/name, quantity progress, and a progress bar. Target travel and coin flight terminate at the current target/coin icon rectangles and remain foreground-only.
+- Pause is a centered, input-blocking modal with primary Resume, secondary Restart/Home, independent persistent settings, Android Back handling, and no duplicate instance.
+- The ready-state aim guide and near-danger pulse are visual affordances only. They do not change launch, simulation, rail, overflow, grace, or failure behavior.
+- This milestone freezes every gameplay rule and timing listed in the baseline: targets, quantities, chain, launcher pool/weights, unlimited launches, score/reward logic, physics, table/rails, perspective, colliders, feedback timing, and win/fail sequencing.
+
 ## Production foundation v1
 
 This section supersedes older fixed L5 -> L7 -> L8 Level 1 statements below; those sections remain historical milestone records.

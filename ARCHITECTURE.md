@@ -1,5 +1,13 @@
 # Architecture
 
+## Production Gameplay UI V2 presentation boundary
+
+- `GameplayHudLayer` remains a `CanvasLayer` outside the table transform. Its `SafeHudMargin/HudShell/HudRows` tree owns all top-HUD layout through containers; it consumes only `GameController.hud_snapshot()` and emits existing intent signals.
+- `ProgressionHeader` owns Level, MERGE PATH, and Settings. `ScoreNextRow` owns equal secondary Coins/Next cards and an expanding central Target slot. Target and coin destinations are computed from the live icon rectangles, so foreground flights stay aligned after scaling/safe-area changes.
+- Target handoff is presentation state: outgoing art/copy remain paired until the approved crossfade's incoming phase. `reset_presentation()` clears only cached UI state so Restart cannot display a ghost from the discarded run.
+- `GameController._draw_aim_guide()` and `_danger_warning_strength()` are read-only render helpers. They consume the existing launcher lifecycle, lane/table geometry, and piece positions; they cannot alter input, danger timers, overflow detection, physics, or launch state.
+- `UiDesignSystem` owns cached shell, target, utility, setting-row, spacing, icon, typography, touch, and animation tokens. HUD updates do not rebuild nodes, scan catalogs, reload textures/fonts, or create themes per frame.
+
 ## Production foundation services and boundaries
 
 - `GameSettingsService` persists `music_enabled`, `sound_enabled`, and `vibration_enabled` in `user://game_settings.cfg`; `GameController` loads before feedback startup and saves HUD toggle events immediately.

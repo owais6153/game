@@ -70,11 +70,11 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 	_assert(hud is CanvasLayer, "Gameplay HUD must remain outside the gameplay/table Node2D transform in a CanvasLayer")
 	_assert(hud.root_control.theme == UiDesignSystemType.theme(), "Gameplay HUD must use the shared cached production Theme")
 	_assert(hud.hud_margin is MarginContainer, "HUD safe-area root must be a MarginContainer")
-	_assert(hud.hud_margin.get_node("HudRows") is VBoxContainer, "HUD rows must be container-driven")
-	_assert(hud.hud_margin.get_node("HudRows/MainRow") is CenterContainer, "The enlarged merge path must own the centered top row")
-	_assert(hud.hud_margin.get_node("HudRows/ScoreNextRow") is HBoxContainer, "COINS and NEXT must share the lower responsive card row")
-	_assert(hud.hud_margin.get_node("HudRows/ObjectiveRow") is HBoxContainer, "Level and Settings must share a responsive utility HBoxContainer")
-	_assert(hud.target_panel.get_parent() == hud.target_anchor, "Target must use its own responsive table-adjacent anchor")
+	_assert(hud.hud_margin.get_node("HudShell") is PanelContainer, "Top HUD must use one cohesive safe-area shell")
+	_assert(hud.hud_margin.get_node("HudShell/HudRows") is VBoxContainer, "HUD rows must be container-driven inside the shell")
+	_assert(hud.hud_margin.get_node("HudShell/HudRows/MainRow") is CenterContainer, "Level, merge path, and Settings must share the integrated top system")
+	_assert(hud.hud_margin.get_node("HudShell/HudRows/ScoreNextRow") is HBoxContainer, "COINS, target, and NEXT must share the responsive objective row")
+	_assert(hud.target_panel.get_parent() == hud.target_anchor, "Target must use the expanding center anchor in the objective row")
 	_assert(hud.score_panel.get_node("ContentSurface") is PanelContainer and hud.next_panel.get_node("ContentSurface") is PanelContainer, "COINS and NEXT must use the same simple scalable panel system")
 	_assert(hud.score_panel.get_node("CoinsBadge") is PanelContainer and hud.next_panel.get_node("NextBadge") is PanelContainer, "COINS and NEXT labels must use the Level badge language")
 	_assert(hud.coin_icon is Control and hud.coin_icon.get_parent().name == "CoinValueRow", "COINS must pair its value with the dedicated procedural coin icon")
@@ -91,10 +91,11 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 		hud.update_snapshot(_snapshot(0, tier, maxi(1, 19 - tier), tier, 0, 4, 0, 2, false, false, tier))
 		_assert(hud.next_icon.texture == AssetCatalogType.gem_texture(maxi(1, 19 - tier)), "NEXT tier %d must map through AssetCatalog" % maxi(1, 19 - tier))
 		_assert(hud.target_icon.texture == AssetCatalogType.gem_texture(tier), "Target tier %d must map through AssetCatalog" % tier)
-	_assert(hud.target_header_label.text == "TARGET", "Target label must stay simple and must not expose sequential counters")
-	_assert(hud.target_panel.find_child("TargetName", true, false) == null, "Target card must not display the gem name")
-	_assert(hud.target_panel.find_child("TargetProgressText", true, false) == null, "Target card must not display progress copy")
-	_assert(hud.target_panel.find_child("TargetProgressBar", true, false) == null, "Target card must not display a progress bar")
+	await create_timer(GameConfig.TARGET_SWAP_START_DELAY + GameConfig.TARGET_SWAP_OUTGOING_FADE_DURATION + GameConfig.TARGET_SWAP_GAP_DURATION + GameConfig.TARGET_SWAP_INCOMING_FADE_DURATION + 0.04).timeout
+	_assert(hud.target_header_label.text == "TARGET  1 / 2", "Target header must expose the active sequential position")
+	_assert(hud.target_name_label.text == AssetCatalogType.gem_name(18).to_upper(), "Target card must display the authoritative gem name")
+	_assert(hud.target_status_label.text == "0 / 4", "Target card must display exact objective progress")
+	_assert(hud.target_progress_bar != null and is_equal_approx(hud.target_progress_bar.max_value, 4.0), "Target card must include a state-driven progress bar")
 	await _dispose_viewport(fixture.viewport)
 
 
@@ -113,7 +114,9 @@ func _test_score_fit_and_state_updates() -> void:
 	var texture_before := hud.next_icon.texture
 	hud.update_snapshot(_snapshot(125500, 2, 3, 8, 0, 1, 1, 2, false, false, 4))
 	_assert(texture_before != hud.next_icon.texture and hud.next_icon.texture == AssetCatalogType.gem_texture(3), "NEXT artwork must update immediately with the queue identity")
-	_assert(hud.target_header_label.text == "TARGET", "Sequential state must not add counters to the Target label")
+	_assert(hud.target_name_label.text == AssetCatalogType.gem_name(7).to_upper(), "Outgoing target copy must remain paired with its visible outgoing gem")
+	await create_timer(GameConfig.TARGET_SWAP_START_DELAY + GameConfig.TARGET_SWAP_OUTGOING_FADE_DURATION + GameConfig.TARGET_SWAP_GAP_DURATION + GameConfig.TARGET_SWAP_INCOMING_FADE_DURATION + 0.04).timeout
+	_assert(hud.target_header_label.text == "TARGET  2 / 2" and hud.target_name_label.text == AssetCatalogType.gem_name(8).to_upper(), "Sequential target state must update header, name, and icon together")
 	await _dispose_viewport(fixture.viewport)
 
 
@@ -179,12 +182,8 @@ func _test_responsive_layouts() -> void:
 		_assert(not (metrics.target as Rect2).intersects(metrics.settings), "Table-adjacent target and Settings must not overlap at %s" % str(viewport_size))
 		_assert((metrics.next as Rect2).grow(-10.0).encloses(hud.next_icon.get_global_rect()), "NEXT gem must remain visibly inset inside its card at %s" % str(viewport_size))
 		_assert((metrics.target as Rect2).grow(-8.0).encloses(hud.target_icon.get_global_rect()), "Target gem must remain visibly inset inside its panel at %s (panel=%s icon=%s)" % [str(viewport_size), str(metrics.target), str(hud.target_icon.get_global_rect())])
-		_assert(absf((metrics.level as Rect2).get_center().y - (metrics.settings as Rect2).get_center().y) <= 2.0, "Level and Settings must align as the top utility row at %s" % str(viewport_size))
-		var design_scale := minf(1.0, float(viewport_size.x) / UiDesignSystemType.DESIGN_WIDTH)
-		var design_height := float(viewport_size.y) / design_scale
-		var board_top_design := GameConfig.BOARD_TOP + maxf(0.0, design_height - GameConfig.VIEWPORT_SIZE.y)
-		var board_top_physical := board_top_design * design_scale
-		_assert((metrics.target as Rect2).end.y <= board_top_physical - UiDesignSystemType.TARGET_TABLE_GAP * design_scale + 1.0, "Target card must remain immediately above the table at %s" % str(viewport_size))
+		_assert(absf((metrics.level as Rect2).get_center().y - (metrics.settings as Rect2).get_center().y) <= 22.0, "Level and Settings must align in the integrated merge-path header at %s" % str(viewport_size))
+		_assert((metrics.target as Rect2).size.x > (metrics.score as Rect2).size.x and (metrics.target as Rect2).size.x > (metrics.next as Rect2).size.x, "Target must remain the most prominent objective card at %s" % str(viewport_size))
 		var minimum_physical_touch := 64.0 if viewport_size.x < 720 else 88.0
 		_assert((metrics.settings as Rect2).size.x >= minimum_physical_touch and (metrics.settings as Rect2).size.y >= minimum_physical_touch, "Settings touch target must remain usable at %s" % str(viewport_size))
 		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Maximum coin total must fit at %s" % str(viewport_size))

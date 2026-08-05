@@ -23,6 +23,12 @@ const TABLE_INNER_RIGHT_TOP := 542.0
 const TABLE_INNER_RIGHT_BOTTOM := 676.0
 const DANGER_LINE_Y := 1046.0
 const DANGER_LINE_COLOR := Color("e85f52")
+## Presentation-only guide/warning values. They never enter input, collision,
+## overflow detection, timing, or solver decisions.
+const AIM_GUIDE_WIDTH := 3.0
+const AIM_GUIDE_ALPHA := 0.62
+const DANGER_WARNING_NEAR_DISTANCE := 76.0
+const DANGER_WARNING_PULSE_HZ := 1.65
 const LAUNCH_Y := 1144.0
 ## Expanded portrait screens keep the HUD top-anchored but move the complete
 ## table coordinate system to the physical bottom. This offset is shared by
@@ -48,9 +54,9 @@ const GEM_VISUAL_BODY_SCALE := {1: 1.008, 2: 1.008, 3: 1.008, 4: 1.008, 5: 1.008
 ## Presentation-only lower shadows. All 18 tiers use the same calibrated
 ## placement so a shadow cannot be mistaken for a physical body or contact.
 const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 19.0), 4: Vector2(5.0, 23.0), 5: Vector2(5.0, 23.0), 6: Vector2(5.0, 23.0), 7: Vector2(5.0, 23.0), 8: Vector2(4.0, 18.0), 9: Vector2(5.0, 23.0), 10: Vector2(5.0, 23.0), 11: Vector2(5.0, 23.0), 12: Vector2(5.0, 23.0), 13: Vector2(5.0, 23.0), 14: Vector2(5.0, 23.0), 15: Vector2(5.0, 23.0), 16: Vector2(5.0, 23.0), 17: Vector2(5.0, 23.0), 18: Vector2(5.0, 23.0)}
-const GEM_SHADOW_OPACITY := {1: 0.36, 2: 0.40, 3: 0.34, 4: 0.36, 5: 0.40, 6: 0.36, 7: 0.42, 8: 0.38, 9: 0.36, 10: 0.36, 11: 0.36, 12: 0.36, 13: 0.36, 14: 0.36, 15: 0.36, 16: 0.36, 17: 0.36, 18: 0.36}
-const GEM_SHADOW_WIDTH_MULTIPLIER := 0.96
-const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.43
+const GEM_SHADOW_OPACITY := {1: 0.32, 2: 0.32, 3: 0.32, 4: 0.32, 5: 0.32, 6: 0.32, 7: 0.32, 8: 0.32, 9: 0.32, 10: 0.32, 11: 0.32, 12: 0.32, 13: 0.32, 14: 0.32, 15: 0.32, 16: 0.32, 17: 0.32, 18: 0.32}
+const GEM_SHADOW_WIDTH_MULTIPLIER := 0.92
+const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.38
 const VISIBLE_CONTACT_TOLERANCE := 2.0
 ## One conservative table-depth scale is shared by every gem's visual root and
 ## simulation radius. It keeps rendered contact, rail containment, and merge

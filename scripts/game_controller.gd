@@ -932,19 +932,59 @@ func _route_collision_feedback() -> void:
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:
-	# The supplied artwork is drawn by Sprite2D nodes. Only the actual danger
-	# boundary is overlaid; the user-rejected vertical push guide is absent.
+	# Presentation-only guide and warning feedback share authoritative geometry
+	# but never feed input, overflow, collision, launch, or simulation decisions.
+	_draw_aim_guide()
 	var danger_y := GameConfig.danger_line_y()
 	var danger_start := Vector2(GameConfig.table_left_at(danger_y) + 8.0, danger_y)
 	var danger_end := Vector2(GameConfig.table_right_at(danger_y) - 8.0, danger_y)
-	draw_dashed_line(danger_start, danger_end, Color(0.26, 0.12, 0.07, 0.28), 7.0, 11.0)
-	draw_dashed_line(danger_start, danger_end, GameConfig.DANGER_LINE_COLOR, 3.5, 11.0)
+	var warning_strength := _danger_warning_strength()
+	var pulse := 0.0
+	if warning_strength > 0.0:
+		pulse = (sin(float(Time.get_ticks_msec()) * 0.001 * TAU * GameConfig.DANGER_WARNING_PULSE_HZ) + 1.0) * 0.5
+	var warning_alpha := lerpf(0.56, 0.92, warning_strength * (0.55 + pulse * 0.45))
+	var danger_color := GameConfig.DANGER_LINE_COLOR
+	danger_color.a = warning_alpha
+	draw_dashed_line(danger_start, danger_end, Color(0.26, 0.12, 0.07, lerpf(0.22, 0.42, warning_strength)), lerpf(6.0, 8.0, warning_strength), 11.0)
+	draw_dashed_line(danger_start, danger_end, danger_color, lerpf(3.0, 4.4, warning_strength * pulse), 11.0)
 	# Draw the non-physical source ghosts first. The new simulated gem is then
 	# rendered over them, avoiding a one-frame visual pop at the merge midpoint.
 	for presentation in merge_presentations:
 		_draw_merge_presentation(presentation)
 	if debug_calibration_enabled:
 		_draw_calibration_debug(ThemeDB.fallback_font)
+
+func _draw_aim_guide() -> void:
+	if launcher_state != LauncherState.READY_TO_AIM or collection_in_progress or win_qualified or failed:
+		return
+	var active := get_active_piece()
+	if active == null or not active.is_settled():
+		return
+	var lane_top := GameConfig.vertical_lane_top_y(active.position.x, 5.0)
+	var start := Vector2(active.position.x, lane_top + 10.0)
+	var finish := Vector2(active.position.x, active.position.y - active.radius - 10.0)
+	if start.y >= finish.y - 8.0:
+		return
+	var shadow := Color(0.04, 0.20, 0.23, GameConfig.AIM_GUIDE_ALPHA * 0.48)
+	var guide := Color(1.0, 0.94, 0.62, GameConfig.AIM_GUIDE_ALPHA)
+	draw_dashed_line(start, finish, shadow, GameConfig.AIM_GUIDE_WIDTH + 2.0, 13.0)
+	draw_dashed_line(start, finish, guide, GameConfig.AIM_GUIDE_WIDTH, 13.0)
+	draw_circle(start, 5.0, Color(1.0, 0.78, 0.30, GameConfig.AIM_GUIDE_ALPHA * 0.92))
+
+func _danger_warning_strength() -> float:
+	var line_y := GameConfig.danger_line_y()
+	var nearest := GameConfig.DANGER_WARNING_NEAR_DISTANCE
+	var found_near := false
+	for piece in pieces:
+		if piece.consumed or piece.id == active_piece_id or piece.is_active_launcher:
+			continue
+		var distance := line_y - (piece.position.y + piece.radius)
+		if distance <= GameConfig.DANGER_WARNING_NEAR_DISTANCE:
+			nearest = minf(nearest, maxf(0.0, distance))
+			found_near = true
+	if not found_near:
+		return 0.0
+	return clampf(1.0 - nearest / GameConfig.DANGER_WARNING_NEAR_DISTANCE, 0.20, 1.0)
 
 func _draw_calibration_debug(font: Font) -> void:
 	var board_top := GameConfig.board_top()

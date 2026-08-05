@@ -1,5 +1,14 @@
 # Current State
 
+**Current source milestone:** Production Gameplay UI Finalization V2. Gameplay remains frozen at `production-gameplay-ui-v2-baseline` (`39f1082112cee3d2d9d948a9d0ac9c110d163daf`). The gameplay HUD is now one safe-area shell with an integrated Level/MERGE PATH/Settings header and balanced Coins/Target/Next row; target identity, quantity, and transition copy stay synchronized; Pause uses a stronger production hierarchy; and the ready-state aim guide, proximity-only danger emphasis, and normalized gem shadows are presentation-only. Seven regression suites and the motion profile pass. Final APK metadata is recorded after export in `BUILD_MANIFEST.md` and `reports/PRODUCTION_GAMEPLAY_UI_V2_REPORT.md`.
+
+## Production Gameplay UI Finalization V2 (2026-08-05)
+
+- Container-driven HUD composition is proven at 576×1312, 720×1600, 1080×1920, 1080×2340, 1080×2400, 540×1320, and a simulated top notch.
+- Coin totals preserve exact integers and format responsively; target name/progress and incoming/outgoing art remain paired during handoff; Restart clears discarded-run UI state.
+- Coin and target flights retain their approved controller timing and render above the board/HUD; danger feedback reads piece positions without affecting failure timers; the aim guide reads authoritative lane geometry without affecting input or launch behavior.
+- Deterministic ANGLE screenshots and a short local walkthrough are under `reports/production-gameplay-ui-v2/`.
+
 **Current milestone:** Production Foundation v1. Persistent independent settings, consistent catalog silhouettes, bounded beginner-to-expert target/launcher progression, and GEM RUSH application branding are implemented. Source: `8fe30ea652b2ac49c3369fcc9013df64dcaf1692` / `production-foundation-v1-source`. APK: `build/android/production-foundation-v1.apk` (122,878,070 bytes; SHA-256 `F93ADAF33DDA308D3B7F9FFE3E9210D7601B75ECEA77971EA260C8A9632ED1FD`). Eight regression/profile routes pass; package/signature audit passes. No connected device was available.
 
 ## Production Foundation v1 (2026-08-05)

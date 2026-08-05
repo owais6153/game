@@ -19,7 +19,7 @@ const COLOR_TEXT := Color("5f3923")
 const COLOR_TEXT_MUTED := Color("986650")
 const COLOR_TRACK := Color("cbb89b")
 const COLOR_DISABLED := Color("b9afa1")
-const COLOR_OVERLAY := Color(0.025, 0.04, 0.06, 0.52)
+const COLOR_OVERLAY := Color(0.025, 0.04, 0.06, 0.64)
 
 const HUD_MARGIN := 24
 const HUD_NARROW_MARGIN := 16
@@ -27,12 +27,18 @@ const SAFE_INSET_PADDING := 10
 const ROW_GAP := 10
 const ITEM_GAP := 8
 const PANEL_PADDING := 16
+const HUD_SHELL_PADDING := 10
+const SMALL_GAP := 6
+const LARGE_GAP := 16
 const PANEL_CORNER_RADIUS := 26
 const PANEL_BORDER_WIDTH := 2
 const BUTTON_CORNER_RADIUS := 24
 const BUTTON_BORDER_WIDTH := 3
 const MIN_TOUCH_TARGET := 88.0
 const TARGET_TABLE_GAP := 46.0
+const HUD_ICON_SIZE := 58.0
+const TARGET_ICON_SIZE := 72.0
+const NEXT_ICON_SIZE := 68.0
 
 const TITLE_FONT_SIZE := 42
 const POPUP_TITLE_FONT_SIZE := 40
@@ -95,6 +101,30 @@ static func hud_content_style() -> StyleBoxFlat:
 
 static func simple_hud_panel_style() -> StyleBoxFlat:
 	return _rounded_style(Color(1.0, 0.984, 0.93, 0.97), Color("e5b74f"), 2, 22, 5, Color(0.10, 0.20, 0.22, 0.22))
+
+
+static func hud_shell_style() -> StyleBoxFlat:
+	var style := _rounded_style(Color(1.0, 0.982, 0.93, 0.90), Color("f1bd4a"), 2, 30, 7, Color(0.02, 0.12, 0.16, 0.22))
+	style.content_margin_left = HUD_SHELL_PADDING
+	style.content_margin_top = HUD_SHELL_PADDING
+	style.content_margin_right = HUD_SHELL_PADDING
+	style.content_margin_bottom = HUD_SHELL_PADDING
+	return style
+
+
+static func target_panel_style() -> StyleBoxFlat:
+	return _rounded_style(Color(1.0, 0.985, 0.92, 0.99), COLOR_GOLD, 3, 24, 7, Color(0.18, 0.08, 0.02, 0.25))
+
+
+static func utility_frame_style() -> StyleBoxFlat:
+	return _rounded_style(Color(1.0, 0.985, 0.94, 0.94), Color("e5b74f"), 2, 22, 4, Color(0.08, 0.18, 0.20, 0.20))
+
+
+static func setting_row_style() -> StyleBoxFlat:
+	var style := _rounded_style(Color(1.0, 0.99, 0.96, 0.82), Color("ead39d"), 1, 16, 0, Color.TRANSPARENT)
+	style.content_margin_left = 14.0
+	style.content_margin_right = 10.0
+	return style
 
 
 static func simple_popup_panel_style() -> StyleBoxFlat:

@@ -43,7 +43,7 @@ func _run() -> void:
 	_test_asset_mapping_and_clean_diamond()
 	_test_table_layout_physics_alignment()
 	_test_physical_rail_geometry()
-	_test_push_guide_is_removed()
+	_test_push_guide_is_presentation_only()
 	_test_perspective_view_presentation()
 	_test_visible_collision_calibration()
 	_test_calibrated_wall_contacts()
@@ -654,11 +654,12 @@ func _test_physical_rail_geometry() -> void:
 	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
 	_assert(controller_source.contains("GameConfig.table_left_at(board_top)") and controller_source.contains("GameConfig.table_right_at(board_bottom)"), "Debug overlay must read the exact same table interpolation as physical rails")
 
-func _test_push_guide_is_removed() -> void:
+func _test_push_guide_is_presentation_only() -> void:
 	var controller_source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
 	var config_source := FileAccess.get_file_as_string("res://scripts/game_config.gd")
-	_assert(not controller_source.contains("_draw_aim_guide") and not controller_source.contains("AIM_GUIDE"), "Production rendering must contain no vertical push/aim guide")
-	_assert(not config_source.contains("AIM_GUIDE_WIDTH") and not config_source.contains("AIM_GUIDE_ALPHA"), "Removed push-guide tuning must not remain active in GameConfig")
+	_assert(controller_source.contains("_draw_aim_guide") and controller_source.contains("vertical_lane_top_y"), "The faint launcher guide must read the authoritative vertical lane geometry")
+	_assert(config_source.contains("AIM_GUIDE_WIDTH") and config_source.contains("AIM_GUIDE_ALPHA"), "Aim-guide presentation values must remain centralized in GameConfig")
+	_assert(not controller_source.contains("raycast") and not controller_source.contains("trajectory_preview"), "The visual aim guide must not add a second input, collision, or trajectory authority")
 
 func _test_perspective_view_presentation() -> void:
 	_assert(is_equal_approx(GameConfig.gem_perspective_scale_at(GameConfig.BOARD_TOP), GameConfig.GEM_PERSPECTIVE_SCALE_BACK), "Back-table perspective scale must use the configured minimum")

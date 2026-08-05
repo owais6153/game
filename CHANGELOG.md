@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-05 - Production Gameplay UI Finalization V2
+
+- Rebuilt the gameplay HUD as one safe-area-aware shell with an integrated Level/MERGE PATH/Settings header and a balanced Coins/Target/Next objective row.
+- Added responsive exact-value coin presentation, a prominent target icon/name/quantity/progress treatment, and synchronized target copy/art during handoff and Restart.
+- Polished Pause hierarchy, setting rows, dimming, touch targets, and entrance/exit presentation without changing pause/restart behavior.
+- Restored a subtle ready-state aim guide and added proximity-only danger-line emphasis using rendering-only reads of authoritative geometry/state.
+- Normalized presentation-only gem shadows for crowded-board separation; physics radii, perspective, motion, rails, merge/reward timing, audio/haptics, targets, launcher generation, and win/fail sequencing are unchanged.
+- Added six-resolution plus notch/state evidence, a deterministic walkthrough driver, responsive regressions, and final performance validation.
+
 ## 2026-08-05 - Production Foundation v1
 
 - Added persistent, independent Music, Sound FX, and Vibration settings to Pause.
