@@ -1,6 +1,13 @@
 # Current State
 
-**Current milestone:** Production UI motion + Restart restoration v1. Supplied-video review drove a player-facing Home/Pause correction: no random/infinite/internal copy, no Home journey card, floating Level/Coins presentation, bounded ambient logo/action motion, and compact game-style Pause utilities. Pause Restart now restores the HUD reliably. Source: `a1b214d` / `production-ui-motion-v1-source`; export record: `3a27c83` / `production-ui-motion-v1-export-source`; delivery tag: `production-ui-motion-v1`. APK: `build/android/production-ui-motion-v1.apk` (118,277,818 bytes; SHA-256 `5C8A938AF7815DB48DE7DC499D80D3F650F7FD1B35DBEC953E33490CC97DB947`). All seven suites and reviewed ANGLE captures pass. No connected device was available.
+**Current milestone:** Production Foundation v1. Persistent independent settings, consistent catalog silhouettes, bounded beginner-to-expert target/launcher progression, and GEM RUSH application branding are implemented. Final source/export commits, APK metadata, complete regression evidence, and device status are recorded at delivery below and in `reports/PRODUCTION_FOUNDATION_V1_REPORT.md`.
+
+## Production Foundation v1 (2026-08-05)
+
+- Audio preferences persist globally with independent Music, Sound FX, and Vibration switches in Pause. Changes survive Restart, Next Level, Home, and process relaunch.
+- `GemSpriteLayer` preserves catalog aspect ratio with one uniform scale, matching merge proxies and HUD previews without changing physics radii.
+- Level 1 uses one L5 target; Level 2 uses L5 then L6; later levels use deterministic two/three-target L5-L8 cadence and capped `INTRO` through `EXPERT` launcher bands that retain L3/L4 and unlimited launches.
+- The application is named `Gem Rush` and uses the generated GEM RUSH app icon for launcher branding and boot splash instead of Godot defaults. See `reports/PRODUCTION_FOUNDATION_V1_REPORT.md`.
 
 ## Production UI motion + Restart restoration v1 (2026-08-05)
 

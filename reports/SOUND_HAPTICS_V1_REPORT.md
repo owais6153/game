@@ -111,6 +111,13 @@ Manual phone checklist: verify the reference music is continuous with no audible
 
 Manual phone checklist for this superseding path: confirm there is no background loop or captured coin contamination; verify short gem contacts/merges remain audible without chatter; confirm ordinary merges emit no coin sound/haptic; then supply clean separated music and coin files for final listening calibration.
 
+## Production Foundation v1 settings update
+
+- `GameSettingsService` persists Music, Sound FX, and Vibration independently in `user://game_settings.cfg` and restores them before feedback startup.
+- `AudioFeedbackService.music_enabled` controls only continuous background music; `sfx_enabled` controls only confirmed-event one-shots. Vibration remains owned by `HapticsService`.
+- Pause uses controller-backed switches. Restart, Home, Next Level, and process relaunch do not reset preferences, and settings never participate in gameplay decisions.
+- Automated validation covers persistence, independent routing, immediate application, and restoration. Hardware loudness and vibration still require a connected Android device.
+
 ## Reference Animation + Supplied Audio Polish v4 update
 
 - The requested separate originals now exist: `assets/sound/gem_merge_music_loop.wav` is the clean 29.72-second music source and `assets/sound/coin-sound.mp3` is the clean 1.30-second coin source. Both originals are preserved unchanged; documented Ogg derivatives live under `assets/runtime/audio/`.

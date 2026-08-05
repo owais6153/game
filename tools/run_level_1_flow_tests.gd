@@ -62,11 +62,11 @@ func _test_catalog_identity() -> void:
 func _test_level_sequence() -> void:
 	var config := LevelConfigType.level_1()
 	var sequence: Array = config.target_sequence
-	_assert(sequence.size() == 3, "Level 1 must define exactly three sequential targets")
-	_assert(int(sequence[0].tier) == 5 and int(sequence[0].quantity) == 1 and int(sequence[1].tier) == 7 and int(sequence[1].quantity) == 1 and int(sequence[2].tier) == 8 and int(sequence[2].quantity) == 1, "Level 1 must require exactly L5 then L7 then L8")
+	_assert(sequence.size() == 1, "Level 1 must define exactly one teaching target")
+	_assert(int(sequence[0].tier) == 5 and int(sequence[0].quantity) == 1, "Level 1 must require exactly one L5 target")
 	_assert((config.spawnable_tiers as Array).size() == 4 and (config.launcher_sequence as Array).size() >= 8, "Level 1 needs controlled low-tier variety rather than a straight-line L1/L1 loop")
 	_assert(not config.has("shot_limit"), "Level 1 must not define a shot limit")
-	_assert(int(config.active_tier_max) == 8, "Level 1 must permit L5, L7, and L8 objectives without direct high-tier launches")
+	_assert(int(config.active_tier_max) == 8, "Level 1 must retain the complete local chain while teaching with L5")
 
 func _test_unlimited_launcher() -> void:
 	var controller = GameScene.instantiate()
@@ -252,19 +252,15 @@ func _test_sequential_target_completion() -> void:
 	var waiting_launcher = controller.get_active_piece()
 	_complete_target(controller, 5, 1001)
 	_assert_event_order(controller, 1001, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed"])
-	_assert(controller.target_index == 1 and controller.target_progress == 0 and not controller.win_qualified, "Collected L5 must advance to the L7 target without victory")
-	_assert(controller.get_active_piece() == waiting_launcher and controller.lifecycle_name() == "READY_TO_AIM", "First target collection must preserve the waiting unlimited launcher")
-	_complete_target(controller, 7, 1002)
-	_assert(controller.target_index == 2 and not controller.win_qualified, "Collected L7 must advance to the final L8 target without victory")
-	_complete_target(controller, 8, 1003)
-	_assert(controller.target_index == 3 and controller.win_qualified and not controller.win_presented, "Collected L8 must qualify only after collection animation")
+	_assert(controller.target_index == 1 and controller.target_progress == 0 and controller.win_qualified and not controller.win_presented, "Collected L5 must qualify the one-target introductory level only after collection")
+	_assert(controller.pieces.has(waiting_launcher) and controller.get_active_piece() == null and controller.lifecycle_name() == "RESOLVING", "Final target must preserve the waiting body but disable launcher input while victory is qualified")
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(not controller.win_presented, "Win overlay must not cover the visible final coin flight")
 	var coin_finish := GameConfig.COIN_BURST_DURATION + GameConfig.MAJOR_COIN_FLIGHT_DURATION + GameConfig.COIN_FLIGHT_STAGGER * float(GameConfig.MAJOR_COIN_BURST_COUNT) + 0.1
 	controller.effects_layer.update_effects(coin_finish)
 	controller._update_win_presentation(GameConfig.WIN_PRESENTATION_HOLD + 0.01)
 	_assert(controller.win_presented, "Win overlay must follow final coin collection completion")
-	_assert_event_order(controller, 1003, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed", "win_overlay_started"])
+	_assert_event_order(controller, 1001, ["merge_confirmed", "result_created", "result_first_frame_visible", "merge_presentation_completed", "target_completed", "physics_body_removed", "collection_animation_started", "collection_animation_completed", "final_target_confirmed", "win_overlay_started"])
 	controller.restart()
 	_assert(controller.target_index == 0 and controller.target_progress == 0 and not controller.collection_in_progress, "Restart must restore target sequence safely")
 	controller.queue_free()

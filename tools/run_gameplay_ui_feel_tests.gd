@@ -177,6 +177,7 @@ func _test_duplicate_merge_is_exactly_once() -> void:
 
 func _test_reference_coin_reward_path() -> void:
 	var controller = await _new_controller()
+	_use_legacy_three_target_fixture(controller)
 	controller.target_index = 1
 	var ordinary_events: Array[Dictionary] = [_merge_event(7050, 6)]
 	controller._apply_confirmed_merge_events(ordinary_events)
@@ -214,6 +215,7 @@ func _test_reference_coin_reward_path() -> void:
 
 func _test_late_collection_fade_and_body_cleanup() -> void:
 	var controller = await _new_controller()
+	_use_legacy_three_target_fixture(controller)
 	var result_id := 7101
 	var result: GemPiece = _piece(result_id, 5, Vector2(360.0, 730.0))
 	controller.pieces.append(result)
@@ -246,7 +248,8 @@ func _test_late_collection_fade_and_body_cleanup() -> void:
 	_assert(controller.effects_layer.get_parent() == controller.gameplay_ui.reward_foreground_host and controller.gameplay_ui.reward_foreground_host.z_index > controller.gameplay_ui.hud_canvas.z_index, "Collection gems and coins must travel in front of live gems and HUD boxes")
 	var collection_base_scale: Vector2 = controller.target_collection.base_scale
 	var expected_collection_diameter: float = physics_radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE[result.level])
-	_assert(is_equal_approx(collection_base_scale.x * proxy.texture.get_size().x, expected_collection_diameter) and is_equal_approx(collection_base_scale.y * proxy.texture.get_size().y, expected_collection_diameter), "Target proxy must inherit the exact live-gem body mapping without shrinking or changing shape")
+	var proxy_longest_side := maxf(proxy.texture.get_size().x, proxy.texture.get_size().y)
+	_assert(is_equal_approx(collection_base_scale.x, collection_base_scale.y) and is_equal_approx(collection_base_scale.x * proxy_longest_side, expected_collection_diameter), "Target proxy must preserve the exact live-gem silhouette and uniform body mapping")
 	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION * 0.16)
 	_assert(absf(proxy.scale.x / collection_base_scale.x - GameConfig.TARGET_COLLECTION_POP_SCALE) <= 0.01 and GameConfig.TARGET_COLLECTION_POP_SCALE >= 1.16, "A qualified target gem must retain the reference-like enlarged collection beat")
 	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION * (GameConfig.TARGET_COLLECTION_FADE_START - 0.22))
@@ -270,6 +273,7 @@ func _test_late_collection_fade_and_body_cleanup() -> void:
 
 func _test_final_l8_event_order_and_single_overlay() -> void:
 	var controller = await _new_controller()
+	_use_legacy_three_target_fixture(controller)
 	_drive_target_to_arrival(controller, 7201, 5)
 	_assert(controller.target_index == 1 and not controller.win_qualified, "L5 must advance to L7 without starting a result overlay")
 	_drive_target_to_arrival(controller, 7202, 7)
@@ -355,6 +359,17 @@ func _new_controller():
 	root.add_child(controller)
 	await process_frame
 	return controller
+
+
+func _use_legacy_three_target_fixture(controller) -> void:
+	# This presentation regression intentionally exercises a three-target handoff;
+	# production Level 1 now uses one L5 teaching target.
+	controller.level_config["target_sequence"] = [{"tier": 5, "quantity": 1}, {"tier": 7, "quantity": 1}, {"tier": 8, "quantity": 1}]
+	controller.target_index = 0
+	controller.target_progress = 0
+	controller.win_qualified = false
+	controller.won = false
+	controller._refresh_hud()
 
 
 func _dispose_controller(controller) -> void:

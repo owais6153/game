@@ -73,10 +73,11 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 		if _appearance_levels.get(piece.id, -1) != piece.level:
 			var texture := AssetCatalogType.gem_texture(piece.level)
 			sprite.texture = texture
-			# The runtime images are alpha-trimmed to their main bodies. Independent
-			# axis scales map that visible box to this piece's calibrated simple body.
+			# Every renderer preserves the supplied silhouette. A single uniform scale
+			# matches the merge proxy, TARGET/NEXT previews, and result artwork.
 			var visual_diameter := piece.base_radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE.get(piece.level, 1.0))
-			sprite.scale = Vector2(visual_diameter / texture.get_size().x, visual_diameter / texture.get_size().y)
+			var texture_longest_side := maxf(texture.get_size().x, texture.get_size().y)
+			sprite.scale = Vector2.ONE * (visual_diameter / texture_longest_side)
 			var shadow: Sprite2D = _shadows.get(piece.id)
 			var body_diameter := piece.base_radius * 2.0
 			shadow.position = GameConfig.GEM_SHADOW_OFFSET.get(piece.level, Vector2(4.0, 7.0))

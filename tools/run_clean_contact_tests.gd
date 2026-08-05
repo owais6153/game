@@ -247,7 +247,7 @@ func _test_launcher_spawn_lifecycle() -> void:
 	controller._ready()
 	_assert(controller.pieces.size() == 1 and controller.get_active_piece() != null, "Initial lifecycle state must contain exactly one active launcher")
 	_assert(controller.lifecycle_name() == "READY_TO_AIM", "Initial launcher state must be READY_TO_AIM")
-	var initial_next_level: int = controller.next_level
+	var initial_queue_index: int = controller.next_queue_index
 	controller.launch_active_piece()
 	_assert(controller.lifecycle_name() == "SHOT_IN_FLIGHT", "Launching must enter SHOT_IN_FLIGHT")
 	for frame in range(200):
@@ -255,7 +255,7 @@ func _test_launcher_spawn_lifecycle() -> void:
 	_assert(controller.get_active_piece() != null, "Exactly one new active piece must exist after the first shot settles")
 	_assert(_active_launcher_count(controller.pieces) == 1, "Active launcher count must never exceed one after settlement")
 	_assert(controller.lifecycle_name() == "READY_TO_AIM", "Resolution must return to READY_TO_AIM")
-	_assert(controller.next_level != initial_next_level, "Next queue must advance exactly once after the completed shot")
+	_assert(controller.next_queue_index == initial_queue_index + 1, "Next queue must advance exactly once after the completed shot even when adjacent ranks match")
 	var pieces_after_first_cycle: int = controller.pieces.size()
 	var next_after_first_cycle: int = controller.next_level
 	for frame in range(120):
@@ -298,6 +298,7 @@ func _test_score_and_chain_runtime_path() -> void:
 	_assert(high_tier_controller.effects_layer.coin_rewards.is_empty() and high_tier_controller.effects_layer.merge_impacts.size() == 1, "A non-target high-tier merge must create only its bounded impact")
 	var target_controller = GameScene.instantiate()
 	target_controller._ready()
+	_use_legacy_three_target_fixture(target_controller)
 	target_controller.target_index = 1
 	var target_events: Array[Dictionary] = [{"level": 7, "depth": 0, "result_id": 6200, "midpoint": Vector2(360.0, 620.0)}]
 	target_controller._apply_confirmed_merge_events(target_events)
@@ -315,6 +316,7 @@ func _test_score_and_chain_runtime_path() -> void:
 func _test_win_stops_spawning() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
+	_use_legacy_three_target_fixture(controller)
 	_complete_current_target(controller, 5, 300)
 	_complete_current_target(controller, 7, 301)
 	_complete_current_target(controller, 8, 302)
@@ -329,6 +331,7 @@ func _test_win_stops_spawning() -> void:
 func _test_win_visual_sequence_and_overlay_isolation() -> void:
 	var controller = GameScene.instantiate()
 	controller._ready()
+	_use_legacy_three_target_fixture(controller)
 	var witness := _piece(309, 2, Vector2(260, 620))
 	controller.pieces.append(witness)
 	controller.gem_sprite_layer.sync_gems(controller.pieces)
@@ -561,6 +564,7 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	_assert(_event_count(controller.haptics_feedback.emitted_events, "major_merge") == 1, "A confirmed major merge must use the dedicated stronger haptic")
 	var win_controller = GameScene.instantiate()
 	win_controller._ready()
+	_use_legacy_three_target_fixture(win_controller)
 	win_controller.haptics_feedback.allow_platform_vibration = false
 	_complete_current_target(win_controller, 5, 700)
 	_complete_current_target(win_controller, 7, 701)
@@ -581,6 +585,15 @@ func _test_sound_and_haptics_feedback_routing() -> void:
 	fail_controller.pieces.append(danger)
 	for frame in range(50): fail_controller._process(1.0 / 60.0)
 	_assert(_event_count(fail_controller.audio_feedback.emitted_events, "fail") == 1 and _event_count(fail_controller.haptics_feedback.emitted_events, "fail") == 1, "Fail feedback must fire exactly once")
+
+func _use_legacy_three_target_fixture(controller) -> void:
+	# Multi-target presentation and routing remain covered independently of the
+	# new one-target introductory level configuration.
+	controller.level_config["target_sequence"] = [{"tier": 5, "quantity": 1}, {"tier": 7, "quantity": 1}, {"tier": 8, "quantity": 1}]
+	controller.target_index = 0
+	controller.target_progress = 0
+	controller.win_qualified = false
+	controller.won = false
 
 func _test_inset_table_and_viewport_safety() -> void:
 	_assert(GameConfig.TABLE_TEXTURE_CENTER == Vector2(360.0, 846.0), "Table must be genuinely bottom-anchored to the approved reference composition")
@@ -709,9 +722,9 @@ func _test_visible_collision_calibration() -> void:
 	controller.gem_sprite_layer.sync_gems(controller.pieces)
 	for piece in controller.pieces:
 		var sprite: Sprite2D = controller.gem_sprite_layer._sprites[piece.id]
-		var visible_diameter: float = sprite.scale.y * sprite.texture.get_size().y
+		var visible_diameter: float = sprite.scale.x * maxf(sprite.texture.get_size().x, sprite.texture.get_size().y)
 		var expected_diameter: float = piece.base_radius * 2.0 * float(GameConfig.GEM_VISUAL_BODY_SCALE[piece.level])
-		_assert(is_equal_approx(visible_diameter, expected_diameter), "L%d artwork must derive from the same base radius as its collider" % piece.level)
+		_assert(is_equal_approx(sprite.scale.x, sprite.scale.y) and is_equal_approx(visible_diameter, expected_diameter), "L%d artwork must preserve its silhouette and derive from the same base radius as its collider" % piece.level)
 	controller.free()
 
 func _test_calibrated_wall_contacts() -> void:

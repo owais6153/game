@@ -1,5 +1,13 @@
 # Architecture
 
+## Production foundation services and boundaries
+
+- `GameSettingsService` persists `music_enabled`, `sound_enabled`, and `vibration_enabled` in `user://game_settings.cfg`; `GameController` loads before feedback startup and saves HUD toggle events immediately.
+- `AudioFeedbackService` has independent music and SFX gates. `GameplayHudLayer` emits intent and renders controller snapshots; it never reads files or touches simulation.
+- `LevelConfig.generated()` owns target cadence and capped launcher difficulty. Consumers do not recalculate it.
+- `GemSpriteLayer` reads identity from `AssetCatalog` and diameter from `GameConfig`, then applies one uniform scale. Physics remains radius-owned.
+- Branding is declarative in `project.godot`; the runtime icon has no gameplay dependency.
+
 ## Production UI motion and visibility contract
 
 `HomeOverlayLayer` owns presentation-only entrance and idle tweens that process while the tree is paused; dismiss kills and normalizes them. `GameController.restart()` is the authoritative active-play reset boundary and must call `GameplayHudLayer.show()` before presentation reset/refresh. Home may cover or temporarily hide gameplay UI, but no reset caller may leave the active-play HUD invisible.

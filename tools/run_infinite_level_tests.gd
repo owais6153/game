@@ -34,7 +34,8 @@ func _test_seeded_generation() -> void:
 		_check(unique.size() == 8, "Level %d must use eight unique gems" % level_number)
 		var previous_target := 4
 		var targets: Array = first.target_sequence
-		_check(targets.size() == 3, "Level %d must have three targets" % level_number)
+		var expected_target_count := 1 if level_number == 1 else (2 if level_number == 2 or posmod(level_number, 4) == 0 else 3)
+		_check(targets.size() == expected_target_count, "Level %d must have %d progression targets" % [level_number, expected_target_count])
 		for target in targets:
 			var target_rank := int((target as Dictionary).tier)
 			_check(target_rank >= 5 and target_rank <= 8, "Level %d target must use local L5-L8" % level_number)
@@ -42,6 +43,9 @@ func _test_seeded_generation() -> void:
 			previous_target = target_rank
 		for launcher_rank in first.launcher_sequence:
 			_check(int(launcher_rank) >= 1 and int(launcher_rank) <= 4, "Level %d launcher must use local L1-L4" % level_number)
+		_check((first.launcher_sequence as Array).has(3) and (first.launcher_sequence as Array).has(4), "Level %d must always retain reachable higher launchers" % level_number)
+		var expected_band := "INTRO" if level_number == 1 else ("EASY" if level_number == 2 else ("NORMAL" if level_number <= 5 else ("CHALLENGE" if level_number <= 12 else "EXPERT")))
+		_check(String(first.difficulty_band) == expected_band, "Level %d must use the expected capped difficulty band" % level_number)
 
 func _test_catalog_coverage_and_variety() -> void:
 	var identities := {}

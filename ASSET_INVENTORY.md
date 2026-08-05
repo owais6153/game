@@ -1,5 +1,13 @@
 # Asset Inventory — Background, Table, and Gems v1
 
+## Production Foundation v1 branding
+
+| Use | Preserved/generated source | Runtime asset | Mapping |
+|---|---|---|---|
+| Android launcher icon and boot splash | `assets/generated/gem_rush_app_icon_source_v1.png` | `assets/runtime/ui/gem_rush_app_icon_v1.png` | `project.godot` icon and boot splash; 1254 x 1254 PNG, SHA-256 `BB4D2AEDE4424EEAE8360A20E114B1290B6E1624EBC152346C57505C32051F67`. |
+
+The built-in image-generation tool used the established GEM RUSH direction: gold lettering, pearl, red/green/blue jewels, leaves, teal/ocean field, coral-gold rim, Android-safe margins, no Godot mark, and no extra wording. Source and runtime copies are intentionally identical so the generated master remains preserved while runtime references stay under `assets/runtime/`.
+
 ## Asset-matched transparent brand v2
 
 | Purpose | Preserved source | Active runtime derivative | Audit |

@@ -6,12 +6,15 @@ const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const CoinIconType = preload("res://scripts/coin_icon.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
 const TargetRewardOverlayType = preload("res://scripts/target_reward_overlay.gd")
-const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level"]
+const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled", "vibration_enabled"]
 
 signal settings_requested
 signal resume_requested
 signal restart_requested
 signal home_requested
+signal music_toggled(enabled: bool)
+signal sound_toggled(enabled: bool)
+signal vibration_toggled(enabled: bool)
 
 var root_control: Control
 var hud_canvas: Control
@@ -42,6 +45,9 @@ var pause_panel: PanelContainer
 var resume_button: Button
 var restart_button: Button
 var home_button: Button
+var music_toggle: CheckButton
+var sound_toggle: CheckButton
+var vibration_toggle: CheckButton
 
 var _built := false
 var _snapshot: Dictionary = {}
@@ -145,6 +151,12 @@ func update_snapshot(snapshot: Dictionary) -> void:
 
 	var level_number := int(snapshot.get("level_number", 1))
 	level_label.text = "LEVEL %d" % level_number
+	if music_toggle != null:
+		music_toggle.set_pressed_no_signal(bool(snapshot.get("music_enabled", true)))
+	if sound_toggle != null:
+		sound_toggle.set_pressed_no_signal(bool(snapshot.get("sound_enabled", true)))
+	if vibration_toggle != null:
+		vibration_toggle.set_pressed_no_signal(bool(snapshot.get("vibration_enabled", true)))
 	if restart_button != null:
 		restart_button.tooltip_text = "Restart Level %d with the same gem chain" % level_number
 	target_header_label.text = "TARGET"
@@ -669,7 +681,7 @@ func _build_pause_popup() -> void:
 	pause_safe_margin.add_child(center)
 	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
-	pause_panel.custom_minimum_size = Vector2(470.0, 470.0)
+	pause_panel.custom_minimum_size = Vector2(470.0, 650.0)
 	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.hero_screen_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
@@ -706,6 +718,12 @@ func _build_pause_popup() -> void:
 	subtitle.name = "PauseSubtitle"
 	subtitle.custom_minimum_size = Vector2(0.0, 28.0)
 	column.add_child(subtitle)
+	music_toggle = _setting_toggle(column, "MUSIC", "MusicToggle")
+	music_toggle.toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
+	sound_toggle = _setting_toggle(column, "SOUND FX", "SoundToggle")
+	sound_toggle.toggled.connect(func(enabled: bool) -> void: sound_toggled.emit(enabled))
+	vibration_toggle = _setting_toggle(column, "VIBRATION", "VibrationToggle")
+	vibration_toggle.toggled.connect(func(enabled: bool) -> void: vibration_toggled.emit(enabled))
 	resume_button = _button("ResumeButton", "RESUME", Vector2(330.0, 78.0), "")
 	resume_button.tooltip_text = "Continue playing"
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
@@ -735,6 +753,24 @@ func _button(node_name: String, text: String, minimum: Vector2, variation: Strin
 	if not variation.is_empty():
 		button.theme_type_variation = variation
 	return button
+
+func _setting_toggle(parent: VBoxContainer, text: String, node_name: String) -> CheckButton:
+	var row := HBoxContainer.new()
+	row.custom_minimum_size = Vector2(330.0, 46.0)
+	row.add_theme_constant_override("separation", 16)
+	parent.add_child(row)
+	var label := _label(text, 18, UiDesignSystemType.COLOR_TEXT)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	var toggle := CheckButton.new()
+	toggle.name = node_name
+	toggle.button_pressed = true
+	toggle.custom_minimum_size = Vector2(76.0, 44.0)
+	toggle.focus_mode = Control.FOCUS_ALL
+	toggle.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	row.add_child(toggle)
+	return toggle
 
 
 func _gem_texture_rect(node_name: String) -> TextureRect:

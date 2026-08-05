@@ -9,6 +9,7 @@ const LevelConfigType = preload("res://scripts/level_config.gd")
 const GameplayHudScene = preload("res://scenes/ui/GameplayHud.tscn")
 const GameplayEffectsLayerType = preload("res://scripts/gameplay_effects_layer.gd")
 const ProgressionSaveServiceType = preload("res://scripts/progression_save_service.gd")
+const GameSettingsServiceType = preload("res://scripts/game_settings_service.gd")
 const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
 
 var pieces: Array[GemPiece] = []
@@ -84,6 +85,7 @@ var launcher_state: LauncherState = LauncherState.SPAWNING_NEXT
 
 func _ready() -> void:
 	var saved := ProgressionSaveServiceType.load_progress()
+	var saved_settings := GameSettingsServiceType.load_settings()
 	level_number = int(saved.level_number)
 	level_seed = int(saved.seed)
 	coins = int(saved.total_coins)
@@ -96,6 +98,9 @@ func _ready() -> void:
 		viewport.size_changed.connect(_refresh_background_fill)
 	audio_feedback = AudioFeedbackServiceType.new()
 	haptics_feedback = HapticsServiceType.new()
+	audio_feedback.music_enabled = bool(saved_settings.music_enabled)
+	audio_feedback.sfx_enabled = bool(saved_settings.sound_enabled)
+	haptics_feedback.enabled = bool(saved_settings.vibration_enabled)
 	add_child(audio_feedback)
 	_advance_launcher_lifecycle()
 	_sync_gems_and_mark_visibility()
@@ -231,7 +236,8 @@ func hud_snapshot() -> Dictionary:
 		"target_collecting": collection_in_progress,
 		"target_completed": win_qualified,
 		"highest_level": highest_level,
-		"sound_enabled": audio_feedback.enabled if audio_feedback != null else true,
+		"music_enabled": audio_feedback.music_enabled if audio_feedback != null else true,
+		"sound_enabled": audio_feedback.sfx_enabled if audio_feedback != null else true,
 		"vibration_enabled": haptics_feedback.enabled if haptics_feedback != null else true,
 	}
 
@@ -403,6 +409,9 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.resume_requested.connect(_on_resume_requested)
 	gameplay_ui.restart_requested.connect(_on_restart_requested)
 	gameplay_ui.home_requested.connect(_show_home)
+	gameplay_ui.music_toggled.connect(_on_music_toggled)
+	gameplay_ui.sound_toggled.connect(_on_sound_toggled)
+	gameplay_ui.vibration_toggled.connect(_on_vibration_toggled)
 	effects_layer = GameplayEffectsLayerType.new()
 	effects_layer.z_index = 0
 	gameplay_ui.attach_reward_foreground(effects_layer)
@@ -628,7 +637,8 @@ func _begin_target_collection(result_id: int, presentation: Dictionary = {}) -> 
 	# Start from the exact live-gem axis mapping so collection never shrinks or
 	# changes the result silhouette. Reward emphasis then multiplies both axes
 	# uniformly and remains presentation-only.
-	var body_scale := Vector2(diameter / sprite.texture.get_size().x, diameter / sprite.texture.get_size().y)
+	var texture_longest_side := maxf(sprite.texture.get_size().x, sprite.texture.get_size().y)
+	var body_scale := Vector2.ONE * (diameter / texture_longest_side)
 	sprite.scale = body_scale
 	# Godot canvas z is bounded; this stays above the live gem layer (10)
 	# without exceeding the engine's maximum canvas z range.
@@ -825,6 +835,31 @@ func _on_resume_requested() -> void:
 	if is_inside_tree():
 		get_tree().paused = false
 	audio_feedback.emit_event("button")
+
+func _on_music_toggled(value: bool) -> void:
+	if audio_feedback != null:
+		audio_feedback.music_enabled = value
+	_save_settings()
+	_refresh_hud()
+
+func _on_sound_toggled(value: bool) -> void:
+	if audio_feedback != null:
+		audio_feedback.sfx_enabled = value
+	_save_settings()
+	_refresh_hud()
+
+func _on_vibration_toggled(value: bool) -> void:
+	if haptics_feedback != null:
+		haptics_feedback.enabled = value
+	_save_settings()
+	_refresh_hud()
+
+func _save_settings() -> void:
+	GameSettingsServiceType.save_settings(
+		audio_feedback.music_enabled if audio_feedback != null else true,
+		audio_feedback.sfx_enabled if audio_feedback != null else true,
+		haptics_feedback.enabled if haptics_feedback != null else true
+	)
 
 func _on_restart_requested() -> void:
 	if gameplay_ui != null:

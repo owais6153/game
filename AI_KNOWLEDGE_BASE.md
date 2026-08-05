@@ -1,5 +1,15 @@
 # AI Knowledge Base
 
+## Production foundation v1 guardrails
+
+These guardrails supersede older fixed L5 -> L7 -> L8 progression instructions below.
+
+- Persist Music, Sound FX, and Vibration only through `GameSettingsService`; keep them independent and outside gameplay decisions.
+- Never scale a table gem independently on X and Y. Every renderer must use the same `AssetCatalog` texture and preserve its silhouette; physics reads only `GameConfig.gem_collision_radius()`.
+- Generated progression contract: L1 `[L5]`; L2 `[L5,L6]`; L3+ uses unique ascending L5-L8 targets, three normally and two when `level_number % 4 == 0`. Preserve deterministic seeds, unlimited launches, L3/L4 availability, and capped `EXPERT` difficulty.
+- Preserve `Gem Rush` branding and `assets/runtime/ui/gem_rush_app_icon_v1.png` for project icon and boot splash. Do not restore `icon.svg` or Godot launch branding.
+- Run `run_production_foundation_tests.gd` and the full suite after changing these systems.
+
 ## Player-facing production UI guardrails
 
 - Never display “infinite levels,” seeds, random gem counts, generated chains, or similar implementation language to players. Infinite generation is an internal progression capability.

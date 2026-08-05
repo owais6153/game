@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-05 - Production Foundation v1
+
+- Added persistent, independent Music, Sound FX, and Vibration settings to Pause.
+- Split continuous music from bounded event-sound enablement without changing confirmed-event routing.
+- Unified live table-gem silhouettes with merge, collection, TARGET, NEXT, and path art through aspect-preserved scaling.
+- Rebalanced progression to one L5 target on Level 1, L5/L6 on Level 2, then deterministic two/three-target L5-L8 levels.
+- Added five capped launcher bands that become gradually less assisted while retaining L3/L4 and unlimited reachability.
+- Replaced the generic project name, Godot icon, and default splash with GEM RUSH branding.
+
 ## 2026-08-05 - Production UI motion + Restart restoration v1
 
 - Fixed Pause Restart leaving the gameplay HUD hidden after a Home/Continue route.

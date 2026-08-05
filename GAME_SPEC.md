@@ -1,5 +1,14 @@
 # Game Spec — Clean Contact Merge v1
 
+## Production foundation v1
+
+This section supersedes older fixed L5 -> L7 -> L8 Level 1 statements below; those sections remain historical milestone records.
+
+- Settings are player-owned and persistent across levels and app launches. Pause exposes independent `MUSIC`, `SOUND FX`, and `VIBRATION` switches; changing one must not change either of the others or any gameplay state.
+- All table, merge-result, collection, TARGET, NEXT, result, and MERGE PATH gems resolve through `AssetCatalog`. Runtime sprites preserve source aspect ratio with uniform scale; artwork never changes collider geometry.
+- Generated difficulty is bounded and reachable: Level 1 has one L5 target, Level 2 has L5 then L6, and Level 3 onward has two targets every fourth level and three otherwise, selected uniquely and sorted upward from L5-L8. Launcher assistance decreases through `INTRO`, `EASY`, `NORMAL`, `CHALLENGE`, and capped `EXPERT` bands, but every cycle retains L3 and L4 and launches remain unlimited.
+- Player-facing application name, launcher icon, and boot splash use the GEM RUSH brand. The generic Godot icon/splash is not part of the shipped configuration.
+
 ## Production UI motion + Restart restoration v1
 
 - Home communicates only player-facing state: GEM RUSH branding, Level, Coins, and Play/Continue. Internal implementation copy about random gems, generated paths, seeds, or infinite levels is forbidden in production UI.

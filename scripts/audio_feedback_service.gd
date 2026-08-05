@@ -7,9 +7,17 @@ const SuppliedCoinReward: AudioStream = preload("res://assets/runtime/audio/supp
 ## Confirmed controller events use cached one-shots. Independently supplied
 ## music owns one continuous player whose gain is intentionally below merge
 ## and coin feedback; movement never starts, seeks, or restarts it.
-var enabled := true:
+var sfx_enabled := true
+var music_enabled := true:
 	set(value):
-		enabled = value
+		music_enabled = value
+		_sync_enabled_state()
+var enabled: bool:
+	get:
+		return sfx_enabled and music_enabled
+	set(value):
+		sfx_enabled = value
+		music_enabled = value
 		_sync_enabled_state()
 var emitted_events: Array[String] = []
 var _last_played_at: Dictionary = {}
@@ -41,7 +49,7 @@ func _process(delta: float) -> void:
 	_clock += delta
 
 func emit_event(event_name: String, intensity: float = 1.0) -> bool:
-	if not enabled:
+	if not sfx_enabled:
 		return false
 	var cooldown := float(GameConfig.AUDIO_COOLDOWN_BY_EVENT.get(event_name, 0.0))
 	if _clock - float(_last_played_at.get(event_name, -100.0)) < cooldown:
@@ -95,7 +103,7 @@ func _build_stream_cache() -> void:
 func _sync_enabled_state() -> void:
 	if _music_player == null:
 		return
-	if enabled:
+	if music_enabled:
 		if not _music_player.playing:
 			_music_player.play()
 	else:

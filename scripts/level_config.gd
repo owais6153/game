@@ -10,14 +10,13 @@ static func level_1() -> Dictionary:
 		"active_tier_min": 1,
 		"active_tier_max": 8,
 		"spawnable_tiers": [1, 2, 3, 4],
-		"spawn_weights": {1: 4, 2: 3, 3: 2, 4: 1},
+		"spawn_weights": {1: 2, 2: 2, 3: 3, 4: 3},
 		# A controlled mixed bag retains learnable difficulty while preventing the
 		# former repeated same-line L1/L1 pattern from auto-solving the targets.
-		"launcher_sequence": [1, 2, 1, 3, 2, 1, 4, 2, 3, 1],
+		"launcher_sequence": [4, 4, 3, 3, 2, 2, 1, 1, 3, 2],
 		# Unlimited launches are still bounded by the existing danger-line fail.
-		# The first objective teaches the target loop early. L7 and L8 then retain
-		# the longer placement challenge without changing the unlimited launcher.
-		"target_sequence": [{"tier": 5, "quantity": 1}, {"tier": 7, "quantity": 1}, {"tier": 8, "quantity": 1}],
+		# One L5 objective teaches the complete loop without an endurance spike.
+		"target_sequence": [{"tier": 5, "quantity": 1}],
 		"starting_board": [],
 	}
 
@@ -40,22 +39,46 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		mapping[index + 1] = selected[index]
 	var target_candidates: Array[int] = [5, 6, 7, 8]
 	_fisher_yates(target_candidates, rng)
-	# Preserve the already-verified introductory target pacing while every later
-	# level receives a seeded subset. Gem identities at these local ranks are
-	# still randomized even on Level 1.
 	var target_ranks: Array[int] = []
 	if level_number == 1:
-		target_ranks.assign([5, 7, 8])
+		# One reachable objective teaches launch, merge, target and reward without
+		# front-loading a full multi-target endurance run.
+		target_ranks.assign([5])
+	elif level_number == 2:
+		# The second level introduces sequential targets with adjacent ranks.
+		target_ranks.assign([5, 6])
 	else:
-		for index in range(3):
+		# Mature levels normally use three upward targets; seeded one-in-four
+		# variants use two to create recovery/breather levels without backtracking.
+		var target_count := 2 if posmod(level_number, 4) == 0 else 3
+		for index in range(target_count):
 			target_ranks.append(target_candidates[index])
 	target_ranks.sort()
 	var targets: Array[Dictionary] = []
 	for rank in target_ranks:
 		targets.append({"tier": rank, "quantity": 1})
-	var launcher_sequence: Array[int] = [1, 2, 3, 4]
+	var launcher_sequence: Array[int] = []
+	var cycle_template: Array[int]
+	var difficulty_band: String
+	if level_number == 1:
+		difficulty_band = "INTRO"
+		cycle_template = [4, 4, 3, 3, 2, 2, 1, 1, 3, 2]
+	elif level_number == 2:
+		difficulty_band = "EASY"
+		cycle_template = [4, 3, 3, 2, 2, 2, 1, 1, 1, 4]
+	elif level_number <= 5:
+		difficulty_band = "NORMAL"
+		cycle_template = [1, 1, 1, 2, 2, 2, 3, 3, 4, 4]
+	elif level_number <= 12:
+		difficulty_band = "CHALLENGE"
+		cycle_template = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
+	else:
+		difficulty_band = "EXPERT"
+		# Difficulty is capped here. L3/L4 remain in every ten-launch cycle and
+		# launches remain unlimited, so every L5-L8 target stays constructible.
+		cycle_template = [1, 1, 1, 1, 1, 2, 2, 2, 3, 4]
 	for _cycle in range(2):
-		var cycle: Array[int] = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
+		var cycle: Array[int] = cycle_template.duplicate()
 		_fisher_yates(cycle, rng)
 		launcher_sequence.append_array(cycle)
 	return {
@@ -67,6 +90,7 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		"active_tier_max": 8,
 		"spawnable_tiers": [1, 2, 3, 4],
 		"launcher_sequence": launcher_sequence,
+		"difficulty_band": difficulty_band,
 		"target_sequence": targets,
 		"gem_identity_by_tier": mapping,
 		"background_index": rng.randi_range(0, 4),

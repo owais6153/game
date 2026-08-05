@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Production Foundation v1](PRODUCTION_FOUNDATION_V1_REPORT.md) - persistent independent settings, shared gem silhouettes, bounded difficulty progression, GEM RUSH icon/splash branding, validation, and delivery provenance.
+
 - [Production UI motion + Restart restoration v1](PRODUCTION_UI_MOTION_V1_REPORT.md) - supplied-video findings, player-facing Home/Pause redesign, ambient motion, Restart HUD restoration, and validation evidence.
 
 - [Asset-matched Home + transparent logo v1](ASSET_MATCHED_HOME_TRANSPARENT_LOGO_V1_REPORT.md) - full tropical Home composition, alpha-matted GEM RUSH runtime hero, asset provenance, and validation evidence.
