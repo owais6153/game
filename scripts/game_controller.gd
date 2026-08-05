@@ -376,6 +376,8 @@ func restart() -> void:
 	if result_overlay != null:
 		result_overlay.dismiss()
 	if gameplay_ui != null:
+		# A restart always returns to active play, including after Home/Continue.
+		gameplay_ui.show()
 		gameplay_ui.reset_presentation()
 		_refresh_hud()
 
@@ -827,7 +829,6 @@ func _on_resume_requested() -> void:
 func _on_restart_requested() -> void:
 	if gameplay_ui != null:
 		gameplay_ui.hide_pause(false)
-		gameplay_ui.hide()
 	if is_inside_tree():
 		get_tree().paused = false
 	audio_feedback.emit_event("button")

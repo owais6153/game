@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-05 - Production UI motion + Restart restoration v1
+
+- Fixed Pause Restart leaving the gameplay HUD hidden after a Home/Continue route.
+- Removed “8 random gems,” “new path every level,” “current journey,” and other implementation-facing Home copy.
+- Removed the large Home status card; Level and Coins now use floating display typography with the production coin icon.
+- Added restrained looping Home logo/primary-action motion after entrance.
+- Reworked Pause into a shorter gem-accented modal with primary Resume and a compact Restart/Home row.
+
 ## 2026-08-05 - Asset-matched Home + transparent logo v1
 
 - Replaced the opaque framed Home logo with an alpha-matted GEM RUSH runtime derivative while preserving the uploaded source.

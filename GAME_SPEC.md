@@ -1,5 +1,12 @@
 # Game Spec — Clean Contact Merge v1
 
+## Production UI motion + Restart restoration v1
+
+- Home communicates only player-facing state: GEM RUSH branding, Level, Coins, and Play/Continue. Internal implementation copy about random gems, generated paths, seeds, or infinite levels is forbidden in production UI.
+- Home uses a full-bleed tropical scene, floating status typography, the real coin icon, one coral primary action, entrance motion, and a bounded ambient logo/action loop. It does not use the former journey/status card.
+- Pause uses one focused modal, gem accent, primary Resume, and a compact Restart/Home utility row. Restart always restores the gameplay HUD, resets the same seeded level, and returns one ready launcher.
+- These changes are presentation/state-restoration only. Infinite forward generation remains an internal rule; physics, merges, targets, rewards, audio, table geometry, and persistence are unchanged.
+
 ## New background music v1
 
 - `assets/runtime/audio/supplied_background_music_v5.ogg`, derived without trim or signal processing from the preserved user-supplied MP3, is the active continuous background track.

@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Production UI motion + Restart restoration v1](PRODUCTION_UI_MOTION_V1_REPORT.md) - supplied-video findings, player-facing Home/Pause redesign, ambient motion, Restart HUD restoration, and validation evidence.
+
 - [Asset-matched Home + transparent logo v1](ASSET_MATCHED_HOME_TRANSPARENT_LOGO_V1_REPORT.md) - full tropical Home composition, alpha-matted GEM RUSH runtime hero, asset provenance, and validation evidence.
 
 - [Branded Production Screen Flow v1](PRODUCTION_SCREEN_FLOW_V1_REPORT.md) - supplied-logo integration, standalone Home, Pause/Success/Fail hierarchy, safe-area regressions, reviewed renders, and delivery provenance.

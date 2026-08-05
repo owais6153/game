@@ -1,5 +1,12 @@
 # AI Knowledge Base
 
+## Player-facing production UI guardrails
+
+- Never display “infinite levels,” seeds, random gem counts, generated chains, or similar implementation language to players. Infinite generation is an internal progression capability.
+- Home should remain a full-bleed lobby: floating logo, Level, Coins, and one primary action. Do not restore the former `ContinueCard` or technical footer.
+- Ambient Home motion must be bounded, presentation-only, paused-tree safe, killed on dismiss, and must not create per-frame `_process` work.
+- Regression route for Restart: Home -> Continue -> Pause -> Restart must produce a visible HUD, one ready launcher, reset rewards/targets, and an unpaused tree.
+
 ## Home visual authority
 
 - Treat `assets/ui/Generated image 2 (3).png` as the composition reference for Home: full tropical backdrop, floating brand hero, coral primary action, and cream secondary/status surfaces.

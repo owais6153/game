@@ -209,6 +209,7 @@ func _test_pause_settings_restart_preserves_unlimited_flow() -> void:
 	_assert(controller.gameplay_ui.is_pause_visible(), "Settings must open the input-blocking pause popup")
 	controller.gameplay_ui.restart_button.pressed.emit()
 	_assert(not controller.gameplay_ui.is_pause_visible(), "Pause-popup Restart must close the popup")
+	_assert(controller.gameplay_ui.visible, "Pause-popup Restart must restore the gameplay HUD after Home/Continue")
 	_assert(controller.next_queue_index == 1 and controller.score == 0 and controller.get_active_piece() != null and controller.lifecycle_name() == "READY_TO_AIM", "Pause-popup Restart must reset to one ready unlimited launcher")
 	_assert(is_zero_approx(controller.launcher_handoff_elapsed), "Restart must clear launcher handoff timing without restoring a cap")
 	for index in range(80):

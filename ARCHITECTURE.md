@@ -1,5 +1,9 @@
 # Architecture
 
+## Production UI motion and visibility contract
+
+`HomeOverlayLayer` owns presentation-only entrance and idle tweens that process while the tree is paused; dismiss kills and normalizes them. `GameController.restart()` is the authoritative active-play reset boundary and must call `GameplayHudLayer.show()` before presentation reset/refresh. Home may cover or temporarily hide gameplay UI, but no reset caller may leave the active-play HUD invisible.
+
 ## Asset-matched Home presentation
 
 `HomeOverlayLayer` remains a presentation-only `CanvasLayer`. It reads the preloaded tropical background and transparent brand derivative through `AssetCatalog`, while its scalable coral/cream surfaces come from `UiDesignSystem`. It owns no seed generation, progression, simulation, input over the board, reward, or persistence rules.

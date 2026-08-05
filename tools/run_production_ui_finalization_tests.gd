@@ -201,11 +201,13 @@ func _test_branded_home_and_forward_result_flow() -> void:
 		viewport.add_child(home)
 		await process_frame
 		home.present(12, 125500)
-		await process_frame
+		await create_timer(0.36).timeout
 		var metrics := home.layout_metrics()
 		var bounds := Rect2(Vector2.ZERO, Vector2(viewport_size))
 		_assert(home.logo_rect.texture == AssetCatalogType.BRAND_LOGO, "Home must use the supplied Gem Rush logo derivative")
 		_assert(home.play_button.text == "CONTINUE" and home.level_label.text == "LEVEL 12" and home.coins_label.text == "125.5K", "Home must show saved journey state and one clear Continue action")
+		_assert(home.tagline_label.text == "A TROPICAL GEM ADVENTURE" and home.find_child("ContinueCard", true, false) == null, "Home must use player-facing copy without the old rectangular journey card")
+		_assert(home._idle_tween != null and home._idle_tween.is_valid(), "Home logo and primary action must enter bounded ambient motion")
 		for key in ["panel", "logo", "button"]:
 			_assert(bounds.encloses(metrics[key]), "Branded Home %s must remain inside %s" % [key, str(viewport_size)])
 		_assert((metrics.panel as Rect2).encloses(metrics.logo) and (metrics.panel as Rect2).encloses(metrics.button), "Home logo and action must remain inside its production surface")

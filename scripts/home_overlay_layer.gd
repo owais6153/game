@@ -16,6 +16,7 @@ var coins_label: Label
 var play_button: Button
 var tagline_label: Label
 var _entrance_tween: Tween
+var _idle_tween: Tween
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 
 func _ready() -> void:
@@ -41,6 +42,7 @@ func present(level_number: int, coins: int) -> void:
 
 func dismiss() -> void:
 	_kill_tween()
+	_kill_idle_tween()
 	if root_control != null:
 		root_control.visible = false
 		root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -115,42 +117,40 @@ func _build() -> void:
 	logo_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	logo_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hero.add_child(logo_rect)
-	tagline_label = _label("BUILD THE CHAIN  •  CLAIM THE GEMS", 18, Color.WHITE)
+	tagline_label = _label("A TROPICAL GEM ADVENTURE", 17, Color.WHITE)
 	tagline_label.custom_minimum_size = Vector2(0.0, 38.0)
 	tagline_label.add_theme_constant_override("outline_size", 6)
 	tagline_label.add_theme_color_override("font_outline_color", Color(0.02, 0.30, 0.34, 0.85))
 	column.add_child(tagline_label)
-	var progress_card := PanelContainer.new()
-	progress_card.name = "ContinueCard"
-	progress_card.custom_minimum_size = Vector2(472.0, 126.0)
-	progress_card.add_theme_stylebox_override("panel", UiDesignSystemType.floating_status_style())
-	column.add_child(progress_card)
-	var progress_margin := MarginContainer.new()
-	progress_margin.add_theme_constant_override("margin_left", 24)
-	progress_margin.add_theme_constant_override("margin_top", 14)
-	progress_margin.add_theme_constant_override("margin_right", 24)
-	progress_margin.add_theme_constant_override("margin_bottom", 14)
-	progress_card.add_child(progress_margin)
 	var progress_row := HBoxContainer.new()
+	progress_row.name = "HomePlayerStatus"
+	progress_row.custom_minimum_size = Vector2(420.0, 82.0)
 	progress_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	progress_row.add_theme_constant_override("separation", 22)
-	progress_margin.add_child(progress_row)
+	progress_row.add_theme_constant_override("separation", 42)
+	column.add_child(progress_row)
 	var level_column := VBoxContainer.new()
 	level_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	level_column.add_child(_label("CURRENT JOURNEY", 14, UiDesignSystemType.COLOR_TEXT_MUTED))
-	level_label = _label("LEVEL 1", 31, UiDesignSystemType.COLOR_CORAL)
+	level_label = _label("LEVEL 1", 30, Color.WHITE)
+	level_label.add_theme_constant_override("outline_size", 7)
+	level_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_CORAL_DARK)
 	level_column.add_child(level_label)
 	progress_row.add_child(level_column)
-	var divider := ColorRect.new()
-	divider.custom_minimum_size = Vector2(2.0, 70.0)
-	divider.color = Color(UiDesignSystemType.COLOR_GOLD, 0.45)
-	progress_row.add_child(divider)
-	var coin_column := VBoxContainer.new()
-	coin_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	coin_column.add_child(_label("COINS", 14, UiDesignSystemType.COLOR_TEXT_MUTED))
-	coins_label = _label("0", 31, UiDesignSystemType.COLOR_TEAL)
-	coin_column.add_child(coins_label)
-	progress_row.add_child(coin_column)
+	var coin_row := HBoxContainer.new()
+	coin_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	coin_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	coin_row.add_theme_constant_override("separation", 8)
+	var coin := TextureRect.new()
+	coin.texture = AssetCatalogType.COIN_REWARD
+	coin.custom_minimum_size = Vector2(42.0, 42.0)
+	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	coin_row.add_child(coin)
+	coins_label = _label("0", 30, Color.WHITE)
+	coins_label.add_theme_constant_override("outline_size", 7)
+	coins_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_TEAL_DARK)
+	coin_row.add_child(coins_label)
+	progress_row.add_child(coin_row)
 	play_button = Button.new()
 	play_button.name = "HomePlayButton"
 	play_button.text = "PLAY"
@@ -159,11 +159,6 @@ func _build() -> void:
 	play_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	play_button.pressed.connect(func() -> void: play_requested.emit())
 	column.add_child(play_button)
-	var hint := _label("8 RANDOM GEMS  •  A NEW PATH EVERY LEVEL", 15, Color.WHITE)
-	hint.add_theme_constant_override("outline_size", 5)
-	hint.add_theme_color_override("font_outline_color", Color(0.02, 0.30, 0.34, 0.86))
-	hint.custom_minimum_size = Vector2(0.0, 34.0)
-	column.add_child(hint)
 
 func _start_entrance() -> void:
 	_kill_tween()
@@ -178,6 +173,22 @@ func _start_entrance() -> void:
 	_entrance_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_entrance_tween.tween_property(content_panel, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_entrance_tween.tween_property(content_panel, "modulate:a", 1.0, 0.20).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_entrance_tween.finished.connect(_start_idle_motion, CONNECT_ONE_SHOT)
+
+func _start_idle_motion() -> void:
+	_kill_idle_tween()
+	if not is_inside_tree() or root_control == null or not root_control.visible:
+		return
+	logo_rect.pivot_offset = logo_rect.size * 0.5
+	play_button.pivot_offset = play_button.size * 0.5
+	_idle_tween = create_tween().set_loops()
+	_idle_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_idle_tween.tween_property(logo_rect, "scale", Vector2.ONE * 1.025, 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_tween.parallel().tween_property(logo_rect, "rotation", deg_to_rad(0.7), 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_tween.parallel().tween_property(play_button, "scale", Vector2.ONE * 1.025, 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_tween.tween_property(logo_rect, "scale", Vector2.ONE, 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_tween.parallel().tween_property(logo_rect, "rotation", deg_to_rad(-0.7), 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_tween.parallel().tween_property(play_button, "scale", Vector2.ONE, 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 func _refresh_safe_margins() -> void:
 	if safe_margin == null or not is_inside_tree():
@@ -209,3 +220,12 @@ func _label(value: String, size: int, color: Color) -> Label:
 func _kill_tween() -> void:
 	if _entrance_tween != null and _entrance_tween.is_valid():
 		_entrance_tween.kill()
+
+func _kill_idle_tween() -> void:
+	if _idle_tween != null and _idle_tween.is_valid():
+		_idle_tween.kill()
+	if logo_rect != null:
+		logo_rect.scale = Vector2.ONE
+		logo_rect.rotation = 0.0
+	if play_button != null:
+		play_button.scale = Vector2.ONE

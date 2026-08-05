@@ -1,5 +1,11 @@
 # Current State
 
+## Production UI motion + Restart restoration v1 (2026-08-05)
+
+- Review of `WhatsApp Video 2026-08-05 at 4.39.25 AM.mp4` confirmed static, box-heavy Home/Pause presentation and a Restart defect: after Home -> Continue -> Pause -> Restart, the board reset but the HUD stayed hidden.
+- Restart now explicitly restores the gameplay HUD. Home removes all internal/random/infinite-level copy and its large journey card, using floating Level/Coins status, the real coin icon, and bounded logo/primary-action idle motion. Pause uses a shorter game modal with one Resume action and compact Restart/Home utilities.
+- Infinite seeded forward progression remains internal and unchanged. Gameplay physics, merge rules, targets, coins, sounds, and table behavior remain unchanged.
+
 **Current milestone:** Asset-matched Home + transparent logo v1. Home now uses the supplied tropical full-screen direction with a floating alpha-matted GEM RUSH logo, responsive Level/Coins card, and glossy coral Play/Continue action. The infinite forward-only eight-gem level system and all gameplay behavior remain unchanged. Source: `84d855a` / `assets-ui-screen-match-v1-source`; clean export record: `403624d` / `assets-ui-screen-match-v1-export-source`; delivery tag: `assets-ui-screen-match-v1`. APK: `build/android/assets-ui-screen-match-v1.apk` (118,277,818 bytes; SHA-256 `7AAB0C4A93F29DC6B40B44D511BDC3A2DB40AC04C4456E6342791F932319824F`). All seven suites and the reviewed ANGLE capture pass. ADB found no device, so physical-device review is not claimed.
 
 ## Asset-matched Home + transparent logo v1 (2026-08-05)

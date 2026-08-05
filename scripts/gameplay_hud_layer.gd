@@ -669,7 +669,7 @@ func _build_pause_popup() -> void:
 	pause_safe_margin.add_child(center)
 	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
-	pause_panel.custom_minimum_size = Vector2(460.0, 520.0)
+	pause_panel.custom_minimum_size = Vector2(470.0, 470.0)
 	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.hero_screen_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
@@ -688,41 +688,40 @@ func _build_pause_popup() -> void:
 	column.add_theme_constant_override("separation", 12)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(column)
-	var title := _label("PAUSED", 40, UiDesignSystemType.COLOR_CORAL)
+	var title := _label("GAME PAUSED", 38, UiDesignSystemType.COLOR_CORAL)
 	title.name = "PauseTitle"
 	title.custom_minimum_size = Vector2(0.0, 56.0)
 	title.add_theme_constant_override("outline_size", 6)
 	title.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_CREAM)
 	column.add_child(title)
-	var subtitle := _label("YOUR CHAIN IS SAVED", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
+	var pause_gem := TextureRect.new()
+	pause_gem.name = "PauseGemAccent"
+	pause_gem.texture = AssetCatalogType.gem_texture(8)
+	pause_gem.custom_minimum_size = Vector2(82.0, 82.0)
+	pause_gem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pause_gem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	pause_gem.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(pause_gem)
+	var subtitle := _label("READY WHEN YOU ARE", 15, UiDesignSystemType.COLOR_TEXT_MUTED)
 	subtitle.name = "PauseSubtitle"
 	subtitle.custom_minimum_size = Vector2(0.0, 28.0)
 	column.add_child(subtitle)
-	var divider_center := CenterContainer.new()
-	divider_center.custom_minimum_size = Vector2(0.0, 2.0)
-	divider_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(divider_center)
-	var divider := ColorRect.new()
-	divider.custom_minimum_size = Vector2(210.0, 2.0)
-	divider.color = Color(UiDesignSystemType.COLOR_GOLD, 0.55)
-	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	divider_center.add_child(divider)
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0.0, 6.0)
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(spacer)
-	resume_button = _button("ResumeButton", "RESUME", Vector2(310.0, 72.0), "")
+	resume_button = _button("ResumeButton", "RESUME", Vector2(330.0, 78.0), "")
 	resume_button.tooltip_text = "Continue playing"
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
 	column.add_child(resume_button)
-	restart_button = _button("PauseRestartButton", "RESTART", Vector2(310.0, 72.0), "SecondaryButton")
+	var utility_row := HBoxContainer.new()
+	utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	utility_row.add_theme_constant_override("separation", 12)
+	column.add_child(utility_row)
+	restart_button = _button("PauseRestartButton", "RESTART", Vector2(159.0, 72.0), "SecondaryButton")
 	restart_button.tooltip_text = "Restart with the same gem chain"
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
-	column.add_child(restart_button)
-	home_button = _button("PauseHomeButton", "HOME", Vector2(310.0, 64.0), "SecondaryButton")
+	utility_row.add_child(restart_button)
+	home_button = _button("PauseHomeButton", "HOME", Vector2(159.0, 72.0), "SecondaryButton")
 	home_button.tooltip_text = "Return to home"
 	home_button.pressed.connect(func() -> void: home_requested.emit())
-	column.add_child(home_button)
+	utility_row.add_child(home_button)
 
 
 func _button(node_name: String, text: String, minimum: Vector2, variation: StringName) -> Button:
