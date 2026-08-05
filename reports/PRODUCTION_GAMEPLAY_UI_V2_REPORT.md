@@ -8,7 +8,7 @@ The gameplay UI is finalized as one production HUD system while the approved gam
 
 - Baseline commit: `39f1082112cee3d2d9d948a9d0ac9c110d163daf`.
 - Baseline tag: `production-gameplay-ui-v2-baseline`.
-- Source commit/tag: `SOURCE_COMMIT_PENDING` / `production-gameplay-ui-v2-source`.
+- Source commit/tag: `48ed83f6ce2377c30c886ef3448c941d7d6d00fc` / `production-gameplay-ui-v2-source`.
 - Delivery tag: `production-gameplay-ui-v2` after export documentation.
 
 ## Recording audit
@@ -107,5 +107,10 @@ Windows sandbox runs logged harmless system root-certificate-store warnings. The
 ## APK delivery
 
 - File: `build/android/production-gameplay-ui-v2.apk`.
-- Size/timestamp/SHA-256/structure/signature: `APK_METADATA_PENDING`.
-- Device status: pending final ADB check; no phone validation is inferred from export.
+- Size: `122,882,166` bytes.
+- Export timestamp: `2026-08-05 10:33:17 +05:00` (`2026-08-05T05:33:17Z`).
+- SHA-256: `3326C2714ED0B29551D3FD209B6B643A95BE4C0B156C4B2D93A5B3F26AC7FCE1`.
+- Export method: Godot 4.6.3 `Android` debug preset from `production-gameplay-ui-v2-source`; validation signing, not a store-release keystore claim.
+- Structure: `415` ZIP entries, one binary Android manifest, `14` dex files, and the arm64 Godot runtime; zero packaged `build/`, `reports/`, `tools/`, generated-source, GDScript, PowerShell, or Python paths.
+- Signature: APK Signature Schemes v2 and v3 verify with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device. Installation, launch, physical safe-area/touch behavior, phone performance, listening, and haptics are not claimed.

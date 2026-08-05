@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Production Gameplay UI Finalization V2
+
+- APK: `build/android/production-gameplay-ui-v2.apk`
+- Size: 122,882,166 bytes
+- Export timestamp: 2026-08-05T05:33:17Z (2026-08-05 10:33:17 Asia/Karachi)
+- SHA-256: `3326C2714ED0B29551D3FD209B6B643A95BE4C0B156C4B2D93A5B3F26AC7FCE1`
+- Baseline commit/tag: `39f1082112cee3d2d9d948a9d0ac9c110d163daf` / `production-gameplay-ui-v2-baseline`
+- Source commit/tag: `48ed83f6ce2377c30c886ef3448c941d7d6d00fc` / `production-gameplay-ui-v2-source`
+- Delivery tag: `production-gameplay-ui-v2`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; validation signing, not a store-release keystore claim.
+- Validation: all seven regression suites and motion profile PASS; deterministic ANGLE screenshots/walkthrough PASS; standalone APK exists; 415 APK entries with one manifest, 14 dex files, arm64 Godot runtime, and zero packaged source/report/build paths; APK Signature Schemes v2/v3 PASS with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device; installation, launch, physical safe-area/touch behavior, phone performance, listening, and haptics are not claimed.
+
 ## Production Foundation v1
 
 - APK: `build/android/production-foundation-v1.apk`
