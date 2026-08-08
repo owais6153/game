@@ -50,9 +50,9 @@ var pause_panel: PanelContainer
 var resume_button: Button
 var restart_button: Button
 var home_button: Button
-var music_toggle: CheckButton
-var sound_toggle: CheckButton
-var vibration_toggle: CheckButton
+var music_toggle: Button
+var sound_toggle: Button
+var vibration_toggle: Button
 
 var _built := false
 var _snapshot: Dictionary = {}
@@ -175,6 +175,7 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		sound_toggle.set_pressed_no_signal(bool(snapshot.get("sound_enabled", true)))
 	if vibration_toggle != null:
 		vibration_toggle.set_pressed_no_signal(bool(snapshot.get("vibration_enabled", true)))
+	_sync_pause_switch_labels()
 	if restart_button != null:
 		restart_button.tooltip_text = "Restart Level %d with the same gem chain" % level_number
 	_snapshot = snapshot.duplicate()
@@ -759,62 +760,73 @@ func _build_pause_popup() -> void:
 	pause_safe_margin.add_child(center)
 	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
-	pause_panel.custom_minimum_size = Vector2(500.0, 680.0)
+	pause_panel.custom_minimum_size = Vector2(520.0, 690.0)
 	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
 	var margin := MarginContainer.new()
 	margin.name = "PauseContentMargin"
-	margin.add_theme_constant_override("margin_left", 44)
-	margin.add_theme_constant_override("margin_top", 32)
-	margin.add_theme_constant_override("margin_right", 44)
-	margin.add_theme_constant_override("margin_bottom", 32)
+	margin.add_theme_constant_override("margin_left", 48)
+	margin.add_theme_constant_override("margin_top", 30)
+	margin.add_theme_constant_override("margin_right", 48)
+	margin.add_theme_constant_override("margin_bottom", 34)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pause_panel.add_child(margin)
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var column := VBoxContainer.new()
 	column.name = "PauseActions"
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", UiDesignSystemType.ITEM_GAP)
+	column.add_theme_constant_override("separation", 14)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(column)
 	var title := _label("GAME PAUSED", UiDesignSystemType.POPUP_TITLE_FONT_SIZE, UiDesignSystemType.COLOR_BLUE_DEEP)
 	title.name = "PauseTitle"
-	title.custom_minimum_size = Vector2(0.0, 56.0)
-	title.add_theme_constant_override("outline_size", 6)
+	title.custom_minimum_size = Vector2(0.0, 58.0)
+	title.add_theme_constant_override("outline_size", 5)
 	title.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.92))
 	column.add_child(title)
 	var pause_gem := TextureRect.new()
 	pause_gem.name = "PauseGemAccent"
 	pause_gem.texture = AssetCatalogType.gem_texture(8)
-	pause_gem.custom_minimum_size = Vector2(92.0, 92.0)
+	pause_gem.custom_minimum_size = Vector2(96.0, 96.0)
 	pause_gem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pause_gem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	pause_gem.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(pause_gem)
-	var subtitle := _label("READY WHEN YOU ARE", 15, UiDesignSystemType.COLOR_TEXT_MUTED)
+	var subtitle := _label("SETTINGS", 15, UiDesignSystemType.COLOR_TEXT_MUTED)
 	subtitle.name = "PauseSubtitle"
 	subtitle.custom_minimum_size = Vector2(0.0, 28.0)
 	column.add_child(subtitle)
 	music_toggle = _setting_toggle(column, "MUSIC", "MusicToggle")
-	music_toggle.toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
+	music_toggle.toggled.connect(func(enabled: bool) -> void:
+		_sync_switch_label(music_toggle)
+		music_toggled.emit(enabled)
+	)
 	sound_toggle = _setting_toggle(column, "SOUND FX", "SoundToggle")
-	sound_toggle.toggled.connect(func(enabled: bool) -> void: sound_toggled.emit(enabled))
+	sound_toggle.toggled.connect(func(enabled: bool) -> void:
+		_sync_switch_label(sound_toggle)
+		sound_toggled.emit(enabled)
+	)
 	vibration_toggle = _setting_toggle(column, "VIBRATION", "VibrationToggle")
-	vibration_toggle.toggled.connect(func(enabled: bool) -> void: vibration_toggled.emit(enabled))
-	resume_button = _button("ResumeButton", "RESUME", Vector2(360.0, 82.0), "")
+	vibration_toggle.toggled.connect(func(enabled: bool) -> void:
+		_sync_switch_label(vibration_toggle)
+		vibration_toggled.emit(enabled)
+	)
+	resume_button = _button("ResumeButton", "RESUME", Vector2(424.0, 82.0), "")
 	resume_button.tooltip_text = "Continue playing"
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
 	column.add_child(resume_button)
 	var utility_row := HBoxContainer.new()
+	utility_row.custom_minimum_size = Vector2(424.0, 72.0)
 	utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	utility_row.add_theme_constant_override("separation", 12)
+	utility_row.add_theme_constant_override("separation", 14)
 	column.add_child(utility_row)
-	restart_button = _button("PauseRestartButton", "RESTART", Vector2(174.0, 72.0), "SecondaryButton")
+	restart_button = _button("PauseRestartButton", "RESTART", Vector2(0.0, 72.0), "SecondaryButton")
+	restart_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	restart_button.tooltip_text = "Restart with the same gem chain"
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
 	utility_row.add_child(restart_button)
-	home_button = _button("PauseHomeButton", "HOME", Vector2(174.0, 72.0), "SecondaryButton")
+	home_button = _button("PauseHomeButton", "HOME", Vector2(0.0, 72.0), "SecondaryButton")
+	home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	home_button.tooltip_text = "Return to home"
 	home_button.pressed.connect(func() -> void: home_requested.emit())
 	utility_row.add_child(home_button)
@@ -832,29 +844,44 @@ func _button(node_name: String, text: String, minimum: Vector2, variation: Strin
 		button.theme_type_variation = variation
 	return button
 
-func _setting_toggle(parent: VBoxContainer, text: String, node_name: String) -> CheckButton:
+
+func _setting_toggle(parent: VBoxContainer, text: String, node_name: String) -> Button:
 	var frame := PanelContainer.new()
 	frame.name = "%sRow" % node_name
-	frame.custom_minimum_size = Vector2(360.0, 50.0)
+	frame.custom_minimum_size = Vector2(424.0, 62.0)
 	frame.add_theme_stylebox_override("panel", UiDesignSystemType.setting_row_style())
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(frame)
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0.0, 50.0)
+	row.custom_minimum_size = Vector2(0.0, 62.0)
 	row.add_theme_constant_override("separation", 16)
 	frame.add_child(row)
 	var label := _label(text, 18, UiDesignSystemType.COLOR_TEXT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(label)
-	var toggle := CheckButton.new()
+	var toggle := Button.new()
 	toggle.name = node_name
+	toggle.toggle_mode = true
 	toggle.button_pressed = true
-	toggle.custom_minimum_size = Vector2(82.0, 48.0)
+	toggle.theme_type_variation = "SettingsSwitch"
+	toggle.custom_minimum_size = Vector2(108.0, 50.0)
 	toggle.focus_mode = Control.FOCUS_ALL
 	toggle.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_sync_switch_label(toggle)
 	row.add_child(toggle)
 	return toggle
+
+
+func _sync_switch_label(toggle: Button) -> void:
+	if toggle != null:
+		toggle.text = "ON" if toggle.button_pressed else "OFF"
+
+
+func _sync_pause_switch_labels() -> void:
+	_sync_switch_label(music_toggle)
+	_sync_switch_label(sound_toggle)
+	_sync_switch_label(vibration_toggle)
 
 
 func _gem_texture_rect(node_name: String) -> TextureRect:

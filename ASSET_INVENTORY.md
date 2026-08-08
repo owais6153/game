@@ -1,13 +1,5 @@
 # Asset Inventory — Background, Table, and Gems v1
 
-## Crystal Magic branding (2026-08-09)
-
-| Purpose | Preserved source | Runtime asset | Notes |
-| --- | --- | --- | --- |
-| Crystal Magic Home/runtime logo | `assets/logo/crystal_magic_logo_source_v1.jpeg` | `assets/runtime/ui/crystal_magic_logo_transparent_v1.png` | Runtime RGBA derivative removes the supplied beach background for overlay use; aspect ratio must be preserved. |
-| Crystal Magic launcher icon + boot splash | `assets/logo/crystal_magic_logo_source_v1.jpeg` | `assets/runtime/ui/crystal_magic_app_icon_v1.png` | Square supplied artwork is kept visually as-is for icon/splash use; only file encoding is PNG for Godot runtime configuration. |
-
-
 ## Production Foundation v1 branding
 
 | Use | Preserved/generated source | Runtime asset | Mapping |

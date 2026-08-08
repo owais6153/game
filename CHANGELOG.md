@@ -1,15 +1,5 @@
 # Changelog
 
-## 2026-08-09 - Crystal Magic branding + table-anchored objective HUD
-
-- Renamed the player-facing application from `Gem Rush` to `Crystal Magic`.
-- Replaced the Home brand hero with a new transparent `Crystal Magic` runtime logo derived from the supplied artwork; the supplied square artwork is preserved separately and used as-is for the launcher icon/boot splash.
-- Reordered the gameplay objective stack so Target is above the merge path, with an 18 design-pixel gap.
-- Anchored the merge-path glass bar 10 design pixels above the authoritative table top from `GameConfig.board_top()`, so it visually reads as the panel immediately above the table on different portrait heights.
-- Increased Coins, Next, Level, Settings, Target, progression gems, and text/icon sizes by roughly 10-15% while retaining the existing safe-area/full-width responsive layout.
-- Kept table geometry, background rendering, gem physics, collision, merge rules, spawning, targets, score logic, audio, and gameplay timing unchanged.
-- Continued using the existing light cyan StyleBoxFancy glass language for HUD surfaces and buttons.
-
 # Light Glass Gameplay HUD v1 — 2026-08-08
 
 - Reworked gameplay HUD composition to keep Coins top-left, Next top-right, Level below Coins, and Settings below Next.
@@ -441,3 +431,14 @@
 - Header now uses explicit 720px design-canvas geometry so Coins/Level stay left and Next/Settings stay right.
 - Gameplay objective anchor now also spans the full 720px design canvas, centering merge progression and Target over the table.
 - Preserved safe-area margins, responsive scale, table geometry, gameplay logic, and the light glass StyleBoxFancy visual system.
+
+## 2026-08-09 — Home, Settings, Level Preview, and Pause Modal Polish
+
+- Upgraded the Crystal Magic home overlay from a sparse logo/status/play layout into a more deliberate mobile-game front screen while preserving the approved tropical background and transparent Crystal Magic logo.
+- Added matching frosted-glass Level and Coins status cards and a top-right Settings control using the existing supplied cog artwork.
+- Added a dedicated Home Settings modal with Music, Sound FX, and Vibration controls. These controls emit the same controller settings signals as the in-game pause menu, so both surfaces persist through `GameSettingsService`.
+- Replaced the cramped checkbox-like setting controls in the pause menu with consistent ON/OFF glass switch buttons while retaining their existing persisted behavior.
+- Rebuilt pause modal sizing/alignment: settings rows use one shared content width, Resume is full-width, and Restart/Home split the same row evenly.
+- Changed Home Play/Continue behavior: the first tap now opens a Level Preview modal showing level number, current target index, target gem art, target quantity/name, and a START GAME button. Gameplay only unpauses after START GAME.
+- Added reusable `SettingsSwitch` and `home_status_card_style()` theme treatments to the UI design system so Home and Pause share one glass visual language.
+- No table, gem physics, merge rules, launcher rules, target rules, score rules, or simulation coordinates changed.

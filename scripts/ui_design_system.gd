@@ -106,6 +106,8 @@ static func theme() -> Theme:
 	_configure_primary_button(result, "Button")
 	result.set_type_variation("SecondaryButton", "Button")
 	_configure_secondary_button(result, "SecondaryButton")
+	result.set_type_variation("SettingsSwitch", "Button")
+	_configure_settings_switch(result, "SettingsSwitch")
 
 	result.set_stylebox("panel", "PanelContainer", panel_style())
 	result.set_stylebox("background", "ProgressBar", progress_background_style())
@@ -284,6 +286,15 @@ static func home_stage_style() -> StyleBoxFlat:
 	style.bg_color = Color.TRANSPARENT
 	return style
 
+
+static func home_status_card_style() -> StyleBox:
+	var style := _frosted_glass_style(Color(1.0, 1.0, 1.0, 0.78), Color(0.75, 0.93, 0.99, 0.72), 24, 2, false, true)
+	style.content_margin_left = 16.0
+	style.content_margin_top = 10.0
+	style.content_margin_right = 16.0
+	style.content_margin_bottom = 10.0
+	return style
+
 static func floating_status_style() -> StyleBoxFlat:
 	return _rounded_style(Color(1.0, 0.985, 0.94, 0.96), Color("efb64b"), 3, 28, 8, Color(0.02, 0.12, 0.16, 0.30))
 
@@ -353,6 +364,36 @@ static func safe_insets(viewport_size: Vector2, window_size: Vector2, safe_rect:
 		clampf(float(window_size.y - safe_rect.end.y) * scale_to_canvas.y, 0.0, 160.0)
 	)
 
+
+
+static func _configure_settings_switch(target_theme: Theme, theme_type: StringName) -> void:
+	target_theme.set_font("font", theme_type, font())
+	target_theme.set_font_size("font_size", theme_type, 17)
+	target_theme.set_color("font_color", theme_type, COLOR_BLUE_DEEP)
+	target_theme.set_color("font_hover_color", theme_type, COLOR_BLUE_DEEP)
+	target_theme.set_color("font_pressed_color", theme_type, Color.WHITE)
+	target_theme.set_color("font_focus_color", theme_type, COLOR_BLUE_DEEP)
+	target_theme.set_color("font_outline_color", theme_type, Color(1, 1, 1, 0.70))
+	target_theme.set_constant("outline_size", theme_type, 1)
+	target_theme.set_stylebox("normal", theme_type, _switch_style(false))
+	target_theme.set_stylebox("hover", theme_type, _switch_style(false, true))
+	target_theme.set_stylebox("pressed", theme_type, _switch_style(true))
+	target_theme.set_stylebox("hover_pressed", theme_type, _switch_style(true, true))
+	target_theme.set_stylebox("focus", theme_type, _focus_style())
+
+
+static func _switch_style(enabled: bool, hover: bool = false) -> StyleBox:
+	var top := Color(0.40, 0.82, 0.98, 0.98) if enabled else Color(0.98, 1.0, 1.0, 0.92)
+	var bottom := Color(0.09, 0.45, 0.76, 0.98) if enabled else Color(0.76, 0.91, 0.96, 0.86)
+	if hover:
+		top = top.lightened(0.05)
+		bottom = bottom.lightened(0.05)
+	var style := _frosted_glass_style(top, bottom, 22, 2, false, true)
+	style.content_margin_left = 16.0
+	style.content_margin_right = 16.0
+	style.content_margin_top = 8.0
+	style.content_margin_bottom = 8.0
+	return style
 
 static func _configure_primary_button(target_theme: Theme, theme_type: StringName) -> void:
 	target_theme.set_font("font", theme_type, font())

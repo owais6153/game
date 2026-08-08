@@ -1,9 +1,3 @@
-# 2026-08-09 UI placement/branding note
-
-`GameplayHudLayer` keeps two independent responsive groups on the 720-wide design canvas: the top safe-area utility header and `GameplayObjectiveAnchor`. The objective anchor is table-relative, not screen-top-relative: its bottom is `GameConfig.board_top() - UiDesignSystem.PROGRESSION_TABLE_GAP`. Its child order is Target -> progression, with `TARGET_PROGRESSION_GAP` between them. This guarantees the progression panel is the visual bridge directly above the table while Target remains above it. `GameConfig` continues to own all table geometry and portrait bottom offset; HUD code only reads `board_top()`.
-
-Brand runtime indirection remains through `AssetCatalog.BRAND_LOGO`; it now points to `assets/runtime/ui/crystal_magic_logo_transparent_v1.png`. `project.godot` independently uses the supplied square Crystal Magic artwork as the launcher icon/boot splash.
-
 # Architecture
 
 ## Light Glass HUD layout architecture — 2026-08-08
@@ -362,3 +356,11 @@ Dynamic HUD containers that rely on spacer-based left/right distribution or Cent
 
 ### Runtime HUD width rule
 `GameplayHudLayer` uses a 720px logical design canvas. Runtime `MarginContainer` roots for the top HUD and gameplay objective stack must be assigned explicit `offset_right = UiDesignSystem.DESIGN_WIDTH` geometry before safe-area margins are applied. Do not rely only on anchor presets for these dynamically-created containers; before the first layout pass they can resolve to child minimum width and misalign right/center HUD elements.
+
+## Home and modal presentation flow (2026-08-09)
+
+`HomeOverlayLayer` remains presentation-only and now owns two modal surfaces: Home Settings and Level Preview. `present(level_number, coins, snapshot)` receives an immutable presentation snapshot from `GameController`; it does not calculate progression or gameplay rules. Pressing the Home Play/Continue button only opens Level Preview. Pressing START GAME emits `play_requested`, after which `GameController` dismisses Home and unpauses the tree.
+
+Home Settings emits `music_toggled`, `sound_toggled`, and `vibration_toggled`. `GameController` connects these to the same `_on_*_toggled` handlers already used by `GameplayHudLayer`, keeping settings persistence centralized in `GameSettingsService` and avoiding duplicate state ownership.
+
+`UiDesignSystem` now supplies a `SettingsSwitch` Button variation and a frosted `home_status_card_style()`. Pause and Home settings therefore share the same glass/switch language while keeping gameplay simulation isolated.

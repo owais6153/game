@@ -425,6 +425,9 @@ func _setup_asset_presentation() -> void:
 	home_overlay = HomeOverlayType.new()
 	add_child(home_overlay)
 	home_overlay.play_requested.connect(_on_home_play_requested)
+	home_overlay.music_toggled.connect(_on_music_toggled)
+	home_overlay.sound_toggled.connect(_on_sound_toggled)
+	home_overlay.vibration_toggled.connect(_on_vibration_toggled)
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
@@ -895,7 +898,7 @@ func _show_home() -> void:
 		gameplay_ui.hide_pause(false)
 	if result_overlay != null:
 		result_overlay.dismiss()
-	home_overlay.present(level_number, coins)
+	home_overlay.present(level_number, coins, hud_snapshot())
 	if is_inside_tree():
 		get_tree().paused = true
 
