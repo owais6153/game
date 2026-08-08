@@ -33,7 +33,18 @@ This is a color/opacity presentation patch only. HUD hierarchy, snapshot data, i
 - `MOTION_PROFILE`: PASS; crowded-board average/worst `2.148/5.184 ms`, Pause average/worst `0.002/0.004 ms`, zero per-gem callbacks, zero post-initialization resource loads, bounded effects `0`, and final node delta `0`.
 - `TRANSPARENT_PURPLE_GLASS_HUD_V1_CAPTURE`: PASS using Godot 4.6.3 Compatibility/ANGLE.
 
-Evidence covers 576x1312, 720x1600, 1080x1920, 1080x2340, 1080x2400, and 540x1320, plus notch, Pause, target transition, reward flight, crowded board, and danger states. APK provenance is recorded at delivery.
+Evidence covers 576x1312, 720x1600, 1080x1920, 1080x2340, 1080x2400, and 540x1320, plus notch, Pause, target transition, reward flight, crowded board, and danger states.
+
+## APK delivery
+
+- Source: `adab9e8813d8bc7b20b7e7023e2a4870e6b469e9` / `transparent-purple-glass-hud-v1-source`
+- APK: `build/android/transparent-purple-glass-hud-v1.apk`
+- Size: 122,882,166 bytes
+- SHA-256: `6BE8A23787D9187D86E2A9BD66E0504C3FF30793037F2B3916D4007C82248966`
+- Export: Godot 4.6.3 headless Android debug preset; export, alignment, signing, and Godot verification completed successfully.
+- Package audit: 415 entries, one Android manifest, 14 dex files, arm64 Godot runtime, and zero packaged source/report/build paths.
+- Signature audit: APK Signature Schemes v2/v3 PASS with one RSA-2048 signer.
+- Device status: `adb devices -l` did not complete within the validation window. Installation, launch, physical transparency/readability, safe-area/touch behavior, phone performance, listening, and haptics are not claimed.
 
 ## Evidence
 

@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Transparent Purple Glass HUD v1
+
+- APK: `build/android/transparent-purple-glass-hud-v1.apk`
+- Size: 122,882,166 bytes
+- Export timestamp: 2026-08-08T03:35:21Z (2026-08-08 08:35:21 Asia/Karachi)
+- SHA-256: `6BE8A23787D9187D86E2A9BD66E0504C3FF30793037F2B3916D4007C82248966`
+- Baseline commit/tag: `74322c0` / `transparent-purple-glass-hud-v1-baseline`
+- Source commit/tag: `adab9e8813d8bc7b20b7e7023e2a4870e6b469e9` / `transparent-purple-glass-hud-v1-source`
+- Delivery tag: `transparent-purple-glass-hud-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; validation signing, not a store-release keystore claim.
+- Validation: all seven regression suites and motion profile PASS; six responsive resolutions plus notch/state Compatibility/ANGLE captures PASS; standalone APK exists; 415 APK entries with one manifest, 14 dex files, arm64 Godot runtime, and zero packaged source/report/build paths; APK Signature Schemes v2/v3 PASS with one RSA-2048 signer.
+- Device status: `adb devices -l` did not complete within the validation window; installation, launch, physical transparency/readability, safe-area/touch behavior, phone performance, listening, and haptics are not claimed.
+
 ## Professional Glass HUD v1
 
 - APK: `build/android/professional-glass-hud-v1.apk`
