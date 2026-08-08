@@ -425,27 +425,21 @@ func _build_hud() -> void:
 	var utility_row := HBoxContainer.new()
 	utility_row.name = "UtilityRow"
 	utility_row.custom_minimum_size = Vector2(0.0, UiDesignSystemType.UTILITY_ROW_HEIGHT)
-	utility_row.add_theme_constant_override("separation", UiDesignSystemType.ITEM_GAP)
+	utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	utility_row.add_theme_constant_override("separation", 10)
 	utility_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_column.add_child(utility_row)
 	score_panel = _build_score_panel()
 	utility_row.add_child(score_panel)
-	var utility_spacer := Control.new()
-	utility_spacer.name = "UtilitySpacer"
-	utility_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	utility_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	utility_row.add_child(utility_spacer)
-	next_panel = _build_next_panel()
-	utility_row.add_child(next_panel)
-
 	target_anchor = CenterContainer.new()
-	target_anchor.name = "TableTargetAnchor"
+	target_anchor.name = "TargetSlot"
 	target_anchor.custom_minimum_size = UiDesignSystemType.TARGET_PANEL_SIZE
 	target_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	target_anchor.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	hud_canvas.add_child(target_anchor)
+	utility_row.add_child(target_anchor)
 	target_panel = _build_target_panel()
 	target_anchor.add_child(target_panel)
+	next_panel = _build_next_panel()
+	utility_row.add_child(next_panel)
 
 
 func _build_score_panel() -> Control:
@@ -457,13 +451,10 @@ func _build_score_panel() -> Control:
 	var column := VBoxContainer.new()
 	column.name = "ScoreContent"
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 0)
+	column.add_theme_constant_override("separation", 4)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(column)
-	var heading := _label("COINS", 14, UiDesignSystemType.COLOR_PURPLE_DARK)
-	heading.name = "CoinsHeading"
-	heading.custom_minimum_size = Vector2(0.0, 18.0)
-	column.add_child(heading)
+	column.add_child(_build_card_heading("COINS", "CoinsHeading", 112.0))
 	var center := CenterContainer.new()
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -479,7 +470,7 @@ func _build_score_panel() -> Control:
 	coin_icon.custom_minimum_size = Vector2(30.0, 30.0)
 	coin_icon.pivot_offset = Vector2(15.0, 15.0)
 	row.add_child(coin_icon)
-	score_label = _label("0", UiDesignSystemType.SCORE_FONT_SIZE, UiDesignSystemType.COLOR_TEXT)
+	score_label = _label("0", 38, UiDesignSystemType.COLOR_TEXT)
 	score_label.name = "CoinValue"
 	score_label.custom_minimum_size = Vector2(82.0, 40.0)
 	row.add_child(score_label)
@@ -495,13 +486,10 @@ func _build_next_panel() -> Control:
 	var column := VBoxContainer.new()
 	column.name = "NextContent"
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 0)
+	column.add_theme_constant_override("separation", 3)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(column)
-	var heading := _label("NEXT", 14, UiDesignSystemType.COLOR_PURPLE_DARK)
-	heading.name = "NextHeading"
-	heading.custom_minimum_size = Vector2(0.0, 18.0)
-	column.add_child(heading)
+	column.add_child(_build_card_heading("NEXT", "NextHeading", 94.0))
 	var center := CenterContainer.new()
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -556,12 +544,19 @@ func _build_progression_group() -> PanelContainer:
 	settings_frame.add_child(settings_center)
 	settings_button = _build_settings_button()
 	settings_center.add_child(settings_button)
+	var path_surface := PanelContainer.new()
+	path_surface.name = "PathGlass"
+	path_surface.custom_minimum_size = Vector2(0.0, 58.0)
+	path_surface.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	path_surface.add_theme_stylebox_override("panel", UiDesignSystemType.progression_inset_style())
+	path_surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	group.add_child(path_surface)
 	var strip := HBoxContainer.new()
 	strip.name = "ProgressionStrip"
 	strip.alignment = BoxContainer.ALIGNMENT_CENTER
 	strip.add_theme_constant_override("separation", 0)
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	group.add_child(strip)
+	path_surface.add_child(strip)
 	for tier in range(1, 9):
 		var frame := MarginContainer.new()
 		frame.name = "ProgressionSlot%d" % tier
@@ -582,17 +577,15 @@ func _build_progression_group() -> PanelContainer:
 			var connector_center := CenterContainer.new()
 			connector_center.custom_minimum_size = Vector2(10.0, UiDesignSystemType.HUD_ICON_SIZE)
 			connector_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			var connector := ColorRect.new()
-			connector.custom_minimum_size = Vector2(10.0, 4.0)
-			connector.color = UiDesignSystemType.COLOR_GOLD
-			connector.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var connector := _label("›", 21, UiDesignSystemType.COLOR_PURPLE_DARK)
+			connector.custom_minimum_size = Vector2(10.0, 22.0)
 			connector_center.add_child(connector)
 			strip.add_child(connector_center)
 	return panel
 
 
 func _build_level_chip() -> Control:
-	var chip := _build_label_badge("LevelChip", "LEVEL 1", 112.0, 46.0)
+	var chip := _build_label_badge("LevelChip", "LEVEL 1", 112.0, 56.0)
 	level_label = chip.get_node("Label") as Label
 	return chip
 
@@ -665,11 +658,11 @@ func _build_target_panel() -> Control:
 	target_name_label.visible = false
 	target_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	details.add_child(target_name_label)
-	target_status_label = _label("0 / 1", 18, Color.WHITE)
+	target_status_label = _label("0 / 1", 20, UiDesignSystemType.COLOR_PURPLE_DARK)
 	target_status_label.name = "TargetProgressText"
 	target_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	target_status_label.add_theme_constant_override("outline_size", 2)
-	target_status_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_PURPLE_DEEP)
+	target_status_label.add_theme_constant_override("outline_size", 1)
+	target_status_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.72))
 	details.add_child(target_status_label)
 	target_progress_bar = ProgressBar.new()
 	target_progress_bar.name = "TargetProgressBar"
@@ -678,6 +671,20 @@ func _build_target_panel() -> Control:
 	target_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	details.add_child(target_progress_bar)
 	return panel
+
+
+func _build_card_heading(text: String, node_name: String, width: float) -> PanelContainer:
+	var badge := PanelContainer.new()
+	badge.name = node_name
+	badge.custom_minimum_size = Vector2(width, 30.0)
+	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	badge.add_theme_stylebox_override("panel", UiDesignSystemType.card_header_style())
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var heading := _label(text, 15, Color.WHITE)
+	heading.name = "Label"
+	_decorate_header_label(heading)
+	badge.add_child(heading)
+	return badge
 
 
 func _build_label_badge(node_name: String, text: String, width: float, height: float) -> PanelContainer:
@@ -708,6 +715,7 @@ func _build_settings_button() -> TextureButton:
 	button.focus_mode = Control.FOCUS_ALL
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.self_modulate = Color("c99df4")
 	button.pressed.connect(func() -> void: settings_requested.emit())
 	button.button_down.connect(_on_settings_button_down)
 	button.button_up.connect(_on_settings_button_up)
@@ -1030,20 +1038,7 @@ func _refresh_safe_margins() -> void:
 	hud_margin.add_theme_constant_override("margin_left", int(ceil(maxf(base_margin, insets.x * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
 	hud_margin.add_theme_constant_override("margin_top", int(ceil(maxf(base_margin, insets.y * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
 	hud_margin.add_theme_constant_override("margin_right", int(ceil(maxf(base_margin, insets.z * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
-	_refresh_target_anchor(design_height)
 	_apply_safe_margin(pause_safe_margin, insets)
-
-
-func _refresh_target_anchor(design_height: float) -> void:
-	if target_anchor == null:
-		return
-	var board_top := GameConfig.BOARD_TOP + maxf(0.0, design_height - GameConfig.VIEWPORT_SIZE.y)
-	var target_size := UiDesignSystemType.TARGET_PANEL_SIZE
-	var target_top := board_top - UiDesignSystemType.TARGET_TABLE_GAP - target_size.y
-	target_anchor.offset_left = -target_size.x * 0.5
-	target_anchor.offset_top = target_top
-	target_anchor.offset_right = target_size.x * 0.5
-	target_anchor.offset_bottom = target_top + target_size.y
 
 
 func _safe_insets() -> Vector4:

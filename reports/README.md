@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Professional Glass HUD v1](PROFESSIONAL_GLASS_HUD_V1_REPORT.md) - premium translucent purple gameplay HUD, unified objective row, responsive/state evidence, regressions, and delivery provenance.
+
 - [Purple Production HUD v1](PURPLE_PRODUCTION_HUD_V1_REPORT.md) - rich purple native-control gameplay HUD, table-adjacent numeric-only Target, responsive/state evidence, regressions, and delivery provenance.
 
 - [Compact Target HUD Copy](COMPACT_TARGET_HUD_COPY_REPORT.md) - removed overflowing gem-name presentation from the gameplay HUD while preserving authoritative artwork and progress state.

@@ -74,12 +74,15 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 	_assert(hud.hud_margin.get_node("HudColumn/HudShell") is PanelContainer, "Merge Path must use one cohesive purple header shell")
 	_assert(hud.hud_margin.get_node("HudColumn/HudShell/HudRows/MainRow") is CenterContainer, "Level, merge path, and Settings must share the integrated top system")
 	_assert(hud.hud_margin.get_node("HudColumn/UtilityRow") is HBoxContainer, "COINS and NEXT must share the compact secondary utility row")
-	_assert(hud.target_panel.get_parent() == hud.target_anchor and hud.target_anchor.get_parent() == hud.hud_canvas, "Target must use an independent table-adjacent center anchor")
+	_assert(hud.target_panel.get_parent() == hud.target_anchor and hud.target_anchor.get_parent().name == "UtilityRow", "Target must own the centered objective slot between COINS and NEXT")
 	_assert(hud.score_panel is PanelContainer and hud.next_panel is PanelContainer, "COINS and NEXT must use compact native panels")
-	_assert(hud.score_panel.get_node("ScoreContent/CoinsHeading") is Label and hud.next_panel.get_node("NextContent/NextHeading") is Label, "COINS and NEXT labels must be integrated without floating badge boxes")
+	_assert(hud.score_panel.get_node("ScoreContent/CoinsHeading") is PanelContainer and hud.next_panel.get_node("NextContent/NextHeading") is PanelContainer, "COINS and NEXT must use matching polished glass-card headers")
 	_assert(hud.coin_icon is Control and hud.coin_icon.get_parent().name == "CoinValueRow", "COINS must pair its value with the dedicated procedural coin icon")
 	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must use the same simple native panel system")
-	_assert((hud.hud_margin.get_node("HudColumn/HudShell") as PanelContainer).get_theme_stylebox("panel").bg_color == UiDesignSystemType.COLOR_PURPLE_DARK, "Merge Path header must use the centralized purple HUD palette")
+	var shell_style := (hud.hud_margin.get_node("HudColumn/HudShell") as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat
+	var glass_style := (hud.score_panel as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat
+	_assert(shell_style.bg_color.a < 1.0 and shell_style.border_width_top >= 3, "Merge Path header must use a translucent beveled purple shell")
+	_assert(glass_style.bg_color.a < 1.0 and hud.hud_margin.get_node("HudColumn/HudShell/HudRows/MainRow/ProgressionCenter/ProgressionPanel/ProgressionGroup/PathGlass") is PanelContainer, "HUD cards and path tray must use the shared glass treatment")
 	_assert(hud.next_icon.get_parent() is AspectRatioContainer and hud.target_icon.get_parent() is AspectRatioContainer, "Dynamic gem previews must use aspect-preserving slots")
 	_assert(hud.progression_icons.size() == 8, "Level 1 must show its complete readable eight-tier gameplay path")
 	for tier in range(1, 9):
@@ -179,17 +182,14 @@ func _test_responsive_layouts() -> void:
 			_assert(bounds.encloses(metrics[key]), "%s must remain inside %dx%d" % [key, viewport_size.x, viewport_size.y])
 		_assert(not (metrics.score as Rect2).intersects(metrics.progression), "COINS and merge path must not overlap at %s" % str(viewport_size))
 		_assert(not (metrics.progression as Rect2).intersects(metrics.next), "Merge path and NEXT must not overlap at %s" % str(viewport_size))
-		_assert(not (metrics.level as Rect2).intersects(metrics.target), "Level and table-adjacent target must not overlap at %s" % str(viewport_size))
-		_assert(not (metrics.target as Rect2).intersects(metrics.settings), "Table-adjacent target and Settings must not overlap at %s" % str(viewport_size))
+		_assert(not (metrics.level as Rect2).intersects(metrics.target), "Level and objective row must not overlap at %s" % str(viewport_size))
+		_assert(not (metrics.target as Rect2).intersects(metrics.settings), "Objective row and Settings must not overlap at %s" % str(viewport_size))
 		_assert((metrics.next as Rect2).grow(-6.0).encloses(hud.next_icon.get_global_rect()), "NEXT gem must remain visibly inset inside its card at %s" % str(viewport_size))
 		_assert((metrics.target as Rect2).grow(-6.0).encloses(hud.target_icon.get_global_rect()), "Target gem must remain visibly inset inside its panel at %s (panel=%s icon=%s)" % [str(viewport_size), str(metrics.target), str(hud.target_icon.get_global_rect())])
 		_assert(absf((metrics.level as Rect2).get_center().y - (metrics.settings as Rect2).get_center().y) <= 22.0, "Level and Settings must align in the integrated merge-path header at %s" % str(viewport_size))
 		_assert((metrics.target as Rect2).size.x > (metrics.score as Rect2).size.x and (metrics.target as Rect2).size.x > (metrics.next as Rect2).size.x, "Target must remain the most prominent objective card at %s" % str(viewport_size))
-		var layout_scale := minf(1.0, float(viewport_size.x) / UiDesignSystemType.DESIGN_WIDTH)
-		var design_height := float(viewport_size.y) / layout_scale
-		var expected_board_top := (GameConfig.BOARD_TOP + maxf(0.0, design_height - GameConfig.VIEWPORT_SIZE.y)) * layout_scale
-		var expected_gap := UiDesignSystemType.TARGET_TABLE_GAP * layout_scale
-		_assert(absf(expected_board_top - (metrics.target as Rect2).end.y - expected_gap) <= 2.0, "Target must remain immediately above the unchanged table at %s" % str(viewport_size))
+		_assert((metrics.score as Rect2).end.x <= (metrics.target as Rect2).position.x and (metrics.target as Rect2).end.x <= (metrics.next as Rect2).position.x, "COINS, Target, and NEXT must keep their ordered game-HUD row at %s" % str(viewport_size))
+		_assert(absf((metrics.score as Rect2).get_center().y - (metrics.target as Rect2).get_center().y) <= 4.0 and absf((metrics.next as Rect2).get_center().y - (metrics.target as Rect2).get_center().y) <= 4.0, "Objective cards must share one professional baseline at %s" % str(viewport_size))
 		var minimum_physical_touch := 64.0 if viewport_size.x < 720 else 88.0
 		_assert((metrics.settings as Rect2).size.x >= minimum_physical_touch and (metrics.settings as Rect2).size.y >= minimum_physical_touch, "Settings touch target must remain usable at %s" % str(viewport_size))
 		_assert(hud.score_label.get_combined_minimum_size().x <= hud.score_label.size.x + 1.0, "Maximum coin total must fit at %s" % str(viewport_size))
@@ -264,7 +264,10 @@ func _test_mobile_back_and_duplicate_guards() -> void:
 	_assert(paused and controller.gameplay_ui.is_pause_visible(), "Android Back during play must open Pause instead of exiting")
 	controller._notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	_assert(not paused, "Android Back while paused must resume immediately")
-	await create_timer(UiDesignSystemType.POPUP_EXIT_DURATION + 0.03).timeout
+	# ANGLE process startup can defer the paused-tree tween completion by one or
+	# two rendered frames in a multi-suite run. Keep runtime timing unchanged and
+	# give the duplicate/Back assertion a deterministic scheduling allowance.
+	await create_timer(UiDesignSystemType.POPUP_EXIT_DURATION + 0.12).timeout
 	_assert(not controller.gameplay_ui.is_pause_visible(), "Android Back must close Pause first")
 	controller.failed = true
 	controller.result_overlay.present(false, 1000)

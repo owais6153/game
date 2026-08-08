@@ -1,5 +1,13 @@
 # Architecture
 
+## Professional Glass HUD v1 presentation boundary
+
+- `GameplayHudLayer` remains a snapshot-only `CanvasLayer`. `SafeHudMargin/HudColumn/HudShell` owns the translucent Level/MERGE PATH/Settings header; `UtilityRow` owns Score, centered `TargetSlot`, and Next in one responsive container.
+- Target is no longer positioned from board-top geometry. Its live icon rectangle remains the collection destination, so the controller/effects contract is unchanged while HUD composition becomes independent from table placement.
+- `ProgressionPanel/ProgressionGroup/PathGlass` owns the eight catalog-driven path gems and directional connectors. It cannot assign ranks, queue entries, targets, or textures outside `AssetCatalog`.
+- `UiDesignSystem` owns the cached translucent colors, beveled borders, rim light, card headers, inset tray, shadows, dimensions, progress styles, and interaction timing. No reference raster, runtime blur pass, per-frame style creation, or simulation coordinate is introduced.
+- HUD motion changes Control presentation only. Currency, queue, target progress, reward settlement, physics, input, danger, and results remain controller-owned.
+
 ## Purple Production HUD v1 presentation boundary
 
 - `GameplayHudLayer` remains a presentation-only `CanvasLayer` that reads `GameController.hud_snapshot()` and emits existing UI intents. `HudDesignCanvas/SafeHudMargin/HudColumn` owns the purple header and utility row; `TableTargetAnchor` independently positions Target from the authoritative board-top geometry without changing that geometry.

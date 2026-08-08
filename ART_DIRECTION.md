@@ -1,5 +1,13 @@
 # Art Direction
 
+## Professional Glass HUD v1
+
+The supplied composition establishes the desired bar: unmistakably game-like, premium, and clean. The runtime interpretation uses a deep translucent purple header with a bright lavender rim, soft depth shadow, gold Level accent, circular framed Settings control, and a pale glass inset for the complete eight-gem path. It references the composition without copying any raster panel artwork.
+
+Coins, Target, and Next form one disciplined objective row directly beneath the header. Their pale lavender-white glass surfaces share the same rim and shadow language; compact purple title plaques provide game hierarchy without crowding dynamic content. Target is wider and centered. It shows artwork and numeric progress only—never a gem name or tooltip.
+
+Glass remains restrained and readable: controlled translucency, crisp borders, no expensive live blur, no bloom wash, and no excessive nested ornament. The tropical scene remains visible around and subtly through the UI. Table, background, and supplied gem artwork are unchanged.
+
 ## Purple Production HUD v1
 
 The gameplay HUD now uses deep aubergine and layered purple as its primary interface language, with lavender type and gold progress accents. MERGE PATH is a single strong header across the safe width; Level and the existing Settings icon are compact utilities inside that composition. The path gems retain their supplied silhouettes and remain free of decorative circles.

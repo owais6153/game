@@ -16,14 +16,18 @@ const COLOR_TEAL_DARK := Color("08727e")
 const COLOR_GOLD := Color("f4ae32")
 const COLOR_GOLD_LIGHT := Color("ffd46d")
 const COLOR_PURPLE_DEEP := Color("35134f")
-const COLOR_PURPLE_DARK := Color("4b1d78")
-const COLOR_PURPLE := Color("6f35a5")
-const COLOR_PURPLE_LIGHT := Color("9259c2")
+const COLOR_PURPLE_DARK := Color("42166f")
+const COLOR_PURPLE := Color("6930aa")
+const COLOR_PURPLE_LIGHT := Color("9b62da")
+const COLOR_PURPLE_VIVID := Color("7f3dcc")
 const COLOR_LAVENDER := Color("d8c0ee")
 const COLOR_LAVENDER_LIGHT := Color("f0e3fb")
-const COLOR_TEXT := Color("5f3923")
+const COLOR_GLASS := Color(0.975, 0.96, 1.0, 0.88)
+const COLOR_GLASS_SOFT := Color(0.90, 0.84, 0.98, 0.70)
+const COLOR_GLASS_HIGHLIGHT := Color(1.0, 1.0, 1.0, 0.82)
+const COLOR_TEXT := Color("38233f")
 const COLOR_TEXT_MUTED := Color("986650")
-const COLOR_TRACK := Color("32134b")
+const COLOR_TRACK := Color(0.18, 0.12, 0.24, 0.34)
 const COLOR_DISABLED := Color("b9afa1")
 const COLOR_OVERLAY := Color(0.025, 0.04, 0.06, 0.64)
 
@@ -33,7 +37,7 @@ const SAFE_INSET_PADDING := 10
 const ROW_GAP := 12
 const ITEM_GAP := 8
 const PANEL_PADDING := 16
-const HUD_SHELL_PADDING := 10
+const HUD_SHELL_PADDING := 8
 const SMALL_GAP := 6
 const LARGE_GAP := 16
 const PANEL_CORNER_RADIUS := 26
@@ -45,10 +49,10 @@ const TARGET_TABLE_GAP := 22.0
 const HUD_ICON_SIZE := 58.0
 const TARGET_ICON_SIZE := 72.0
 const NEXT_ICON_SIZE := 58.0
-const HEADER_HEIGHT := 146.0
-const UTILITY_ROW_HEIGHT := 96.0
-const SCORE_PANEL_SIZE := Vector2(154.0, 86.0)
-const NEXT_PANEL_SIZE := Vector2(128.0, 96.0)
+const HEADER_HEIGHT := 172.0
+const UTILITY_ROW_HEIGHT := 116.0
+const SCORE_PANEL_SIZE := Vector2(156.0, 112.0)
+const NEXT_PANEL_SIZE := Vector2(132.0, 112.0)
 const TARGET_PANEL_SIZE := Vector2(336.0, 112.0)
 
 const TITLE_FONT_SIZE := 42
@@ -115,16 +119,16 @@ static func simple_hud_panel_style() -> StyleBoxFlat:
 
 
 static func secondary_hud_panel_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(1.0, 0.985, 0.95, 0.97), COLOR_LAVENDER, 2, 24, 6, Color(0.10, 0.03, 0.18, 0.25))
+	var style := _rounded_style(COLOR_GLASS, Color(0.82, 0.66, 0.96, 0.96), 2, 24, 8, Color(0.08, 0.02, 0.15, 0.34))
 	style.content_margin_left = 14.0
-	style.content_margin_top = 10.0
+	style.content_margin_top = 9.0
 	style.content_margin_right = 14.0
-	style.content_margin_bottom = 10.0
+	style.content_margin_bottom = 9.0
 	return style
 
 
 static func hud_shell_style() -> StyleBoxFlat:
-	var style := _rounded_style(COLOR_PURPLE_DARK, COLOR_LAVENDER, 2, 30, 8, Color(0.08, 0.02, 0.15, 0.34))
+	var style := _rounded_style(Color(0.25, 0.07, 0.43, 0.94), Color(0.88, 0.75, 1.0, 0.98), 3, 32, 11, Color(0.05, 0.01, 0.10, 0.44))
 	style.content_margin_left = HUD_SHELL_PADDING
 	style.content_margin_top = HUD_SHELL_PADDING
 	style.content_margin_right = HUD_SHELL_PADDING
@@ -132,8 +136,24 @@ static func hud_shell_style() -> StyleBoxFlat:
 	return style
 
 
+static func progression_inset_style() -> StyleBoxFlat:
+	var style := _rounded_style(Color(0.97, 0.95, 1.0, 0.90), Color(0.72, 0.48, 0.91, 0.98), 2, 25, 4, Color(0.04, 0.01, 0.08, 0.28))
+	style.content_margin_left = 12.0
+	style.content_margin_top = 5.0
+	style.content_margin_right = 12.0
+	style.content_margin_bottom = 5.0
+	return style
+
+
+static func card_header_style() -> StyleBoxFlat:
+	var style := _rounded_style(Color(0.37, 0.12, 0.65, 0.97), Color(0.88, 0.75, 1.0, 0.98), 2, 18, 4, Color(0.06, 0.01, 0.12, 0.30))
+	style.content_margin_left = 12.0
+	style.content_margin_right = 12.0
+	return style
+
+
 static func target_panel_style() -> StyleBoxFlat:
-	var style := _rounded_style(COLOR_PURPLE, COLOR_LAVENDER_LIGHT, 3, 28, 9, Color(0.08, 0.01, 0.14, 0.38))
+	var style := _rounded_style(Color(0.97, 0.95, 1.0, 0.91), Color(0.75, 0.52, 0.94, 0.98), 3, 27, 9, Color(0.07, 0.01, 0.14, 0.40))
 	style.content_margin_left = 0.0
 	style.content_margin_top = 0.0
 	style.content_margin_right = 0.0
@@ -142,14 +162,14 @@ static func target_panel_style() -> StyleBoxFlat:
 
 
 static func target_badge_style() -> StyleBoxFlat:
-	var style := _rounded_style(COLOR_PURPLE_DEEP, COLOR_LAVENDER, 2, 18, 4, Color(0.07, 0.01, 0.12, 0.30))
+	var style := _rounded_style(Color(0.32, 0.08, 0.58, 0.98), COLOR_LAVENDER_LIGHT, 2, 18, 5, Color(0.06, 0.01, 0.12, 0.34))
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	return style
 
 
 static func utility_frame_style() -> StyleBoxFlat:
-	return _rounded_style(COLOR_PURPLE_DARK, COLOR_LAVENDER, 2, 44, 5, Color(0.06, 0.01, 0.12, 0.32))
+	return _rounded_style(Color(0.30, 0.08, 0.53, 0.96), COLOR_LAVENDER_LIGHT, 3, 48, 6, Color(0.05, 0.01, 0.10, 0.40))
 
 
 static func setting_row_style() -> StyleBoxFlat:
@@ -200,7 +220,7 @@ static func progression_panel_style() -> StyleBoxFlat:
 
 
 static func level_badge_style() -> StyleBoxFlat:
-	var style := _rounded_style(COLOR_PURPLE_LIGHT, COLOR_LAVENDER_LIGHT, 2, 22, 5, Color(0.06, 0.01, 0.12, 0.30))
+	var style := _rounded_style(Color(0.43, 0.15, 0.76, 0.98), Color("f3d67a"), 3, 20, 6, Color(0.05, 0.01, 0.10, 0.38))
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	return style
@@ -211,11 +231,11 @@ static func progression_style(border: Color, border_width: int, background: Colo
 
 
 static func progress_background_style() -> StyleBoxFlat:
-	return _rounded_style(COLOR_TRACK, COLOR_LAVENDER, 1, 6, 0, Color.TRANSPARENT)
+	return _rounded_style(COLOR_TRACK, Color(0.35, 0.20, 0.46, 0.42), 1, 6, 0, Color.TRANSPARENT)
 
 
 static func progress_fill_style() -> StyleBoxFlat:
-	return _rounded_style(COLOR_GOLD_LIGHT, Color(0, 0, 0, 0), 0, 6, 0, Color.TRANSPARENT)
+	return _rounded_style(COLOR_PURPLE_LIGHT, Color(0, 0, 0, 0), 0, 6, 0, Color.TRANSPARENT)
 
 
 static func fail_badge_style() -> StyleBoxFlat:

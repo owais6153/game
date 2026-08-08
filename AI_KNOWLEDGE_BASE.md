@@ -1,5 +1,14 @@
 # AI Knowledge Base
 
+## Professional Glass HUD v1 guardrails
+
+- Preserve the unified composition: translucent beveled purple header containing Level/MERGE PATH/Settings, followed by one aligned Coins / centered Target / Next row. Do not detach Target back to the table edge.
+- Keep all eight path gems in the light glass tray and resolve every HUD gem through `AssetCatalog`. Never mask or independently redraw supplied silhouettes.
+- Never restore gem names or gem-name tooltips. Target identity is artwork-only with sequence and numeric progress.
+- Glass is a cached native presentation treatment: translucent `StyleBoxFlat` surfaces, crisp rims, restrained shadows, and bounded tweens. Do not add raster panel art, runtime blur/capture passes, shaders that sample gameplay, or per-frame resources.
+- Target and coin collection destinations must continue to read live icon rectangles. HUD code cannot award currency, advance targets, own queues, handle board input, or alter table/simulation geometry.
+- Validate professional HUD hierarchy/glass styles, six portrait resolutions, notch, Pause, target transition, reward flight, crowded board, and danger state; run production UI, gameplay-feel, clean-contact, and the full regression/profile suite.
+
 ## Purple Production HUD v1 guardrails
 
 - Preserve the current composition: dominant purple MERGE PATH header; compact Coins left and Next right; independent Target card immediately above the table; Level left and circular Settings control right.

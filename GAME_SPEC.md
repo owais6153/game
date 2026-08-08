@@ -1,5 +1,16 @@
 # Game Spec — Clean Contact Merge v1
 
+## Professional Glass HUD v1
+
+This section supersedes the Purple Production HUD v1 composition below.
+
+- Gameplay uses one cohesive premium HUD: a translucent beveled purple header with Level, MERGE PATH, and Settings, followed immediately by one aligned Coins / Target / Next objective row.
+- MERGE PATH retains all eight authoritative gem silhouettes inside a light glass tray with directional connectors. Level has a compact gold-rimmed purple badge; Settings retains its supplied gear artwork inside a circular layered frame.
+- Coins and Next are compact translucent glass cards. Target is the wider center card with authoritative artwork, sequence, numeric progress, and progress bar.
+- Gem names and gem-name tooltips remain forbidden. Artwork carries identity so narrow portrait layouts cannot overflow.
+- Glass, bevel, rim light, shadows, progress treatment, and interaction motion use cached native Godot controls and `StyleBoxFlat`; no raster panel or copied reference artwork is used.
+- The HUD remains snapshot-only and presentation-only. Background, table/board geometry, gem art, physics, launcher, collision, merges, target rules, progression, balance, rewards, audio/haptics, danger, and results are unchanged.
+
 ## Purple Production HUD v1
 
 - Gameplay uses a rich purple native-control HUD: one dominant MERGE PATH header, a compact Coins/Next utility row, and one independent Target card anchored immediately above the unchanged table.

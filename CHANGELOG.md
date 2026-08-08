@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-08 - Professional Glass HUD v1
+
+- Replaced the flat/detached purple HUD with one cohesive premium game composition matching the supplied direction: beveled translucent header, glass merge tray, framed Level/Settings, and aligned Coins/Target/Next cards.
+- Moved Target from the isolated table-edge anchor into the center of the objective row while preserving its authoritative destination, sequence, numeric progress, and transition behavior.
+- Added reusable translucent glass, purple rim, gold accent, inset tray, polished card-header, progress, shadow, and button treatments through cached native Godot styles.
+- Preserved all eight supplied gem silhouettes and kept gem names/tooltips hidden to prevent portrait overflow.
+- Added six-resolution, notch, pause, crowded-board, target-transition, reward-flight, and danger-state evidence plus hierarchy/glass/baseline regressions.
+- Changed no background, table/board geometry, gem art, physics, launcher, collision, merge, target rule, progression, balance, reward, audio/haptic, danger, or result behavior.
+
 ## 2026-08-08 - Purple Production HUD v1
 
 - Rebuilt the gameplay HUD with native Godot containers and purple `StyleBoxFlat` surfaces: a dominant MERGE PATH header, compact Coins/Next utilities, and a separate table-adjacent Target card.

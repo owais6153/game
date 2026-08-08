@@ -81,7 +81,7 @@ func _test_control_hierarchy_and_contained_previews() -> void:
 	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.50) and is_equal_approx(GameConfig.MERGE_RESULT_POP_SCALE, 1.20), "Merge presentation must restore the prior readable rigid pop cadence")
 	_assert(GameConfig.TARGET_SWAP_START_DELAY >= 0.72 and GameConfig.TARGET_SWAP_START_DELAY <= 0.86 and GameConfig.TARGET_SWAP_OUTGOING_OFFSET == Vector2.ZERO and GameConfig.TARGET_SWAP_INCOMING_OFFSET == Vector2.ZERO, "Completed target must hold under the check, then fade in place like the reference")
 	_assert(hud.level_chip.get_parent().name == "ProgressionHeader" and hud.settings_button.get_parent().get_parent().name == "SettingsFrame", "Level and Settings must connect to the merge-path header")
-	_assert(hud.target_panel.get_parent() == hud.target_anchor and hud.target_anchor.get_parent() == hud.hud_canvas, "The active target must own the independent table-adjacent center slot")
+	_assert(hud.target_panel.get_parent() == hud.target_anchor and hud.target_anchor.get_parent().name == "UtilityRow", "The active target must own the centered objective slot between COINS and NEXT")
 	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must share the simple native panel system")
 	_assert(hud.next_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "NEXT gem must use aspect-preserving contain scaling")
 	_assert(hud.target_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "Target gem must use aspect-preserving contain scaling")
