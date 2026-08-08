@@ -1,5 +1,11 @@
 # Architecture
 
+## Transparent purple glass presentation patch v1
+
+- `UiDesignSystem` owns the alpha-tinted purple glass colors for the existing header, path tray, secondary cards, and Target surface. Opacity and hue are cached style data; no new runtime node, frame callback, viewport capture, shader, or texture dependency is introduced.
+- `GameplayHudLayer` changes only label contrast and connector color for the tinted surfaces. Snapshot ownership, node hierarchy, signal routes, live icon destinations, and tween cadence are unchanged.
+- Rendering remains isolated from simulation and table geometry. Transparency cannot read or influence pieces, contacts, targets, queue, currency, danger, or results.
+
 ## Professional Glass HUD v1 presentation boundary
 
 - `GameplayHudLayer` remains a snapshot-only `CanvasLayer`. `SafeHudMargin/HudColumn/HudShell` owns the translucent Level/MERGE PATH/Settings header; `UtilityRow` owns Score, centered `TargetSlot`, and Next in one responsive container.

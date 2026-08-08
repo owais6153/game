@@ -22,9 +22,9 @@ const COLOR_PURPLE_LIGHT := Color("9b62da")
 const COLOR_PURPLE_VIVID := Color("7f3dcc")
 const COLOR_LAVENDER := Color("d8c0ee")
 const COLOR_LAVENDER_LIGHT := Color("f0e3fb")
-const COLOR_GLASS := Color(0.975, 0.96, 1.0, 0.88)
-const COLOR_GLASS_SOFT := Color(0.90, 0.84, 0.98, 0.70)
-const COLOR_GLASS_HIGHLIGHT := Color(1.0, 1.0, 1.0, 0.82)
+const COLOR_GLASS := Color(0.34, 0.12, 0.56, 0.76)
+const COLOR_GLASS_SOFT := Color(0.54, 0.30, 0.74, 0.62)
+const COLOR_GLASS_HIGHLIGHT := Color(0.94, 0.84, 1.0, 0.84)
 const COLOR_TEXT := Color("38233f")
 const COLOR_TEXT_MUTED := Color("986650")
 const COLOR_TRACK := Color(0.18, 0.12, 0.24, 0.34)
@@ -128,7 +128,7 @@ static func secondary_hud_panel_style() -> StyleBoxFlat:
 
 
 static func hud_shell_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.25, 0.07, 0.43, 0.94), Color(0.88, 0.75, 1.0, 0.98), 3, 32, 11, Color(0.05, 0.01, 0.10, 0.44))
+	var style := _rounded_style(Color(0.22, 0.05, 0.40, 0.84), Color(0.90, 0.78, 1.0, 0.98), 3, 32, 11, Color(0.05, 0.01, 0.10, 0.44))
 	style.content_margin_left = HUD_SHELL_PADDING
 	style.content_margin_top = HUD_SHELL_PADDING
 	style.content_margin_right = HUD_SHELL_PADDING
@@ -137,7 +137,7 @@ static func hud_shell_style() -> StyleBoxFlat:
 
 
 static func progression_inset_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.97, 0.95, 1.0, 0.90), Color(0.72, 0.48, 0.91, 0.98), 2, 25, 4, Color(0.04, 0.01, 0.08, 0.28))
+	var style := _rounded_style(Color(0.62, 0.40, 0.80, 0.62), Color(0.91, 0.80, 1.0, 0.98), 2, 25, 4, Color(0.04, 0.01, 0.08, 0.30))
 	style.content_margin_left = 12.0
 	style.content_margin_top = 5.0
 	style.content_margin_right = 12.0
@@ -146,14 +146,14 @@ static func progression_inset_style() -> StyleBoxFlat:
 
 
 static func card_header_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.37, 0.12, 0.65, 0.97), Color(0.88, 0.75, 1.0, 0.98), 2, 18, 4, Color(0.06, 0.01, 0.12, 0.30))
+	var style := _rounded_style(Color(0.36, 0.10, 0.64, 0.91), Color(0.91, 0.80, 1.0, 0.98), 2, 18, 4, Color(0.06, 0.01, 0.12, 0.32))
 	style.content_margin_left = 12.0
 	style.content_margin_right = 12.0
 	return style
 
 
 static func target_panel_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.97, 0.95, 1.0, 0.91), Color(0.75, 0.52, 0.94, 0.98), 3, 27, 9, Color(0.07, 0.01, 0.14, 0.40))
+	var style := _rounded_style(Color(0.32, 0.10, 0.54, 0.76), Color(0.91, 0.80, 1.0, 0.98), 3, 27, 9, Color(0.07, 0.01, 0.14, 0.42))
 	style.content_margin_left = 0.0
 	style.content_margin_top = 0.0
 	style.content_margin_right = 0.0

@@ -1,5 +1,12 @@
 # AI Knowledge Base
 
+## Transparent Purple Glass HUD v1 guardrails
+
+- Keep the professional composition and use visibly purple translucent surfaces: shell alpha no more than `0.86`; objective-card alpha no more than `0.78`; blue channel greater than red for the glass tint.
+- Maintain white outlined coin/target values and lavender path connectors so background detail never reduces readability.
+- Do not simulate glass through screenshots, bitmap panels, runtime blur, viewport capture, or gameplay-sampling shaders. Keep cached `StyleBoxFlat` resources and zero new frame work.
+- Preserve hidden gem names/tooltips, all eight path gems, live icon destinations, responsive/notch bounds, and every gameplay/table boundary.
+
 ## Professional Glass HUD v1 guardrails
 
 - Preserve the unified composition: translucent beveled purple header containing Level/MERGE PATH/Settings, followed by one aligned Coins / centered Target / Next row. Do not detach Target back to the table edge.

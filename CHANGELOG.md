@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-08 - Transparent Purple Glass HUD v1
+
+- Retinted the professional header, path tray, Coins, Target, and Next surfaces into visibly translucent purple glass so tropical scenery subtly shows through.
+- Switched coin and target values to white with restrained deep-purple outlines and changed path connectors to lavender for reliable contrast on tinted glass.
+- Added alpha/hue regressions and refreshed all responsive, notch, Pause, transition, reward, crowded-board, and danger-state evidence.
+- Preserved HUD hierarchy, all eight catalog gems, hidden gem names/tooltips, collection destinations, motion, gameplay, table, physics, progression, balance, audio/haptics, and results.
+
 ## 2026-08-08 - Professional Glass HUD v1
 
 - Replaced the flat/detached purple HUD with one cohesive premium game composition matching the supplied direction: beveled translucent header, glass merge tray, framed Level/Settings, and aligned Coins/Target/Next cards.

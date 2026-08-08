@@ -1,5 +1,11 @@
 # Art Direction
 
+## Transparent Purple Glass HUD v1
+
+The approved glass is now visibly purple rather than pale white: tropical palms and sky may ghost subtly through the header, merge tray, and objective cards. Deep violet tint, lavender rim light, and short shadow create depth without an expensive blur pass. White outlined values and bright supplied gems remain the first readable layer.
+
+Transparency must feel polished, not faded. Surfaces retain enough saturation and opacity to separate UI from the world, while the scene remains perceptible through them. The composition, no-name target treatment, table, background, and gem artwork remain unchanged.
+
 ## Professional Glass HUD v1
 
 The supplied composition establishes the desired bar: unmistakably game-like, premium, and clean. The runtime interpretation uses a deep translucent purple header with a bright lavender rim, soft depth shadow, gold Level accent, circular framed Settings control, and a pale glass inset for the complete eight-gem path. It references the composition without copying any raster panel artwork.

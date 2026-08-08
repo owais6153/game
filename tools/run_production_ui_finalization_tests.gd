@@ -81,8 +81,8 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 	_assert(hud.target_panel.get_node("TargetContentSurface") is PanelContainer and hud.pause_panel is PanelContainer, "Target and Pause must use the same simple native panel system")
 	var shell_style := (hud.hud_margin.get_node("HudColumn/HudShell") as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat
 	var glass_style := (hud.score_panel as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat
-	_assert(shell_style.bg_color.a < 1.0 and shell_style.border_width_top >= 3, "Merge Path header must use a translucent beveled purple shell")
-	_assert(glass_style.bg_color.a < 1.0 and hud.hud_margin.get_node("HudColumn/HudShell/HudRows/MainRow/ProgressionCenter/ProgressionPanel/ProgressionGroup/PathGlass") is PanelContainer, "HUD cards and path tray must use the shared glass treatment")
+	_assert(shell_style.bg_color.a <= 0.86 and shell_style.bg_color.b > shell_style.bg_color.r and shell_style.border_width_top >= 3, "Merge Path header must use visibly transparent beveled purple glass")
+	_assert(glass_style.bg_color.a <= 0.78 and glass_style.bg_color.b > glass_style.bg_color.r and hud.hud_margin.get_node("HudColumn/HudShell/HudRows/MainRow/ProgressionCenter/ProgressionPanel/ProgressionGroup/PathGlass") is PanelContainer, "HUD cards and path tray must use the shared transparent purple-glass treatment")
 	_assert(hud.next_icon.get_parent() is AspectRatioContainer and hud.target_icon.get_parent() is AspectRatioContainer, "Dynamic gem previews must use aspect-preserving slots")
 	_assert(hud.progression_icons.size() == 8, "Level 1 must show its complete readable eight-tier gameplay path")
 	for tier in range(1, 9):

@@ -1,5 +1,13 @@
 # Game Spec — Clean Contact Merge v1
 
+## Transparent Purple Glass HUD v1
+
+This presentation patch supersedes the surface colors in Professional Glass HUD v1 while preserving its composition.
+
+- Header, path tray, Coins, Target, and Next use visibly translucent purple glass. Tropical scenery may show subtly through each surface while lavender rims, controlled shadows, and white outlined values preserve contrast.
+- The glass treatment remains native and cached. It uses alpha-tinted `StyleBoxFlat` resources rather than raster panels, runtime blur, backdrop capture, or gameplay-sampling shaders.
+- Gem names and tooltips remain hidden. HUD hierarchy, icon mapping, live collection destinations, interaction motion, and every gameplay/table rule remain unchanged.
+
 ## Professional Glass HUD v1
 
 This section supersedes the Purple Production HUD v1 composition below.

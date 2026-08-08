@@ -470,7 +470,9 @@ func _build_score_panel() -> Control:
 	coin_icon.custom_minimum_size = Vector2(30.0, 30.0)
 	coin_icon.pivot_offset = Vector2(15.0, 15.0)
 	row.add_child(coin_icon)
-	score_label = _label("0", 38, UiDesignSystemType.COLOR_TEXT)
+	score_label = _label("0", 38, Color.WHITE)
+	score_label.add_theme_constant_override("outline_size", 2)
+	score_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_PURPLE_DEEP)
 	score_label.name = "CoinValue"
 	score_label.custom_minimum_size = Vector2(82.0, 40.0)
 	row.add_child(score_label)
@@ -577,7 +579,7 @@ func _build_progression_group() -> PanelContainer:
 			var connector_center := CenterContainer.new()
 			connector_center.custom_minimum_size = Vector2(10.0, UiDesignSystemType.HUD_ICON_SIZE)
 			connector_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			var connector := _label("›", 21, UiDesignSystemType.COLOR_PURPLE_DARK)
+			var connector := _label("›", 21, UiDesignSystemType.COLOR_LAVENDER_LIGHT)
 			connector.custom_minimum_size = Vector2(10.0, 22.0)
 			connector_center.add_child(connector)
 			strip.add_child(connector_center)
@@ -658,11 +660,11 @@ func _build_target_panel() -> Control:
 	target_name_label.visible = false
 	target_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	details.add_child(target_name_label)
-	target_status_label = _label("0 / 1", 20, UiDesignSystemType.COLOR_PURPLE_DARK)
+	target_status_label = _label("0 / 1", 20, Color.WHITE)
 	target_status_label.name = "TargetProgressText"
 	target_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	target_status_label.add_theme_constant_override("outline_size", 1)
-	target_status_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.72))
+	target_status_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_PURPLE_DEEP)
 	details.add_child(target_status_label)
 	target_progress_bar = ProgressBar.new()
 	target_progress_bar.name = "TargetProgressBar"

@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Transparent Purple Glass HUD v1](TRANSPARENT_PURPLE_GLASS_HUD_V1_REPORT.md) - visibly translucent purple HUD surfaces, contrast safeguards, responsive/state evidence, validation, and delivery provenance.
+
 - [Professional Glass HUD v1](PROFESSIONAL_GLASS_HUD_V1_REPORT.md) - premium translucent purple gameplay HUD, unified objective row, responsive/state evidence, regressions, and delivery provenance.
 
 - [Purple Production HUD v1](PURPLE_PRODUCTION_HUD_V1_REPORT.md) - rich purple native-control gameplay HUD, table-adjacent numeric-only Target, responsive/state evidence, regressions, and delivery provenance.
