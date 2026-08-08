@@ -37,7 +37,18 @@ This is rendering/HUD work only. It does not change board/table geometry, backgr
 
 Validated capture sizes: 576x1312, 720x1600, 1080x1920, 1080x2340, 1080x2400, and 540x1320, plus simulated notch, Pause, crowded-board, target-transition, reward-flight, and danger states.
 
-Godot headless rendering crashes with signal 11 in this environment. Validation therefore used the successful non-headless Compatibility/ANGLE route. Physical-device status and final APK provenance are recorded in `BUILD_MANIFEST.md` after export.
+Godot headless rendering crashes with signal 11 in this environment. Visual validation therefore used the successful non-headless Compatibility/ANGLE route.
+
+## APK delivery
+
+- Source: `2b626434cf7116c6f36bed7d12438650c564fae1` / `purple-production-hud-v1-source`
+- APK: `build/android/purple-production-hud-v1.apk`
+- Size: 122,882,166 bytes
+- SHA-256: `1FA79BBF64743CA3BE0F60E3478809556531299823AAA6653DD1291DE1B6BDEF`
+- Export: Godot 4.6.3 headless Android debug preset; export, alignment, signing, and Godot verification completed successfully.
+- Package audit: 415 entries, one Android manifest, 14 dex files, arm64 Godot runtime, and zero packaged source/report/build paths.
+- Signature audit: APK Signature Schemes v2/v3 PASS with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device. Installation, launch, physical safe-area/touch behavior, phone performance, listening, and haptics are not claimed.
 
 ## Files
 

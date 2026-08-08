@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Purple Production HUD v1
+
+- APK: `build/android/purple-production-hud-v1.apk`
+- Size: 122,882,166 bytes
+- Export timestamp: 2026-08-08T02:48:20Z (2026-08-08 07:48:20 Asia/Karachi)
+- SHA-256: `1FA79BBF64743CA3BE0F60E3478809556531299823AAA6653DD1291DE1B6BDEF`
+- Baseline commit/tag: `5b4002d` / `compact-target-hud-copy-v1`
+- Source commit/tag: `2b626434cf7116c6f36bed7d12438650c564fae1` / `purple-production-hud-v1-source`
+- Delivery tag: `purple-production-hud-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; validation signing, not a store-release keystore claim.
+- Validation: all seven regression suites and motion profile PASS; six responsive resolutions plus notch/state Compatibility/ANGLE captures PASS; standalone APK exists; 415 APK entries with one manifest, 14 dex files, arm64 Godot runtime, and zero packaged source/report/build paths; APK Signature Schemes v2/v3 PASS with one RSA-2048 signer.
+- Device status: `adb devices -l` returned no connected device; installation, launch, physical safe-area/touch behavior, phone performance, listening, and haptics are not claimed.
+
 ## Production Gameplay UI Finalization V2
 
 - APK: `build/android/production-gameplay-ui-v2.apk`
