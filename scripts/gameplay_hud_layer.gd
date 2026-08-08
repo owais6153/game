@@ -116,12 +116,10 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		for index in range(mini(8, progression_icons.size())):
 			var local_tier := index + 1
 			progression_icons[index].texture = AssetCatalogType.gem_texture(local_tier)
-			progression_frames[index].tooltip_text = AssetCatalogType.gem_name(local_tier)
 
 	var next_level := int(snapshot.get("next_level", 1))
 	if int(_snapshot.get("next_level", -1)) != next_level:
 		next_icon.texture = AssetCatalogType.gem_texture(next_level)
-		next_icon.tooltip_text = "Next: %s" % AssetCatalogType.gem_name(next_level)
 		if had_snapshot:
 			_animate_next_swap()
 
@@ -159,7 +157,6 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		var previous_texture := target_icon.texture
 		var next_texture := AssetCatalogType.gem_texture(target_level)
 		target_icon.texture = next_texture
-		target_icon.tooltip_text = "Target: %s" % target_name
 		if had_snapshot:
 			_animate_target_swap(previous_texture, next_texture, target_name.to_upper(), target_header, target_state, target_quantity, target_bar_value)
 		else:
@@ -568,7 +565,6 @@ func _build_progression_group() -> PanelContainer:
 		frame.name = "ProgressionSlot%d" % tier
 		frame.custom_minimum_size = Vector2(UiDesignSystemType.HUD_ICON_SIZE, UiDesignSystemType.HUD_ICON_SIZE)
 		frame.pivot_offset = Vector2.ONE * UiDesignSystemType.HUD_ICON_SIZE * 0.5
-		frame.tooltip_text = AssetCatalogType.gem_name(tier)
 		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		frame.add_theme_constant_override("margin_left", 3)
 		frame.add_theme_constant_override("margin_top", 3)
@@ -653,6 +649,9 @@ func _build_target_panel() -> Control:
 	row.add_child(details)
 	target_name_label = _label("TARGET GEM", 20, UiDesignSystemType.COLOR_TEXT)
 	target_name_label.name = "TargetName"
+	# The target artwork is self-identifying. Keep the legacy node for state and
+	# transition compatibility, but do not render gem names in the compact HUD.
+	target_name_label.visible = false
 	target_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	details.add_child(target_name_label)
 	target_status_label = _label("0 / 1", 16, UiDesignSystemType.COLOR_CORAL_DARK)

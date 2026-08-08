@@ -93,7 +93,7 @@ func _test_hud_architecture_and_catalog_mapping() -> void:
 		_assert(hud.target_icon.texture == AssetCatalogType.gem_texture(tier), "Target tier %d must map through AssetCatalog" % tier)
 	await create_timer(GameConfig.TARGET_SWAP_START_DELAY + GameConfig.TARGET_SWAP_OUTGOING_FADE_DURATION + GameConfig.TARGET_SWAP_GAP_DURATION + GameConfig.TARGET_SWAP_INCOMING_FADE_DURATION + 0.04).timeout
 	_assert(hud.target_header_label.text == "TARGET  1 / 2", "Target header must expose the active sequential position")
-	_assert(hud.target_name_label.text == AssetCatalogType.gem_name(18).to_upper(), "Target card must display the authoritative gem name")
+	_assert(not hud.target_name_label.visible, "Target card must not render gem names in the compact HUD")
 	_assert(hud.target_status_label.text == "0 / 4", "Target card must display exact objective progress")
 	_assert(hud.target_progress_bar != null and is_equal_approx(hud.target_progress_bar.max_value, 4.0), "Target card must include a state-driven progress bar")
 	await _dispose_viewport(fixture.viewport)
@@ -114,9 +114,9 @@ func _test_score_fit_and_state_updates() -> void:
 	var texture_before := hud.next_icon.texture
 	hud.update_snapshot(_snapshot(125500, 2, 3, 8, 0, 1, 1, 2, false, false, 4))
 	_assert(texture_before != hud.next_icon.texture and hud.next_icon.texture == AssetCatalogType.gem_texture(3), "NEXT artwork must update immediately with the queue identity")
-	_assert(hud.target_name_label.text == AssetCatalogType.gem_name(7).to_upper(), "Outgoing target copy must remain paired with its visible outgoing gem")
+	_assert(not hud.target_name_label.visible, "Outgoing target transition must not render gem names")
 	await create_timer(GameConfig.TARGET_SWAP_START_DELAY + GameConfig.TARGET_SWAP_OUTGOING_FADE_DURATION + GameConfig.TARGET_SWAP_GAP_DURATION + GameConfig.TARGET_SWAP_INCOMING_FADE_DURATION + 0.04).timeout
-	_assert(hud.target_header_label.text == "TARGET  2 / 2" and hud.target_name_label.text == AssetCatalogType.gem_name(8).to_upper(), "Sequential target state must update header, name, and icon together")
+	_assert(hud.target_header_label.text == "TARGET  2 / 2" and not hud.target_name_label.visible, "Sequential target state must update header and icon without gem-name copy")
 	await _dispose_viewport(fixture.viewport)
 
 

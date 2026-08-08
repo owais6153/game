@@ -1,5 +1,7 @@
 # Current State
 
+**Current UI patch:** Compact target HUD copy (2026-08-08). Gameplay HUD no longer renders gem names or gem-name tooltips; target identity remains authoritative through its artwork, while sequence and quantity progress remain visible. No gameplay, progression, board, physics, or simulation paths changed. Validation is recorded in `reports/COMPACT_TARGET_HUD_COPY_REPORT.md`.
+
 **Current milestone:** Production Gameplay UI Finalization V2. Gameplay remains frozen at `production-gameplay-ui-v2-baseline` (`39f1082112cee3d2d9d948a9d0ac9c110d163daf`). Source: `48ed83f6ce2377c30c886ef3448c941d7d6d00fc` / `production-gameplay-ui-v2-source`. The gameplay HUD is now one safe-area shell with an integrated Level/MERGE PATH/Settings header and balanced Coins/Target/Next row; target identity, quantity, and transition copy stay synchronized; Pause uses a stronger production hierarchy; and the ready-state aim guide, proximity-only danger emphasis, and normalized gem shadows are presentation-only. Seven regression suites and the motion profile pass. APK: `build/android/production-gameplay-ui-v2.apk` (122,882,166 bytes; SHA-256 `3326C2714ED0B29551D3FD209B6B643A95BE4C0B156C4B2D93A5B3F26AC7FCE1`). Package/signature audit passes; no connected device was available.
 
 ## Production Gameplay UI Finalization V2 (2026-08-05)

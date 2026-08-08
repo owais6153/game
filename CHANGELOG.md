@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-08 - Compact target HUD copy
+
+- Removed gem names from the gameplay HUD, including the compact target label and hover tooltips, so artwork and numeric progress remain readable at narrow portrait widths.
+- Preserved authoritative target/path/Next gem textures, target sequence, progress text, and all gameplay behavior.
+- Updated the production HUD regression checks to enforce artwork-only gem identity presentation.
+
 ## 2026-08-05 - Production Gameplay UI Finalization V2
 
 - Rebuilt the gameplay HUD as one safe-area-aware shell with an integrated Level/MERGE PATH/Settings header and a balanced Coins/Target/Next objective row.

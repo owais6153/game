@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Compact Target HUD Copy](COMPACT_TARGET_HUD_COPY_REPORT.md) - removed overflowing gem-name presentation from the gameplay HUD while preserving authoritative artwork and progress state.
+
 - [Production Gameplay UI Finalization V2](PRODUCTION_GAMEPLAY_UI_V2_REPORT.md) - latest-available-video audit, cohesive gameplay HUD, responsive coin/target/Next presentation, target-state correction, pause/guide/danger polish, performance proof, evidence, and APK provenance.
 
 - [Production Foundation v1](PRODUCTION_FOUNDATION_V1_REPORT.md) - persistent independent settings, shared gem silhouettes, bounded difficulty progression, GEM RUSH icon/splash branding, validation, and delivery provenance.
