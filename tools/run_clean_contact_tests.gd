@@ -416,8 +416,8 @@ func _test_visual_layout_bounds() -> void:
 	controller._ready()
 	var ui = controller.gameplay_ui
 	_assert(ui != null and ui.score_panel is Control and ui.next_panel is Control and ui.target_panel is Control, "Gameplay HUD must be a responsive Control hierarchy")
-	_assert(ui.score_panel.custom_minimum_size.x >= 120.0 and ui.score_panel.custom_minimum_size == ui.next_panel.custom_minimum_size, "COINS and NEXT must use equal compact responsive cards")
-	_assert(ui.score_panel.get_node("CoinsBadge") is PanelContainer and ui.coin_icon is Control, "Coin HUD must use the dedicated badge and procedural coin icon")
+	_assert(ui.score_panel.custom_minimum_size.x >= 120.0 and ui.score_panel.custom_minimum_size.x < ui.target_panel.custom_minimum_size.x and ui.next_panel.custom_minimum_size.x < ui.target_panel.custom_minimum_size.x, "COINS and NEXT must remain compact secondary panels beside the larger target")
+	_assert(ui.score_panel.get_node("ScoreContent/CoinsHeading") is Label and ui.coin_icon is Control, "Coin HUD must use integrated copy and the procedural coin icon")
 	_assert(ui.next_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED and ui.target_icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "NEXT and target gems must use aspect-preserving contain scaling")
 	_assert(ui.progression_icons.all(func(icon: TextureRect): return icon.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED), "Every progression gem must use aspect-preserving contain scaling")
 	var settings_atlas := ui.settings_button.texture_normal as AtlasTexture

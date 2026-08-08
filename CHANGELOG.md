@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-08 - Purple Production HUD v1
+
+- Rebuilt the gameplay HUD with native Godot containers and purple `StyleBoxFlat` surfaces: a dominant MERGE PATH header, compact Coins/Next utilities, and a separate table-adjacent Target card.
+- Kept Level and the existing Settings artwork compact in the header while preserving all eight generated path gems.
+- Preserved artwork-only target identity and numeric progress; no gem names or gem-name tooltips were restored.
+- Added bounded settings press, target progress/pulse, Next refresh, and coin response tweens without adding per-frame allocations or gameplay authority.
+- Added six-resolution, notch, pause, crowded-board, target-transition, reward-flight, and danger-state evidence plus responsive layout regressions.
+- Left backgrounds, board/table geometry, gem art, physics, launcher, collisions, merges, target generation, progression, balance, rewards, and result qualification unchanged.
+
 ## 2026-08-08 - Compact target HUD copy
 
 - Removed gem names from the gameplay HUD, including the compact target label and hover tooltips, so artwork and numeric progress remain readable at narrow portrait widths.

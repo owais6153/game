@@ -1,5 +1,7 @@
 # Milestone reports
 
+- [Purple Production HUD v1](PURPLE_PRODUCTION_HUD_V1_REPORT.md) - rich purple native-control gameplay HUD, table-adjacent numeric-only Target, responsive/state evidence, regressions, and delivery provenance.
+
 - [Compact Target HUD Copy](COMPACT_TARGET_HUD_COPY_REPORT.md) - removed overflowing gem-name presentation from the gameplay HUD while preserving authoritative artwork and progress state.
 
 - [Production Gameplay UI Finalization V2](PRODUCTION_GAMEPLAY_UI_V2_REPORT.md) - latest-available-video audit, cohesive gameplay HUD, responsive coin/target/Next presentation, target-state correction, pause/guide/danger polish, performance proof, evidence, and APK provenance.

@@ -1,5 +1,13 @@
 # Architecture
 
+## Purple Production HUD v1 presentation boundary
+
+- `GameplayHudLayer` remains a presentation-only `CanvasLayer` that reads `GameController.hud_snapshot()` and emits existing UI intents. `HudDesignCanvas/SafeHudMargin/HudColumn` owns the purple header and utility row; `TableTargetAnchor` independently positions Target from the authoritative board-top geometry without changing that geometry.
+- `HudShell/HudRows/MainRow/Progression` owns Level, all eight MERGE PATH entries, and Settings. `UtilityRow` owns compact Score and Next panels. The Target panel is not nested in either utility card and remains the strongest objective surface.
+- `UiDesignSystem` centralizes the purple palette, native `StyleBoxFlat` resources, dimensions, spacing, progress styles, and motion durations. No bitmap panel composition or simulation coordinate is owned by the HUD.
+- Target/coin destinations still come from live icon rectangles. UI tweens modify presentation properties only; target progression, reward settlement, queue state, physics, and result qualification remain controller-owned.
+- Gem identity copy is intentionally absent from gameplay HUD labels and tooltips. Text authority is limited to level, coins, headings, target sequence, and numeric progress.
+
 ## Production Gameplay UI V2 presentation boundary
 
 - `GameplayHudLayer` remains a `CanvasLayer` outside the table transform. Its `SafeHudMargin/HudShell/HudRows` tree owns all top-HUD layout through containers; it consumes only `GameController.hud_snapshot()` and emits existing intent signals.

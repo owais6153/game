@@ -15,16 +15,22 @@ const COLOR_TEAL := Color("1699a5")
 const COLOR_TEAL_DARK := Color("08727e")
 const COLOR_GOLD := Color("f4ae32")
 const COLOR_GOLD_LIGHT := Color("ffd46d")
+const COLOR_PURPLE_DEEP := Color("35134f")
+const COLOR_PURPLE_DARK := Color("4b1d78")
+const COLOR_PURPLE := Color("6f35a5")
+const COLOR_PURPLE_LIGHT := Color("9259c2")
+const COLOR_LAVENDER := Color("d8c0ee")
+const COLOR_LAVENDER_LIGHT := Color("f0e3fb")
 const COLOR_TEXT := Color("5f3923")
 const COLOR_TEXT_MUTED := Color("986650")
-const COLOR_TRACK := Color("cbb89b")
+const COLOR_TRACK := Color("32134b")
 const COLOR_DISABLED := Color("b9afa1")
 const COLOR_OVERLAY := Color(0.025, 0.04, 0.06, 0.64)
 
 const HUD_MARGIN := 24
 const HUD_NARROW_MARGIN := 16
 const SAFE_INSET_PADDING := 10
-const ROW_GAP := 10
+const ROW_GAP := 12
 const ITEM_GAP := 8
 const PANEL_PADDING := 16
 const HUD_SHELL_PADDING := 10
@@ -35,10 +41,15 @@ const PANEL_BORDER_WIDTH := 2
 const BUTTON_CORNER_RADIUS := 24
 const BUTTON_BORDER_WIDTH := 3
 const MIN_TOUCH_TARGET := 88.0
-const TARGET_TABLE_GAP := 46.0
+const TARGET_TABLE_GAP := 22.0
 const HUD_ICON_SIZE := 58.0
 const TARGET_ICON_SIZE := 72.0
-const NEXT_ICON_SIZE := 68.0
+const NEXT_ICON_SIZE := 58.0
+const HEADER_HEIGHT := 146.0
+const UTILITY_ROW_HEIGHT := 96.0
+const SCORE_PANEL_SIZE := Vector2(154.0, 86.0)
+const NEXT_PANEL_SIZE := Vector2(128.0, 96.0)
+const TARGET_PANEL_SIZE := Vector2(336.0, 112.0)
 
 const TITLE_FONT_SIZE := 42
 const POPUP_TITLE_FONT_SIZE := 40
@@ -100,11 +111,20 @@ static func hud_content_style() -> StyleBoxFlat:
 
 
 static func simple_hud_panel_style() -> StyleBoxFlat:
-	return _rounded_style(Color(1.0, 0.984, 0.93, 0.97), Color("e5b74f"), 2, 22, 5, Color(0.10, 0.20, 0.22, 0.22))
+	return _rounded_style(Color(1.0, 0.985, 0.95, 0.97), COLOR_LAVENDER, 2, 22, 5, Color(0.10, 0.03, 0.18, 0.24))
+
+
+static func secondary_hud_panel_style() -> StyleBoxFlat:
+	var style := _rounded_style(Color(1.0, 0.985, 0.95, 0.97), COLOR_LAVENDER, 2, 24, 6, Color(0.10, 0.03, 0.18, 0.25))
+	style.content_margin_left = 14.0
+	style.content_margin_top = 10.0
+	style.content_margin_right = 14.0
+	style.content_margin_bottom = 10.0
+	return style
 
 
 static func hud_shell_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(1.0, 0.982, 0.93, 0.90), Color("f1bd4a"), 2, 30, 7, Color(0.02, 0.12, 0.16, 0.22))
+	var style := _rounded_style(COLOR_PURPLE_DARK, COLOR_LAVENDER, 2, 30, 8, Color(0.08, 0.02, 0.15, 0.34))
 	style.content_margin_left = HUD_SHELL_PADDING
 	style.content_margin_top = HUD_SHELL_PADDING
 	style.content_margin_right = HUD_SHELL_PADDING
@@ -113,11 +133,23 @@ static func hud_shell_style() -> StyleBoxFlat:
 
 
 static func target_panel_style() -> StyleBoxFlat:
-	return _rounded_style(Color(1.0, 0.985, 0.92, 0.99), COLOR_GOLD, 3, 24, 7, Color(0.18, 0.08, 0.02, 0.25))
+	var style := _rounded_style(COLOR_PURPLE, COLOR_LAVENDER_LIGHT, 3, 28, 9, Color(0.08, 0.01, 0.14, 0.38))
+	style.content_margin_left = 0.0
+	style.content_margin_top = 0.0
+	style.content_margin_right = 0.0
+	style.content_margin_bottom = 0.0
+	return style
+
+
+static func target_badge_style() -> StyleBoxFlat:
+	var style := _rounded_style(COLOR_PURPLE_DEEP, COLOR_LAVENDER, 2, 18, 4, Color(0.07, 0.01, 0.12, 0.30))
+	style.content_margin_left = 14.0
+	style.content_margin_right = 14.0
+	return style
 
 
 static func utility_frame_style() -> StyleBoxFlat:
-	return _rounded_style(Color(1.0, 0.985, 0.94, 0.94), Color("e5b74f"), 2, 22, 4, Color(0.08, 0.18, 0.20, 0.20))
+	return _rounded_style(COLOR_PURPLE_DARK, COLOR_LAVENDER, 2, 44, 5, Color(0.06, 0.01, 0.12, 0.32))
 
 
 static func setting_row_style() -> StyleBoxFlat:
@@ -159,7 +191,7 @@ static func continue_card_style() -> StyleBoxFlat:
 
 
 static func progression_panel_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(1.0, 0.976, 0.91, 0.96), Color("e5b74f"), 2, 22, 5, Color(0.10, 0.20, 0.22, 0.22))
+	var style := _rounded_style(Color.TRANSPARENT, Color.TRANSPARENT, 0, 22, 0, Color.TRANSPARENT)
 	style.content_margin_left = 9.0
 	style.content_margin_top = 8.0
 	style.content_margin_right = 9.0
@@ -168,7 +200,7 @@ static func progression_panel_style() -> StyleBoxFlat:
 
 
 static func level_badge_style() -> StyleBoxFlat:
-	var style := _rounded_style(COLOR_CORAL, COLOR_GOLD_LIGHT, 3, 22, 5, Color(0.24, 0.10, 0.04, 0.22))
+	var style := _rounded_style(COLOR_PURPLE_LIGHT, COLOR_LAVENDER_LIGHT, 2, 22, 5, Color(0.06, 0.01, 0.12, 0.30))
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	return style
@@ -179,11 +211,11 @@ static func progression_style(border: Color, border_width: int, background: Colo
 
 
 static func progress_background_style() -> StyleBoxFlat:
-	return _rounded_style(COLOR_TRACK, Color("a98d68"), 1, 6, 0, Color.TRANSPARENT)
+	return _rounded_style(COLOR_TRACK, COLOR_LAVENDER, 1, 6, 0, Color.TRANSPARENT)
 
 
 static func progress_fill_style() -> StyleBoxFlat:
-	return _rounded_style(COLOR_CORAL, Color(0, 0, 0, 0), 0, 6, 0, Color.TRANSPARENT)
+	return _rounded_style(COLOR_GOLD_LIGHT, Color(0, 0, 0, 0), 0, 6, 0, Color.TRANSPARENT)
 
 
 static func fail_badge_style() -> StyleBoxFlat:
@@ -226,11 +258,11 @@ static func _configure_primary_button(target_theme: Theme, theme_type: StringNam
 	target_theme.set_color("font_pressed_color", theme_type, Color.WHITE)
 	target_theme.set_color("font_focus_color", theme_type, Color.WHITE)
 	target_theme.set_color("font_disabled_color", theme_type, Color(1, 1, 1, 0.70))
-	target_theme.set_color("font_outline_color", theme_type, COLOR_CORAL_DARK)
+	target_theme.set_color("font_outline_color", theme_type, COLOR_PURPLE_DEEP)
 	target_theme.set_constant("outline_size", theme_type, 4)
-	target_theme.set_stylebox("normal", theme_type, _button_style(COLOR_CORAL, COLOR_CORAL_DARK, 7))
-	target_theme.set_stylebox("hover", theme_type, _button_style(COLOR_CORAL_LIGHT, COLOR_CORAL_DARK, 9))
-	target_theme.set_stylebox("pressed", theme_type, _button_style(COLOR_CORAL_DARK, Color("b43d37"), 3))
+	target_theme.set_stylebox("normal", theme_type, _button_style(COLOR_PURPLE, COLOR_LAVENDER, 7))
+	target_theme.set_stylebox("hover", theme_type, _button_style(COLOR_PURPLE_LIGHT, COLOR_LAVENDER_LIGHT, 9))
+	target_theme.set_stylebox("pressed", theme_type, _button_style(COLOR_PURPLE_DARK, COLOR_PURPLE_DEEP, 3))
 	target_theme.set_stylebox("disabled", theme_type, _button_style(COLOR_DISABLED, Color("91877a"), 0))
 	target_theme.set_stylebox("focus", theme_type, _focus_style())
 
@@ -238,16 +270,16 @@ static func _configure_primary_button(target_theme: Theme, theme_type: StringNam
 static func _configure_secondary_button(target_theme: Theme, theme_type: StringName) -> void:
 	target_theme.set_font("font", theme_type, font())
 	target_theme.set_font_size("font_size", theme_type, BUTTON_FONT_SIZE)
-	target_theme.set_color("font_color", theme_type, COLOR_CORAL_DARK)
-	target_theme.set_color("font_hover_color", theme_type, COLOR_CORAL_DARK)
+	target_theme.set_color("font_color", theme_type, COLOR_PURPLE_DARK)
+	target_theme.set_color("font_hover_color", theme_type, COLOR_PURPLE_DARK)
 	target_theme.set_color("font_pressed_color", theme_type, Color.WHITE)
-	target_theme.set_color("font_focus_color", theme_type, COLOR_CORAL_DARK)
+	target_theme.set_color("font_focus_color", theme_type, COLOR_PURPLE_DARK)
 	target_theme.set_color("font_disabled_color", theme_type, COLOR_DISABLED)
 	target_theme.set_color("font_outline_color", theme_type, Color(1, 1, 1, 0.75))
 	target_theme.set_constant("outline_size", theme_type, 2)
-	target_theme.set_stylebox("normal", theme_type, _button_style(COLOR_CREAM, COLOR_CORAL, 5))
-	target_theme.set_stylebox("hover", theme_type, _button_style(Color("fffdf5"), COLOR_CORAL_LIGHT, 7))
-	target_theme.set_stylebox("pressed", theme_type, _button_style(COLOR_CORAL, COLOR_CORAL_DARK, 2))
+	target_theme.set_stylebox("normal", theme_type, _button_style(COLOR_CREAM, COLOR_PURPLE, 5))
+	target_theme.set_stylebox("hover", theme_type, _button_style(Color("fffdf5"), COLOR_PURPLE_LIGHT, 7))
+	target_theme.set_stylebox("pressed", theme_type, _button_style(COLOR_PURPLE, COLOR_PURPLE_DARK, 2))
 	target_theme.set_stylebox("disabled", theme_type, _button_style(Color("ece7de"), COLOR_DISABLED, 0))
 	target_theme.set_stylebox("focus", theme_type, _focus_style())
 

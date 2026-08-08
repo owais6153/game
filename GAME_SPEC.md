@@ -1,5 +1,14 @@
 # Game Spec — Clean Contact Merge v1
 
+## Purple Production HUD v1
+
+- Gameplay uses a rich purple native-control HUD: one dominant MERGE PATH header, a compact Coins/Next utility row, and one independent Target card anchored immediately above the unchanged table.
+- The header keeps Level at the left and the existing Settings icon inside a circular purple frame at the right. All eight generated path gems remain visible and ordered.
+- Target identity is artwork-only. Gem names and gem-name tooltips are forbidden because they overflow narrow portrait layouts; sequence and authoritative numeric quantity progress remain visible.
+- Coins and Next are deliberately smaller than Target. The open tropical space between the utility row and table-adjacent Target is intentional and responsive across safe areas/aspect ratios.
+- Panels, borders, progress fills, typography, and press/refresh motion use native Godot controls, `StyleBoxFlat`, and bounded tweens. No raster panel asset was introduced.
+- This milestone is presentation-only. Board/table geometry, backgrounds, gem artwork, physics, launch, collision, merge, targets, progression, balance, rewards, and result qualification are unchanged.
+
 ## Production Gameplay UI Finalization V2
 
 - Gameplay presentation uses one safe-area top shell. Its first row integrates Level, the authoritative eight-gem MERGE PATH, and Settings; its second row balances Coins and Next around a larger central Target objective.

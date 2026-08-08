@@ -1,5 +1,13 @@
 # Art Direction
 
+## Purple Production HUD v1
+
+The gameplay HUD now uses deep aubergine and layered purple as its primary interface language, with lavender type and gold progress accents. MERGE PATH is a single strong header across the safe width; Level and the existing Settings icon are compact utilities inside that composition. The path gems retain their supplied silhouettes and remain free of decorative circles.
+
+Coins and Next are small secondary cream/purple surfaces beneath the header. Target is the only large objective card and floats directly above the coral table. It shows the target artwork, sequence, and numeric progress but no gem name or tooltip; this artwork-first treatment prevents portrait-width overflow.
+
+The tropical sky between utility row and Target is intentional breathing room. Surfaces, outlines, progress bars, and motion are native Godot UI treatments rather than raster panel art. Table, background, gem artwork, and gameplay geometry remain visually and mechanically unchanged.
+
 ## Production UI polish v4
 
 MERGE PATH is the first visual read and owns the full top width. Its eight gems must retain their individual source silhouettes; do not place them inside decorative circles that can make them look like different assets. Gold connectors remain secondary, and current-tier emphasis is a restrained scale/modulation change only.

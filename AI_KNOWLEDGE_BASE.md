@@ -1,5 +1,14 @@
 # AI Knowledge Base
 
+## Purple Production HUD v1 guardrails
+
+- Preserve the current composition: dominant purple MERGE PATH header; compact Coins left and Next right; independent Target card immediately above the table; Level left and circular Settings control right.
+- Never restore gem names or gem-name tooltips in gameplay HUD. Use authoritative artwork plus target sequence/numeric quantity progress so narrow portrait widths cannot overflow.
+- HUD layout may read centralized board-top geometry only to place the presentation anchor. It must not write geometry, duplicate progression, create board input, or alter physics/simulation coordinates.
+- Keep all eight generated path gems visible. Coins/Next must remain visually secondary to Target, and open tropical breathing room is intentional.
+- Use `UiDesignSystem`, native controls, `StyleBoxFlat`, and bounded tweens for this HUD. Do not introduce generated panel images or per-frame node/resource creation.
+- Run the production UI finalization, gameplay UI feel, clean-contact, and full regression/profile suites after changing this composition; refresh `reports/purple-production-hud-v1/` at the supported resolutions.
+
 ## Production Gameplay UI V2 guardrails
 
 - Preserve `SafeHudMargin/HudShell/HudRows`: Level/MERGE PATH/Settings belong to `ProgressionHeader`; Coins/Target/Next belong to `ScoreNextRow`; the target remains the expanding central objective.
