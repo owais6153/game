@@ -1,5 +1,17 @@
 # Game Spec — Clean Contact Merge v1
 
+## Light Glass Gameplay HUD v1
+
+This presentation milestone supersedes the purple gameplay HUD composition while preserving all gameplay rules.
+
+- Top utility layout is Coins left / Next right, with Level below Coins and Settings below Next.
+- The `MERGE PATH` title is not rendered. The eight authoritative progression gems remain visible, ordered, and centered directly above Target.
+- Target is centered directly above the table and follows the authoritative `GameConfig.board_top()` layout rather than a fixed phone-specific Y coordinate.
+- Gameplay HUD surfaces use a light cyan/blue StyleBoxFancy glass language derived from the addon demo Panel8: translucent gradients, squircle corners, layered highlight/rim borders, and soft shadows.
+- Buttons and Pause use the same glass family. True backdrop blur is excluded for mobile GL Compatibility safety; the frosted appearance is achieved without sampling gameplay pixels.
+- Background, table, board geometry, gems, physics, launcher, collisions, merges, targets, progression rules, score/rewards, audio/haptics, danger, and results qualification are unchanged.
+
+
 ## Transparent Purple Glass HUD v1
 
 This presentation patch supersedes the surface colors in Professional Glass HUD v1 while preserving its composition.

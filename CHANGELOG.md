@@ -1,5 +1,16 @@
 # Changelog
 
+# Light Glass Gameplay HUD v1 — 2026-08-08
+
+- Reworked gameplay HUD composition to keep Coins top-left, Next top-right, Level below Coins, and Settings below Next.
+- Removed the `MERGE PATH` heading and moved the eight-gem progression strip directly above the Target card.
+- Moved Target to a responsive table-adjacent anchor derived from `GameConfig.board_top()`; table/background/gameplay geometry are unchanged.
+- Replaced purple gameplay HUD surfaces with light cyan/blue StyleBoxFancy glass surfaces derived from the addon demo Panel8 language: squircle corners, translucent gradients, layered cyan rim/highlight, and soft blue shadows.
+- Applied the same glass visual language to primary/secondary buttons and the Pause modal.
+- True framebuffer/backdrop blur was intentionally not added: StyleBoxFancy does not blur underlying pixels, and a screen-sampling blur shader would add GL Compatibility/mobile risk. The implementation uses translucent layered gradients and highlights as a performant frosted-glass approximation.
+- No gameplay, physics, merge, target, score, audio, table, background, or gem behavior was changed.
+
+
 ## 2026-08-08 - Transparent Purple Glass HUD v1
 
 - Retinted the professional header, path tray, Coins, Target, and Next surfaces into visibly translucent purple glass so tropical scenery subtly shows through.
@@ -406,3 +417,17 @@
 - Bottom-anchored the shared table, rails, launcher, danger line, and collision model as one reference-aligned composition.
 - Added visual-only tier growth, stronger depth perspective, stable front/back occlusion, and Level 1 silhouette variety.
 - Deferred target completion until its merge result has visibly completed presentation, preventing the win overlay from hiding the final gem.
+
+## 2026-08-08 - HUD Alignment Fix
+- Fixed the light glass HUD alignment after device testing.
+- Forced the top HUD column, utility row, status row, objective stack, progression center, and target anchor to expand to the full design width so left/right and centered placements resolve correctly.
+- Coins/Level remain on the left; Next/Settings now resolve against the right edge instead of collapsing beside the left group.
+- Merge progression and Target now center against the full gameplay width/table rather than a minimum-width container.
+- Increased Target-to-table clearance from 16 to 28 design pixels to prevent the glass card/shadow from visually overlapping the table frame.
+- No gameplay, table geometry, physics, merge rules, target rules, scoring, or asset changes.
+
+## 2026-08-08 - HUD Alignment Fix v3
+- Fixed runtime HUD containers collapsing to minimum width on portrait layouts.
+- Header now uses explicit 720px design-canvas geometry so Coins/Level stay left and Next/Settings stay right.
+- Gameplay objective anchor now also spans the full 720px design canvas, centering merge progression and Target over the table.
+- Preserved safe-area margins, responsive scale, table geometry, gameplay logic, and the light glass StyleBoxFancy visual system.

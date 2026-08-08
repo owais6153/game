@@ -1,5 +1,12 @@
 # Current State
 
+# Light Glass Gameplay HUD v1 — Current Presentation
+
+The gameplay HUD now uses a light cyan/blue frosted-glass presentation. Coins and Next occupy the top left/right row; Level and Settings sit directly beneath them. The former `MERGE PATH` heading is removed. The authoritative eight-gem progression strip is centered immediately above Target, and Target is centered immediately above the unchanged table using `GameConfig.board_top()` as the responsive placement authority.
+
+HUD panels and buttons use `StyleBoxFancy` squircle geometry with translucent gradients, layered cyan/white rim highlights, and soft blue shadows. This is a mobile-safe glassmorphism approximation; there is no framebuffer blur or screen-sampling shader. All gameplay rules and table geometry remain unchanged.
+
+
 **Current UI patch:** Transparent Purple Glass HUD v1 (2026-08-08). The professional HUD composition is preserved, but its header, path tray, and Coins/Target/Next surfaces now use visibly translucent purple glass instead of pale near-opaque cards. White outlined values and lavender rims keep the supplied gems and numeric progress readable while tropical scenery subtly shows through. No gem names/tooltips or gameplay/table behavior changed. Source: `adab9e8813d8bc7b20b7e7023e2a4870e6b469e9` / `transparent-purple-glass-hud-v1-source`. APK: `build/android/transparent-purple-glass-hud-v1.apk` (122,882,166 bytes; SHA-256 `6BE8A23787D9187D86E2A9BD66E0504C3FF30793037F2B3916D4007C82248966`). All seven suites, motion profile, captures, package audit, and v2/v3 signatures pass. The ADB query timed out, so phone testing is not claimed. Evidence and provenance are in `reports/TRANSPARENT_PURPLE_GLASS_HUD_V1_REPORT.md` and `reports/transparent-purple-glass-hud-v1/`.
 
 **Current milestone:** Professional Glass HUD v1 (2026-08-08). The prior flat/detached purple composition is replaced by one cohesive game-ready system inspired by the supplied visual direction: a beveled translucent purple Level/MERGE PATH/Settings header, a light glass path tray, and one aligned Coins/Target/Next objective row. Gem names/tooltips remain removed. Source: `7b0d18467a6a4bcf506b099d63bd04c36ae759b7` / `professional-glass-hud-v1-source`. APK: `build/android/professional-glass-hud-v1.apk` (122,882,166 bytes; SHA-256 `92F5D1E85CF2710C44D6AAD0640987A65CD5E7560A33CFDAD024F61C5C60AF3D`). All seven regression suites, motion profile, responsive/state captures, package audit, and APK v2/v3 signature audit pass. The final ADB query did not complete, so no phone testing is claimed. Evidence and provenance are in `reports/PROFESSIONAL_GLASS_HUD_V1_REPORT.md` and `reports/professional-glass-hud-v1/`.
@@ -185,3 +192,9 @@ Delivered from build source commit `5125a4c238d1c9963cad8d185d68491910892623` an
 # Current milestone: Complete Perspective View & Variety v1
 
 The project now uses a fully bottom-anchored table transform with perspective-only gem depth, fixed tier presentation growth, stable Y/ID occlusion, varied Level 1 source silhouettes, and result-presented target counting. Simulation and calibrated colliders remain unchanged. See `reports/COMPLETE_PERSPECTIVE_VIEW_VARIETY_V1_REPORT.md`.
+
+## HUD alignment correction - 2026-08-08
+The light glass HUD now explicitly expands its horizontal container chain to the full 720 design width. Coins/Level are left aligned, Next/Settings are right aligned, and the merge progression + Target stack is centered over the table. Target-to-table visual clearance is 28 design pixels to account for the StyleBoxFancy glass shadow. Gameplay/table geometry remains unchanged.
+
+### HUD alignment correction (2026-08-08)
+The light glass gameplay HUD now forces both the utility header and gameplay objective anchor to the full 720px design width before applying safe-area margins. This fixes the observed runtime collapse where Next/Settings and the centered progression/Target stack were pulled toward the upper-left. Expected layout: Coins top-left, Next top-right, Level below Coins, Settings below Next, progression centered above Target, and Target centered immediately above the table.

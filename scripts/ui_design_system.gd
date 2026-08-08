@@ -25,11 +25,21 @@ const COLOR_LAVENDER_LIGHT := Color("f0e3fb")
 const COLOR_GLASS := Color(0.34, 0.12, 0.56, 0.76)
 const COLOR_GLASS_SOFT := Color(0.54, 0.30, 0.74, 0.62)
 const COLOR_GLASS_HIGHLIGHT := Color(0.94, 0.84, 1.0, 0.84)
-const COLOR_TEXT := Color("38233f")
-const COLOR_TEXT_MUTED := Color("986650")
+const COLOR_TEXT := Color("173451")
+const COLOR_TEXT_MUTED := Color("55758d")
 const COLOR_TRACK := Color(0.18, 0.12, 0.24, 0.34)
 const COLOR_DISABLED := Color("b9afa1")
-const COLOR_OVERLAY := Color(0.025, 0.04, 0.06, 0.64)
+const COLOR_OVERLAY := Color(0.025, 0.04, 0.06, 0.56)
+
+# Light frosted-glass gameplay palette, adapted from StyleBoxFancy demo Panel8.
+const COLOR_BLUE_DEEP := Color("123f78")
+const COLOR_BLUE := Color("3f9ed8")
+const COLOR_BLUE_LIGHT := Color("9de8fb")
+const COLOR_BLUE_PALE := Color("eafaff")
+const COLOR_GLASS_WHITE := Color(0.97, 0.995, 1.0, 0.78)
+const COLOR_GLASS_BLUE := Color(0.60, 0.90, 0.98, 0.72)
+const COLOR_GLASS_BORDER := Color(0.78, 0.95, 1.0, 0.88)
+const COLOR_GLASS_SHADOW := Color(0.04, 0.18, 0.34, 0.28)
 
 const HUD_MARGIN := 24
 const HUD_NARROW_MARGIN := 16
@@ -45,14 +55,21 @@ const PANEL_BORDER_WIDTH := 2
 const BUTTON_CORNER_RADIUS := 24
 const BUTTON_BORDER_WIDTH := 3
 const MIN_TOUCH_TARGET := 88.0
-const TARGET_TABLE_GAP := 22.0
+const TARGET_TABLE_GAP := 28.0
 const HUD_ICON_SIZE := 58.0
+const PROGRESSION_ICON_SIZE := 48.0
 const TARGET_ICON_SIZE := 72.0
-const NEXT_ICON_SIZE := 58.0
+const NEXT_ICON_SIZE := 52.0
 const HEADER_HEIGHT := 172.0
 const UTILITY_ROW_HEIGHT := 116.0
-const SCORE_PANEL_SIZE := Vector2(156.0, 112.0)
-const NEXT_PANEL_SIZE := Vector2(132.0, 112.0)
+const TOP_UTILITY_HEIGHT := 96.0
+const TOP_STATUS_HEIGHT := 64.0
+const TOP_ROW_GAP := 8.0
+const TOP_HUD_HEIGHT := TOP_UTILITY_HEIGHT + TOP_STATUS_HEIGHT + TOP_ROW_GAP
+const PROGRESSION_HEIGHT := 54.0
+const OBJECTIVE_GAP := 14.0
+const SCORE_PANEL_SIZE := Vector2(156.0, 96.0)
+const NEXT_PANEL_SIZE := Vector2(132.0, 96.0)
 const TARGET_PANEL_SIZE := Vector2(336.0, 112.0)
 
 const TITLE_FONT_SIZE := 42
@@ -118,49 +135,77 @@ static func simple_hud_panel_style() -> StyleBoxFlat:
 	return _rounded_style(Color(1.0, 0.985, 0.95, 0.97), COLOR_LAVENDER, 2, 22, 5, Color(0.10, 0.03, 0.18, 0.24))
 
 
-static func secondary_hud_panel_style() -> StyleBox:
+static func _glass_gradient(top: Color, bottom: Color) -> GradientTexture2D:
+	var gradient := Gradient.new()
+	gradient.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CUBIC
+	gradient.offsets = PackedFloat32Array([0.0, 0.52, 1.0])
+	gradient.colors = PackedColorArray([top, top.lerp(bottom, 0.38), bottom])
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill_from = Vector2(0.5, 0.0)
+	texture.fill_to = Vector2(0.5, 1.0)
+	return texture
+
+
+static func _glass_highlight_texture() -> GradientTexture2D:
+	var gradient := Gradient.new()
+	gradient.offsets = PackedFloat32Array([0.0, 0.42, 1.0])
+	gradient.colors = PackedColorArray([Color(1, 1, 1, 0.88), Color(1, 1, 1, 0.30), Color(1, 1, 1, 0.0)])
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill_from = Vector2(0.5, 0.0)
+	texture.fill_to = Vector2(0.5, 1.0)
+	return texture
+
+
+static func _frosted_glass_style(top: Color, bottom: Color, radius: int, border_width: int = 2, strong_shadow: bool = false, gloss: bool = true) -> StyleBox:
+	# StyleBoxFancy cannot blur the framebuffer by itself. This uses translucent
+	# layered gradients, a bright rim and soft shadow to create a mobile-safe
+	# frosted-glass approximation without a screen-sampling shader.
 	var style := StyleBoxFancy.new()
-	style.color = COLOR_GLASS
-	style.set_corner_radius_all(28)
-	style.set_corner_curvature_all(1.8)  # Strong squircle for premium look
+	style.color = Color.WHITE
+	style.texture = _glass_gradient(top, bottom)
+	style.set_corner_radius_all(radius)
+	style.set_corner_curvature_all(2.0) # Panel8 squircle curvature.
 	style.shadow_enabled = true
-	style.shadow_color = Color(0.08, 0.02, 0.15, 0.45)
-	style.shadow_blur = 12
+	style.shadow_color = COLOR_GLASS_SHADOW if not strong_shadow else Color(0.04, 0.16, 0.32, 0.38)
+	style.shadow_blur = 9 if not strong_shadow else 13
 	style.shadow_offset = Vector2(0.0, 4.0)
+	style.shadow_spread = Vector2(1.0, 1.0)
 	style.anti_aliasing = true
-	style.anti_aliasing_size = 2
-	var border := StyleBorder.new()
-	border.color = Color(0.95, 0.88, 1.0, 1.0)
-	border.width_left = 2
-	border.width_top = 2
-	border.width_right = 2
-	border.width_bottom = 2
-	style.borders.append(border)
+	style.anti_aliasing_size = 1.5
+	var rim := StyleBorder.new()
+	rim.color = COLOR_GLASS_BORDER
+	rim.blend = true
+	rim.width_left = border_width
+	rim.width_top = border_width
+	rim.width_right = border_width
+	rim.width_bottom = border_width
+	style.borders.append(rim)
+	if gloss:
+		var highlight := StyleBorder.new()
+		highlight.color = Color.WHITE
+		highlight.blend = true
+		highlight.texture = _glass_highlight_texture()
+		highlight.ignore_stack = true
+		highlight.width_top = 16
+		highlight.inset_left = 5
+		highlight.inset_right = 5
+		style.borders.append(highlight)
+	return style
+
+
+static func secondary_hud_panel_style() -> StyleBox:
+	var style := _frosted_glass_style(Color(0.98, 1.0, 1.0, 0.82), Color(0.72, 0.92, 0.98, 0.74), 26, 2, false, true)
 	style.content_margin_left = 14.0
-	style.content_margin_top = 9.0
+	style.content_margin_top = 7.0
 	style.content_margin_right = 14.0
-	style.content_margin_bottom = 9.0
+	style.content_margin_bottom = 7.0
 	return style
 
 
 static func hud_shell_style() -> StyleBox:
-	var style := StyleBoxFancy.new()
-	style.color = Color(0.22, 0.05, 0.40, 0.87)
-	style.set_corner_radius_all(36)
-	style.set_corner_curvature_all(1.9)  # Premium squircle
-	style.shadow_enabled = true
-	style.shadow_color = Color(0.04, 0.00, 0.08, 0.55)
-	style.shadow_blur = 16
-	style.shadow_offset = Vector2(0.0, 5.0)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 2
-	var border := StyleBorder.new()
-	border.color = Color(0.95, 0.90, 1.0, 1.0)
-	border.width_left = 3
-	border.width_top = 3
-	border.width_right = 3
-	border.width_bottom = 3
-	style.borders.append(border)
+	var style := _frosted_glass_style(Color(1.0, 1.0, 1.0, 0.72), Color(0.82, 0.95, 1.0, 0.66), 34, 2, true, true)
 	style.content_margin_left = HUD_SHELL_PADDING
 	style.content_margin_top = HUD_SHELL_PADDING
 	style.content_margin_right = HUD_SHELL_PADDING
@@ -169,71 +214,24 @@ static func hud_shell_style() -> StyleBox:
 
 
 static func progression_inset_style() -> StyleBox:
-	var style := StyleBoxFancy.new()
-	style.color = Color(0.62, 0.40, 0.80, 0.65)
-	style.set_corner_radius_all(28)
-	style.set_corner_curvature_all(1.7)  # Smooth squircle
-	style.shadow_enabled = true
-	style.shadow_color = Color(0.03, 0.00, 0.06, 0.38)
-	style.shadow_blur = 8
-	style.shadow_offset = Vector2(0.0, 3.5)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 2
-	var border := StyleBorder.new()
-	border.color = Color(0.93, 0.88, 1.0, 0.99)
-	border.width_left = 2
-	border.width_top = 2
-	border.width_right = 2
-	border.width_bottom = 2
-	style.borders.append(border)
-	style.content_margin_left = 12.0
-	style.content_margin_top = 5.0
-	style.content_margin_right = 12.0
-	style.content_margin_bottom = 5.0
+	var style := _frosted_glass_style(Color(1.0, 1.0, 1.0, 0.56), Color(0.80, 0.95, 1.0, 0.52), 26, 1, false, false)
+	style.content_margin_left = 10.0
+	style.content_margin_top = 3.0
+	style.content_margin_right = 10.0
+	style.content_margin_bottom = 3.0
 	return style
 
 
 static func card_header_style() -> StyleBox:
-	var style := StyleBoxFancy.new()
-	style.color = Color(0.36, 0.10, 0.64, 0.94)
-	style.set_corner_radius_all(22)
-	style.set_corner_curvature_all(1.75)  # Elegant squircle
-	style.shadow_enabled = true
-	style.shadow_color = Color(0.05, 0.01, 0.10, 0.36)
-	style.shadow_blur = 6
-	style.shadow_offset = Vector2(0.0, 3.5)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 2
-	var border := StyleBorder.new()
-	border.color = Color(0.93, 0.88, 1.0, 0.99)
-	border.width_left = 2
-	border.width_top = 2
-	border.width_right = 2
-	border.width_bottom = 2
-	style.borders.append(border)
-	style.content_margin_left = 12.0
-	style.content_margin_right = 12.0
+	var style := _frosted_glass_style(Color(0.36, 0.78, 0.96, 0.92), Color(0.15, 0.48, 0.78, 0.92), 18, 1, false, true)
+	style.content_margin_left = 10.0
+	style.content_margin_right = 10.0
 	return style
 
 
 static func target_panel_style() -> StyleBox:
-	var style := StyleBoxFancy.new()
-	style.color = Color(0.32, 0.10, 0.54, 0.78)
-	style.set_corner_radius_all(32)
-	style.set_corner_curvature_all(1.85)  # Premium squircle for target
-	style.shadow_enabled = true
-	style.shadow_color = Color(0.06, 0.01, 0.12, 0.48)
-	style.shadow_blur = 14
-	style.shadow_offset = Vector2(0.0, 4.5)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 2
-	var border := StyleBorder.new()
-	border.color = Color(0.94, 0.88, 1.0, 1.0)
-	border.width_left = 3
-	border.width_top = 3
-	border.width_right = 3
-	border.width_bottom = 3
-	style.borders.append(border)
+	# Strongest Panel8-inspired surface: light cyan glass fading into clean blue.
+	var style := _frosted_glass_style(Color(0.89, 0.99, 1.0, 0.88), Color(0.39, 0.74, 0.94, 0.84), 30, 3, true, true)
 	style.content_margin_left = 0.0
 	style.content_margin_top = 0.0
 	style.content_margin_right = 0.0
@@ -242,53 +240,25 @@ static func target_panel_style() -> StyleBox:
 
 
 static func target_badge_style() -> StyleBox:
-	var style := StyleBoxFancy.new()
-	style.color = Color(0.32, 0.08, 0.58, 0.99)
-	style.set_corner_radius_all(22)
-	style.set_corner_curvature_all(1.8)  # Strong squircle
-	style.shadow_enabled = true
-	style.shadow_color = Color(0.05, 0.01, 0.10, 0.40)
-	style.shadow_blur = 8
-	style.shadow_offset = Vector2(0.0, 3.5)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 2
-	var border := StyleBorder.new()
-	border.color = COLOR_LAVENDER_LIGHT
-	border.width_left = 2
-	border.width_top = 2
-	border.width_right = 2
-	border.width_bottom = 2
-	style.borders.append(border)
+	var style := _frosted_glass_style(Color(0.30, 0.70, 0.94, 0.96), Color(0.09, 0.36, 0.68, 0.96), 20, 2, false, true)
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	return style
 
 
 static func utility_frame_style() -> StyleBox:
-	var style := StyleBoxFancy.new()
-	style.color = Color(0.30, 0.08, 0.53, 0.97)
-	style.set_corner_radius_all(52)
-	style.set_corner_curvature_all(1.65)  # Pill-like squircle
-	style.shadow_enabled = true
-	style.shadow_color = Color(0.04, 0.00, 0.08, 0.45)
-	style.shadow_blur = 10
-	style.shadow_offset = Vector2(0.0, 4.0)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 2
-	var border := StyleBorder.new()
-	border.color = COLOR_LAVENDER_LIGHT
-	border.width_left = 3
-	border.width_top = 3
-	border.width_right = 3
-	border.width_bottom = 3
-	style.borders.append(border)
+	return _frosted_glass_style(Color(0.98, 1.0, 1.0, 0.84), Color(0.69, 0.91, 0.98, 0.78), 32, 2, false, true)
+
+
+static func setting_row_style() -> StyleBox:
+	var style := _frosted_glass_style(Color(1.0, 1.0, 1.0, 0.72), Color(0.82, 0.95, 1.0, 0.62), 16, 1, false, false)
+	style.content_margin_left = 14.0
+	style.content_margin_right = 10.0
 	return style
 
 
-static func setting_row_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(1.0, 0.99, 0.96, 0.82), Color("ead39d"), 1, 16, 0, Color.TRANSPARENT)
-	style.content_margin_left = 14.0
-	style.content_margin_right = 10.0
+static func gameplay_modal_panel_style() -> StyleBox:
+	var style := _frosted_glass_style(Color(1.0, 1.0, 1.0, 0.90), Color(0.78, 0.94, 1.0, 0.84), 38, 3, true, true)
 	return style
 
 
@@ -323,33 +293,17 @@ static func continue_card_style() -> StyleBoxFlat:
 	return _rounded_style(Color("fffaf0"), Color("e7bd64"), 2, 24, 4, Color(0.10, 0.12, 0.15, 0.18))
 
 
-static func progression_panel_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color.TRANSPARENT, Color.TRANSPARENT, 0, 22, 0, Color.TRANSPARENT)
-	style.content_margin_left = 9.0
-	style.content_margin_top = 8.0
-	style.content_margin_right = 9.0
-	style.content_margin_bottom = 9.0
+static func progression_panel_style() -> StyleBox:
+	var style := _frosted_glass_style(Color(1.0, 1.0, 1.0, 0.42), Color(0.80, 0.95, 1.0, 0.34), 24, 1, false, false)
+	style.content_margin_left = 8.0
+	style.content_margin_top = 3.0
+	style.content_margin_right = 8.0
+	style.content_margin_bottom = 3.0
 	return style
 
 
 static func level_badge_style() -> StyleBox:
-	var style := StyleBoxFancy.new()
-	style.color = Color(0.43, 0.15, 0.76, 0.99)
-	style.set_corner_radius_all(24)
-	style.set_corner_curvature_all(1.8)  # Premium squircle
-	style.shadow_enabled = true
-	style.shadow_color = Color(0.04, 0.00, 0.08, 0.42)
-	style.shadow_blur = 8
-	style.shadow_offset = Vector2(0.0, 3.5)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 2
-	var border := StyleBorder.new()
-	border.color = Color("f3d67a")
-	border.width_left = 3
-	border.width_top = 3
-	border.width_right = 3
-	border.width_bottom = 3
-	style.borders.append(border)
+	var style := _frosted_glass_style(Color(0.98, 1.0, 1.0, 0.88), Color(0.65, 0.90, 0.98, 0.80), 22, 2, false, true)
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	return style
@@ -360,11 +314,11 @@ static func progression_style(border: Color, border_width: int, background: Colo
 
 
 static func progress_background_style() -> StyleBoxFlat:
-	return _rounded_style(COLOR_TRACK, Color(0.35, 0.20, 0.46, 0.42), 1, 6, 0, Color.TRANSPARENT)
+	return _rounded_style(Color(0.12, 0.32, 0.48, 0.18), Color(0.56, 0.86, 0.96, 0.62), 1, 6, 0, Color.TRANSPARENT)
 
 
 static func progress_fill_style() -> StyleBoxFlat:
-	return _rounded_style(COLOR_PURPLE_LIGHT, Color(0, 0, 0, 0), 0, 6, 0, Color.TRANSPARENT)
+	return _rounded_style(COLOR_BLUE, Color(0, 0, 0, 0), 0, 6, 0, Color.TRANSPARENT)
 
 
 static func fail_badge_style() -> StyleBoxFlat:
@@ -407,34 +361,41 @@ static func _configure_primary_button(target_theme: Theme, theme_type: StringNam
 	target_theme.set_color("font_pressed_color", theme_type, Color.WHITE)
 	target_theme.set_color("font_focus_color", theme_type, Color.WHITE)
 	target_theme.set_color("font_disabled_color", theme_type, Color(1, 1, 1, 0.70))
-	target_theme.set_color("font_outline_color", theme_type, COLOR_PURPLE_DEEP)
-	target_theme.set_constant("outline_size", theme_type, 4)
-	target_theme.set_stylebox("normal", theme_type, _button_style(COLOR_PURPLE, COLOR_LAVENDER, 7))
-	target_theme.set_stylebox("hover", theme_type, _button_style(COLOR_PURPLE_LIGHT, COLOR_LAVENDER_LIGHT, 9))
-	target_theme.set_stylebox("pressed", theme_type, _button_style(COLOR_PURPLE_DARK, COLOR_PURPLE_DEEP, 3))
-	target_theme.set_stylebox("disabled", theme_type, _button_style(COLOR_DISABLED, Color("91877a"), 0))
+	target_theme.set_color("font_outline_color", theme_type, COLOR_BLUE_DEEP)
+	target_theme.set_constant("outline_size", theme_type, 3)
+	target_theme.set_stylebox("normal", theme_type, _button_style(false, false))
+	target_theme.set_stylebox("hover", theme_type, _button_style(false, true))
+	target_theme.set_stylebox("pressed", theme_type, _button_style(true, false))
+	target_theme.set_stylebox("disabled", theme_type, _button_style(true, false))
 	target_theme.set_stylebox("focus", theme_type, _focus_style())
 
 
 static func _configure_secondary_button(target_theme: Theme, theme_type: StringName) -> void:
+	# Secondary actions deliberately share the same glass language as primary
+	# buttons; only their fill is lighter so the modal hierarchy remains clear.
 	target_theme.set_font("font", theme_type, font())
 	target_theme.set_font_size("font_size", theme_type, BUTTON_FONT_SIZE)
-	target_theme.set_color("font_color", theme_type, COLOR_PURPLE_DARK)
-	target_theme.set_color("font_hover_color", theme_type, COLOR_PURPLE_DARK)
-	target_theme.set_color("font_pressed_color", theme_type, Color.WHITE)
-	target_theme.set_color("font_focus_color", theme_type, COLOR_PURPLE_DARK)
+	target_theme.set_color("font_color", theme_type, COLOR_BLUE_DEEP)
+	target_theme.set_color("font_hover_color", theme_type, COLOR_BLUE_DEEP)
+	target_theme.set_color("font_pressed_color", theme_type, COLOR_BLUE_DEEP)
+	target_theme.set_color("font_focus_color", theme_type, COLOR_BLUE_DEEP)
 	target_theme.set_color("font_disabled_color", theme_type, COLOR_DISABLED)
-	target_theme.set_color("font_outline_color", theme_type, Color(1, 1, 1, 0.75))
+	target_theme.set_color("font_outline_color", theme_type, Color(1, 1, 1, 0.76))
 	target_theme.set_constant("outline_size", theme_type, 2)
-	target_theme.set_stylebox("normal", theme_type, _button_style(COLOR_CREAM, COLOR_PURPLE, 5))
-	target_theme.set_stylebox("hover", theme_type, _button_style(Color("fffdf5"), COLOR_PURPLE_LIGHT, 7))
-	target_theme.set_stylebox("pressed", theme_type, _button_style(COLOR_PURPLE, COLOR_PURPLE_DARK, 2))
-	target_theme.set_stylebox("disabled", theme_type, _button_style(Color("ece7de"), COLOR_DISABLED, 0))
+	target_theme.set_stylebox("normal", theme_type, _button_style(true, false))
+	target_theme.set_stylebox("hover", theme_type, _button_style(true, true))
+	target_theme.set_stylebox("pressed", theme_type, _button_style(false, false))
+	target_theme.set_stylebox("disabled", theme_type, _button_style(true, false))
 	target_theme.set_stylebox("focus", theme_type, _focus_style())
 
 
-static func _button_style(background: Color, border: Color, shadow_size: int) -> StyleBoxFlat:
-	var style := _rounded_style(background, border, BUTTON_BORDER_WIDTH, BUTTON_CORNER_RADIUS, shadow_size, Color(0.28, 0.10, 0.04, 0.24))
+static func _button_style(light: bool, hover: bool) -> StyleBox:
+	var top := Color(0.98, 1.0, 1.0, 0.90) if light else Color(0.39, 0.80, 0.97, 0.96)
+	var bottom := Color(0.68, 0.91, 0.98, 0.84) if light else Color(0.11, 0.43, 0.75, 0.96)
+	if hover:
+		top = top.lightened(0.06)
+		bottom = bottom.lightened(0.08)
+	var style := _frosted_glass_style(top, bottom, BUTTON_CORNER_RADIUS, BUTTON_BORDER_WIDTH, true, true)
 	style.content_margin_left = 24.0
 	style.content_margin_right = 24.0
 	style.content_margin_top = 12.0
@@ -443,7 +404,7 @@ static func _button_style(background: Color, border: Color, shadow_size: int) ->
 
 
 static func _focus_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color.TRANSPARENT, COLOR_GOLD_LIGHT, 4, BUTTON_CORNER_RADIUS + 2, 0, Color.TRANSPARENT)
+	var style := _rounded_style(Color.TRANSPARENT, COLOR_BLUE_LIGHT, 4, BUTTON_CORNER_RADIUS + 2, 0, Color.TRANSPARENT)
 	style.expand_margin_left = 4.0
 	style.expand_margin_top = 4.0
 	style.expand_margin_right = 4.0

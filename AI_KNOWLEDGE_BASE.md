@@ -1,5 +1,16 @@
 # AI Knowledge Base
 
+## 2026-08-08 — Light Glass Gameplay HUD v1
+
+- Do not restore the old purple gameplay HUD unless explicitly requested.
+- Current gameplay placement: Coins top-left, Next top-right, Level below Coins, Settings below Next; progression immediately above Target; Target immediately above the table.
+- `MERGE PATH` heading is intentionally removed; the eight progression gems/connectors remain.
+- `GameplayObjectiveAnchor` is table-relative and must continue to read `GameConfig.board_top()`; do not hardcode a device-specific target Y.
+- Gameplay glass surfaces come from `UiDesignSystem._frosted_glass_style()` using StyleBoxFancy, translucent cyan/blue gradients, squircle curvature, rim/highlight borders, and soft shadows.
+- There is intentionally no true backdrop blur/screen-sampling shader. Preserve the performant frosted-glass approximation unless a separately profiled mobile shader milestone is approved.
+- Buttons and Pause share the light glass style family. Gameplay/table/background/physics remain outside HUD scope.
+
+
 ## Transparent Purple Glass HUD v1 guardrails
 
 - Keep the professional composition and use visibly purple translucent surfaces: shell alpha no more than `0.86`; objective-card alpha no more than `0.78`; blue channel greater than red for the glass tint.
@@ -527,3 +538,9 @@ For L1-L18, use `assets/runtime/gems18/calibrated/` only through `AssetCatalog.G
 - The earlier visual-only Y perspective/tier growth has been removed because it created invisible collision gaps. Do not restore it without a separate static per-silhouette collider-calibration milestone.
 - Keep the table image, rails, launcher, drag clamp, spawn, and danger line in the shared `GameConfig` table transform.
 - Target merge IDs enter `pending_target_presentations`; only `_update_merge_presentations()` may count them and qualify victory.
+
+## HUD alignment invariant - 2026-08-08
+For `gameplay_hud_layer.gd`, do not remove the horizontal `SIZE_EXPAND_FILL` flags from TopHudColumn, UtilityRow, StatusRow, GameplayObjectiveStack, ProgressionCenter, or TargetSlot. They are required for correct Coins-left / Next-right / Level-left / Settings-right distribution and for centering progression + Target over the table. `TARGET_TABLE_GAP` is 28 design pixels to keep the Fancy glass shadow clear of the table frame.
+
+### 2026-08-08 HUD alignment lesson
+For dynamically-created gameplay HUD containers, keep `SafeHudMargin` and `GameplayObjectiveAnchor` explicitly 720 logical pixels wide. Apply device safe-area padding as MarginContainer theme margins inside that width. This ensures spacer-based left/right rows and CenterContainers resolve against the complete design canvas instead of collapsing to their minimum child width.

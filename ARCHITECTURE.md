@@ -1,5 +1,12 @@
 # Architecture
 
+## Light Glass HUD layout architecture — 2026-08-08
+
+`GameplayHudLayer` remains a snapshot-only `CanvasLayer`; no gameplay ownership moved into UI. The HUD now has two presentation regions: `SafeHudMargin` owns the compact two-row utility header, while `GameplayObjectiveAnchor` owns the progression/Target stack. `GameplayObjectiveAnchor` computes its vertical bounds from `GameConfig.board_top()` during safe-area refresh, keeping the objective group table-adjacent without modifying table coordinates.
+
+`UiDesignSystem` now centralizes light glass `StyleBoxFancy` construction. `_frosted_glass_style()` creates a translucent gradient surface, Panel8-style squircle curvature, layered rim/highlight `StyleBorder`s, and bounded shadow. This deliberately avoids framebuffer capture/backdrop blur shaders so Android GL Compatibility remains low risk. Button theme states and the gameplay Pause modal reuse the same glass family.
+
+
 ## Transparent purple glass presentation patch v1
 
 - `UiDesignSystem` owns the alpha-tinted purple glass colors for the existing header, path tray, secondary cards, and Target surface. Opacity and hue are cached style data; no new runtime node, frame callback, viewport capture, shader, or texture dependency is introduced.
@@ -343,3 +350,9 @@ Danger state is controller-owned and keyed by piece ID. It is cleared immediatel
 # Complete perspective view & variety v1
 
 `GameConfig` owns table landmarks and stable z-order. The prior depth math and tier display scales were removed by the visible-touch repair because they did not have matching static collider calibration. `GameController` owns deferred target completion so overlay presentation cannot race the merge result.
+
+## Gameplay HUD container sizing note - 2026-08-08
+Dynamic HUD containers that rely on spacer-based left/right distribution or CenterContainer centering must set `size_flags_horizontal = Control.SIZE_EXPAND_FILL` through the full parent chain. Without this, VBox/HBox/CenterContainer nodes can collapse to minimum content width, causing the right-side utility controls and centered objective stack to bunch toward the left. The current gameplay HUD enforces expand-fill on the top column, utility/status rows, objective stack, progression center, and target anchor.
+
+### Runtime HUD width rule
+`GameplayHudLayer` uses a 720px logical design canvas. Runtime `MarginContainer` roots for the top HUD and gameplay objective stack must be assigned explicit `offset_right = UiDesignSystem.DESIGN_WIDTH` geometry before safe-area margins are applied. Do not rely only on anchor presets for these dynamically-created containers; before the first layout pass they can resolve to child minimum width and misalign right/center HUD elements.

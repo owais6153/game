@@ -19,6 +19,8 @@ signal vibration_toggled(enabled: bool)
 var root_control: Control
 var hud_canvas: Control
 var hud_margin: MarginContainer
+var gameplay_stack_anchor: MarginContainer
+var gameplay_stack: VBoxContainer
 var progression_center: CenterContainer
 var target_anchor: CenterContainer
 var score_panel: Control
@@ -387,59 +389,104 @@ func _build_hud() -> void:
 	hud_canvas.offset_bottom = GameConfig.VIEWPORT_SIZE.y
 	root_control.add_child(hud_canvas)
 
+	# Compact utility header: Coins/Next on the first row, Level/Settings below.
+	# The center remains intentionally open so the objective stack belongs to
+	# the table rather than to an oversized app-style header.
 	hud_margin = MarginContainer.new()
 	hud_margin.name = "SafeHudMargin"
 	hud_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_canvas.add_child(hud_margin)
-	hud_margin.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	hud_margin.offset_bottom = UiDesignSystemType.HEADER_HEIGHT + UiDesignSystemType.UTILITY_ROW_HEIGHT + UiDesignSystemType.ROW_GAP
-	var hud_column := VBoxContainer.new()
-	hud_column.name = "HudColumn"
-	hud_column.add_theme_constant_override("separation", UiDesignSystemType.ROW_GAP)
-	hud_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud_margin.add_child(hud_column)
-	var shell := PanelContainer.new()
-	shell.name = "HudShell"
-	shell.add_theme_stylebox_override("panel", UiDesignSystemType.hud_shell_style())
-	shell.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud_column.add_child(shell)
-	var rows := VBoxContainer.new()
-	rows.name = "HudRows"
-	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rows.add_theme_constant_override("separation", UiDesignSystemType.ROW_GAP)
-	shell.add_child(rows)
-
-	var main_row := CenterContainer.new()
-	main_row.name = "MainRow"
-	main_row.custom_minimum_size = Vector2(0.0, UiDesignSystemType.HEADER_HEIGHT - UiDesignSystemType.HUD_SHELL_PADDING * 2.0)
-	main_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rows.add_child(main_row)
-	progression_center = CenterContainer.new()
-	progression_center.name = "ProgressionCenter"
-	progression_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	progression_center.custom_minimum_size = Vector2(0.0, UiDesignSystemType.HEADER_HEIGHT - UiDesignSystemType.HUD_SHELL_PADDING * 2.0)
-	progression_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	main_row.add_child(progression_center)
-	progression_center.add_child(_build_progression_group())
+	# Use explicit design-canvas geometry instead of relying on anchors here.
+	# These controls are created before the first layout pass, and anchor-based
+	# sizing can otherwise collapse the runtime containers to their minimum width.
+	hud_margin.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	hud_margin.offset_left = 0.0
+	hud_margin.offset_top = 0.0
+	hud_margin.offset_right = UiDesignSystemType.DESIGN_WIDTH
+	hud_margin.offset_bottom = UiDesignSystemType.TOP_HUD_HEIGHT
+	var top_column := VBoxContainer.new()
+	top_column.name = "TopHudColumn"
+	top_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_column.add_theme_constant_override("separation", UiDesignSystemType.TOP_ROW_GAP)
+	top_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud_margin.add_child(top_column)
 
 	var utility_row := HBoxContainer.new()
 	utility_row.name = "UtilityRow"
-	utility_row.custom_minimum_size = Vector2(0.0, UiDesignSystemType.UTILITY_ROW_HEIGHT)
-	utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	utility_row.add_theme_constant_override("separation", 10)
+	utility_row.custom_minimum_size = Vector2(0.0, UiDesignSystemType.TOP_UTILITY_HEIGHT)
+	utility_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	utility_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud_column.add_child(utility_row)
+	top_column.add_child(utility_row)
 	score_panel = _build_score_panel()
 	utility_row.add_child(score_panel)
-	target_anchor = CenterContainer.new()
-	target_anchor.name = "TargetSlot"
-	target_anchor.custom_minimum_size = UiDesignSystemType.TARGET_PANEL_SIZE
-	target_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	utility_row.add_child(target_anchor)
-	target_panel = _build_target_panel()
-	target_anchor.add_child(target_panel)
+	var utility_spacer := Control.new()
+	utility_spacer.name = "UtilitySpacer"
+	utility_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	utility_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	utility_row.add_child(utility_spacer)
 	next_panel = _build_next_panel()
 	utility_row.add_child(next_panel)
+
+	var status_row := HBoxContainer.new()
+	status_row.name = "StatusRow"
+	status_row.custom_minimum_size = Vector2(0.0, UiDesignSystemType.TOP_STATUS_HEIGHT)
+	status_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top_column.add_child(status_row)
+	level_chip = _build_level_chip()
+	status_row.add_child(level_chip)
+	var status_spacer := Control.new()
+	status_spacer.name = "StatusSpacer"
+	status_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status_row.add_child(status_spacer)
+	var settings_frame := PanelContainer.new()
+	settings_frame.name = "SettingsFrame"
+	settings_frame.custom_minimum_size = Vector2(UiDesignSystemType.TOP_STATUS_HEIGHT, UiDesignSystemType.TOP_STATUS_HEIGHT)
+	settings_frame.add_theme_stylebox_override("panel", UiDesignSystemType.utility_frame_style())
+	settings_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status_row.add_child(settings_frame)
+	var settings_center := CenterContainer.new()
+	settings_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	settings_frame.add_child(settings_center)
+	settings_button = _build_settings_button()
+	settings_button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_STATUS_HEIGHT
+	settings_center.add_child(settings_button)
+
+	# Gameplay-adjacent objective stack. Its bottom edge is recalculated from
+	# GameConfig.board_top(), so the Merge Path + Target stay immediately above
+	# the actual table on taller portrait devices without moving table geometry.
+	gameplay_stack_anchor = MarginContainer.new()
+	gameplay_stack_anchor.name = "GameplayObjectiveAnchor"
+	gameplay_stack_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud_canvas.add_child(gameplay_stack_anchor)
+	# Keep the objective stack on the same explicit 720-wide design canvas as
+	# the table so CenterContainer truly centers progression/target over gameplay.
+	gameplay_stack_anchor.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	gameplay_stack_anchor.offset_left = 0.0
+	gameplay_stack_anchor.offset_right = UiDesignSystemType.DESIGN_WIDTH
+	gameplay_stack = VBoxContainer.new()
+	gameplay_stack.name = "GameplayObjectiveStack"
+	gameplay_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gameplay_stack.alignment = BoxContainer.ALIGNMENT_END
+	gameplay_stack.add_theme_constant_override("separation", UiDesignSystemType.OBJECTIVE_GAP)
+	gameplay_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gameplay_stack_anchor.add_child(gameplay_stack)
+	progression_center = CenterContainer.new()
+	progression_center.name = "ProgressionCenter"
+	progression_center.custom_minimum_size = Vector2(0.0, UiDesignSystemType.PROGRESSION_HEIGHT)
+	progression_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	progression_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gameplay_stack.add_child(progression_center)
+	progression_center.add_child(_build_progression_group())
+	target_anchor = CenterContainer.new()
+	target_anchor.name = "TargetSlot"
+	target_anchor.custom_minimum_size = Vector2(0.0, UiDesignSystemType.TARGET_PANEL_SIZE.y)
+	target_anchor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	target_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gameplay_stack.add_child(target_anchor)
+	target_panel = _build_target_panel()
+	target_anchor.add_child(target_panel)
 
 
 func _build_score_panel() -> Control:
@@ -470,9 +517,9 @@ func _build_score_panel() -> Control:
 	coin_icon.custom_minimum_size = Vector2(30.0, 30.0)
 	coin_icon.pivot_offset = Vector2(15.0, 15.0)
 	row.add_child(coin_icon)
-	score_label = _label("0", 38, Color.WHITE)
+	score_label = _label("0", 38, UiDesignSystemType.COLOR_BLUE_DEEP)
 	score_label.add_theme_constant_override("outline_size", 2)
-	score_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_PURPLE_DEEP)
+	score_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.82))
 	score_label.name = "CoinValue"
 	score_label.custom_minimum_size = Vector2(82.0, 40.0)
 	row.add_child(score_label)
@@ -510,65 +557,26 @@ func _build_next_panel() -> Control:
 func _build_progression_group() -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = "ProgressionPanel"
-	panel.custom_minimum_size = Vector2(0.0, UiDesignSystemType.HEADER_HEIGHT - UiDesignSystemType.HUD_SHELL_PADDING * 2.0)
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.custom_minimum_size = Vector2(0.0, UiDesignSystemType.PROGRESSION_HEIGHT)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.progression_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var group := VBoxContainer.new()
-	group.name = "ProgressionGroup"
-	group.alignment = BoxContainer.ALIGNMENT_CENTER
-	group.add_theme_constant_override("separation", UiDesignSystemType.SMALL_GAP)
-	group.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(group)
-	var heading_row := HBoxContainer.new()
-	heading_row.name = "ProgressionHeader"
-	heading_row.custom_minimum_size = Vector2(0.0, 48.0)
-	heading_row.add_theme_constant_override("separation", UiDesignSystemType.ITEM_GAP)
-	heading_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	group.add_child(heading_row)
-	level_chip = _build_level_chip()
-	heading_row.add_child(level_chip)
-	var heading := _label("MERGE PATH", 20, UiDesignSystemType.COLOR_LAVENDER_LIGHT)
-	heading.name = "ProgressionHeading"
-	heading.custom_minimum_size = Vector2(0.0, 44.0)
-	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	heading.add_theme_constant_override("outline_size", 2)
-	heading.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_PURPLE_DEEP)
-	heading_row.add_child(heading)
-	var settings_frame := PanelContainer.new()
-	settings_frame.name = "SettingsFrame"
-	settings_frame.custom_minimum_size = Vector2(88.0, 88.0)
-	settings_frame.add_theme_stylebox_override("panel", UiDesignSystemType.utility_frame_style())
-	settings_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	heading_row.add_child(settings_frame)
-	var settings_center := CenterContainer.new()
-	settings_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	settings_frame.add_child(settings_center)
-	settings_button = _build_settings_button()
-	settings_center.add_child(settings_button)
-	var path_surface := PanelContainer.new()
-	path_surface.name = "PathGlass"
-	path_surface.custom_minimum_size = Vector2(0.0, 58.0)
-	path_surface.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	path_surface.add_theme_stylebox_override("panel", UiDesignSystemType.progression_inset_style())
-	path_surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	group.add_child(path_surface)
 	var strip := HBoxContainer.new()
 	strip.name = "ProgressionStrip"
 	strip.alignment = BoxContainer.ALIGNMENT_CENTER
 	strip.add_theme_constant_override("separation", 0)
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	path_surface.add_child(strip)
+	panel.add_child(strip)
 	for tier in range(1, 9):
 		var frame := MarginContainer.new()
 		frame.name = "ProgressionSlot%d" % tier
-		frame.custom_minimum_size = Vector2(UiDesignSystemType.HUD_ICON_SIZE, UiDesignSystemType.HUD_ICON_SIZE)
-		frame.pivot_offset = Vector2.ONE * UiDesignSystemType.HUD_ICON_SIZE * 0.5
+		frame.custom_minimum_size = Vector2(UiDesignSystemType.PROGRESSION_ICON_SIZE, UiDesignSystemType.PROGRESSION_ICON_SIZE)
+		frame.pivot_offset = Vector2.ONE * UiDesignSystemType.PROGRESSION_ICON_SIZE * 0.5
 		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		frame.add_theme_constant_override("margin_left", 3)
-		frame.add_theme_constant_override("margin_top", 3)
-		frame.add_theme_constant_override("margin_right", 3)
-		frame.add_theme_constant_override("margin_bottom", 3)
+		frame.add_theme_constant_override("margin_left", 2)
+		frame.add_theme_constant_override("margin_top", 2)
+		frame.add_theme_constant_override("margin_right", 2)
+		frame.add_theme_constant_override("margin_bottom", 2)
 		var icon := _gem_texture_rect("ProgressionGem%d" % tier)
 		icon.texture = AssetCatalogType.gem_texture(tier)
 		frame.add_child(icon)
@@ -577,10 +585,10 @@ func _build_progression_group() -> PanelContainer:
 		progression_icons.append(icon)
 		if tier < 8:
 			var connector_center := CenterContainer.new()
-			connector_center.custom_minimum_size = Vector2(10.0, UiDesignSystemType.HUD_ICON_SIZE)
+			connector_center.custom_minimum_size = Vector2(9.0, UiDesignSystemType.PROGRESSION_ICON_SIZE)
 			connector_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			var connector := _label("›", 21, UiDesignSystemType.COLOR_LAVENDER_LIGHT)
-			connector.custom_minimum_size = Vector2(10.0, 22.0)
+			var connector := _label("›", 20, UiDesignSystemType.COLOR_BLUE_DEEP)
+			connector.custom_minimum_size = Vector2(9.0, 22.0)
 			connector_center.add_child(connector)
 			strip.add_child(connector_center)
 	return panel
@@ -660,11 +668,11 @@ func _build_target_panel() -> Control:
 	target_name_label.visible = false
 	target_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	details.add_child(target_name_label)
-	target_status_label = _label("0 / 1", 20, Color.WHITE)
+	target_status_label = _label("0 / 1", 20, UiDesignSystemType.COLOR_BLUE_DEEP)
 	target_status_label.name = "TargetProgressText"
 	target_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	target_status_label.add_theme_constant_override("outline_size", 1)
-	target_status_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_PURPLE_DEEP)
+	target_status_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.72))
 	details.add_child(target_status_label)
 	target_progress_bar = ProgressBar.new()
 	target_progress_bar.name = "TargetProgressBar"
@@ -695,9 +703,10 @@ func _build_label_badge(node_name: String, text: String, width: float, height: f
 	badge.custom_minimum_size = Vector2(width, height)
 	badge.add_theme_stylebox_override("panel", UiDesignSystemType.level_badge_style())
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var label := _label(text, 20, Color.WHITE)
+	var label := _label(text, 20, UiDesignSystemType.COLOR_BLUE_DEEP)
 	label.name = "Label"
-	_decorate_header_label(label)
+	label.add_theme_constant_override("outline_size", 2)
+	label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.78))
 	badge.add_child(label)
 	return badge
 
@@ -717,7 +726,7 @@ func _build_settings_button() -> TextureButton:
 	button.focus_mode = Control.FOCUS_ALL
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
-	button.self_modulate = Color("c99df4")
+	button.self_modulate = Color("e8f8ff")
 	button.pressed.connect(func() -> void: settings_requested.emit())
 	button.button_down.connect(_on_settings_button_down)
 	button.button_up.connect(_on_settings_button_up)
@@ -749,7 +758,7 @@ func _build_pause_popup() -> void:
 	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
 	pause_panel.custom_minimum_size = Vector2(500.0, 680.0)
-	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.hero_screen_panel_style())
+	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
 	var margin := MarginContainer.new()
@@ -767,11 +776,11 @@ func _build_pause_popup() -> void:
 	column.add_theme_constant_override("separation", UiDesignSystemType.ITEM_GAP)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(column)
-	var title := _label("GAME PAUSED", UiDesignSystemType.POPUP_TITLE_FONT_SIZE, UiDesignSystemType.COLOR_CORAL)
+	var title := _label("GAME PAUSED", UiDesignSystemType.POPUP_TITLE_FONT_SIZE, UiDesignSystemType.COLOR_BLUE_DEEP)
 	title.name = "PauseTitle"
 	title.custom_minimum_size = Vector2(0.0, 56.0)
 	title.add_theme_constant_override("outline_size", 6)
-	title.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_CREAM)
+	title.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.92))
 	column.add_child(title)
 	var pause_gem := TextureRect.new()
 	pause_gem.name = "PauseGemAccent"
@@ -1037,9 +1046,32 @@ func _refresh_safe_margins() -> void:
 	var insets := _safe_insets()
 	var base_margin := UiDesignSystemType.HUD_NARROW_MARGIN if viewport_size.x < UiDesignSystemType.DESIGN_WIDTH else UiDesignSystemType.HUD_MARGIN
 	var inverse_scale := 1.0 / maxf(0.01, _layout_scale)
-	hud_margin.add_theme_constant_override("margin_left", int(ceil(maxf(base_margin, insets.x * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
-	hud_margin.add_theme_constant_override("margin_top", int(ceil(maxf(base_margin, insets.y * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
-	hud_margin.add_theme_constant_override("margin_right", int(ceil(maxf(base_margin, insets.z * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING))))
+	var left_margin := int(ceil(maxf(base_margin, insets.x * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING)))
+	var top_margin := int(ceil(maxf(base_margin, insets.y * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING)))
+	var right_margin := int(ceil(maxf(base_margin, insets.z * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING)))
+
+	# IMPORTANT: force the runtime header to the complete design width.  Using
+	# only MarginContainer theme margins left the parent at its minimum width on
+	# some layouts, which pulled Next/Settings toward Coins/Level.
+	hud_margin.offset_left = 0.0
+	hud_margin.offset_top = 0.0
+	hud_margin.offset_right = UiDesignSystemType.DESIGN_WIDTH
+	hud_margin.offset_bottom = top_margin + UiDesignSystemType.TOP_HUD_HEIGHT
+	hud_margin.add_theme_constant_override("margin_left", left_margin)
+	hud_margin.add_theme_constant_override("margin_top", top_margin)
+	hud_margin.add_theme_constant_override("margin_right", right_margin)
+
+	if gameplay_stack_anchor != null:
+		# Same rule for the objective stack: explicit full-width geometry makes the
+		# progression and target center on x=360, the gameplay/table center.
+		gameplay_stack_anchor.offset_left = 0.0
+		gameplay_stack_anchor.offset_right = UiDesignSystemType.DESIGN_WIDTH
+		gameplay_stack_anchor.add_theme_constant_override("margin_left", left_margin)
+		gameplay_stack_anchor.add_theme_constant_override("margin_right", right_margin)
+		var table_top := GameConfig.board_top()
+		var stack_height := UiDesignSystemType.PROGRESSION_HEIGHT + UiDesignSystemType.OBJECTIVE_GAP + UiDesignSystemType.TARGET_PANEL_SIZE.y
+		gameplay_stack_anchor.offset_top = table_top - UiDesignSystemType.TARGET_TABLE_GAP - stack_height
+		gameplay_stack_anchor.offset_bottom = table_top - UiDesignSystemType.TARGET_TABLE_GAP
 	_apply_safe_margin(pause_safe_margin, insets)
 
 
