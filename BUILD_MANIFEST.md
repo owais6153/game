@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Professional Glass HUD v1
+
+- APK: `build/android/professional-glass-hud-v1.apk`
+- Size: 122,882,166 bytes
+- Export timestamp: 2026-08-08T03:21:40Z (2026-08-08 08:21:40 Asia/Karachi)
+- SHA-256: `92F5D1E85CF2710C44D6AAD0640987A65CD5E7560A33CFDAD024F61C5C60AF3D`
+- Baseline commit/tag: `aaade4b` / `professional-glass-hud-v1-baseline`
+- Source commit/tag: `7b0d18467a6a4bcf506b099d63bd04c36ae759b7` / `professional-glass-hud-v1-source`
+- Delivery tag: `professional-glass-hud-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; validation signing, not a store-release keystore claim.
+- Validation: all seven regression suites and motion profile PASS; six responsive resolutions plus notch/state Compatibility/ANGLE captures PASS; standalone APK exists; 415 APK entries with one manifest, 14 dex files, arm64 Godot runtime, and zero packaged source/report/build paths; APK Signature Schemes v2/v3 PASS with one RSA-2048 signer.
+- Device status: the final `adb devices -l` query did not complete within the validation window; no installation, launch, physical safe-area/touch behavior, phone performance, listening, or haptics are claimed.
+
 ## Purple Production HUD v1
 
 - APK: `build/android/purple-production-hud-v1.apk`

@@ -35,7 +35,18 @@ The milestone changes only HUD structure and styling. Background selection, tabl
 
 Validated captures include 576x1312, 720x1600, 1080x1920, 1080x2340, 1080x2400, and 540x1320, plus simulated notch, Pause, crowded-board, target-transition, reward-flight, and danger states.
 
-One multi-process suite run exposed a scheduling-only flaky Back assertion after all preceding suites passed: the unchanged 140 ms Pause tween occasionally completed outside the test's 30 ms allowance. The test allowance was increased to 120 ms without changing runtime timing, and the focused production UI suite then passed. APK provenance will be recorded at delivery.
+One multi-process suite run exposed a scheduling-only flaky Back assertion after all preceding suites passed: the unchanged 140 ms Pause tween occasionally completed outside the test's 30 ms allowance. The test allowance was increased to 120 ms without changing runtime timing, and the focused production UI suite then passed.
+
+## APK delivery
+
+- Source: `7b0d18467a6a4bcf506b099d63bd04c36ae759b7` / `professional-glass-hud-v1-source`
+- APK: `build/android/professional-glass-hud-v1.apk`
+- Size: 122,882,166 bytes
+- SHA-256: `92F5D1E85CF2710C44D6AAD0640987A65CD5E7560A33CFDAD024F61C5C60AF3D`
+- Export: Godot 4.6.3 headless Android debug preset; export, alignment, signing, and Godot verification completed successfully.
+- Package audit: 415 entries, one Android manifest, 14 dex files, arm64 Godot runtime, and zero packaged source/report/build paths.
+- Signature audit: APK Signature Schemes v2/v3 PASS with one RSA-2048 signer.
+- Device status: the final `adb devices -l` query did not complete within the validation window. Installation, launch, physical safe-area/touch behavior, phone performance, listening, and haptics are not claimed.
 
 ## Evidence
 
