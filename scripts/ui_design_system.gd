@@ -118,8 +118,24 @@ static func simple_hud_panel_style() -> StyleBoxFlat:
 	return _rounded_style(Color(1.0, 0.985, 0.95, 0.97), COLOR_LAVENDER, 2, 22, 5, Color(0.10, 0.03, 0.18, 0.24))
 
 
-static func secondary_hud_panel_style() -> StyleBoxFlat:
-	var style := _rounded_style(COLOR_GLASS, Color(0.82, 0.66, 0.96, 0.96), 2, 24, 8, Color(0.08, 0.02, 0.15, 0.34))
+static func secondary_hud_panel_style() -> StyleBox:
+	var style := StyleBoxFancy.new()
+	style.color = COLOR_GLASS
+	style.set_corner_radius_all(28)
+	style.set_corner_curvature_all(1.8)  # Strong squircle for premium look
+	style.shadow_enabled = true
+	style.shadow_color = Color(0.08, 0.02, 0.15, 0.45)
+	style.shadow_blur = 12
+	style.shadow_offset = Vector2(0.0, 4.0)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 2
+	var border := StyleBorder.new()
+	border.color = Color(0.95, 0.88, 1.0, 1.0)
+	border.width_left = 2
+	border.width_top = 2
+	border.width_right = 2
+	border.width_bottom = 2
+	style.borders.append(border)
 	style.content_margin_left = 14.0
 	style.content_margin_top = 9.0
 	style.content_margin_right = 14.0
@@ -127,8 +143,24 @@ static func secondary_hud_panel_style() -> StyleBoxFlat:
 	return style
 
 
-static func hud_shell_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.22, 0.05, 0.40, 0.84), Color(0.90, 0.78, 1.0, 0.98), 3, 32, 11, Color(0.05, 0.01, 0.10, 0.44))
+static func hud_shell_style() -> StyleBox:
+	var style := StyleBoxFancy.new()
+	style.color = Color(0.22, 0.05, 0.40, 0.87)
+	style.set_corner_radius_all(36)
+	style.set_corner_curvature_all(1.9)  # Premium squircle
+	style.shadow_enabled = true
+	style.shadow_color = Color(0.04, 0.00, 0.08, 0.55)
+	style.shadow_blur = 16
+	style.shadow_offset = Vector2(0.0, 5.0)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 2
+	var border := StyleBorder.new()
+	border.color = Color(0.95, 0.90, 1.0, 1.0)
+	border.width_left = 3
+	border.width_top = 3
+	border.width_right = 3
+	border.width_bottom = 3
+	style.borders.append(border)
 	style.content_margin_left = HUD_SHELL_PADDING
 	style.content_margin_top = HUD_SHELL_PADDING
 	style.content_margin_right = HUD_SHELL_PADDING
@@ -136,8 +168,24 @@ static func hud_shell_style() -> StyleBoxFlat:
 	return style
 
 
-static func progression_inset_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.62, 0.40, 0.80, 0.62), Color(0.91, 0.80, 1.0, 0.98), 2, 25, 4, Color(0.04, 0.01, 0.08, 0.30))
+static func progression_inset_style() -> StyleBox:
+	var style := StyleBoxFancy.new()
+	style.color = Color(0.62, 0.40, 0.80, 0.65)
+	style.set_corner_radius_all(28)
+	style.set_corner_curvature_all(1.7)  # Smooth squircle
+	style.shadow_enabled = true
+	style.shadow_color = Color(0.03, 0.00, 0.06, 0.38)
+	style.shadow_blur = 8
+	style.shadow_offset = Vector2(0.0, 3.5)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 2
+	var border := StyleBorder.new()
+	border.color = Color(0.93, 0.88, 1.0, 0.99)
+	border.width_left = 2
+	border.width_top = 2
+	border.width_right = 2
+	border.width_bottom = 2
+	style.borders.append(border)
 	style.content_margin_left = 12.0
 	style.content_margin_top = 5.0
 	style.content_margin_right = 12.0
@@ -145,15 +193,47 @@ static func progression_inset_style() -> StyleBoxFlat:
 	return style
 
 
-static func card_header_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.36, 0.10, 0.64, 0.91), Color(0.91, 0.80, 1.0, 0.98), 2, 18, 4, Color(0.06, 0.01, 0.12, 0.32))
+static func card_header_style() -> StyleBox:
+	var style := StyleBoxFancy.new()
+	style.color = Color(0.36, 0.10, 0.64, 0.94)
+	style.set_corner_radius_all(22)
+	style.set_corner_curvature_all(1.75)  # Elegant squircle
+	style.shadow_enabled = true
+	style.shadow_color = Color(0.05, 0.01, 0.10, 0.36)
+	style.shadow_blur = 6
+	style.shadow_offset = Vector2(0.0, 3.5)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 2
+	var border := StyleBorder.new()
+	border.color = Color(0.93, 0.88, 1.0, 0.99)
+	border.width_left = 2
+	border.width_top = 2
+	border.width_right = 2
+	border.width_bottom = 2
+	style.borders.append(border)
 	style.content_margin_left = 12.0
 	style.content_margin_right = 12.0
 	return style
 
 
-static func target_panel_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.32, 0.10, 0.54, 0.76), Color(0.91, 0.80, 1.0, 0.98), 3, 27, 9, Color(0.07, 0.01, 0.14, 0.42))
+static func target_panel_style() -> StyleBox:
+	var style := StyleBoxFancy.new()
+	style.color = Color(0.32, 0.10, 0.54, 0.78)
+	style.set_corner_radius_all(32)
+	style.set_corner_curvature_all(1.85)  # Premium squircle for target
+	style.shadow_enabled = true
+	style.shadow_color = Color(0.06, 0.01, 0.12, 0.48)
+	style.shadow_blur = 14
+	style.shadow_offset = Vector2(0.0, 4.5)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 2
+	var border := StyleBorder.new()
+	border.color = Color(0.94, 0.88, 1.0, 1.0)
+	border.width_left = 3
+	border.width_top = 3
+	border.width_right = 3
+	border.width_bottom = 3
+	style.borders.append(border)
 	style.content_margin_left = 0.0
 	style.content_margin_top = 0.0
 	style.content_margin_right = 0.0
@@ -161,15 +241,48 @@ static func target_panel_style() -> StyleBoxFlat:
 	return style
 
 
-static func target_badge_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.32, 0.08, 0.58, 0.98), COLOR_LAVENDER_LIGHT, 2, 18, 5, Color(0.06, 0.01, 0.12, 0.34))
+static func target_badge_style() -> StyleBox:
+	var style := StyleBoxFancy.new()
+	style.color = Color(0.32, 0.08, 0.58, 0.99)
+	style.set_corner_radius_all(22)
+	style.set_corner_curvature_all(1.8)  # Strong squircle
+	style.shadow_enabled = true
+	style.shadow_color = Color(0.05, 0.01, 0.10, 0.40)
+	style.shadow_blur = 8
+	style.shadow_offset = Vector2(0.0, 3.5)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 2
+	var border := StyleBorder.new()
+	border.color = COLOR_LAVENDER_LIGHT
+	border.width_left = 2
+	border.width_top = 2
+	border.width_right = 2
+	border.width_bottom = 2
+	style.borders.append(border)
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	return style
 
 
-static func utility_frame_style() -> StyleBoxFlat:
-	return _rounded_style(Color(0.30, 0.08, 0.53, 0.96), COLOR_LAVENDER_LIGHT, 3, 48, 6, Color(0.05, 0.01, 0.10, 0.40))
+static func utility_frame_style() -> StyleBox:
+	var style := StyleBoxFancy.new()
+	style.color = Color(0.30, 0.08, 0.53, 0.97)
+	style.set_corner_radius_all(52)
+	style.set_corner_curvature_all(1.65)  # Pill-like squircle
+	style.shadow_enabled = true
+	style.shadow_color = Color(0.04, 0.00, 0.08, 0.45)
+	style.shadow_blur = 10
+	style.shadow_offset = Vector2(0.0, 4.0)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 2
+	var border := StyleBorder.new()
+	border.color = COLOR_LAVENDER_LIGHT
+	border.width_left = 3
+	border.width_top = 3
+	border.width_right = 3
+	border.width_bottom = 3
+	style.borders.append(border)
+	return style
 
 
 static func setting_row_style() -> StyleBoxFlat:
@@ -219,8 +332,24 @@ static func progression_panel_style() -> StyleBoxFlat:
 	return style
 
 
-static func level_badge_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color(0.43, 0.15, 0.76, 0.98), Color("f3d67a"), 3, 20, 6, Color(0.05, 0.01, 0.10, 0.38))
+static func level_badge_style() -> StyleBox:
+	var style := StyleBoxFancy.new()
+	style.color = Color(0.43, 0.15, 0.76, 0.99)
+	style.set_corner_radius_all(24)
+	style.set_corner_curvature_all(1.8)  # Premium squircle
+	style.shadow_enabled = true
+	style.shadow_color = Color(0.04, 0.00, 0.08, 0.42)
+	style.shadow_blur = 8
+	style.shadow_offset = Vector2(0.0, 3.5)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 2
+	var border := StyleBorder.new()
+	border.color = Color("f3d67a")
+	border.width_left = 3
+	border.width_top = 3
+	border.width_right = 3
+	border.width_bottom = 3
+	style.borders.append(border)
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	return style
