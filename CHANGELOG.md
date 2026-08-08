@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-09 - Crystal Magic branding + table-anchored objective HUD
+
+- Renamed the player-facing application from `Gem Rush` to `Crystal Magic`.
+- Replaced the Home brand hero with a new transparent `Crystal Magic` runtime logo derived from the supplied artwork; the supplied square artwork is preserved separately and used as-is for the launcher icon/boot splash.
+- Reordered the gameplay objective stack so Target is above the merge path, with an 18 design-pixel gap.
+- Anchored the merge-path glass bar 10 design pixels above the authoritative table top from `GameConfig.board_top()`, so it visually reads as the panel immediately above the table on different portrait heights.
+- Increased Coins, Next, Level, Settings, Target, progression gems, and text/icon sizes by roughly 10-15% while retaining the existing safe-area/full-width responsive layout.
+- Kept table geometry, background rendering, gem physics, collision, merge rules, spawning, targets, score logic, audio, and gameplay timing unchanged.
+- Continued using the existing light cyan StyleBoxFancy glass language for HUD surfaces and buttons.
+
 # Light Glass Gameplay HUD v1 — 2026-08-08
 
 - Reworked gameplay HUD composition to keep Coins top-left, Next top-right, Level below Coins, and Settings below Next.

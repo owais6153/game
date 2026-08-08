@@ -1,3 +1,11 @@
+# Crystal Magic HUD/Branding Update — Current Presentation (2026-08-09)
+
+The player-facing game name is now `Crystal Magic`. Home uses `assets/runtime/ui/crystal_magic_logo_transparent_v1.png`; the supplied square artwork is preserved at `assets/logo/crystal_magic_logo_source_v1.jpeg` and its as-is PNG copy `assets/runtime/ui/crystal_magic_app_icon_v1.png` is the configured launcher icon and boot splash.
+
+Gameplay HUD order is now: Coins/Next on the top row, Level/Settings beneath, then Target, then the eight-gem merge-path panel, then the unchanged physical table. Target and merge path are centered on the 720-wide design canvas. Target-to-progression spacing is 18 design pixels and progression-to-table spacing is 10 design pixels. The objective stack remains derived from `GameConfig.board_top()`, so it follows portrait table offset on taller devices rather than using a phone-specific Y coordinate.
+
+Coins, Next, Level, Settings, Target, and progression presentation have been increased about 10-15% from the prior light-glass pass for better phone readability. The existing width-based HUD design-canvas scale, safe-area margins, and full-width header/objective containers remain authoritative. No table/background/gameplay mechanics were changed.
+
 # Current State
 
 # Light Glass Gameplay HUD v1 — Current Presentation

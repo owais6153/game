@@ -1,3 +1,9 @@
+# 2026-08-09 UI placement/branding note
+
+`GameplayHudLayer` keeps two independent responsive groups on the 720-wide design canvas: the top safe-area utility header and `GameplayObjectiveAnchor`. The objective anchor is table-relative, not screen-top-relative: its bottom is `GameConfig.board_top() - UiDesignSystem.PROGRESSION_TABLE_GAP`. Its child order is Target -> progression, with `TARGET_PROGRESSION_GAP` between them. This guarantees the progression panel is the visual bridge directly above the table while Target remains above it. `GameConfig` continues to own all table geometry and portrait bottom offset; HUD code only reads `board_top()`.
+
+Brand runtime indirection remains through `AssetCatalog.BRAND_LOGO`; it now points to `assets/runtime/ui/crystal_magic_logo_transparent_v1.png`. `project.godot` independently uses the supplied square Crystal Magic artwork as the launcher icon/boot splash.
+
 # Architecture
 
 ## Light Glass HUD layout architecture — 2026-08-08

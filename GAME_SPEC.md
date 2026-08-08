@@ -56,11 +56,11 @@ This section supersedes older fixed L5 -> L7 -> L8 Level 1 statements below; tho
 - Settings are player-owned and persistent across levels and app launches. Pause exposes independent `MUSIC`, `SOUND FX`, and `VIBRATION` switches; changing one must not change either of the others or any gameplay state.
 - All table, merge-result, collection, TARGET, NEXT, result, and MERGE PATH gems resolve through `AssetCatalog`. Runtime sprites preserve source aspect ratio with uniform scale; artwork never changes collider geometry.
 - Generated difficulty is bounded and reachable: Level 1 has one L5 target, Level 2 has L5 then L6, and Level 3 onward has two targets every fourth level and three otherwise, selected uniquely and sorted upward from L5-L8. Launcher assistance decreases through `INTRO`, `EASY`, `NORMAL`, `CHALLENGE`, and capped `EXPERT` bands, but every cycle retains L3 and L4 and launches remain unlimited.
-- Player-facing application name, launcher icon, and boot splash use the GEM RUSH brand. The generic Godot icon/splash is not part of the shipped configuration.
+- Player-facing application name, launcher icon, and boot splash use the CRYSTAL MAGIC brand. The generic Godot icon/splash is not part of the shipped configuration.
 
 ## Production UI motion + Restart restoration v1
 
-- Home communicates only player-facing state: GEM RUSH branding, Level, Coins, and Play/Continue. Internal implementation copy about random gems, generated paths, seeds, or infinite levels is forbidden in production UI.
+- Home communicates only player-facing state: CRYSTAL MAGIC branding, Level, Coins, and Play/Continue. Internal implementation copy about random gems, generated paths, seeds, or infinite levels is forbidden in production UI.
 - Home uses a full-bleed tropical scene, floating status typography, the real coin icon, one coral primary action, entrance motion, and a bounded ambient logo/action loop. It does not use the former journey/status card.
 - Pause uses one focused modal, gem accent, primary Resume, and a compact Restart/Home utility row. Restart always restores the gameplay HUD, resets the same seeded level, and returns one ready launcher.
 - These changes are presentation/state-restoration only. Infinite forward generation remains an internal rule; physics, merges, targets, rewards, audio, table geometry, and persistence are unchanged.
@@ -86,7 +86,7 @@ This section supersedes older fixed L5 -> L7 -> L8 Level 1 statements below; tho
 
 ## Branded production screen flow v1
 
-- Home is a standalone modal presentation: the gameplay HUD is hidden, the preserved supplied GEM RUSH logo derivative is the primary hero, and saved Level/Coins lead to one PLAY or CONTINUE action.
+- Home is a standalone modal presentation: the gameplay HUD is hidden, the preserved supplied CRYSTAL MAGIC logo derivative is the primary hero, and saved Level/Coins lead to one PLAY or CONTINUE action.
 - Pause uses Resume, deterministic Restart, and Home. Success presents the completed target, total coins, explicit `LEVEL N -> LEVEL N+1`, NEXT LEVEL, and Home. Failure presents the danger reason, total coins, same-chain Retry promise, Retry, and Home.
 - Home after success banks and prepares the next generated level; Home after failure resets the same seeded level. Continue never returns to a consumed win/fail state. These screens remain outside simulation and do not change physics, targets, rewards, or infinite generation.
 
@@ -282,3 +282,12 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - The approved table composition is lowered as one shared layout: table image center `(360, 770)`, board `y=340..1152`, danger line `y=970`, and launcher `y=1068`. Rails, collision containment, drag clamps, spawn, and danger drawing retain their shared `GameConfig` authority.
 - Gems use presentation-only depth scaling from normalized table-local Y: `0.90` at the back/top to `1.05` at the front/bottom. The simulation piece, collision radius, velocity, and physics root remain constant.
 - Each gem has a constant-scale visual root and a child visual container for sprite and separate shadow. Stable depth ordering is based on table-local Y, with the piece ID / creation order as the equal-Y tie rule. No visual node is reparented or allocated after creation.
+
+## Current gameplay HUD placement rule
+
+- The top utility area remains Coins left / Next right, with Level left / Settings right beneath it.
+- Target is centered above the merge path.
+- Target and merge path are separated by approximately 18 design pixels.
+- The merge-path panel is the final HUD element before the table and is anchored approximately 10 design pixels above `GameConfig.board_top()`.
+- Objective placement must remain responsive through the shared 720-wide design canvas, safe-area margins, and `GameConfig.board_top()` portrait offset; do not hardcode per-device Y positions.
+- Presentation may scale for readability, but table geometry and gameplay coordinates must never move to accommodate HUD.

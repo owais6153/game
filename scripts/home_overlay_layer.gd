@@ -110,7 +110,7 @@ func _build() -> void:
 	hero.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(hero)
 	logo_rect = TextureRect.new()
-	logo_rect.name = "GemRushLogo"
+	logo_rect.name = "CrystalMagicLogo"
 	logo_rect.texture = AssetCatalogType.BRAND_LOGO
 	logo_rect.custom_minimum_size = Vector2(472.0, 400.0)
 	logo_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

@@ -53,7 +53,7 @@ These guardrails supersede older fixed L5 -> L7 -> L8 progression instructions b
 - Persist Music, Sound FX, and Vibration only through `GameSettingsService`; keep them independent and outside gameplay decisions.
 - Never scale a table gem independently on X and Y. Every renderer must use the same `AssetCatalog` texture and preserve its silhouette; physics reads only `GameConfig.gem_collision_radius()`.
 - Generated progression contract: L1 `[L5]`; L2 `[L5,L6]`; L3+ uses unique ascending L5-L8 targets, three normally and two when `level_number % 4 == 0`. Preserve deterministic seeds, unlimited launches, L3/L4 availability, and capped `EXPERT` difficulty.
-- Preserve `Gem Rush` branding and `assets/runtime/ui/gem_rush_app_icon_v1.png` for project icon and boot splash. Do not restore `icon.svg` or Godot launch branding.
+- Preserve `Crystal Magic` branding. `assets/runtime/ui/crystal_magic_app_icon_v1.png` is the launcher icon/boot splash and must remain the supplied square artwork as-is; do not restore `icon.svg` or Godot launch branding.
 - Run `run_production_foundation_tests.gd` and the full suite after changing these systems.
 
 ## Player-facing production UI guardrails
@@ -209,7 +209,7 @@ This section supersedes the active-music, every-merge reward, and launcher-guide
 - SCORE, NEXT, TARGET, and LEVEL must keep the shared coral `PanelContainer` badge style. Do not restore atlas ribbon headers, stacked decorative bodies, or separate visual languages for these labels.
 - MERGE PATH must show exactly all eight active Level 1 catalog tiers. Keep it horizontal, readable, safe-width compatible, and catalog-driven; do not regress to five tiers or substitute names/duplicate mappings.
 - TARGET shows only `TARGET` and the current catalog gem. Do not add its name, `1 / 2`, progress copy, or a progress bar. Sequential target logic remains controller-owned and unchanged even though its count is hidden.
-- Keep `TableTargetAnchor` driven from `GameConfig.BOARD_TOP` plus portrait expansion and `TARGET_TABLE_GAP`. This dependency is presentation-only; never move the table to accommodate UI.
+- Keep the gameplay objective anchor driven from `GameConfig.board_top()`. Current order is Target -> merge path; use `TARGET_PROGRESSION_GAP` (18) between them and `PROGRESSION_TABLE_GAP` (10) between merge path and table. This dependency is presentation-only; never move the table to accommodate UI.
 - After layout changes, run the production UI, gameplay-feel, Level 1, contact, 18-gem, and motion suites plus the six-resolution capture.
 
 ## Production UI corrective guardrails v2
@@ -540,7 +540,7 @@ For L1-L18, use `assets/runtime/gems18/calibrated/` only through `AssetCatalog.G
 - Target merge IDs enter `pending_target_presentations`; only `_update_merge_presentations()` may count them and qualify victory.
 
 ## HUD alignment invariant - 2026-08-08
-For `gameplay_hud_layer.gd`, do not remove the horizontal `SIZE_EXPAND_FILL` flags from TopHudColumn, UtilityRow, StatusRow, GameplayObjectiveStack, ProgressionCenter, or TargetSlot. They are required for correct Coins-left / Next-right / Level-left / Settings-right distribution and for centering progression + Target over the table. `TARGET_TABLE_GAP` is 28 design pixels to keep the Fancy glass shadow clear of the table frame.
+For `gameplay_hud_layer.gd`, do not remove the horizontal `SIZE_EXPAND_FILL` flags from TopHudColumn, UtilityRow, StatusRow, GameplayObjectiveStack, ProgressionCenter, or TargetSlot. They are required for correct Coins-left / Next-right / Level-left / Settings-right distribution and for centering progression + Target over the table. `TARGET_PROGRESSION_GAP` is 18 design pixels and `PROGRESSION_TABLE_GAP` is 10 design pixels; progression is the bottom-most objective element immediately above the table.
 
 ### 2026-08-08 HUD alignment lesson
 For dynamically-created gameplay HUD containers, keep `SafeHudMargin` and `GameplayObjectiveAnchor` explicitly 720 logical pixels wide. Apply device safe-area padding as MarginContainer theme margins inside that width. This ensures spacer-based left/right rows and CenterContainers resolve against the complete design canvas instead of collapsing to their minimum child width.
