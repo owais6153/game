@@ -4,6 +4,9 @@ extends CanvasLayer
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
+const ICON_NEXT = preload("res://assets/runtime/ui/icons/next_white.svg")
+const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
+const ICON_HOME = preload("res://assets/runtime/ui/icons/home_navy.svg")
 
 signal retry_requested
 signal next_level_requested
@@ -68,6 +71,7 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8)
 	score_label.text = "COINS  %s" % ScoreFormatterType.format(score)
 	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • SAME CHAIN ON RETRY" % level_number
 	retry_button.text = "NEXT LEVEL" if won else "RETRY"
+	retry_button.icon = ICON_NEXT if won else ICON_RETRY
 	retry_button.tooltip_text = "Continue to Level %d" % (level_number + 1) if won else "Retry Level %d" % level_number
 	root_control.visible = true
 	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -216,6 +220,7 @@ func _build_ui() -> void:
 	retry_button.text = "REPLAY"
 	retry_button.custom_minimum_size = Vector2(388.0, 78.0)
 	retry_button.focus_mode = Control.FOCUS_ALL
+	retry_button.expand_icon = false
 	retry_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	retry_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	retry_button.pressed.connect(_on_action_pressed)
@@ -223,6 +228,8 @@ func _build_ui() -> void:
 	home_button = Button.new()
 	home_button.name = "ResultHomeButton"
 	home_button.text = "HOME"
+	home_button.icon = ICON_HOME
+	home_button.expand_icon = false
 	home_button.theme_type_variation = "SecondaryButton"
 	home_button.custom_minimum_size = Vector2(388.0, 66.0)
 	home_button.pressed.connect(func() -> void: home_requested.emit())

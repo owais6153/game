@@ -6,6 +6,13 @@ const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const CoinIconType = preload("res://scripts/coin_icon.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
 const TargetRewardOverlayType = preload("res://scripts/target_reward_overlay.gd")
+const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_blue.svg")
+const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
+const ICON_RESTART = preload("res://assets/runtime/ui/icons/restart_navy.svg")
+const ICON_HOME = preload("res://assets/runtime/ui/icons/home_navy.svg")
+const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_navy.svg")
+const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_navy.svg")
+const ICON_VIBRATION = preload("res://assets/runtime/ui/icons/vibration_navy.svg")
 const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled", "vibration_enabled"]
 
 signal settings_requested
@@ -240,6 +247,7 @@ func pulse_target() -> void:
 	_kill_tween(_target_pulse_tween)
 	target_panel.pivot_offset = _node_center(target_panel)
 	target_panel.scale = Vector2.ONE
+	GlobalTweens.energy_pulse(target_panel, UiDesignSystemType.COLOR_BLUE_LIGHT, 0.16)
 	if not is_inside_tree():
 		return
 	_target_pulse_tween = create_tween()
@@ -720,16 +728,15 @@ func _build_settings_button() -> TextureButton:
 	button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.MIN_TOUCH_TARGET
 	button.ignore_texture_size = true
 	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	var icon_texture := UiDesignSystemType.atlas(AssetCatalogType.HUD_BUTTON_SHEET, AssetCatalogType.HUD_SETTINGS_BUTTON_REGION)
-	button.texture_normal = icon_texture
-	button.texture_hover = icon_texture
-	button.texture_pressed = icon_texture
-	button.texture_disabled = icon_texture
+	button.texture_normal = ICON_SETTINGS
+	button.texture_hover = ICON_SETTINGS
+	button.texture_pressed = ICON_SETTINGS
+	button.texture_disabled = ICON_SETTINGS
 	button.tooltip_text = "Pause"
 	button.focus_mode = Control.FOCUS_ALL
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
-	button.self_modulate = Color("e8f8ff")
+	button.self_modulate = Color.WHITE
 	button.pressed.connect(func() -> void: settings_requested.emit())
 	button.button_down.connect(_on_settings_button_down)
 	button.button_up.connect(_on_settings_button_up)
@@ -812,6 +819,8 @@ func _build_pause_popup() -> void:
 		vibration_toggled.emit(enabled)
 	)
 	resume_button = _button("ResumeButton", "RESUME", Vector2(424.0, 82.0), "")
+	resume_button.icon = ICON_PLAY
+	resume_button.expand_icon = false
 	resume_button.tooltip_text = "Continue playing"
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
 	column.add_child(resume_button)
@@ -822,11 +831,15 @@ func _build_pause_popup() -> void:
 	column.add_child(utility_row)
 	restart_button = _button("PauseRestartButton", "RESTART", Vector2(0.0, 72.0), "SecondaryButton")
 	restart_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	restart_button.icon = ICON_RESTART
+	restart_button.expand_icon = false
 	restart_button.tooltip_text = "Restart with the same gem chain"
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
 	utility_row.add_child(restart_button)
 	home_button = _button("PauseHomeButton", "HOME", Vector2(0.0, 72.0), "SecondaryButton")
 	home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	home_button.icon = ICON_HOME
+	home_button.expand_icon = false
 	home_button.tooltip_text = "Return to home"
 	home_button.pressed.connect(func() -> void: home_requested.emit())
 	utility_row.add_child(home_button)
@@ -842,6 +855,7 @@ func _button(node_name: String, text: String, minimum: Vector2, variation: Strin
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	if not variation.is_empty():
 		button.theme_type_variation = variation
+	_wire_button_motion(button)
 	return button
 
 
@@ -856,6 +870,14 @@ func _setting_toggle(parent: VBoxContainer, text: String, node_name: String) -> 
 	row.custom_minimum_size = Vector2(0.0, 62.0)
 	row.add_theme_constant_override("separation", 16)
 	frame.add_child(row)
+	var icon := TextureRect.new()
+	icon.name = "%sIcon" % node_name
+	icon.texture = _setting_icon_texture(node_name)
+	icon.custom_minimum_size = Vector2(28.0, 28.0)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
 	var label := _label(text, 18, UiDesignSystemType.COLOR_TEXT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -869,8 +891,29 @@ func _setting_toggle(parent: VBoxContainer, text: String, node_name: String) -> 
 	toggle.focus_mode = Control.FOCUS_ALL
 	toggle.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_sync_switch_label(toggle)
+	_wire_button_motion(toggle)
+	toggle.toggled.connect(func(_enabled: bool) -> void:
+		GlobalTweens.energy_pulse(toggle, UiDesignSystemType.COLOR_BLUE_LIGHT, 0.16)
+	)
 	row.add_child(toggle)
 	return toggle
+
+
+func _setting_icon_texture(node_name: String) -> Texture2D:
+	if node_name.contains("Music"):
+		return ICON_MUSIC
+	if node_name.contains("Sound"):
+		return ICON_SOUND
+	return ICON_VIBRATION
+
+
+func _wire_button_motion(button: BaseButton) -> void:
+	if button == null:
+		return
+	button.button_down.connect(func() -> void:
+		button.pivot_offset = button.size * 0.5
+		GlobalTweens.button_press(button, 0.055)
+	)
 
 
 func _sync_switch_label(toggle: Button) -> void:

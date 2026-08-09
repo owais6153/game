@@ -1,3 +1,23 @@
+# Runtime UI icon/splash additions — 2026-08-09
+
+- `addons/at-icons/` — supplied MIT icon library + editor picker.
+- `assets/runtime/ui/icons/cog_white.svg` — padded Settings cog derived from @icons.
+- `assets/runtime/ui/icons/play_white.svg` — primary Play/Resume/Start glyph.
+- `assets/runtime/ui/icons/check_white.svg` — Done glyph.
+- `assets/runtime/ui/icons/back_navy.svg` — secondary Back glyph.
+- `assets/runtime/ui/icons/restart_navy.svg` / `restart_white.svg` — Restart/Retry glyphs.
+- `assets/runtime/ui/icons/home_navy.svg` — Home glyph.
+- `assets/runtime/ui/icons/note_navy.svg`, `speaker_navy.svg`, `vibration_navy.svg` — settings-row glyphs.
+- `assets/runtime/ui/icons/next_white.svg` — Next Level glyph.
+- `assets/runtime/ui/crystal_magic_adaptive_bg_v1.png` — solid tropical-teal Android adaptive/system-splash background fallback.
+- `assets/runtime/ui/crystal_magic_system_splash_icon_v1.png` — 432×432 transparent padded Crystal Magic mark for Android system splash. It is not the launcher icon.
+
+# Motion Asset Addendum — 2026-08-09
+
+- `GlobalTweens.gd`: supplied third-party/general tween toolkit; now registered as project autoload for presentation-only button/pulse feedback.
+- `tween_composer/`: supplied Tween Composer 0.5.1 runtime scripts/resources; used by Home overlay ambient scale loops.
+- No separate icon library/plugin/icon-pack files were detected in the supplied `game(2).zip`. Existing `assets/ui`, HUD atlas, and Crystal Magic runtime branding remain authoritative for icons in this milestone.
+
 # Asset Inventory — Background, Table, and Gems v1
 
 ## Production Foundation v1 branding

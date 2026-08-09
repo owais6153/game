@@ -1,3 +1,19 @@
+# 2026-08-09 knowledge note — static level target, @icons, single Android splash
+
+When modifying Home/level-preview UI, keep `LevelIntroTargetGem` static. Tween Composer remains valid for the Home logo and other approved ambient motion, but the pre-level target gem must not run a breathing/scale loop.
+
+The project now contains `addons/at-icons`. Prefer its icon vocabulary for generic UI actions. Player-facing code should preload the curated runtime derivatives from `assets/runtime/ui/icons/` rather than reaching into the editor dock/plugin API.
+
+Android startup intentionally disables the separate Godot boot splash in the export preset. Do not re-enable it unless there is a product decision to restore a two-stage startup. The system splash uses `crystal_magic_system_splash_icon_v1.png`; the launcher main icon stays `crystal_magic_app_icon_v1.png`.
+
+# AI Knowledge Addendum — 2026-08-09 Fast Feel Motion v1
+
+- If Home Settings appears as a tall translucent bar, inspect `HomeOverlayLayer._build_top_settings_control()`. The settings frame must keep `SIZE_SHRINK_BEGIN` vertically and `SIZE_SHRINK_END` horizontally inside the full-screen HBox.
+- `GlobalTweens` is now an autoload. Use it only for presentation feedback; never use its movement helpers to move simulation-owned gems.
+- Tween Composer is intentionally limited to approved ambient Control animation such as the Home logo. The Level Intro target gem is static. Do not attach Tween Composer to simulation nodes or use it to replace controller timing gates.
+- Fast-feel values are centralized in `GameConfig`: launch 1200, damping 195, sleep 10, merge presentation .36, launcher handoff .22, target collection .40, target swap delay .26, coin flight .92, chain stagger .03.
+- The latest supplied ZIP contains the MIT `addons/at-icons` library. Use curated runtime derivatives under `assets/runtime/ui/icons/` for player-facing generic actions and keep the editor plugin API out of runtime logic.
+
 # AI Knowledge Base
 
 ## 2026-08-08 — Light Glass Gameplay HUD v1

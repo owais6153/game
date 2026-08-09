@@ -1,3 +1,27 @@
+# UI/startup architecture addendum — 2026-08-09
+
+## Icon source
+
+`addons/at-icons/` is an editor icon library. Runtime UI does not depend on its editor plugin API; selected source SVGs are copied/recolored into `assets/runtime/ui/icons/` and preloaded directly by `HomeOverlayLayer`, `GameplayHudLayer`, and `ResultOverlayLayer`. This keeps exported UI deterministic while the @icons editor dock remains available for future selection.
+
+## Splash separation
+
+`project.godot` owns the engine/editor fallback boot splash. `export_presets.cfg` owns Android system-splash behavior. Android sets `splash_screen/disable_godot_boot_splash=true`, so the native splash persists until the main loop instead of transitioning through a second Godot splash. A dedicated 432×432 transparent padded system-splash logo is used to stay inside Android's masking safe area. Launcher main icon configuration remains independent.
+
+# Architecture Addendum — Third-Party Motion Integration v1
+
+## Global Tweens
+`GlobalTweens.gd` is registered as the `GlobalTweens` autoload in `project.godot`. UI layers call only presentation-safe helpers such as `button_press()` and `energy_pulse()`. It has no authority over simulation, merge candidates, score, target progression, or board geometry.
+
+## Tween Composer
+The supplied `tween_composer/` scripts are used as runtime composition nodes by `HomeOverlayLayer`. `TweenSequence`, `TweenStepCollection`, and `TweenStepItem` resources define reusable scale loops for the Crystal Magic logo and Level Intro target icon. The existing native gameplay/controller tweens remain authoritative for merge/target sequencing; Tween Composer does not replace gameplay state machines.
+
+## Home settings layout fix
+`HomeTopControls` remains a full-screen safe-area MarginContainer, but its `HomeSettingsFrame` explicitly uses shrink-to-begin vertical sizing and shrink-to-end horizontal sizing. This prevents HBox cross-axis fill from turning the compact settings card into a full-height glass strip.
+
+## Fast-feel boundary
+Timing/feel changes stay centralized in `GameConfig`. Physics topology, contact-only merge rules, table rails, target rules, and reward authority are unchanged.
+
 # Architecture
 
 ## Light Glass HUD layout architecture — 2026-08-08

@@ -13,10 +13,13 @@ config_version=5
 config/name="Crystal Magic"
 run/main_scene="res://scenes/Game.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
-boot_splash/bg_color=Color(0.0196078, 0.290196, 0.396078, 1)
-boot_splash/stretch_mode=0
-boot_splash/image="res://assets/runtime/ui/crystal_magic_app_icon_v1.png"
-config/icon="res://assets/runtime/ui/crystal_magic_app_icon_v1.png"
+boot_splash/bg_color=Color(0.188235, 0.611765, 0.847059, 1)
+boot_splash/image="res://assets/runtime/ui/crystal_magic_logo_exact_v2.png"
+config/icon="res://assets/runtime/ui/crystal_magic_app_icon_v4.png"
+
+[autoload]
+
+GlobalTweens="*res://GlobalTweens.gd"
 
 [display]
 
@@ -30,7 +33,7 @@ window/handheld/orientation=1
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/at-icons/plugin.cfg")
 
 [rendering]
 

@@ -4,6 +4,17 @@ extends CanvasLayer
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
+const TweenComposerType = preload("res://tween_composer/tween_composer.gd")
+const TweenSequenceType = preload("res://tween_composer/ConfigurationResources/tween_sequence_resource.gd")
+const TweenStepCollectionType = preload("res://tween_composer/ConfigurationResources/tween_step_collection_resource.gd")
+const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/tween_step_item_resource.gd")
+const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_blue.svg")
+const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
+const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
+const ICON_BACK = preload("res://assets/runtime/ui/icons/back_navy.svg")
+const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_navy.svg")
+const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_navy.svg")
+const ICON_VIBRATION = preload("res://assets/runtime/ui/icons/vibration_navy.svg")
 
 signal play_requested
 signal music_toggled(enabled: bool)
@@ -41,6 +52,7 @@ var _snapshot: Dictionary = {}
 var _entrance_tween: Tween
 var _idle_tween: Tween
 var _popup_tween: Tween
+var _logo_motion_composer: Node
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 
 func _ready() -> void:
@@ -144,7 +156,7 @@ func _build() -> void:
 
 	content_panel = PanelContainer.new()
 	content_panel.name = "HomeContentPanel"
-	content_panel.custom_minimum_size = Vector2(540.0, 950.0)
+	content_panel.custom_minimum_size = Vector2(560.0, 980.0)
 	content_panel.add_theme_stylebox_override("panel", UiDesignSystemType.home_stage_style())
 	content_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(content_panel)
@@ -162,17 +174,18 @@ func _build() -> void:
 
 	var hero := CenterContainer.new()
 	hero.name = "LogoHero"
-	hero.custom_minimum_size = Vector2(492.0, 400.0)
+	hero.custom_minimum_size = Vector2(540.0, 470.0)
 	hero.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(hero)
 	logo_rect = TextureRect.new()
 	logo_rect.name = "CrystalMagicLogo"
 	logo_rect.texture = AssetCatalogType.BRAND_LOGO
-	logo_rect.custom_minimum_size = Vector2(492.0, 400.0)
+	logo_rect.custom_minimum_size = Vector2(540.0, 470.0)
 	logo_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	logo_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	logo_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hero.add_child(logo_rect)
+	_logo_motion_composer = _attach_scale_loop(logo_rect, "HomeLogoBreath", 1.018, 2.10)
 
 	tagline_label = _label("A TROPICAL GEM ADVENTURE", 17, Color.WHITE)
 	tagline_label.custom_minimum_size = Vector2(0.0, 34.0)
@@ -223,10 +236,13 @@ func _build() -> void:
 	play_button = Button.new()
 	play_button.name = "HomePlayButton"
 	play_button.text = "PLAY"
+	play_button.icon = ICON_PLAY
+	play_button.expand_icon = false
 	play_button.custom_minimum_size = Vector2(492.0, 94.0)
 	play_button.focus_mode = Control.FOCUS_ALL
 	play_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	play_button.pressed.connect(_show_level_intro)
+	_wire_button_motion(play_button)
 	column.add_child(play_button)
 
 	_build_top_settings_control()
@@ -246,6 +262,10 @@ func _build_top_settings_control() -> void:
 	var frame := PanelContainer.new()
 	frame.name = "HomeSettingsFrame"
 	frame.custom_minimum_size = Vector2(94.0, 94.0)
+	# HBoxContainer fills children on its cross axis unless they explicitly shrink.
+	# Without this, the 94px settings card stretched into a full-height glass rail.
+	frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_END
 	frame.add_theme_stylebox_override("panel", UiDesignSystemType.utility_frame_style())
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(frame)
@@ -254,7 +274,9 @@ func _build_top_settings_control() -> void:
 	frame.add_child(center)
 	settings_button = TextureButton.new()
 	settings_button.name = "HomeSettingsButton"
-	settings_button.texture_normal = UiDesignSystemType.atlas(AssetCatalogType.HUD_BUTTON_SHEET, AssetCatalogType.HUD_SETTINGS_BUTTON_REGION)
+	settings_button.texture_normal = ICON_SETTINGS
+	settings_button.texture_hover = ICON_SETTINGS
+	settings_button.texture_pressed = ICON_SETTINGS
 	settings_button.ignore_texture_size = true
 	settings_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	settings_button.custom_minimum_size = Vector2(78.0, 78.0)
@@ -262,6 +284,7 @@ func _build_top_settings_control() -> void:
 	settings_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	settings_button.tooltip_text = "Settings"
 	settings_button.pressed.connect(_show_settings)
+	_wire_button_motion(settings_button)
 	center.add_child(settings_button)
 
 func _build_settings_popup() -> void:
@@ -304,6 +327,8 @@ func _build_settings_popup() -> void:
 		vibration_toggled.emit(enabled)
 	)
 	var done := _button("HomeSettingsDone", "DONE", Vector2(400.0, 82.0), "")
+	done.icon = ICON_CHECK
+	done.expand_icon = false
 	done.pressed.connect(_hide_settings)
 	column.add_child(done)
 
@@ -346,6 +371,8 @@ func _build_level_intro_popup() -> void:
 	intro_objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(intro_objective_label)
 	intro_start_button = _button("StartLevelButton", "START GAME", Vector2(400.0, 88.0), "")
+	intro_start_button.icon = ICON_PLAY
+	intro_start_button.expand_icon = false
 	intro_start_button.tooltip_text = "Start Level"
 	intro_start_button.pressed.connect(func() -> void:
 		_hide_level_intro()
@@ -353,6 +380,8 @@ func _build_level_intro_popup() -> void:
 	)
 	column.add_child(intro_start_button)
 	var cancel := _button("LevelIntroCancel", "BACK", Vector2(400.0, 68.0), "SecondaryButton")
+	cancel.icon = ICON_BACK
+	cancel.expand_icon = false
 	cancel.pressed.connect(_hide_level_intro)
 	column.add_child(cancel)
 
@@ -399,6 +428,14 @@ func _setting_switch_row(parent: VBoxContainer, text: String, node_name: String)
 	row.custom_minimum_size = Vector2(0.0, 64.0)
 	row.add_theme_constant_override("separation", 16)
 	frame.add_child(row)
+	var icon := TextureRect.new()
+	icon.name = "%sIcon" % node_name
+	icon.texture = _setting_icon_texture(node_name)
+	icon.custom_minimum_size = Vector2(28.0, 28.0)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
 	var label := _label(text, 18, UiDesignSystemType.COLOR_TEXT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -412,8 +449,19 @@ func _setting_switch_row(parent: VBoxContainer, text: String, node_name: String)
 	toggle.focus_mode = Control.FOCUS_ALL
 	toggle.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_sync_switch_label(toggle)
+	_wire_button_motion(toggle)
+	toggle.toggled.connect(func(_enabled: bool) -> void:
+		GlobalTweens.energy_pulse(toggle, UiDesignSystemType.COLOR_BLUE_LIGHT, 0.16)
+	)
 	row.add_child(toggle)
 	return toggle
+
+func _setting_icon_texture(node_name: String) -> Texture2D:
+	if node_name.contains("Music"):
+		return ICON_MUSIC
+	if node_name.contains("Sound"):
+		return ICON_SOUND
+	return ICON_VIBRATION
 
 func _sync_settings_from_snapshot() -> void:
 	if settings_music_toggle == null:
@@ -489,6 +537,7 @@ func _button(node_name: String, text: String, minimum: Vector2, variation: Strin
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	if not variation.is_empty():
 		button.theme_type_variation = variation
+	_wire_button_motion(button)
 	return button
 
 func _start_entrance() -> void:
@@ -512,14 +561,65 @@ func _start_idle_motion() -> void:
 		return
 	logo_rect.pivot_offset = logo_rect.size * 0.5
 	play_button.pivot_offset = play_button.size * 0.5
-	_idle_tween = create_tween().set_loops()
-	_idle_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	_idle_tween.tween_property(logo_rect, "scale", Vector2.ONE * 1.018, 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_idle_tween.parallel().tween_property(logo_rect, "rotation", deg_to_rad(0.5), 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_idle_tween.parallel().tween_property(play_button, "scale", Vector2.ONE * 1.018, 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_idle_tween.tween_property(logo_rect, "scale", Vector2.ONE, 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_idle_tween.parallel().tween_property(logo_rect, "rotation", deg_to_rad(-0.5), 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_idle_tween.parallel().tween_property(play_button, "scale", Vector2.ONE, 1.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_restart_motion_composer(_logo_motion_composer)
+
+
+func _attach_scale_loop(target: Control, sequence_name: String, scale_factor: float, duration: float) -> Node:
+	var sequence = TweenSequenceType.new()
+	sequence.sequence_name = sequence_name
+	sequence.tween_duration = duration
+	sequence.loop = true
+	sequence.loop_repetitions = 0
+	sequence.persist_tween_information = true
+	var steps = TweenStepCollectionType.new()
+	steps.tween_name = sequence_name
+	var grow = TweenStepItemType.new()
+	grow.step_name = "Ease Out"
+	grow.tween_property = 2 # TweenStepItem.TweenOptions.SCALE
+	grow.relative_value = false
+	grow.transition = Tween.TRANS_SINE
+	grow.easing = Tween.EASE_IN_OUT
+	grow.duration_ratio = 1.0
+	grow.target_value = Vector3(scale_factor, scale_factor, 1.0)
+	steps.step_collection.append(grow)
+	var settle = TweenStepItemType.new()
+	settle.step_name = "Ease Home"
+	settle.tween_property = 2 # TweenStepItem.TweenOptions.SCALE
+	settle.relative_value = false
+	settle.transition = Tween.TRANS_SINE
+	settle.easing = Tween.EASE_IN_OUT
+	settle.duration_ratio = 1.0
+	settle.target_value = Vector3(1.0, 1.0, 1.0)
+	steps.step_collection.append(settle)
+	sequence.tween_steps = steps
+	var composer = TweenComposerType.new()
+	composer.name = "%sTweenComposer" % sequence_name
+	composer.tween_sequence = sequence
+	composer.autostart = false
+	composer.set_pause_mode = Tween.TWEEN_PAUSE_PROCESS
+	target.add_child(composer)
+	return composer
+
+
+func _restart_motion_composer(composer: Node) -> void:
+	if composer == null or not is_instance_valid(composer):
+		return
+	composer.reset_tween()
+	composer.play_tween()
+
+
+func _reset_motion_composer(composer: Node) -> void:
+	if composer != null and is_instance_valid(composer):
+		composer.reset_tween()
+
+
+func _wire_button_motion(button: BaseButton) -> void:
+	if button == null:
+		return
+	button.button_down.connect(func() -> void:
+		button.pivot_offset = button.size * 0.5
+		GlobalTweens.button_press(button, 0.055)
+	)
 
 func _refresh_safe_margins() -> void:
 	if safe_margin == null or not is_inside_tree():
@@ -558,6 +658,7 @@ func _kill_tween() -> void:
 func _kill_idle_tween() -> void:
 	if _idle_tween != null and _idle_tween.is_valid():
 		_idle_tween.kill()
+	_reset_motion_composer(_logo_motion_composer)
 	if logo_rect != null:
 		logo_rect.scale = Vector2.ONE
 		logo_rect.rotation = 0.0

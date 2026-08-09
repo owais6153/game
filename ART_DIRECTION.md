@@ -1,3 +1,7 @@
+# Motion Direction Addendum — Crystal Magic Fast Feel v1
+
+Crystal Magic should feel quick, bright, and rewarding rather than slow or floaty. Small controls use a short press compression; target confirmation uses a brief cyan pulse; logo/level-preview gems may breathe subtly. Merge and collection beats should overlap visually where gameplay authority allows, with short overshoot and quick settle rather than long easing tails. Ambient motion must stay subtle enough that gemstone artwork remains the focal point.
+
 # Art Direction
 
 ## Transparent Purple Glass HUD v1

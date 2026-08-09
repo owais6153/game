@@ -1,3 +1,23 @@
+# 2026-08-09 — Splash cleanup + @icons integration + static level preview target
+
+- Removed the Tween Composer breathing loop from the pre-level target gem. The target gem remains visible but static so the START GAME preview reads cleanly.
+- Integrated the newly supplied `addons/at-icons` library into player-facing controls. Runtime-safe recolored derivatives now provide Settings, Play, Done, Back, Music, Sound, Vibration, Restart, Home, Next Level, and Retry iconography without changing button behavior.
+- Replaced the Home and gameplay Settings atlas art with the @icons cog while keeping the existing glass cards, touch targets, and signals.
+- Added @icons to `editor_plugins` so its picker is available in the Godot editor.
+- Reworked startup presentation to avoid the previous double-logo sequence on Android: Android export now uses a dedicated padded system-splash logo and keeps the system splash visible until the main loop, while Godot's separate Android boot splash is disabled.
+- Desktop/editor fallback boot splash now uses the transparent Crystal Magic logo instead of the square app-icon artwork.
+- The adaptive/system splash background fallback is the tropical-teal `crystal_magic_adaptive_bg_v1.png`; launcher main icon remains the existing `crystal_magic_app_icon_v1.png`; launcher branding was not redesigned.
+- Existing fast-feel gameplay timings, physics, merge eligibility, target rules, table geometry, HUD placement, scoring, audio, and persistence were not changed in this pass.
+
+# 2026-08-09 — Home Settings Alignment + Fast Feel Motion v1
+
+- Fixed the Home settings control stretching into a full-height glass rail by making the 94×94 settings frame shrink to the top/right inside its full-screen safe-area row.
+- Added `GlobalTweens.gd` as an autoload and wired consistent press feedback to Home, Level Intro, Pause, and settings toggle buttons; completed-target HUD feedback also gets a short cyan energy pulse.
+- Integrated Tween Composer for reusable ambient scale loops on the Crystal Magic Home logo and Level Intro target gem.
+- Added a faster reference-feel tuning pass in `GameConfig`: launch 1160→1200, launcher handoff 0.30→0.22, merge presentation 0.50→0.36, target collection 0.62→0.40, target swap delay 0.78→0.26, coin flight 1.58→0.92, plus shorter reward/chain/overlay timing while preserving contact-only merge rules and authoritative physics geometry.
+- No third-party icon-library files were present in the supplied ZIP, so existing Crystal Magic/HUD icon assets remain in use rather than inventing replacements.
+- No APK or on-device validation is claimed from this editing environment.
+
 # Changelog
 
 # Light Glass Gameplay HUD v1 — 2026-08-08
@@ -442,3 +462,9 @@
 - Changed Home Play/Continue behavior: the first tap now opens a Level Preview modal showing level number, current target index, target gem art, target quantity/name, and a START GAME button. Gameplay only unpauses after START GAME.
 - Added reusable `SettingsSwitch` and `home_status_card_style()` theme treatments to the UI design system so Home and Pause share one glass visual language.
 - No table, gem physics, merge rules, launcher rules, target rules, score rules, or simulation coordinates changed.
+
+- v8 polish: fixed home-screen music to continue while the tree is paused, replaced the launcher and system splash icons with a borderless icon treatment, and upgraded the Godot boot splash to a full tropical-background Crystal Magic splash image.
+
+- v8.1 icon/splash refinement: rebuilt the launcher and native splash icons from the generated Crystal Magic logo with proper padding and a beach background, and rebalanced the full-screen boot splash composition for a cleaner fit.
+
+- v8.2 branding correction: replaced all branding references with the exact supplied Crystal Magic transparent logo, removed the boot-splash background image in favor of the standalone logo, rebuilt the launcher/adaptive/native splash icons with padded logo-on-beach treatment, switched settings cogs to theme blue, and enlarged the Home logo region to avoid edge cutting.

@@ -1,3 +1,7 @@
+## Latest UI/startup polish (2026-08-09)
+
+The project now uses the supplied `@icons` library for generic UI affordances, keeps the level-preview target gem static, and uses a single Android system-splash phase instead of the previous native-splash → Godot-splash double sequence. Existing gameplay fast-feel timing values remain unchanged.
+
 # Gem Merge Rebuild
 
 A clean-room Godot 4.6.3 portrait gem-launching merge game.

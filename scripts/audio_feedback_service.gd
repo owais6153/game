@@ -28,13 +28,16 @@ var _clock := 0.0
 var _variation_index := 0
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_stream_cache()
 	for index in range(GameConfig.AUDIO_MAX_CONCURRENT_PLAYERS):
 		var player := AudioStreamPlayer.new()
 		player.bus = "Master"
+		player.process_mode = Node.PROCESS_MODE_ALWAYS
 		add_child(player)
 		_players.append(player)
 	_music_player = AudioStreamPlayer.new()
+	_music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	_music_player.name = "SuppliedBackgroundMusic"
 	_music_player.bus = "Master"
 	var loop_stream := SuppliedBackgroundMusic.duplicate()

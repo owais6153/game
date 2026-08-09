@@ -71,9 +71,9 @@ const GEM_VISUAL_Z_TIE_STRIDE := 8
 # Gameplay balance v1 — all feel values live here. Keep simulation delta-based.
 # The default/range notes are the approved safe tuning envelope for this prototype.
 const DRAG_HIT_RADIUS_MULTIPLIER := 1.8 # default 1.8; safe 1.5–2.0
-const LAUNCH_SPEED := 1160.0 # approved parity range 1120–1200
-const VELOCITY_DAMPING_PER_SECOND := 185.0 # reference-parity range 175–205
-const SLEEP_SPEED := 9.0 # stable-settle range 8–11
+const LAUNCH_SPEED := 1200.0 # fast-feel pass: top of previously approved 1120–1200 range
+const VELOCITY_DAMPING_PER_SECOND := 195.0 # quicker settle after the faster launch; prior range 175–205
+const SLEEP_SPEED := 10.0 # snappier handoff while staying inside prior stable-settle range 8–11
 const SIDE_WALL_RESTITUTION := 0.24 # contained redirection range 0.20–0.28
 const TOP_WALL_RESTITUTION := 0.22 # visible but controlled rebound range 0.18–0.25
 const BOTTOM_WALL_RESTITUTION := 0.12 # containment-only range 0.10–0.14
@@ -87,17 +87,17 @@ const CONTACT_EPSILON := 0.20
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.50 # restored rigid ring/ray result beat; presentation only
-const MERGE_SOURCE_PULL_DURATION := 0.10
-const MERGE_RESULT_START_SCALE := 0.62
-const MERGE_RESULT_POP_SCALE := 1.20
-const MERGE_RESULT_POP_DURATION := 0.22
-const MERGE_PULSE_SCALE := 1.20
-const SCORE_POPUP_DURATION := 0.62
+const MERGE_PRESENTATION_DURATION := 0.36 # faster reward beat; presentation only
+const MERGE_SOURCE_PULL_DURATION := 0.075
+const MERGE_RESULT_START_SCALE := 0.60
+const MERGE_RESULT_POP_SCALE := 1.23
+const MERGE_RESULT_POP_DURATION := 0.14
+const MERGE_PULSE_SCALE := 1.22
+const SCORE_POPUP_DURATION := 0.46
 const SCORE_POPUP_RISE := 36.0
 const MAJOR_REWARD_TIER := 6
-const MAJOR_MERGE_EFFECT_DURATION := 0.56
-const MAJOR_SCORE_POPUP_DURATION := 1.05
+const MAJOR_MERGE_EFFECT_DURATION := 0.44
+const MAJOR_SCORE_POPUP_DURATION := 0.78
 const MAJOR_SCORE_POPUP_RISE := 58.0
 const MAJOR_MERGE_EFFECT_SCALE := 1.16
 const MAJOR_MERGE_SPARK_COUNT := 8
@@ -105,42 +105,42 @@ const MAJOR_MERGE_SPARK_COUNT := 8
 ## compact cluster, then travel as one readable staggered group to the HUD.
 const COIN_BURST_COUNT := 4
 const MAJOR_COIN_BURST_COUNT := 4
-const COIN_BURST_DURATION := 0.22
-const COIN_FLIGHT_DURATION := 1.58
-const MAJOR_COIN_FLIGHT_DURATION := 1.66
-const COIN_FLIGHT_STAGGER := 0.15
-const COIN_SPAWN_STAGGER := 0.03
+const COIN_BURST_DURATION := 0.16
+const COIN_FLIGHT_DURATION := 0.92
+const MAJOR_COIN_FLIGHT_DURATION := 1.00
+const COIN_FLIGHT_STAGGER := 0.08
+const COIN_SPAWN_STAGGER := 0.02
 const COIN_BURST_RADIUS := 48.0
 const MAJOR_COIN_BURST_RADIUS := 52.0
 const COIN_DRAW_RADIUS := 17.0
-const COIN_COUNTER_PULSE_DURATION := 0.18
+const COIN_COUNTER_PULSE_DURATION := 0.14
 const COIN_EFFECT_LIMIT := 32
 const COIN_HUD_FALLBACK_DESTINATION := Vector2(78.0, 244.0)
-const TARGET_COLLECTION_DURATION := 0.62
-const TARGET_COLLECTION_FADE_START := 0.90
-const TARGET_COLLECTION_POP_SCALE := 1.18
-const TARGET_PANEL_PULSE_DURATION := 0.94
-const TARGET_SWAP_START_DELAY := 0.78
-const TARGET_SWAP_OUTGOING_FADE_DURATION := 0.24
-const TARGET_SWAP_GAP_DURATION := 0.10
-const TARGET_SWAP_INCOMING_FADE_DURATION := 0.24
+const TARGET_COLLECTION_DURATION := 0.40
+const TARGET_COLLECTION_FADE_START := 0.84
+const TARGET_COLLECTION_POP_SCALE := 1.20
+const TARGET_PANEL_PULSE_DURATION := 0.52
+const TARGET_SWAP_START_DELAY := 0.26
+const TARGET_SWAP_OUTGOING_FADE_DURATION := 0.14
+const TARGET_SWAP_GAP_DURATION := 0.05
+const TARGET_SWAP_INCOMING_FADE_DURATION := 0.16
 const TARGET_SWAP_OUTGOING_OFFSET := Vector2.ZERO
 const TARGET_SWAP_INCOMING_OFFSET := Vector2.ZERO
 const TARGET_SWAP_INCOMING_SCALE := 1.0
 const PRESENTATION_EVENT_TRACE_LIMIT := 128
 const MERGE_MOMENTUM_TRANSFER := 0.62 # bounded average of source momentum
 const MERGE_MAX_SPAWN_SPEED := 420.0 # prevents an upgrade from shooting through a cluster
-const CHAIN_PRESENTATION_STAGGER := 0.05 # visual cadence only; merge logic remains immediate
-const NEXT_LAUNCHER_READY_DELAY := 0.04 # after bounded handoff and any presentation gate
+const CHAIN_PRESENTATION_STAGGER := 0.03 # faster visual cadence only; merge logic remains immediate
+const NEXT_LAUNCHER_READY_DELAY := 0.02 # faster handoff after the presentation gate
 ## A released gem gives the launcher lane time to clear, then becomes a normal
 ## simulation body even if contacts keep it moving. This bounds replacement
 ## latency on crowded boards without changing any motion or collision value.
-const LAUNCHER_HANDOFF_DELAY := 0.30
+const LAUNCHER_HANDOFF_DELAY := 0.22
 const MERGE_CHAIN_DEPTH_CAP := 6
 const OVERLAY_BUTTON_RECT := Rect2(220.0, 770.0, 280.0, 64.0)
-const OVERLAY_FADE_DURATION := 0.18
+const OVERLAY_FADE_DURATION := 0.14
 const RESULT_BACKDROP_OPACITY := 0.48
-const WIN_PRESENTATION_HOLD := 0.32
+const WIN_PRESENTATION_HOLD := 0.24
 ## Rendering-only layout values. These never feed simulation or collision geometry.
 ## HUD measurements are in the fixed 720-wide design space, sampled from the
 ## supplied portrait reference: large SCORE left, five-ring ladder centered,

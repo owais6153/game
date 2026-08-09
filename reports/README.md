@@ -1,5 +1,3 @@
-# Reports
+# Reports Index
 
-- `CRYSTAL_MAGIC_HUD_BRANDING_ALIGNMENT_V1_REPORT.md` — Crystal Magic branding plus Target/merge-path/table responsive alignment.
-
-- `HOME_LEVEL_PREVIEW_SETTINGS_MODAL_POLISH_V1_REPORT.md` — 2026-08-09 Home polish, shared settings modal/switches, pre-level preview flow, and pause alignment cleanup.
+- `HOME_SETTINGS_FAST_FEEL_MOTION_V1_REPORT.md` — Home settings alignment fix, Tween Composer/Global Tweens integration, and centralized fast-feel timing pass.

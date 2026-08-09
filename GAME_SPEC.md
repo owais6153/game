@@ -1,3 +1,20 @@
+# Startup and iconography requirements — 2026-08-09
+
+- The pre-level modal keeps its target gem static. Do not add idle breathing, wobble, spin, or scale-loop animation to that gem; START GAME and popup entrance motion are enough.
+- Use the supplied `@icons` library for generic interface affordances instead of inventing new raster icons. Runtime derivatives may be recolored to the Crystal Magic white/navy palette, but the source library remains untouched.
+- Settings uses the @icons cog on Home and gameplay. Primary/secondary actions may use Play, Done, Back, Restart, Home, Next, Retry, Music, Sound, and Vibration glyphs where they improve readability.
+- Android startup should not show two separate branded splash phases. Keep the Android system splash visible until the main loop and disable the extra Godot Android boot splash.
+- The Android system-splash icon must be padded inside the safe area to prevent the Crystal Magic mark from being cropped by system masking.
+- The launcher main icon remains the supplied Crystal Magic app icon; startup cleanup must not silently replace the launcher artwork.
+
+# Crystal Magic — Fast Feel + Motion Integration v1
+
+- Home Settings is a compact top-right control that respects the same safe-area margins as the Home content; it must never stretch vertically with the screen.
+- Button/toggle feedback is immediate and bounded. Global Tweens may animate presentation scale/color only and must never feed simulation values.
+- Tween Composer is used for the reusable Home-logo ambient loop only; the Level Intro target gem is intentionally static. Presentation tweens remain pause-safe and never affect simulation.
+- Fast-feel tuning is centralized in `GameConfig`: launch speed 1200, damping 195/s, sleep threshold 10, launcher handoff 0.22 s, merge presentation 0.36 s, target collection 0.40 s, target swap start 0.26 s, normal coin flight 0.92 s, chain visual stagger 0.03 s.
+- Contact-only merging, table/rail geometry, target qualification, level generation, scoring, coin authority, persistence, and all collider sizes remain unchanged.
+
 # Game Spec — Clean Contact Merge v1
 
 ## Light Glass Gameplay HUD v1

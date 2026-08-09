@@ -1,3 +1,19 @@
+# Current State Addendum — Startup + @icons polish v1
+
+The current source keeps the previously approved fast-feel timing pass and fixes the latest presentation issues. The pre-level objective gem is static (no Tween Composer breathing). `addons/at-icons` is now integrated for settings/action/status affordances, with recolored runtime SVG derivatives under `assets/runtime/ui/icons/`.
+
+Android startup is configured as a single native system-splash phase using `crystal_magic_system_splash_icon_v1.png`; `splash_screen/disable_godot_boot_splash=true` prevents the second Godot splash from appearing after it. The project-level boot splash remains a clean transparent Crystal Magic logo as a non-Android/editor fallback. The existing square Crystal Magic artwork remains the launcher main icon. Android's adaptive/system-splash background fallback is the tropical-teal `crystal_magic_adaptive_bg_v1.png`.
+
+No simulation, physics, table, merge, target, score, or fast-feel timing values were changed in this pass.
+
+# Current State Addendum — Home Settings Alignment + Fast Feel Motion v1
+
+The current source fixes the Home settings control visible in the supplied screenshot: it is now a compact top-right 94×94 glass card instead of a vertically stretched rail. Home, Level Intro, Pause, and settings controls share quick `GlobalTweens` press feedback. Tween Composer owns the reusable Home-logo breathing loop only; the Level Intro target gem is intentionally static.
+
+Gameplay pacing is intentionally quicker without changing merge eligibility or board geometry. Central `GameConfig` timings now use a 1200 launch speed, 0.22 s launcher handoff, 0.36 s merge presentation, 0.40 s target collection, 0.26 s target swap delay, and ~0.92 s normal coin flight. This is a feel/presentation pass; target rules, score authority, collision geometry, table placement, and merge contact rules remain unchanged.
+
+The latest supplied archive also contains `addons/at-icons`; curated runtime derivatives are now integrated for generic UI affordances while the original library remains intact.
+
 # Current State
 
 # Light Glass Gameplay HUD v1 — Current Presentation
@@ -206,3 +222,20 @@ Crystal Magic now has a two-step Home-to-game flow. The Home `PLAY`/`CONTINUE` a
 Home now exposes a Settings button and a settings-only modal. Its Music, Sound FX, and Vibration controls are wired to the same controller handlers and `GameSettingsService` persistence path used by the gameplay pause modal. The Home settings modal intentionally has no Resume, Restart, or Home actions; it closes with DONE/Back.
 
 The pause modal keeps Resume, Restart, and Home, but its layout is normalized to a shared content width with full-width Resume and equal-width secondary actions. Setting controls are explicit ON/OFF toggle buttons rather than the prior cramped default CheckButton presentation.
+
+## Latest polish
+- Home-screen music now keeps playing while the home overlay is visible unless the Music setting is turned off.
+- Launcher/system splash now use a borderless Crystal Magic icon that is separate from the main logo.
+- Godot boot splash now uses the tropical beach background plus the generated Crystal Magic logo.
+
+## v8.1 splash/icon refinement
+- App icon now uses the generated Crystal Magic logo with explicit padding over a beachy background.
+- Adaptive Android icon now uses a separate beach background and a padded transparent foreground logo.
+- System splash icon and Godot boot splash were re-composed for a cleaner fit.
+
+## v8.2 branding correction
+- Home logo, boot splash logo, and icon branding now all resolve from the exact supplied Crystal Magic transparent logo.
+- Boot splash no longer uses a background image; it displays the standalone logo on a blue theme background.
+- App icon uses the same logo over a beach background with explicit padding.
+- Settings cog icon is blue everywhere.
+- Home logo slot was enlarged to prevent gem-edge clipping.
