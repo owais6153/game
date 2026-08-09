@@ -239,3 +239,8 @@ The pause modal keeps Resume, Restart, and Home, but its layout is normalized to
 - App icon uses the same logo over a beach background with explicit padding.
 - Settings cog icon is blue everywhere.
 - Home logo slot was enlarged to prevent gem-edge clipping.
+
+## Result modal unification — 2026-08-10
+- Home always shows `PLAY`, including returning players; selecting it still opens the pre-level preview before entering gameplay.
+- Win/Failed overlays share the production light-glass modal system used by Pause and Home Settings: `gameplay_modal_panel_style()`, 520×690 design minimum, 424px action width, blue typography, light-glass reward card, and matching button motion.
+- Win and failure use the same shell; only title/subtitle, result art, transition copy, and primary action change by outcome.

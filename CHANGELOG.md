@@ -468,3 +468,9 @@
 - v8.1 icon/splash refinement: rebuilt the launcher and native splash icons from the generated Crystal Magic logo with proper padding and a beach background, and rebalanced the full-screen boot splash composition for a cleaner fit.
 
 - v8.2 branding correction: replaced all branding references with the exact supplied Crystal Magic transparent logo, removed the boot-splash background image in favor of the standalone logo, rebuilt the launcher/adaptive/native splash icons with padded logo-on-beach treatment, switched settings cogs to theme blue, and enlarged the Home logo region to avoid edge cutting.
+
+## 2026-08-10 — Unified Result Modal + Home Play Label
+- Home primary action now always reads `PLAY`; the Level Preview popup remains the gate before gameplay begins.
+- Win and failed result overlays now use the same light frosted-glass modal shell, spacing, typography, button sizing, and primary/secondary button language as Pause/Home Settings.
+- Removed the legacy cream/gold/coral result-card styling. Result content remains state-specific, but the modal shell no longer changes visual systems.
+- Added the same Global Tweens press feedback to Result actions. Gameplay, scoring, targets, persistence, board geometry, and result qualification are unchanged.

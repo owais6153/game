@@ -309,3 +309,8 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Home Settings contains Music, Sound FX, and Vibration only; it must not contain Resume, Restart, or Home actions.
 - Pause contains the same wired settings controls plus Resume, Restart, and Home.
 - Home and Pause must share the light frosted-glass UI language and consistent button/switch sizing.
+
+## Unified production modal rule — 2026-08-10
+- Home Settings, Pause, Win, and Failed overlays must share one light frosted-glass visual language. Result outcome may change content, never the modal shell styling.
+- Result primary action is 424×82 design units and Home is a 424×72 secondary action, matching the Pause hierarchy.
+- Home primary action text is always `PLAY`; the pre-level preview remains responsible for showing level/target details before `START GAME`.

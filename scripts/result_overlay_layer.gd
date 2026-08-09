@@ -69,7 +69,7 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8)
 	result_icon.texture = AssetCatalogType.gem_texture(result_tier) if won else null
 	fail_badge.visible = not won
 	score_label.text = "COINS  %s" % ScoreFormatterType.format(score)
-	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • SAME CHAIN ON RETRY" % level_number
+	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • READY TO RETRY" % level_number
 	retry_button.text = "NEXT LEVEL" if won else "RETRY"
 	retry_button.icon = ICON_NEXT if won else ICON_RETRY
 	retry_button.tooltip_text = "Continue to Level %d" % (level_number + 1) if won else "Retry Level %d" % level_number
@@ -134,50 +134,59 @@ func _build_ui() -> void:
 	center.name = "ResultCenter"
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	safe_margin.add_child(center)
+
+	# Results deliberately use the exact same frosted-glass modal language as
+	# Pause and Home Settings. Win/fail changes content, never the shell styling.
 	panel = PanelContainer.new()
 	panel.name = "ResultPanel"
-	panel.custom_minimum_size = Vector2(500.0, 680.0)
-	panel.add_theme_stylebox_override("panel", UiDesignSystemType.hero_screen_panel_style())
+	panel.custom_minimum_size = Vector2(520.0, 690.0)
+	panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(panel)
+
 	var margin := MarginContainer.new()
 	margin.name = "ResultContentMargin"
-	margin.add_theme_constant_override("margin_left", 42)
-	margin.add_theme_constant_override("margin_top", 32)
-	margin.add_theme_constant_override("margin_right", 42)
+	margin.add_theme_constant_override("margin_left", 48)
+	margin.add_theme_constant_override("margin_top", 30)
+	margin.add_theme_constant_override("margin_right", 48)
 	margin.add_theme_constant_override("margin_bottom", 34)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(margin)
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	var column := VBoxContainer.new()
 	column.name = "ResultContent"
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 10)
+	column.add_theme_constant_override("separation", 14)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(column)
-	title_label = _label("LEVEL COMPLETE", 39, UiDesignSystemType.COLOR_CORAL)
+
+	title_label = _label("LEVEL COMPLETE", UiDesignSystemType.POPUP_TITLE_FONT_SIZE, UiDesignSystemType.COLOR_BLUE_DEEP)
 	title_label.name = "ResultTitle"
 	title_label.custom_minimum_size = Vector2(0.0, 58.0)
-	title_label.add_theme_constant_override("outline_size", 6)
-	title_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_CREAM)
+	title_label.add_theme_constant_override("outline_size", 5)
+	title_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.92))
 	column.add_child(title_label)
-	celebration_label = _label("•  ✦  •", 20, UiDesignSystemType.COLOR_GOLD)
+
+	celebration_label = _label("✦", 22, UiDesignSystemType.COLOR_BLUE)
 	celebration_label.name = "CelebrationAccents"
-	celebration_label.custom_minimum_size = Vector2(0.0, 22.0)
+	celebration_label.custom_minimum_size = Vector2(0.0, 24.0)
 	column.add_child(celebration_label)
-	subtitle_label = _label("BOTH TARGETS COLLECTED", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
+
+	subtitle_label = _label("LEVEL COMPLETE", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
 	subtitle_label.name = "ResultSubtitle"
-	subtitle_label.custom_minimum_size = Vector2(0.0, 38.0)
+	subtitle_label.custom_minimum_size = Vector2(0.0, 36.0)
 	subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(subtitle_label)
+
 	var art_slot := CenterContainer.new()
 	art_slot.name = "ResultArtSlot"
-	art_slot.custom_minimum_size = Vector2(172.0, 172.0)
+	art_slot.custom_minimum_size = Vector2(132.0, 132.0)
 	art_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(art_slot)
+
 	var icon_aspect := AspectRatioContainer.new()
 	icon_aspect.name = "ResultGemSlot"
-	icon_aspect.custom_minimum_size = Vector2(156.0, 156.0)
+	icon_aspect.custom_minimum_size = Vector2(118.0, 118.0)
 	icon_aspect.ratio = 1.0
 	icon_aspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art_slot.add_child(icon_aspect)
@@ -187,52 +196,59 @@ func _build_ui() -> void:
 	result_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	result_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_aspect.add_child(result_icon)
+
 	fail_badge = PanelContainer.new()
 	fail_badge.name = "FailBadge"
 	fail_badge.custom_minimum_size = Vector2(104.0, 104.0)
-	fail_badge.add_theme_stylebox_override("panel", UiDesignSystemType.fail_badge_style())
+	fail_badge.add_theme_stylebox_override("panel", UiDesignSystemType.level_badge_style())
 	fail_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art_slot.add_child(fail_badge)
-	var fail_mark := _label("!", 62, UiDesignSystemType.COLOR_CORAL_DARK)
+	var fail_mark := _label("!", 58, UiDesignSystemType.COLOR_BLUE_DEEP)
 	fail_mark.name = "FailMark"
 	fail_mark.add_theme_constant_override("outline_size", 0)
 	fail_badge.add_child(fail_mark)
 	fail_badge.visible = false
+
 	var reward_card := PanelContainer.new()
 	reward_card.name = "ResultRewardCard"
-	reward_card.custom_minimum_size = Vector2(388.0, 78.0)
-	reward_card.add_theme_stylebox_override("panel", UiDesignSystemType.continue_card_style())
+	reward_card.custom_minimum_size = Vector2(424.0, 74.0)
+	reward_card.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
+	reward_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(reward_card)
-	score_label = _label("COINS  0", 29, UiDesignSystemType.COLOR_TEAL)
+	score_label = _label("COINS  0", 28, UiDesignSystemType.COLOR_BLUE_DEEP)
 	score_label.name = "ResultScore"
-	score_label.custom_minimum_size = Vector2(0.0, 68.0)
+	score_label.custom_minimum_size = Vector2(0.0, 66.0)
 	reward_card.add_child(score_label)
-	transition_label = _label("LEVEL 1  →  LEVEL 2", 17, UiDesignSystemType.COLOR_TEXT_MUTED)
+
+	transition_label = _label("LEVEL 1  →  LEVEL 2", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
 	transition_label.name = "ResultTransition"
-	transition_label.custom_minimum_size = Vector2(0.0, 34.0)
+	transition_label.custom_minimum_size = Vector2(0.0, 32.0)
 	column.add_child(transition_label)
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0.0, 6.0)
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(spacer)
+
 	retry_button = Button.new()
 	retry_button.name = "ResultActionButton"
-	retry_button.text = "REPLAY"
-	retry_button.custom_minimum_size = Vector2(388.0, 78.0)
+	retry_button.text = "NEXT LEVEL"
+	retry_button.custom_minimum_size = Vector2(424.0, 82.0)
 	retry_button.focus_mode = Control.FOCUS_ALL
 	retry_button.expand_icon = false
 	retry_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	retry_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	retry_button.pressed.connect(_on_action_pressed)
+	_wire_button_motion(retry_button)
 	column.add_child(retry_button)
+
 	home_button = Button.new()
 	home_button.name = "ResultHomeButton"
 	home_button.text = "HOME"
 	home_button.icon = ICON_HOME
 	home_button.expand_icon = false
 	home_button.theme_type_variation = "SecondaryButton"
-	home_button.custom_minimum_size = Vector2(388.0, 66.0)
+	home_button.custom_minimum_size = Vector2(424.0, 72.0)
+	home_button.focus_mode = Control.FOCUS_ALL
+	home_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	home_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	home_button.pressed.connect(func() -> void: home_requested.emit())
+	_wire_button_motion(home_button)
 	column.add_child(home_button)
 
 func _on_action_pressed() -> void:
@@ -287,9 +303,18 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_constant_override("outline_size", 2)
-	label.add_theme_color_override("font_outline_color", Color(1.0, 0.96, 0.86, 0.76))
+	label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.78))
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
+
+
+func _wire_button_motion(button: BaseButton) -> void:
+	if button == null:
+		return
+	button.button_down.connect(func() -> void:
+		button.pivot_offset = button.size * 0.5
+		GlobalTweens.button_press(button, 0.055)
+	)
 
 
 func _node_center(control: Control) -> Vector2:

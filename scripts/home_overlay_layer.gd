@@ -82,7 +82,7 @@ func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	_snapshot = snapshot.duplicate(true)
 	level_label.text = "LEVEL %d" % level_number
 	coins_label.text = ScoreFormatterType.format(coins)
-	play_button.text = "PLAY" if level_number <= 1 and coins <= 0 else "CONTINUE"
+	play_button.text = "PLAY"
 	play_button.tooltip_text = "Preview Level %d" % level_number
 	_sync_settings_from_snapshot()
 	_refresh_intro_content()
