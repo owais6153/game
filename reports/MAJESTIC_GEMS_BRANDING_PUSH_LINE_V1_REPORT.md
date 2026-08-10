@@ -1,5 +1,7 @@
 # Majestic Gems Branding + Draggable Push Line v1
 
+Source: `95745b83a0d1509250b35823a24a88903ac07667` / `majestic-gems-branding-push-line-v1-source`. Delivery tag: `majestic-gems-branding-push-line-v1`.
+
 ## Scope
 
 This milestone integrates only the two supplied branding assets, removes or excludes inactive APK resources, and makes the existing ready-state vertical push line share the launcher's existing drag behavior. It does not retune or refactor gameplay.

@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Majestic Gems Branding + Draggable Push Line v1
+
+- APK: `build/android/majestic-gems-branding-push-line-v1.apk`
+- Size: 42,831,666 bytes
+- Export timestamp: 2026-08-11T04:26:13+05:00 (Asia/Karachi)
+- SHA-256: `1E27A1E54DCDE2A782E9536CE18006EA37D90D763B7630982A4AF08D5F25072B`
+- Baseline commit/tag: `33942b9` / `majestic-gems-branding-push-line-baseline`
+- Source commit/tag: `95745b83a0d1509250b35823a24a88903ac07667` / `majestic-gems-branding-push-line-v1-source`
+- Delivery tag: `majestic-gems-branding-push-line-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; validation signing, not a store-release keystore claim.
+- Validation: headless import/editor parse PASS; clean focused `BRANDING_PUSH_LINE_TESTS: PASS`; production main-scene headless launch PASS; 260-entry APK contains manifest, 14 dex files, arm64 Godot runtime, legacy/adaptive icon resources, and zero forbidden source/report/test/tool/retired-asset paths; APK Signature Schemes v2/v3 PASS with one RSA-2048 signer.
+- Size comparison: prior `gem-aim0.2.apk` was 60,517,648 bytes; this APK is 17,685,982 bytes smaller (29.22%).
+- Historical-suite note: the pre-Optimize clean-contact/gameplay-feel runners were attempted but are incompatible with the current source/autoload layout and retired catalog constants; no pass is claimed from them.
+- Device status: `adb devices -l` returned an empty list; installation, launcher mask appearance, Home logo appearance, touch behavior, and phone performance are not claimed.
+
 ## Transparent Purple Glass HUD v1
 
 - APK: `build/android/transparent-purple-glass-hud-v1.apk`
