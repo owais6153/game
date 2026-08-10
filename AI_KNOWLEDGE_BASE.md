@@ -568,3 +568,6 @@ Do not wire Home PLAY directly to gameplay in future edits. `HomeOverlayLayer` f
 Home settings and pause settings must stay on the same persistence path: both emit Music/Sound/Vibration signals to `GameController`, which updates audio/haptics services and calls `GameSettingsService.save_settings()`. Do not add a second settings store inside either UI layer.
 
 For settings controls, use the `SettingsSwitch` toggle Button variation with ON/OFF text. Do not revert to unstyled `CheckButton` widgets, which previously rendered as cramped/default-looking controls inside the glass modal.
+
+
+- Branding hotfix: Home now uses `assets/runtime/gem-aim-logo.png`, Android/game icon now uses `assets/runtime/gem-aim-icon.png`, settings icon was switched to a crisp PNG derivative, and the home tagline size was increased for readability.

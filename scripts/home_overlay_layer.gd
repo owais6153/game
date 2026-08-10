@@ -8,7 +8,7 @@ const TweenComposerType = preload("res://tween_composer/tween_composer.gd")
 const TweenSequenceType = preload("res://tween_composer/ConfigurationResources/tween_sequence_resource.gd")
 const TweenStepCollectionType = preload("res://tween_composer/ConfigurationResources/tween_step_collection_resource.gd")
 const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/tween_step_item_resource.gd")
-const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_blue.svg")
+const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_blue_crisp.png")
 const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
 const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_navy.svg")
@@ -178,7 +178,7 @@ func _build() -> void:
 	hero.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(hero)
 	logo_rect = TextureRect.new()
-	logo_rect.name = "CrystalMagicLogo"
+	logo_rect.name = "GemAimLogo"
 	logo_rect.texture = AssetCatalogType.BRAND_LOGO
 	logo_rect.custom_minimum_size = Vector2(540.0, 470.0)
 	logo_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -187,8 +187,8 @@ func _build() -> void:
 	hero.add_child(logo_rect)
 	_logo_motion_composer = _attach_scale_loop(logo_rect, "HomeLogoBreath", 1.018, 2.10)
 
-	tagline_label = _label("A TROPICAL GEM ADVENTURE", 17, Color.WHITE)
-	tagline_label.custom_minimum_size = Vector2(0.0, 34.0)
+	tagline_label = _label("A TROPICAL GEM ADVENTURE", 23, Color.WHITE)
+	tagline_label.custom_minimum_size = Vector2(0.0, 44.0)
 	tagline_label.add_theme_constant_override("outline_size", 6)
 	tagline_label.add_theme_color_override("font_outline_color", Color(0.02, 0.30, 0.34, 0.85))
 	column.add_child(tagline_label)
@@ -308,7 +308,7 @@ func _build_settings_popup() -> void:
 	var title := _label("SETTINGS", 34, UiDesignSystemType.COLOR_BLUE_DEEP)
 	title.custom_minimum_size = Vector2(0, 58)
 	column.add_child(title)
-	var subtitle := _label("MAKE CRYSTAL MAGIC YOURS", 14, UiDesignSystemType.COLOR_TEXT_MUTED)
+	var subtitle := _label("MAKE GEM AIM YOURS", 15, UiDesignSystemType.COLOR_TEXT_MUTED)
 	subtitle.custom_minimum_size = Vector2(0, 30)
 	column.add_child(subtitle)
 	settings_music_toggle = _setting_switch_row(column, "MUSIC", "HomeMusicToggle")

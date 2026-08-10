@@ -474,3 +474,6 @@
 - Win and failed result overlays now use the same light frosted-glass modal shell, spacing, typography, button sizing, and primary/secondary button language as Pause/Home Settings.
 - Removed the legacy cream/gold/coral result-card styling. Result content remains state-specific, but the modal shell no longer changes visual systems.
 - Added the same Global Tweens press feedback to Result actions. Gameplay, scoring, targets, persistence, board geometry, and result qualification are unchanged.
+
+
+- Branding hotfix: Home now uses `assets/runtime/gem-aim-logo.png`, Android/game icon now uses `assets/runtime/gem-aim-icon.png`, settings icon was switched to a crisp PNG derivative, and the home tagline size was increased for readability.

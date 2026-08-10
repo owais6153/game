@@ -314,3 +314,6 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Home Settings, Pause, Win, and Failed overlays must share one light frosted-glass visual language. Result outcome may change content, never the modal shell styling.
 - Result primary action is 424×82 design units and Home is a 424×72 secondary action, matching the Pause hierarchy.
 - Home primary action text is always `PLAY`; the pre-level preview remains responsible for showing level/target details before `START GAME`.
+
+
+- Branding hotfix: Home now uses `assets/runtime/gem-aim-logo.png`, Android/game icon now uses `assets/runtime/gem-aim-icon.png`, settings icon was switched to a crisp PNG derivative, and the home tagline size was increased for readability.

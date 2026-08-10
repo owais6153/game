@@ -35,3 +35,6 @@ Run the test suite from the project root:
 # Visual-sequencing contact v2
 
 The current milestone uses the newly supplied table plus body-only gem textures and separate presentation shadows. Contact-only merge eligibility remains unchanged.
+
+
+- Branding hotfix: Home now uses `assets/runtime/gem-aim-logo.png`, Android/game icon now uses `assets/runtime/gem-aim-icon.png`, settings icon was switched to a crisp PNG derivative, and the home tagline size was increased for readability.

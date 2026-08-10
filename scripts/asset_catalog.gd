@@ -24,7 +24,7 @@ const COIN_REWARD: Texture2D = preload("res://assets/runtime/effects/coin_reward
 ## game uses the approved art, not recreated panel look-alikes.
 const HUD_BUTTON_SHEET: Texture2D = preload("res://assets/buttons/Generated image 10.png")
 const HUD_RESTART_ART: Texture2D = preload("res://assets/ui/Generated image 3.png")
-const BRAND_LOGO: Texture2D = preload("res://assets/runtime/ui/crystal_magic_logo_transparent_v1.png")
+const BRAND_LOGO: Texture2D = preload("res://assets/runtime/gem-aim-logo.png")
 const HUD_SCORE_PANEL_REGION := Rect2(632.0, 358.0, 360.0, 232.0)
 const HUD_NEXT_PANEL_REGION := Rect2(632.0, 610.0, 360.0, 400.0)
 const HUD_WHITE_PANEL_REGION := Rect2(38.0, 620.0, 550.0, 190.0)
