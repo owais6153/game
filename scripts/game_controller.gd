@@ -290,18 +290,18 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 		if collection_in_progress:
 			return
 		var active := get_active_piece()
-		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and pointer.distance_to(active.position) <= active.radius * GameConfig.DRAG_HIT_RADIUS_MULTIPLIER:
+		var grabbed_gem := active != null and pointer.distance_to(active.position) <= active.radius * GameConfig.DRAG_HIT_RADIUS_MULTIPLIER
+		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and (grabbed_gem or GameConfig.aim_guide_contains(pointer, active.position, active.radius)):
 			dragging = true
 			move_active_to(pointer.x)
 	elif dragging:
 		dragging = false
 		if not collection_in_progress:
 			launch_active_piece()
-
 func move_active_to(x_position: float) -> void:
 	var active := get_active_piece()
 	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
-		active.position.x = clampf(x_position, GameConfig.table_left_at(active.position.y) + active.radius, GameConfig.table_right_at(active.position.y) - active.radius)
+		active.position.x = GameConfig.launcher_drag_x(x_position, active.position.y, active.radius)
 
 func launch_active_piece() -> void:
 	var active := get_active_piece()

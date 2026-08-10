@@ -1,3 +1,13 @@
+# Current State Addendum — Majestic Gems branding + draggable push line v1
+
+The current source uses the newly supplied 1536×1024 transparent `MAJESTIC GEMS` logo on Home and the fallback Godot boot splash. Android uses a 192×192 padded legacy launcher icon and paired 432×432 adaptive foreground/background assets derived non-destructively from the supplied 1254×1254 icon. The foreground artwork occupies 68% of the canvas, keeping the full composition inside common Android masks.
+
+The ready-state vertical push line now accepts pointer/touch presses within a centralized 28-design-pixel half-width. It enters the existing controller `dragging` state, calls the same `GameConfig.launcher_drag_x()` rail clamp used by direct gem dragging, and releases through the existing `launch_active_piece()` lifecycle. Physics, launch speed, rails, collision, merging, targets, score, danger, and queue behavior are unchanged.
+
+The Android export filter now excludes retired UI atlases, legacy branding, old five-gem fallback textures, inactive reference audio, unused effect art, source/reference media, tests, reports, tools, and build outputs. Active dependencies remain explicitly preloaded.
+
+Fresh APK: `build/android/majestic-gems-branding-push-line-v1.apk`, 42,831,666 bytes, SHA-256 `1E27A1E54DCDE2A782E9536CE18006EA37D90D763B7630982A4AF08D5F25072B`. This is 17,685,982 bytes (29.22%) smaller than the prior `gem-aim0.2.apk`. Package structure and v2/v3 signatures pass; no Android device was connected.
+
 # Current State Addendum — Startup + @icons polish v1
 
 The current source keeps the previously approved fast-feel timing pass and fixes the latest presentation issues. The pre-level objective gem is static (no Tween Composer breathing). `addons/at-icons` is now integrated for settings/action/status affordances, with recolored runtime SVG derivatives under `assets/runtime/ui/icons/`.

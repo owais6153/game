@@ -27,6 +27,7 @@ const DANGER_LINE_COLOR := Color("e85f52")
 ## overflow detection, timing, or solver decisions.
 const AIM_GUIDE_WIDTH := 3.0
 const AIM_GUIDE_ALPHA := 0.62
+const AIM_GUIDE_TOUCH_HALF_WIDTH := 28.0
 const DANGER_WARNING_NEAR_DISTANCE := 76.0
 const DANGER_WARNING_PULSE_HZ := 1.65
 const LAUNCH_Y := 1144.0
@@ -331,6 +332,17 @@ static func table_right_at(y_position: float) -> float:
 
 static func table_playable_width_at(y_position: float) -> float:
 	return table_right_at(y_position) - table_left_at(y_position)
+
+static func launcher_drag_x(requested_x: float, y_position: float, radius: float) -> float:
+	return clampf(requested_x, table_left_at(y_position) + radius, table_right_at(y_position) - radius)
+
+static func aim_guide_contains(pointer: Vector2, active_position: Vector2, active_radius: float) -> bool:
+	var lane_top := vertical_lane_top_y(active_position.x, 5.0)
+	var start_y := lane_top + 10.0
+	var finish_y := active_position.y - active_radius - 10.0
+	if start_y >= finish_y - 8.0:
+		return false
+	return absf(pointer.x - active_position.x) <= AIM_GUIDE_TOUCH_HALF_WIDTH and pointer.y >= start_y and pointer.y <= finish_y
 
 
 static func vertical_lane_top_y(x_position: float, radius: float = 0.0) -> float:

@@ -1,3 +1,14 @@
+# 2026-08-11 — Majestic Gems branding, mask-safe icon, push-line dragging, and APK asset cleanup
+
+- Replaced Home/fallback boot branding with the complete supplied transparent `MAJESTIC GEMS` logo.
+- Preserved the supplied square icon and generated non-destructive 192 px legacy plus 432 px adaptive derivatives with 68% centered artwork so Android masking does not crop or zoom the composition.
+- Wired Android legacy, adaptive foreground/background, system splash, and project icon paths to the new derivatives.
+- Made the visible ready-state push line draggable. It shares the existing launcher drag state and authoritative rail clamp; release still calls the normal launcher path.
+- Centralized the guide hit width (`28 px` per side), guide hit geometry, and launcher X clamp in `GameConfig` without changing table geometry or gameplay tuning.
+- Removed obsolete `AssetCatalog` preloads for retired UI atlases and five-gem fallback textures; invalid catalog fallback now uses cached tier 1 from the active 18-gem map.
+- Expanded Android export exclusions for inactive source/reference/runtime assets and added a focused branding/push-line regression.
+- No launch velocity, damping, collision, merge eligibility, target progression, scoring, danger timing, result flow, audio routing, or saved progression changed.
+
 # 2026-08-09 — Splash cleanup + @icons integration + static level preview target
 
 - Removed the Tween Composer breathing loop from the pre-level target gem. The target gem remains visible but static so the START GAME preview reads cleanly.

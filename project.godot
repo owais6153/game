@@ -14,8 +14,8 @@ config/name="Gem Aim"
 run/main_scene="res://scenes/Game.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.188235, 0.611765, 0.847059, 1)
-boot_splash/image="res://assets/runtime/gem-aim-logo.png"
-config/icon="res://assets/runtime/gem-aim-icon.png"
+boot_splash/image="res://assets/runtime/ui/majestic_gems_logo_v1.png"
+config/icon="res://assets/runtime/ui/majestic_gems_app_icon_192_v1.png"
 
 [autoload]
 

@@ -1,3 +1,11 @@
+# Majestic Gems branding + draggable push line v1 — 2026-08-11
+
+- Home and fallback boot branding use the complete supplied transparent `MAJESTIC GEMS` logo without cropping or aspect distortion.
+- Android launcher branding uses the supplied square icon through a 192 px padded legacy icon plus 432 px adaptive foreground/background derivatives. The complete supplied composition stays inside the mask-safe center instead of being zoomed or cropped.
+- While the launcher is ready, the visible vertical push line is a touch target. Pressing or sliding it moves the active gem through the exact same horizontal rail clamp as direct gem dragging; releasing uses the unchanged launch path.
+- The push line remains input/presentation-only. It does not raycast, predict trajectory, change launch velocity, alter collision geometry, or affect merge, danger, target, queue, or score rules.
+- Historical source/reference assets remain preserved but are excluded from Android packaging when they are not active runtime dependencies.
+
 # Startup and iconography requirements — 2026-08-09
 
 - The pre-level modal keeps its target gem static. Do not add idle breathing, wobble, spin, or scale-loop animation to that gem; START GAME and popup entrance motion are enough.

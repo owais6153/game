@@ -1,3 +1,13 @@
+# Majestic Gems branding v1 — 2026-08-11
+
+| Purpose | Preserved supplied source | Active runtime derivative | Audit |
+| --- | --- | --- | --- |
+| Home and fallback boot logo | `assets/logo/majestic_gems_logo_source_v1.png` | `assets/runtime/ui/majestic_gems_logo_v1.png` | Exact byte-for-byte 1536×1024 RGBA copy; SHA-256 `EB6E2F3898F1C37B473E1C54D186FAA9B4F1478FA920DCD7AE491F90AC9BE9D1`; transparent corners; aspect-centered at runtime. |
+| Legacy launcher/project icon | `assets/logo/majestic_gems_icon_source_v1.jpeg` | `assets/runtime/ui/majestic_gems_app_icon_192_v1.png` | Source is 1254×1254 JPEG, 463,903 bytes, SHA-256 `CE4D6CF705D4A3C57C96A26F4D87121118BE9BD60A0F9C20C9127061397E556F`. Runtime PNG is 192×192 with the complete source scaled to 68% over a sky-to-sand frame; 57,372 bytes; SHA-256 `797F4E4128614406CC4BA4CDE9406212EDC401D5D07F224BC509FA5F932C39F8`. |
+| Adaptive/system-splash icon | same supplied icon source | `majestic_gems_adaptive_foreground_v1.png` + `majestic_gems_adaptive_background_v1.png` | Both are 432×432. Foreground is transparent outside the centered 68% source square (267,960 bytes; SHA-256 `141BCD47EE2F54F69E684CCFE41F263466427374FBF1D0C6A07490593B27D223`); background is a 2,424-byte sky-to-sand gradient (SHA-256 `F148B79BFE1323C61694616AD6E08C362AE7380A5637C6C543606DB1B65F13C7`). |
+
+Historical Crystal Magic/Gem Aim branding, retired five-gem fallback textures, inactive reference audio, old reward art, and retired HUD atlases remain preserved in the repository but are explicitly excluded from Android export. The enumerated obsolete runtime set accounts for 6,593,409 source bytes before Godot import/compression. The final APK is 42,831,666 bytes, 17,685,982 bytes (29.22%) smaller than the prior `gem-aim0.2.apk`; its 260-entry audit contains zero forbidden retired/source/report/test/tool paths.
+
 # Runtime UI icon/splash additions — 2026-08-09
 
 - `addons/at-icons/` — supplied MIT icon library + editor picker.

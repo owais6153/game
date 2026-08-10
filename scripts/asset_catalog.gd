@@ -2,7 +2,6 @@ class_name AssetCatalog
 extends RefCounted
 
 ## Presentation-only texture catalog. Simulation must never read these resources.
-const TROPICAL_BACKGROUND: Texture2D = preload("res://assets/runtime/backgrounds/tropical_beach.png")
 const LEVEL_BACKGROUNDS: Array[Texture2D] = [
 	preload("res://assets/runtime/backgrounds/level_bg_1.png"),
 	preload("res://assets/runtime/backgrounds/level_bg_2.png"),
@@ -11,20 +10,11 @@ const LEVEL_BACKGROUNDS: Array[Texture2D] = [
 	preload("res://assets/runtime/backgrounds/level_bg_5.png"),
 ]
 const NEW_TABLE: Texture2D = preload("res://assets/runtime/table/new_table_v1.png")
-const PEARL: Texture2D = preload("res://assets/runtime/gems_body_v2/pearl.png")
-const RUBY: Texture2D = preload("res://assets/runtime/gems_body_v2/ruby.png")
-const EMERALD: Texture2D = preload("res://assets/runtime/gems_body_v2/emerald.png")
-const SAPPHIRE: Texture2D = preload("res://assets/runtime/gems_body_v2/sapphire.png")
-const DIAMOND_CLEAN: Texture2D = preload("res://assets/runtime/gems_body_v2/diamond.png")
 const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_soft_shadow.png")
 ## Cropped mobile derivative of the supplied glossy coin artwork. The original
 ## remains untouched under assets/buttons and this texture is presentation-only.
 const COIN_REWARD: Texture2D = preload("res://assets/runtime/effects/coin_reward_reference_v2.png")
-## Supplied HUD art. Regions are drawn directly from this source sheet so the
-## game uses the approved art, not recreated panel look-alikes.
-const HUD_BUTTON_SHEET: Texture2D = preload("res://assets/buttons/Generated image 10.png")
-const HUD_RESTART_ART: Texture2D = preload("res://assets/ui/Generated image 3.png")
-const BRAND_LOGO: Texture2D = preload("res://assets/runtime/gem-aim-logo.png")
+const BRAND_LOGO: Texture2D = preload("res://assets/runtime/ui/majestic_gems_logo_v1.png")
 const HUD_SCORE_PANEL_REGION := Rect2(632.0, 358.0, 360.0, 232.0)
 const HUD_NEXT_PANEL_REGION := Rect2(632.0, 610.0, 360.0, 400.0)
 const HUD_WHITE_PANEL_REGION := Rect2(38.0, 620.0, 550.0, 190.0)
@@ -103,13 +93,7 @@ static func gem_texture(level: int) -> Texture2D:
 	var cached := GEM_TIER_TEXTURES.get(identity) as Texture2D
 	if cached != null:
 		return cached
-	match level:
-		1: return PEARL
-		2: return RUBY
-		3: return EMERALD
-		4: return SAPPHIRE
-		5: return DIAMOND_CLEAN
-		_: return PEARL
+	return GEM_TIER_TEXTURES[1]
 
 static func gem_resource_path(level: int) -> String:
 	return gem_texture(level).resource_path
