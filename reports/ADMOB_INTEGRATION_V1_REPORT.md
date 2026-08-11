@@ -40,14 +40,17 @@ A rewarded completion on an even level can be followed by that level's scheduled
 - `ADMOB_INTEGRATION_TESTS: PASS`: debug/release ID routing, 2-level cadence, unavailable fail-open callbacks, initialization/preload, fullscreen duplicate rejection, dismissal/failure completion, reload, confirmed reward exactly once, early close with no reward, result pending/disabled behavior, and failure Retry fallback.
 - `BRANDING_PUSH_LINE_TESTS: PASS`: existing branding and launcher input regression marker reached.
 - Runner limitation: both `-s` test processes reach PASS, then Godot 4.6.3 on this Windows host exits during teardown with `0xC0000005`; no failed assertion precedes the teardown. The editor parse process exits cleanly.
-- APK export/package/signature validation: pending final export.
-- Connected-device status: `adb devices -l` did not return within 60 seconds and the orphaned diagnostic process was stopped. Installation, Google-served test-ad rendering, physical close/resume behavior, rewarded video completion, and real-device interstitial cadence are not claimed.
+- APK validation: the fresh debug artifact exists at 108,146,729 bytes; SHA-256 is `6BFD90E81F509881C651162B1FA8602200690871F2A564E24B7A06B98C4D4005`. The packaged compiled config contains both Google test IDs. Package `com.owais.gemmergerebuild`, arm64 Godot runtime, five DEX files, Internet/network/AD_ID permissions, configured App ID, and Poing interstitial/rewarded plugin registrations are present. APK Signature Scheme v2 passes with one RSA-2048 debug signer.
+- Export-process limitation: the first sandboxed attempt was correctly blocked from downloading Gradle. The authorized retry produced the stable APK and then exceeded the outer 10-minute command timeout after artifact creation; its exact build processes were stopped. Artifact hash, manifest, package, runtime, and signature audits pass, but a clean Gradle-wrapper exit is not claimed.
+- Connected-device status: after restarting the local daemon, `adb devices -l` returned an empty list. Installation, Google-served test-ad rendering, physical close/resume behavior, rewarded video completion, and real-device interstitial cadence are not claimed.
 
 ## Delivered build
 
-- APK: pending final export.
-- Source commit/tag: pending final milestone commit.
-- Delivery tag: `admob-integration-v1` (to be created after validation).
+- APK: `build/android/admob-integration-v1-debug.apk`
+- Size/timestamp: 108,146,729 bytes; 2026-08-11T11:40:40+05:00.
+- SHA-256: `6BFD90E81F509881C651162B1FA8602200690871F2A564E24B7A06B98C4D4005`
+- Source commit/tag: `d62e5dbb5a9144d0209526bbc4c6b56e0ffd8fd3` / `admob-integration-v1-source`.
+- Delivery tag: `admob-integration-v1`.
 
 ## Limitations and release checklist
 

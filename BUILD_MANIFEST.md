@@ -1,5 +1,20 @@
 # Build Manifest
 
+## AdMob Integration v1
+
+- APK: `build/android/admob-integration-v1-debug.apk`
+- Size: 108,146,729 bytes
+- Export timestamp: 2026-08-11T11:40:40+05:00 (Asia/Karachi)
+- SHA-256: `6BFD90E81F509881C651162B1FA8602200690871F2A564E24B7A06B98C4D4005`
+- Baseline commit/tag: `7e700da68935e3c622ad980784ba875131866859` / `admob-integration-v1-baseline`
+- Source commit/tag: `d62e5dbb5a9144d0209526bbc4c6b56e0ffd8fd3` / `admob-integration-v1-source`
+- Delivery tag: `admob-integration-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; Gradle-enabled debug signing, not a store-release signing claim.
+- Validation: headless editor import/full-project parse PASS with exit 0; `ADMOB_INTEGRATION_TESTS: PASS`; `BRANDING_PUSH_LINE_TESTS: PASS`; short main-scene smoke log contains no runtime/script errors; standalone APK exists; debug interstitial/rewarded test IDs are present in packaged `ad_config.gdc`; package `com.owais.gemmergerebuild`, arm64 Godot runtime, five DEX files, Internet/network/AD_ID permissions, configured AdMob application ID, and Poing interstitial/rewarded registrations are present; APK Signature Scheme v2 PASS with one RSA-2048 debug signer.
+- Export-process note: the first sandboxed attempt was denied network access. The authorized Gradle retry produced the stable APK above, then its outer Godot/Gradle wrapper exceeded the 10-minute command timeout after artifact creation; the two orphaned build processes were stopped. Artifact hash, manifest, package, native runtime, and signature checks all pass.
+- Runner note: both `-s` suites and the timed main-scene smoke reach their pass/clean log condition, then this Windows Godot 4.6.3 process exits during teardown with `0xC0000005`. No assertion or runtime script error precedes teardown; the editor parse exits 0.
+- Device status: after restarting ADB, `adb devices -l` returned an empty list. Installation, Google-served test-ad rendering, physical rewarded completion/early-close, background/resume, and device interstitial cadence are not claimed.
+
 ## Majestic Gems Branding + Draggable Push Line v1
 
 - APK: `build/android/majestic-gems-branding-push-line-v1.apk`
