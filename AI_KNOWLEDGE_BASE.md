@@ -599,3 +599,14 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Android application ID authority is `export_presets.cfg` and must remain `com.owais.majestygems`.
 - Keep `gradle_build/compress_native_libraries=true`, arm64 as the only production ABI, and the focused AdMob export exclusions. Do not restore sample translation registration or optional ICU/sample/editor payloads.
 - Do not remove required Poing bridges, Google Mobile Ads SDK/transitives, or runtime GDScript API classes to chase size.
+# 2026-08-12 - Game-flow/reward/splash guardrails
+
+- Never restore a post-reward `NEXT LEVEL` button, signal, or resolved confirmation state. Reward animation completion owns automatic departure to optional interstitial and then Level Ready.
+- Home PLAY must emit a request to `GameController`; the controller changes to `LEVEL_READY`, reveals the gameplay surface, and asks `HomeOverlayLayer` to show only the Level Ready modal. Do not show that modal over the Home backdrop/logo.
+- START GAME is the only Level Ready -> PLAYING action. Rewarded/interstitial dismissal, Android resume, Home PLAY, and reward animation must not unpause gameplay.
+- Keep earned-callback currency authority separate from rewarded presentation. Persist the bonus exactly once at earned callback; begin x2 animation only from rewarded finished/dismissed after returning to the surviving Level Complete popup.
+- Collect/Double lock immediately. On failure/early close, restore the same Level Complete choices and `LEVEL_COMPLETE` state with no bonus or navigation.
+- `GameplayHudLayer` completion count-up is visual reconciliation only. Controller/save integers remain authoritative and must never be incremented from tween callbacks.
+- Interstitial cadence remains positive even levels only and starts after reward feedback. Unavailable inventory must fail open directly to Level Ready.
+- Preserve `StartupSplashLayer` as the only custom startup phase: existing contained Majestic logo, Majestic blue, 1.05-second hold, 0.20-second fade. Keep Android Godot boot splash disabled and native system colors/icon matched as closely as Android allows.
+- Package ID stays `com.owais.majestygems`; AdMob App ID, test/production unit selection, saves, gameplay, physics, collision, merges, targets, difficulty, table/background/HUD layout, audio, and haptics are out of scope.

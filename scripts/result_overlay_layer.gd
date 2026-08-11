@@ -4,15 +4,14 @@ extends CanvasLayer
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
-const ICON_NEXT = preload("res://assets/runtime/ui/icons/next_white.svg")
 const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_navy.svg")
 
 signal retry_requested
 signal collect_requested
-signal next_level_requested
 signal double_coins_requested
 signal home_requested
+signal reward_animation_finished
 
 ## Dedicated result UI. It owns only its backdrop and panel; gameplay roots,
 ## gem sprites, simulation state, and reward timing are never modified here.
@@ -299,9 +298,9 @@ func _on_action_pressed() -> void:
 	if _actions_pending:
 		return
 	if result_won:
-		if _reward_resolved:
-			next_level_requested.emit()
-		else:
+		if not _reward_resolved:
+			_actions_pending = true
+			_refresh_action_state()
 			collect_requested.emit()
 	else:
 		retry_requested.emit()
@@ -335,8 +334,7 @@ func resolve_reward(updated_score: int, doubled: bool) -> void:
 	_reward_doubled = doubled
 	_double_request_in_flight = false
 	result_score = updated_score
-	_animate_total_to(updated_score)
-	_refresh_reward_copy()
+	_animate_reward_resolution(updated_score, doubled)
 	_refresh_action_state()
 
 
@@ -361,12 +359,15 @@ func _refresh_action_state() -> void:
 	double_button.disabled = _actions_pending or not _rewarded_available or _reward_resolved
 	double_button.visible = result_won and not _reward_resolved
 	if _reward_resolved:
-		retry_button.text = "NEXT LEVEL"
-		retry_button.icon = ICON_NEXT
-		retry_button.tooltip_text = "Continue to the Level Start screen"
+		retry_button.text = "COLLECTED"
+		retry_button.icon = null
+		retry_button.visible = false
 	elif result_won:
 		retry_button.text = "COLLECT"
 		retry_button.icon = null
+		retry_button.visible = true
+	else:
+		retry_button.visible = true
 	if _reward_doubled:
 		double_button.text = "DOUBLED"
 	elif _rewarded_available:
@@ -375,15 +376,40 @@ func _refresh_action_state() -> void:
 		double_button.text = "AD UNAVAILABLE"
 
 
-func _animate_total_to(target: int) -> void:
+func _animate_reward_resolution(target: int, doubled: bool) -> void:
 	_kill_total_tween()
 	var start := _displayed_total
 	_total_tween = create_tween()
 	_total_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	if doubled:
+		_reward_doubled = false
+		celebration_label.text = "Ã—2"
+		celebration_label.visible = true
+		celebration_label.pivot_offset = _node_center(celebration_label)
+		celebration_label.scale = Vector2.ONE * 0.55
+		celebration_label.modulate.a = 0.0
+		_total_tween.tween_property(celebration_label, "scale", Vector2.ONE * 1.18, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_total_tween.parallel().tween_property(celebration_label, "modulate:a", 1.0, 0.10)
+		_total_tween.tween_interval(0.08)
+		_total_tween.tween_callback(func() -> void:
+			_reward_doubled = true
+			_refresh_reward_copy()
+		)
+	else:
+		_reward_doubled = false
+		celebration_label.text = "âœ¦"
 	_total_tween.tween_method(func(value: float) -> void:
 		_displayed_total = int(round(value))
 		_refresh_reward_copy()
-	, float(start), float(target), 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	, float(start), float(target), 0.72).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_total_tween.tween_callback(func() -> void:
+		_displayed_total = target
+		_refresh_reward_copy()
+		score_label.pivot_offset = _node_center(score_label)
+		score_label.scale = Vector2.ONE * 1.08
+	)
+	_total_tween.tween_property(score_label, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_total_tween.tween_callback(func() -> void: reward_animation_finished.emit())
 
 
 func _kill_total_tween() -> void:
@@ -408,6 +434,15 @@ func _start_entrance() -> void:
 	_entrance_tween.tween_property(panel, "scale", Vector2.ONE, UiDesignSystemType.POPUP_ENTER_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_entrance_tween.tween_property(panel, "modulate:a", 1.0, UiDesignSystemType.POPUP_ENTER_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_entrance_tween.tween_property(dimmer, "color:a", UiDesignSystemType.COLOR_OVERLAY.a, UiDesignSystemType.POPUP_ENTER_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if result_won:
+		title_label.pivot_offset = _node_center(title_label)
+		result_icon.pivot_offset = _node_center(result_icon)
+		title_label.scale = Vector2.ONE * 0.82
+		result_icon.scale = Vector2.ONE * 0.72
+		result_icon.modulate = Color(1.18, 1.18, 1.18, 0.0)
+		_entrance_tween.tween_property(title_label, "scale", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_entrance_tween.tween_property(result_icon, "scale", Vector2.ONE, 0.30).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(0.04)
+		_entrance_tween.tween_property(result_icon, "modulate", Color.WHITE, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).set_delay(0.04)
 
 
 func _refresh_safe_margins() -> void:

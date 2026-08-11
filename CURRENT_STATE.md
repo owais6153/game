@@ -269,3 +269,12 @@ Godot 4.6.3 whole-project import/parse passes. The focused AdMob suite and exist
 Level Complete now remains visible until its base or doubled reward is resolved and the player explicitly presses `NEXT LEVEL`. Collect banks the existing authoritative level earnings once; only the rewarded earned callback adds one bonus copy. Failure/early close restores Collect without progression. Next Level is the natural every-two-level interstitial point and then opens the existing Level Intro modal; Play explicitly resumes the generated next level.
 
 The Android application ID is `com.owais.majestygems`. The verified debug APK is `build/android/majestic-gems-post-admob-fix-debug.apk` at 53,363,440 bytes with SHA-256 `7EEF183F5F7CB068292BFB1B588CD8ED271B9873AC5466D3AD471FBBC3E7DBD4`. It contains only arm64, retains AdMob runtime dependencies/test configuration, and excludes editor/sample/C#/iOS/mock/ICU payloads. Automated parse/state/package/signature checks pass; no Android device was connected, so physical install/ad playback is not claimed. See `reports/POST_ADMOB_REWARD_FLOW_AND_SIZE_FIX.md`.
+# Current State Addendum - Game Flow + Reward + Splash Polish
+
+The active mobile flow is now `STARTUP -> HOME -> LEVEL_READY -> PLAYING -> LEVEL_COMPLETE -> REWARD_PROCESSING -> optional AD_SHOWING -> LEVEL_READY`. Home PLAY reveals the gameplay/table screen before Level Ready appears. START GAME is the only action that resumes simulation.
+
+The post-reward `NEXT LEVEL` state no longer exists. Normal Collect and earned Double Coins keep the same Level Complete popup alive through their short presentation, animate the gameplay coin HUD from the pre-level bank to the final bank, then close automatically. Even-level interstitials run only after that animation; dismissal/unavailability routes to Level Ready, never directly to play.
+
+Rewarded earnings remain exactly-once and controller-owned. The earned callback persists the bonus, while the x2/result/HUD animation waits for rewarded dismissal so it cannot complete behind the ad. Early close/failure restores Collect/Double on the same popup with no bonus or progression.
+
+Android keeps the native Majestic-blue system splash and disables the extra Godot Android boot splash. A dedicated in-engine splash uses the existing contained Majestic Gems logo for a 1.05-second hold plus 0.20-second fade before Home. Application display name is now `Majestic Gems`; package remains `com.owais.majestygems`.

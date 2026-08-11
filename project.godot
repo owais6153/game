@@ -14,7 +14,7 @@ general/android/app_id="ca-app-pub-4605895178658062~1516881747"
 
 [application]
 
-config/name="Gem Aim"
+config/name="Majestic Gems"
 run/main_scene="res://scenes/Game.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.188235, 0.611765, 0.847059, 1)

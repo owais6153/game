@@ -119,22 +119,24 @@ func _test_result_actions() -> void:
 	var overlay := ResultOverlayType.new()
 	root.add_child(overlay)
 	await process_frame
-	var state := {"collect_requests": 0, "next_requests": 0, "double_requests": 0}
+	var state := {"collect_requests": 0, "double_requests": 0, "reward_finished": 0}
 	overlay.collect_requested.connect(func() -> void: state.collect_requests += 1)
-	overlay.next_level_requested.connect(func() -> void: state.next_requests += 1)
 	overlay.double_coins_requested.connect(func() -> void: state.double_requests += 1)
+	overlay.reward_animation_finished.connect(func() -> void: state.reward_finished += 1)
 	_assert(overlay.present(true, 1200, 2, 8, 300, false), "Completed result must present once")
 	_assert(overlay.retry_button.text == "COLLECT", "Completed result must expose the normal Collect action")
 	_assert(overlay._displayed_total == 900, "Completed result must show the banked total before its pending reward")
 	_assert(overlay.double_button.visible and overlay.double_button.disabled, "Unavailable rewarded action must be visible but disabled")
 	overlay._on_action_pressed()
 	overlay._on_action_pressed()
-	_assert(int(state.collect_requests) == 2 and int(state.next_requests) == 0, "The view must request Collect, never progression, until the controller resolves the reward")
+	_assert(int(state.collect_requests) == 1, "Collect must lock immediately and emit exactly one reward request")
 	overlay.resolve_reward(1200, false)
 	overlay.resolve_reward(1500, true)
-	_assert(overlay.retry_button.text == "NEXT LEVEL" and not overlay.double_button.visible, "Resolved Collect must keep the popup open and replace reward actions with Next Level")
+	_assert(overlay.retry_button.text != "NEXT LEVEL" and not overlay.retry_button.visible and not overlay.double_button.visible, "Resolved Collect must remove reward actions without exposing an intermediate Next Level button")
+	await create_timer(1.0).timeout
+	_assert(int(state.reward_finished) == 1 and overlay._displayed_total == 1200, "Normal reward animation must finish once and reconcile the displayed total")
 	overlay._on_action_pressed()
-	_assert(int(state.next_requests) == 1, "Next Level must be a separate explicit action after reward resolution")
+	_assert(int(state.collect_requests) == 1, "Resolved reward input must stay locked after animation")
 	overlay.dismiss()
 
 	_assert(overlay.present(true, 1200, 2, 8, 300, false), "Completed result must be reusable for rewarded flow")
@@ -154,7 +156,8 @@ func _test_result_actions() -> void:
 	overlay.resolve_reward(1800, true)
 	overlay._on_double_pressed()
 	_assert(int(state.double_requests) == 2, "A confirmed double reward must disable every later request")
-	_assert(overlay.result_score == 1500 and not overlay.double_button.visible and overlay.retry_button.text == "NEXT LEVEL", "The rewarded result must apply once, remain visible, and expose Next Level")
+	await create_timer(1.3).timeout
+	_assert(overlay.result_score == 1500 and not overlay.double_button.visible and overlay.retry_button.text != "NEXT LEVEL", "The rewarded result must apply once and finish without an intermediate Next Level action")
 	overlay.dismiss()
 	_assert(overlay.present(false, 1500, 2, 8), "Failure result must remain available after the ad-flow additions")
 	_assert(overlay.retry_button.text == "RETRY" and not overlay.double_button.visible, "Failure flow must remain Retry-only")

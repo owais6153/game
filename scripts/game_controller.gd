@@ -12,6 +12,7 @@ const ProgressionSaveServiceType = preload("res://scripts/progression_save_servi
 const GameSettingsServiceType = preload("res://scripts/game_settings_service.gd")
 const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
 const AdConfigType = preload("res://scripts/ad_config.gd")
+const StartupSplashType = preload("res://scripts/startup_splash_layer.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -65,6 +66,7 @@ var gameplay_ui: GameplayHudLayer
 var effects_layer: GameplayEffectsLayer
 var result_overlay: ResultOverlayLayer
 var home_overlay: HomeOverlayLayer
+var startup_splash: StartupSplashLayer
 var ad_manager: Node
 var level_reward_for_completion := 0
 var completion_action_pending := false
@@ -72,6 +74,8 @@ var completion_transition_consumed := false
 var completion_destination := "play"
 var rewarded_bonus_granted := false
 var completion_reward_resolved := false
+enum AppFlowState { STARTUP, HOME, LEVEL_READY, PLAYING, LEVEL_COMPLETE, REWARD_PROCESSING, AD_SHOWING }
+var app_flow_state := AppFlowState.STARTUP
 var presentation_event_trace: Array[Dictionary] = []
 var process_frame_index := 0
 var piece_visual_feedbacks: Dictionary = {}
@@ -118,7 +122,9 @@ func _ready() -> void:
 	_refresh_hud()
 	queue_redraw()
 	if OS.has_feature("mobile"):
-		_show_home()
+		startup_splash.play()
+	else:
+		app_flow_state = AppFlowState.PLAYING
 
 func _process(delta: float) -> void:
 	process_frame_index += 1
@@ -438,15 +444,19 @@ func _setup_asset_presentation() -> void:
 	add_child(result_overlay)
 	result_overlay.retry_requested.connect(_on_restart_requested)
 	result_overlay.collect_requested.connect(_on_collect_requested)
-	result_overlay.next_level_requested.connect(_on_next_level_requested)
 	result_overlay.double_coins_requested.connect(_on_double_coins_requested)
 	result_overlay.home_requested.connect(_on_result_home_requested)
+	result_overlay.reward_animation_finished.connect(_on_reward_animation_finished)
 	home_overlay = HomeOverlayType.new()
 	add_child(home_overlay)
 	home_overlay.play_requested.connect(_on_home_play_requested)
+	home_overlay.level_intro_requested.connect(_on_home_level_intro_requested)
 	home_overlay.music_toggled.connect(_on_music_toggled)
 	home_overlay.sound_toggled.connect(_on_sound_toggled)
 	home_overlay.vibration_toggled.connect(_on_vibration_toggled)
+	startup_splash = StartupSplashType.new()
+	add_child(startup_splash)
+	startup_splash.finished.connect(_show_home)
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
@@ -755,6 +765,9 @@ func _update_win_presentation(delta: float) -> void:
 		var rewarded_ready := ad_manager != null and bool(ad_manager.call("is_rewarded_ready"))
 		if result_overlay.present(true, score, level_number, completed_tier, level_reward_for_completion, rewarded_ready):
 			win_presented = true
+			app_flow_state = AppFlowState.LEVEL_COMPLETE
+			if gameplay_ui != null:
+				gameplay_ui.prepare_completion_reward_display(level_start_coins, coins)
 			_trace_presentation_event("win_overlay_started", final_target_result_id)
 			audio_feedback.emit_event("win")
 			haptics_feedback.emit_event("win")
@@ -892,20 +905,20 @@ func _on_restart_requested() -> void:
 		get_tree().paused = false
 	audio_feedback.emit_event("button")
 	restart()
-
-func _on_next_level_requested() -> void:
-	if not won or not completion_reward_resolved:
-		return
-	_begin_completion_transition("play")
-
+	app_flow_state = AppFlowState.PLAYING
 
 func _on_collect_requested() -> void:
 	if not won or completion_action_pending or completion_transition_consumed or completion_reward_resolved:
 		return
+	app_flow_state = AppFlowState.REWARD_PROCESSING
 	completion_reward_resolved = true
+	completion_destination = "play"
 	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
 	if result_overlay != null:
+		result_overlay.set_actions_pending(true)
 		result_overlay.resolve_reward(coins, false)
+	if gameplay_ui != null:
+		gameplay_ui.animate_completion_reward(coins)
 	_refresh_hud()
 
 
@@ -917,8 +930,13 @@ func _begin_completion_transition(destination: String) -> void:
 	if result_overlay != null:
 		result_overlay.set_actions_pending(true)
 	if AdConfigType.should_show_interstitial_after_level(level_number) and ad_manager != null:
+		app_flow_state = AppFlowState.AD_SHOWING
+		if result_overlay != null:
+			result_overlay.dismiss()
 		ad_manager.call("show_interstitial", Callable(self, "_finish_completion_transition"))
 	else:
+		if result_overlay != null:
+			result_overlay.dismiss()
 		call_deferred("_finish_completion_transition")
 
 
@@ -943,6 +961,7 @@ func _on_double_coins_requested() -> void:
 	if not won or completion_action_pending or completion_transition_consumed or completion_reward_resolved or rewarded_bonus_granted:
 		return
 	completion_action_pending = true
+	app_flow_state = AppFlowState.AD_SHOWING
 	if result_overlay != null:
 		result_overlay.set_actions_pending(true)
 	if ad_manager == null:
@@ -962,9 +981,6 @@ func _on_rewarded_bonus_earned(_rewarded_item = null) -> void:
 	coins += level_reward_for_completion
 	completion_reward_resolved = true
 	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
-	if result_overlay != null:
-		result_overlay.resolve_reward(coins, true)
-	_refresh_hud()
 
 
 func _on_rewarded_ad_finished(earned: bool) -> void:
@@ -972,10 +988,17 @@ func _on_rewarded_ad_finished(earned: bool) -> void:
 		return
 	if earned and rewarded_bonus_granted:
 		completion_action_pending = false
+		app_flow_state = AppFlowState.REWARD_PROCESSING
 		if result_overlay != null:
-			result_overlay.set_actions_pending(false)
+			# Start the x2 sequence only after the fullscreen ad has closed, so
+			# the player sees it on the same surviving Level Complete popup.
+			result_overlay.resolve_reward(coins, true)
+		if gameplay_ui != null:
+			gameplay_ui.animate_completion_reward(coins)
+		_refresh_hud()
 		return
 	completion_action_pending = false
+	app_flow_state = AppFlowState.LEVEL_COMPLETE
 	if result_overlay != null:
 		result_overlay.set_actions_pending(false)
 		result_overlay.set_rewarded_available(ad_manager != null and bool(ad_manager.call("is_rewarded_ready")))
@@ -990,8 +1013,11 @@ func _on_result_home_requested() -> void:
 	# next generated level; Continue can never return to a consumed terminal run.
 	if won:
 		if not completion_reward_resolved:
+			completion_destination = "home"
 			_on_collect_requested()
-		_begin_completion_transition("home")
+			completion_destination = "home"
+		elif app_flow_state != AppFlowState.REWARD_PROCESSING:
+			_begin_completion_transition("home")
 	else:
 		_on_restart_requested()
 		_show_home()
@@ -1003,6 +1029,7 @@ func _show_home() -> void:
 		gameplay_ui.hide_pause(false)
 	if result_overlay != null:
 		result_overlay.dismiss()
+	app_flow_state = AppFlowState.HOME
 	home_overlay.present(level_number, coins, hud_snapshot())
 	if is_inside_tree():
 		get_tree().paused = true
@@ -1015,6 +1042,9 @@ func _show_level_start() -> void:
 		gameplay_ui.hide_pause(false)
 	if result_overlay != null:
 		result_overlay.dismiss()
+	app_flow_state = AppFlowState.LEVEL_READY
+	if gameplay_ui != null:
+		gameplay_ui.show()
 	home_overlay.present_level_intro(level_number, coins, hud_snapshot())
 	if is_inside_tree():
 		get_tree().paused = true
@@ -1024,10 +1054,23 @@ func _on_home_play_requested() -> void:
 		home_overlay.dismiss()
 	if gameplay_ui != null:
 		gameplay_ui.show()
+	app_flow_state = AppFlowState.PLAYING
 	if is_inside_tree():
 		get_tree().paused = false
 	if audio_feedback != null:
 		audio_feedback.emit_event("button")
+
+
+func _on_home_level_intro_requested() -> void:
+	if app_flow_state != AppFlowState.HOME:
+		return
+	_show_level_start()
+
+
+func _on_reward_animation_finished() -> void:
+	if not won or app_flow_state != AppFlowState.REWARD_PROCESSING or completion_transition_consumed:
+		return
+	_begin_completion_transition(completion_destination)
 
 func _on_coin_flight_started(_result_id: int) -> void:
 	pass

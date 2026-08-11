@@ -411,3 +411,16 @@ No ad module imports, updates, or participates in `BoardSimulation`, `ContactMer
 The transition boundary is now reward resolved → explicit Next Level → optional cadence interstitial → generated-level reset → `HomeOverlayLayer.present_level_intro()` → explicit Play. This prevents rewarded dismissal or Android lifecycle resume from composing with progression. Interstitial cadence remains controller/config owned and is not called by reward callbacks.
 
 Android export remains Gradle-based and arm64-only. Native libraries use legacy/compressed APK packaging. The Poing export plugin still supplies its two Android bridges and Google Ads dependencies, while export filters remove editor/sample/C#/iOS/mock resources from the game pack. The plugin settings service must not register demo translations in consuming projects because that adds unrelated translations and optional ICU data.
+# Game flow, reward, and startup architecture - 2026-08-12
+
+`GameController.AppFlowState` is the single coarse screen-flow authority: `STARTUP`, `HOME`, `LEVEL_READY`, `PLAYING`, `LEVEL_COMPLETE`, `REWARD_PROCESSING`, and `AD_SHOWING`. These states gate navigation only and never participate in simulation, merge, target, launcher, collision, or danger decisions.
+
+`HomeOverlayLayer` retains Home and Level Ready presentation, but they are mutually exclusive surfaces. Home PLAY emits `level_intro_requested`; the controller reveals `GameplayHudLayer` and calls `present_level_intro()`, which hides every Home-specific visual before showing the modal. START GAME emits `play_requested` and is the only path to unpause PLAYING.
+
+`ResultOverlayLayer` owns one Level Complete instance and emits `reward_animation_finished`. It no longer owns or emits a Next Level action. `GameController` resolves currency once, starts the result/HUD presentation, waits for that completion signal, dismisses the popup, optionally asks `AdManager` for the even-level interstitial, resets the generated level, and presents Level Ready.
+
+Rewarded currency authority remains the earned callback. Presentation authority is deliberately later: `_on_rewarded_ad_finished()` begins the x2/result/HUD sequence only after fullscreen dismissal, preventing animation behind Android's ad activity. Failure resets the result controls and state to `LEVEL_COMPLETE`; it has no navigation authority.
+
+`GameplayHudLayer.prepare_completion_reward_display()` and `animate_completion_reward()` are presentation-only. They interpolate the visible bank from the pre-level total to the controller's final exact integer, then pulse the existing coin HUD. They cannot mutate saved/controller coins.
+
+`StartupSplashLayer` is a dedicated layer-80 presentation module. It contains the existing `AssetCatalog.BRAND_LOGO` with aspect preservation over the same Majestic blue configured for native/Godot fallback startup, holds for 1.05 seconds, fades for 0.20 seconds, and emits `finished` to show Home. Android's separate Godot boot splash remains disabled, so startup is native system splash -> matched custom splash -> Home.

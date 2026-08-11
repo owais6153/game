@@ -341,3 +341,12 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Interstitials are eligible only when leaving a naturally completed even-numbered level. No ad may start from gameplay, Pause, Settings, Retry, or failure.
 - A completed result exposes Collect and Double Coins. Collect immediately banks the already-confirmed run reward. Double Coins adds exactly one extra copy of that level's reward only after the rewarded SDK callback, then follows the normal completion transition.
 - Loading, show failure, early rewarded close, unavailable inventory, duplicate taps/callbacks, and lifecycle restoration must never duplicate currency or trap the normal Collect path.
+# Game Flow + Reward Experience + Splash Polish - 2026-08-12
+
+- Android launch uses the configured Majestic blue native system splash, then one short in-engine Majestic Gems logo hold/fade, then Home. The separate Godot Android boot splash remains disabled.
+- Home PLAY changes the visible surface to the gameplay screen before presenting Level Ready. Level Ready shows only level, target, and START GAME; it never appears over Home and never starts play automatically.
+- Level Complete has one reward decision. COLLECT or earned DOUBLE COINS locks both choices, plays the reward/count-up sequence, closes automatically, runs the scheduled even-level interstitial if available, and then opens Level Ready.
+- The former resolved `NEXT LEVEL` button/state is removed. Interstitial dismissal and rewarded dismissal never begin gameplay; START GAME remains the sole transition from Level Ready to PLAYING.
+- Rewarded earnings are persisted exactly once from the earned callback, but the visible `+base -> x2 -> +double` sequence starts only after the fullscreen ad has dismissed back to the same Level Complete instance.
+- Rewarded failure/early close grants nothing, restores the same Level Complete choices, and cannot progress. Interstitial unavailability fails open to Level Ready.
+- Gameplay physics, collision, merging, target generation/counts, difficulty, launcher behavior, table/background/HUD layout, sound, vibration, package ID, AdMob App ID, and debug/production unit routing are unchanged.

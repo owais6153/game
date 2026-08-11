@@ -67,6 +67,7 @@ var _layout_scale := 1.0
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 var _score_tween: Tween
 var _coin_icon_tween: Tween
+var _completion_coin_tween: Tween
 var _next_tween: Tween
 var _target_swap_tween: Tween
 var _target_pulse_tween: Tween
@@ -301,9 +302,39 @@ func pending_coin_value() -> int:
 	return _queued_coin_rewards
 
 
+func prepare_completion_reward_display(previous_total: int, final_total: int) -> void:
+	_kill_tween(_completion_coin_tween)
+	_authoritative_coins = maxi(previous_total, final_total)
+	_displayed_coins = maxi(0, previous_total)
+	_queued_coin_rewards = 0
+	_set_coin_label(_displayed_coins)
+
+
+func animate_completion_reward(final_total: int, duration: float = 0.72) -> void:
+	_kill_tween(_completion_coin_tween)
+	var start := _displayed_coins
+	_authoritative_coins = maxi(_authoritative_coins, final_total)
+	if not is_inside_tree():
+		_displayed_coins = final_total
+		_set_coin_label(_displayed_coins)
+		_animate_coin_change()
+		return
+	_completion_coin_tween = create_tween()
+	_completion_coin_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_completion_coin_tween.tween_method(func(value: float) -> void:
+		_displayed_coins = int(round(value))
+		_set_coin_label(_displayed_coins)
+	, float(start), float(final_total), duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_completion_coin_tween.tween_callback(func() -> void:
+		_displayed_coins = final_total
+		_set_coin_label(_displayed_coins)
+		_animate_coin_change()
+	)
+
+
 func reset_presentation() -> void:
 	hide_pause(false)
-	for tween in [_score_tween, _coin_icon_tween, _next_tween, _target_swap_tween, _target_pulse_tween, _target_progress_tween, _settings_tween]:
+	for tween in [_score_tween, _coin_icon_tween, _completion_coin_tween, _next_tween, _target_swap_tween, _target_pulse_tween, _target_progress_tween, _settings_tween]:
 		_kill_tween(tween)
 	if score_label != null:
 		score_label.scale = Vector2.ONE

@@ -17,11 +17,14 @@ const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_navy.svg")
 const ICON_VIBRATION = preload("res://assets/runtime/ui/icons/vibration_navy.svg")
 
 signal play_requested
+signal level_intro_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
 signal vibration_toggled(enabled: bool)
 
 var root_control: Control
+var home_backdrop: TextureRect
+var home_wash: ColorRect
 var safe_margin: MarginContainer
 var top_controls_margin: MarginContainer
 var content_panel: PanelContainer
@@ -72,7 +75,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_hide_settings()
 			get_viewport().set_input_as_handled()
 		elif level_intro_blocker != null and level_intro_blocker.visible:
-			_hide_level_intro()
+			# Level Ready is an explicit gameplay-screen gate. Android Back must
+			# not reveal the Home composition underneath or begin gameplay.
 			get_viewport().set_input_as_handled()
 
 func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
@@ -88,6 +92,7 @@ func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	_refresh_intro_content()
 	settings_blocker.visible = false
 	level_intro_blocker.visible = false
+	_set_home_stage_visible(true)
 	root_control.visible = true
 	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
 	_start_entrance()
@@ -97,6 +102,9 @@ func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 
 func present_level_intro(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	present(level_number, coins, snapshot)
+	_kill_tween()
+	_kill_idle_tween()
+	_set_home_stage_visible(false)
 	_show_level_intro()
 
 func dismiss() -> void:
@@ -133,21 +141,21 @@ func _build() -> void:
 	add_child(root_control)
 	root_control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	var backdrop := TextureRect.new()
-	backdrop.name = "HomeTropicalBackdrop"
-	backdrop.texture = AssetCatalogType.background_texture(0)
-	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
-	root_control.add_child(backdrop)
-	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	home_backdrop = TextureRect.new()
+	home_backdrop.name = "HomeTropicalBackdrop"
+	home_backdrop.texture = AssetCatalogType.background_texture(0)
+	home_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	home_backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	home_backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	root_control.add_child(home_backdrop)
+	home_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	var wash := ColorRect.new()
-	wash.name = "HomeReadabilityWash"
-	wash.color = Color(0.02, 0.25, 0.30, 0.12)
-	wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root_control.add_child(wash)
-	wash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	home_wash = ColorRect.new()
+	home_wash.name = "HomeReadabilityWash"
+	home_wash.color = Color(0.02, 0.25, 0.30, 0.12)
+	home_wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_control.add_child(home_wash)
+	home_wash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	safe_margin = MarginContainer.new()
 	safe_margin.name = "HomeSafeArea"
@@ -246,7 +254,7 @@ func _build() -> void:
 	play_button.custom_minimum_size = Vector2(492.0, 94.0)
 	play_button.focus_mode = Control.FOCUS_ALL
 	play_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	play_button.pressed.connect(_show_level_intro)
+	play_button.pressed.connect(func() -> void: level_intro_requested.emit())
 	_wire_button_motion(play_button)
 	column.add_child(play_button)
 
@@ -384,11 +392,11 @@ func _build_level_intro_popup() -> void:
 		play_requested.emit()
 	)
 	column.add_child(intro_start_button)
-	var cancel := _button("LevelIntroCancel", "BACK", Vector2(400.0, 68.0), "SecondaryButton")
-	cancel.icon = ICON_BACK
-	cancel.expand_icon = false
-	cancel.pressed.connect(_hide_level_intro)
-	column.add_child(cancel)
+
+func _set_home_stage_visible(visible: bool) -> void:
+	for node in [home_backdrop, home_wash, safe_margin, top_controls_margin]:
+		if node != null:
+			node.visible = visible
 
 func _home_status_card(node_name: String) -> PanelContainer:
 	var card := PanelContainer.new()
@@ -456,7 +464,9 @@ func _setting_switch_row(parent: VBoxContainer, text: String, node_name: String)
 	_sync_switch_label(toggle)
 	_wire_button_motion(toggle)
 	toggle.toggled.connect(func(_enabled: bool) -> void:
-		GlobalTweens.energy_pulse(toggle, UiDesignSystemType.COLOR_BLUE_LIGHT, 0.16)
+		var global_tweens := get_node_or_null("/root/GlobalTweens")
+		if global_tweens != null:
+			global_tweens.call("energy_pulse", toggle, UiDesignSystemType.COLOR_BLUE_LIGHT, 0.16)
 	)
 	row.add_child(toggle)
 	return toggle
@@ -623,7 +633,9 @@ func _wire_button_motion(button: BaseButton) -> void:
 		return
 	button.button_down.connect(func() -> void:
 		button.pivot_offset = button.size * 0.5
-		GlobalTweens.button_press(button, 0.055)
+		var global_tweens := get_node_or_null("/root/GlobalTweens")
+		if global_tweens != null:
+			global_tweens.call("button_press", button, 0.055)
 	)
 
 func _refresh_safe_margins() -> void:

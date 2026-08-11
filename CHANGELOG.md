@@ -508,3 +508,14 @@
 - Routed interstitials only through natural completed-level transitions after levels divisible by two. Pause, Settings, active gameplay, Retry, and failure never request ads.
 - Added `tests/run_admob_integration_tests.gd` for ID routing, cadence, readiness/reload, unavailable/failure behavior, duplicate callbacks/taps, confirmed reward, early close, and result fallback.
 - No physics, collision, launcher, merge, target, difficulty, danger, or normal scoring rules changed.
+# 2026-08-12 - Game flow, reward experience, and splash polish
+
+- Moved Level Ready off the Home composition: Home PLAY now reveals the game/table screen first, then presents the level/target/START GAME gate.
+- Removed the resolved `NEXT LEVEL` action and state. Reward completion now closes Level Complete automatically and routes through optional interstitial to the next Level Ready gate.
+- Added explicit `STARTUP`, `HOME`, `LEVEL_READY`, `PLAYING`, `LEVEL_COMPLETE`, `REWARD_PROCESSING`, and `AD_SHOWING` controller flow states.
+- Locked Collect/Double immediately, added a 0.72-second interpolated gameplay HUD count-up plus final pulse, and added quick title/completed-gem/result emphasis without redesigning the glass modal.
+- Changed Double Coins presentation to remain on the same popup and defer `+base -> x2 -> +double` animation until rewarded dismissal; earned currency remains exactly-once at the SDK earned callback.
+- Kept interstitial cadence after even-numbered levels, but moved it after reward feedback and before Level Ready. Unavailable interstitials fail open; no ad callback starts gameplay.
+- Added one short in-engine Majestic Gems splash using the existing logo and the same blue as Android native/Godot fallback startup. The extra Godot Android boot splash stays disabled.
+- Updated the application display label from Gem Aim to Majestic Gems without changing `com.owais.majestygems`, AdMob identifiers/configuration, saves, gameplay, physics, collisions, merges, targets, difficulty, backgrounds, tables, HUD layout, sound, or vibration.
+- Added focused flow/reward/splash regression coverage and updated the AdMob result-action suite.
