@@ -9,6 +9,7 @@ const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_navy.svg")
 
 signal retry_requested
+signal collect_requested
 signal next_level_requested
 signal double_coins_requested
 signal home_requested
@@ -37,7 +38,11 @@ var double_button: Button
 var home_button: Button
 var _rewarded_available := false
 var _actions_pending := false
-var _reward_bonus_applied := false
+var _reward_resolved := false
+var _reward_doubled := false
+var _double_request_in_flight := false
+var _displayed_total := 0
+var _total_tween: Tween
 var _entrance_tween: Tween
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 
@@ -68,9 +73,12 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 	result_won = won
 	result_score = score
 	level_reward = maxi(0, level_reward_amount)
+	_displayed_total = maxi(0, score - level_reward) if won else score
 	_rewarded_available = rewarded_available
 	_actions_pending = false
-	_reward_bonus_applied = false
+	_reward_resolved = false
+	_reward_doubled = false
+	_double_request_in_flight = false
 	present_count += 1
 	title_label.text = "LEVEL COMPLETE" if won else "TRY AGAIN"
 	celebration_label.visible = won
@@ -81,8 +89,8 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 	_refresh_reward_copy()
 	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • READY TO RETRY" % level_number
 	retry_button.text = "COLLECT" if won else "RETRY"
-	retry_button.icon = ICON_NEXT if won else ICON_RETRY
-	retry_button.tooltip_text = "Continue to Level %d" % (level_number + 1) if won else "Retry Level %d" % level_number
+	retry_button.icon = null if won else ICON_RETRY
+	retry_button.tooltip_text = "Collect this level's coins" if won else "Retry Level %d" % level_number
 	double_button.visible = won
 	double_button.tooltip_text = "Watch a rewarded ad to double this level's coins" if rewarded_available else "Rewarded ad unavailable; Collect still works"
 	_refresh_action_state()
@@ -97,6 +105,7 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 func dismiss() -> void:
 	visible_result = false
 	_actions_pending = false
+	_kill_total_tween()
 	_kill_entrance_tween()
 	if root_control != null:
 		root_control.visible = false
@@ -290,14 +299,18 @@ func _on_action_pressed() -> void:
 	if _actions_pending:
 		return
 	if result_won:
-		next_level_requested.emit()
+		if _reward_resolved:
+			next_level_requested.emit()
+		else:
+			collect_requested.emit()
 	else:
 		retry_requested.emit()
 
 
 func _on_double_pressed() -> void:
-	if not result_won or _actions_pending or _reward_bonus_applied or not _rewarded_available:
+	if not result_won or _actions_pending or _reward_resolved or _double_request_in_flight or not _rewarded_available:
 		return
+	_double_request_in_flight = true
 	double_coins_requested.emit()
 
 
@@ -310,14 +323,19 @@ func set_rewarded_available(available: bool) -> void:
 
 func set_actions_pending(pending: bool) -> void:
 	_actions_pending = pending
+	if not pending and not _reward_resolved:
+		_double_request_in_flight = false
 	_refresh_action_state()
 
 
-func mark_double_reward_applied(updated_score: int) -> void:
-	if _reward_bonus_applied:
+func resolve_reward(updated_score: int, doubled: bool) -> void:
+	if _reward_resolved:
 		return
-	_reward_bonus_applied = true
+	_reward_resolved = true
+	_reward_doubled = doubled
+	_double_request_in_flight = false
 	result_score = updated_score
+	_animate_total_to(updated_score)
 	_refresh_reward_copy()
 	_refresh_action_state()
 
@@ -326,8 +344,11 @@ func _refresh_reward_copy() -> void:
 	if score_label == null:
 		return
 	if result_won:
-		var shown_reward := level_reward * (2 if _reward_bonus_applied else 1)
-		score_label.text = "REWARD +%s  |  TOTAL %s" % [ScoreFormatterType.format(shown_reward), ScoreFormatterType.format(result_score)]
+		var shown_reward := level_reward * (2 if _reward_doubled else 1)
+		var reward_copy := "REWARD +%s" % ScoreFormatterType.format(shown_reward)
+		if _reward_resolved:
+			reward_copy += "  COLLECTED"
+		score_label.text = "%s  |  TOTAL %s" % [reward_copy, ScoreFormatterType.format(_displayed_total)]
 	else:
 		score_label.text = "COINS  %s" % ScoreFormatterType.format(result_score)
 
@@ -337,13 +358,38 @@ func _refresh_action_state() -> void:
 		return
 	retry_button.disabled = _actions_pending
 	home_button.disabled = _actions_pending
-	double_button.disabled = _actions_pending or not _rewarded_available or _reward_bonus_applied
-	if _reward_bonus_applied:
+	double_button.disabled = _actions_pending or not _rewarded_available or _reward_resolved
+	double_button.visible = result_won and not _reward_resolved
+	if _reward_resolved:
+		retry_button.text = "NEXT LEVEL"
+		retry_button.icon = ICON_NEXT
+		retry_button.tooltip_text = "Continue to the Level Start screen"
+	elif result_won:
+		retry_button.text = "COLLECT"
+		retry_button.icon = null
+	if _reward_doubled:
 		double_button.text = "DOUBLED"
 	elif _rewarded_available:
 		double_button.text = "DOUBLE COINS"
 	else:
 		double_button.text = "AD UNAVAILABLE"
+
+
+func _animate_total_to(target: int) -> void:
+	_kill_total_tween()
+	var start := _displayed_total
+	_total_tween = create_tween()
+	_total_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_total_tween.tween_method(func(value: float) -> void:
+		_displayed_total = int(round(value))
+		_refresh_reward_copy()
+	, float(start), float(target), 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _kill_total_tween() -> void:
+	if _total_tween != null and _total_tween.is_valid():
+		_total_tween.kill()
+	_total_tween = null
 
 
 func _start_entrance() -> void:

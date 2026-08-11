@@ -71,6 +71,7 @@ var completion_action_pending := false
 var completion_transition_consumed := false
 var completion_destination := "play"
 var rewarded_bonus_granted := false
+var completion_reward_resolved := false
 var presentation_event_trace: Array[Dictionary] = []
 var process_frame_index := 0
 var piece_visual_feedbacks: Dictionary = {}
@@ -379,6 +380,7 @@ func restart() -> void:
 	completion_transition_consumed = false
 	completion_destination = "play"
 	rewarded_bonus_granted = false
+	completion_reward_resolved = false
 	final_target_result_id = -1
 	failed = false
 	collection_in_progress = false
@@ -435,6 +437,7 @@ func _setup_asset_presentation() -> void:
 	result_overlay = ResultOverlayScene.instantiate() as ResultOverlayLayer
 	add_child(result_overlay)
 	result_overlay.retry_requested.connect(_on_restart_requested)
+	result_overlay.collect_requested.connect(_on_collect_requested)
 	result_overlay.next_level_requested.connect(_on_next_level_requested)
 	result_overlay.double_coins_requested.connect(_on_double_coins_requested)
 	result_overlay.home_requested.connect(_on_result_home_requested)
@@ -891,10 +894,19 @@ func _on_restart_requested() -> void:
 	restart()
 
 func _on_next_level_requested() -> void:
-	if not won:
-		_on_restart_requested()
+	if not won or not completion_reward_resolved:
 		return
 	_begin_completion_transition("play")
+
+
+func _on_collect_requested() -> void:
+	if not won or completion_action_pending or completion_transition_consumed or completion_reward_resolved:
+		return
+	completion_reward_resolved = true
+	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
+	if result_overlay != null:
+		result_overlay.resolve_reward(coins, false)
+	_refresh_hud()
 
 
 func _begin_completion_transition(destination: String) -> void:
@@ -923,10 +935,12 @@ func _finish_completion_transition() -> void:
 	restart()
 	if destination == "home":
 		_show_home()
+	else:
+		_show_level_start()
 
 
 func _on_double_coins_requested() -> void:
-	if not won or completion_action_pending or completion_transition_consumed or rewarded_bonus_granted:
+	if not won or completion_action_pending or completion_transition_consumed or completion_reward_resolved or rewarded_bonus_granted:
 		return
 	completion_action_pending = true
 	if result_overlay != null:
@@ -946,9 +960,10 @@ func _on_rewarded_bonus_earned(_rewarded_item = null) -> void:
 		return
 	rewarded_bonus_granted = true
 	coins += level_reward_for_completion
+	completion_reward_resolved = true
 	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
 	if result_overlay != null:
-		result_overlay.mark_double_reward_applied(coins)
+		result_overlay.resolve_reward(coins, true)
 	_refresh_hud()
 
 
@@ -956,7 +971,9 @@ func _on_rewarded_ad_finished(earned: bool) -> void:
 	if completion_transition_consumed or not completion_action_pending:
 		return
 	if earned and rewarded_bonus_granted:
-		_begin_rewarded_completion_transition()
+		completion_action_pending = false
+		if result_overlay != null:
+			result_overlay.set_actions_pending(false)
 		return
 	completion_action_pending = false
 	if result_overlay != null:
@@ -964,21 +981,16 @@ func _on_rewarded_ad_finished(earned: bool) -> void:
 		result_overlay.set_rewarded_available(ad_manager != null and bool(ad_manager.call("is_rewarded_ready")))
 
 
-func _begin_rewarded_completion_transition() -> void:
-	# Rewarded completion can legitimately be followed by the every-second-level
-	# interstitial. Both are consumed once, and neither changes gameplay state.
-	completion_action_pending = false
-	_begin_completion_transition("play")
-
-
 func _on_rewarded_availability_changed(ready: bool) -> void:
-	if result_overlay != null and result_overlay.visible_result and won and not completion_action_pending:
+	if result_overlay != null and result_overlay.visible_result and won and not completion_action_pending and not completion_reward_resolved:
 		result_overlay.set_rewarded_available(ready)
 
 func _on_result_home_requested() -> void:
 	# Leaving a completed result through Home still banks the win and prepares the
 	# next generated level; Continue can never return to a consumed terminal run.
 	if won:
+		if not completion_reward_resolved:
+			_on_collect_requested()
 		_begin_completion_transition("home")
 	else:
 		_on_restart_requested()
@@ -992,6 +1004,18 @@ func _show_home() -> void:
 	if result_overlay != null:
 		result_overlay.dismiss()
 	home_overlay.present(level_number, coins, hud_snapshot())
+	if is_inside_tree():
+		get_tree().paused = true
+
+
+func _show_level_start() -> void:
+	if home_overlay == null:
+		return
+	if gameplay_ui != null:
+		gameplay_ui.hide_pause(false)
+	if result_overlay != null:
+		result_overlay.dismiss()
+	home_overlay.present_level_intro(level_number, coins, hud_snapshot())
 	if is_inside_tree():
 		get_tree().paused = true
 

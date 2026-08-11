@@ -104,8 +104,9 @@ static func register_settings() -> void:
 	if _cleanup_obsolete_settings(active_names):
 		modified = true
 
-	if _register_translations():
-		modified = true
+	# The upstream demo translations belong to the add-on sample UI, not to
+	# consuming games. Registering them here forces optional ICU text-server data
+	# into every Android export even when the sample is excluded.
 
 	if modified:
 		var err := ProjectSettings.save()

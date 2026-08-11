@@ -94,6 +94,11 @@ func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	if play_button.is_inside_tree():
 		play_button.grab_focus()
 
+
+func present_level_intro(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
+	present(level_number, coins, snapshot)
+	_show_level_intro()
+
 func dismiss() -> void:
 	_kill_tween()
 	_kill_idle_tween()
