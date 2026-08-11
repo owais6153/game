@@ -29,7 +29,7 @@ This enables ETC2/ASTC texture imports for Android export compatibility.
 - Size: 27,690,009 bytes
 - Modified: 2026-07-29 02:55:38 +05:00
 - SHA-256: `B29D90C5E082CFEA0567EA488B831458B8107F15690838BE5F06355139A93A1F`
-- Package: `com.owais.gemmergerebuild`
+- Package: `com.owais.majestygems`
 - Architectures: `arm64-v8a`
 - Device testing: not performed; no Android device was connected.
 

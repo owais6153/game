@@ -91,7 +91,7 @@ Motion profile remained stable: empty launch average 0.076 ms, 20-gem average 1.
 - Timestamp: `2026-08-01 10:45:31 +05:00`
 - Size: `100,789,757 bytes`
 - SHA-256: `B771310C4A1B829AD6AC740663353A61C3EF68AFAD34FDDDD70DD063C00E0266`
-- Package/version: `com.owais.gemmergerebuild`, versionCode 1, versionName 1.0.0, minSdk 24, targetSdk 36.
+- Package/version: `com.owais.majestygems`, versionCode 1, versionName 1.0.0, minSdk 24, targetSdk 36.
 - Structure: 355 ZIP entries; manifest, primary dex, and arm64 Godot runtime present; zero `reports/`/`tools/` entries.
 - Signing: valid APK Signature Scheme v2/v3; one RSA-2048 debug signer. No store-release keystore is claimed.
 

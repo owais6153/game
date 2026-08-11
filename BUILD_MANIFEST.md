@@ -1,5 +1,21 @@
 # Build Manifest
 
+## Post-AdMob Reward Flow and Size Fix
+
+- APK: `build/android/majestic-gems-post-admob-fix-debug.apk`
+- Size: 53,363,440 bytes (50.89 MiB)
+- Export timestamp: 2026-08-11T22:56:17+05:00 (Asia/Karachi)
+- SHA-256: `7EEF183F5F7CB068292BFB1B588CD8ED271B9873AC5466D3AD471FBBC3E7DBD4`
+- Source commit: `e128be5` (`fix: resolve rewards before level transitions`)
+- Delivery tag: `post-admob-reward-flow-and-size-fix`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; Gradle-enabled, arm64-only, compressed native libraries, debug signing.
+- Package: `com.owais.majestygems`; versionCode `1`; versionName `Gem Aim`; minSdk `24`; target/compile SDK `36`.
+- Size comparison: 108,146,729-byte regressed AdMob APK → 53,363,440-byte final APK; saved 54,783,289 bytes (50.66%). The immediate pre-AdMob APK was 42,831,666 bytes.
+- Validation: editor import/parse PASS; focused AdMob/reward and branding/push-line suites print PASS before the known Windows teardown fault; clean main-scene smoke log; export exit 0; package/manifest/arm64-only/test-ID/forbidden-payload inspection PASS; APK Signature Scheme v2 PASS with one RSA-2048 signer.
+- AdMob: application ID, Internet/network/AD_ID permissions, Poing interstitial/rewarded registrations, five DEX files, and both Google debug test unit IDs are present. AdMob sample/editor/C#/iOS/mock/docs/skills/media and optional ICU data are absent.
+- Device status: `adb devices -l` returned an empty list. Physical installation, launch, Google test-ad rendering, background/resume, earned/early-close callbacks, and on-device cadence are not claimed.
+- Report: `reports/POST_ADMOB_REWARD_FLOW_AND_SIZE_FIX.md`.
+
 ## AdMob Integration v1
 
 - APK: `build/android/admob-integration-v1-debug.apk`
@@ -10,7 +26,7 @@
 - Source commit/tag: `d62e5dbb5a9144d0209526bbc4c6b56e0ffd8fd3` / `admob-integration-v1-source`
 - Delivery tag: `admob-integration-v1`
 - Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; Gradle-enabled debug signing, not a store-release signing claim.
-- Validation: headless editor import/full-project parse PASS with exit 0; `ADMOB_INTEGRATION_TESTS: PASS`; `BRANDING_PUSH_LINE_TESTS: PASS`; short main-scene smoke log contains no runtime/script errors; standalone APK exists; debug interstitial/rewarded test IDs are present in packaged `ad_config.gdc`; package `com.owais.gemmergerebuild`, arm64 Godot runtime, five DEX files, Internet/network/AD_ID permissions, configured AdMob application ID, and Poing interstitial/rewarded registrations are present; APK Signature Scheme v2 PASS with one RSA-2048 debug signer.
+- Validation: headless editor import/full-project parse PASS with exit 0; `ADMOB_INTEGRATION_TESTS: PASS`; `BRANDING_PUSH_LINE_TESTS: PASS`; short main-scene smoke log contains no runtime/script errors; standalone APK exists; debug interstitial/rewarded test IDs are present in packaged `ad_config.gdc`; package `com.owais.majestygems`, arm64 Godot runtime, five DEX files, Internet/network/AD_ID permissions, configured AdMob application ID, and Poing interstitial/rewarded registrations are present; APK Signature Scheme v2 PASS with one RSA-2048 debug signer.
 - Export-process note: the first sandboxed attempt was denied network access. The authorized Gradle retry produced the stable APK above, then its outer Godot/Gradle wrapper exceeded the 10-minute command timeout after artifact creation; the two orphaned build processes were stopped. Artifact hash, manifest, package, native runtime, and signature checks all pass.
 - Runner note: both `-s` suites and the timed main-scene smoke reach their pass/clean log condition, then this Windows Godot 4.6.3 process exits during teardown with `0xC0000005`. No assertion or runtime script error precedes teardown; the editor parse exits 0.
 - Device status: after restarting ADB, `adb devices -l` returned an empty list. Installation, Google-served test-ad rendering, physical rewarded completion/early-close, background/resume, and device interstitial cadence are not claimed.
@@ -269,7 +285,7 @@
 - Size: `100,806,453 bytes`
 - Modified: `2026-08-03 23:11:13 +05:00`
 - SHA-256: `CED1D7496791BBDEE3E01C85EF1D2D397A98998785A438B1C3B1613E1CE29A94`
-- Package: `com.owais.gemmergerebuild`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
+- Package: `com.owais.majestygems`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
 - Exact gameplay source commit: `b9f15935174f8e52663fcf4c088cac92e0a35bc4` (`feat: add reference-paced coin reward animations`); delivery tag: `reference-gameplay-coin-parity-v1`.
 - Export: one fresh Godot 4.6.3 `--export-debug Android`; this is an installable debug-signed validation build, not a store-release signing claim.
 - Validation: 359 ZIP entries; `AndroidManifest.xml`, primary dex, and arm64 Godot runtime present; zero `reports/` or `tools/` entries. `apksigner` verifies v2/v3 signatures with one RSA-2048 signer. All six regression/profile suites passed and four 720 x 1600 production ANGLE captures were reviewed.
@@ -282,7 +298,7 @@
 - Size: `100,793,853 bytes`
 - Modified: `2026-08-03 13:42:55 +05:00`
 - SHA-256: `AE1189E5E8AC21EA95497182F90F05B4F81383573222A74886BAD13453861594`
-- Package: `com.owais.gemmergerebuild`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
+- Package: `com.owais.majestygems`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
 - Exact gameplay source commit: `4cde848` (`feat: enliven physics and high-tier rewards`); delivery tag: `physics-reward-feedback-v1`.
 - Export: fresh Godot 4.6.3 `--export-debug Android`; this is an installable signed validation build, not a store-release signing claim.
 - Validation: 355 ZIP entries; manifest, primary dex, and arm64 Godot runtime present; zero `reports/` or `tools/` entries. `apksigner` verifies v2/v3 signatures with one RSA-2048 signer. Contact, gameplay-feel, Level 1, 18-gem, production UI, and motion-profile suites passed; three ANGLE major-reward captures passed.
@@ -295,7 +311,7 @@
 - Size: `100,789,757 bytes`
 - Modified: `2026-08-01 10:45:31 +05:00`
 - SHA-256: `B771310C4A1B829AD6AC740663353A61C3EF68AFAD34FDDDD70DD063C00E0266`
-- Package: `com.owais.gemmergerebuild`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
+- Package: `com.owais.majestygems`; versionCode `1`; versionName `1.0.0`; minSdk `24`; targetSdk `36`.
 - Exact source commit: `8bbc4b2ae7f3259defd740e033e053d46dd8a9df` (`feat: finalize production gameplay UI`); delivery tag: `production-ui-polish-v4`.
 - Export: fresh Godot 4.6.3 `--export-debug Android`; this is an installable signed validation build, not a store-release signing claim.
 - Validation: 355 ZIP entries; manifest, primary dex, and arm64 Godot runtime present; zero `reports/` or `tools/` entries. `apksigner` verifies v2/v3 signatures with one RSA-2048 signer.

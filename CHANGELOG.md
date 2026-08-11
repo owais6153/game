@@ -1,3 +1,13 @@
+# 2026-08-11 — Post-AdMob reward flow, package migration, and APK size fix
+
+- Split Level Complete into unresolved reward choices and a resolved `NEXT LEVEL` state; Collect and earned Double Coins now update the visible total while the popup stays open.
+- Removed automatic progression after Collect and rewarded-ad dismissal. Next Level now owns the every-two-level interstitial transition and opens the existing Level Intro/Play gate.
+- Added exactly-once guards for Collect, rewarded callbacks, duplicate taps, stale/resumed callbacks, and safe early-close retry.
+- Changed the Android application ID to `com.owais.majestygems` and renamed the output APK.
+- Restored compressed arm64 native packaging and excluded AdMob sample/editor/C#/iOS/mock/doc/media payloads. Disabled the plugin's sample-translation registration so optional ICU data is no longer exported.
+- Reduced the debug APK from 108,146,729 to 53,363,440 bytes without changing game asset quality or removing AdMob.
+- Gameplay, physics, collisions, gem movement, merge rules, targets, difficulty, table geometry, and AdMob load/reload behavior are unchanged.
+
 # 2026-08-11 — Majestic Gems branding, mask-safe icon, push-line dragging, and APK asset cleanup
 
 - Replaced Home/fallback boot branding with the complete supplied transparent `MAJESTIC GEMS` logo.

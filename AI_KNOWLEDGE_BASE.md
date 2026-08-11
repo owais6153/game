@@ -589,3 +589,13 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - A rewarded bonus is valid only after `OnUserEarnedRewardListener`. Load, show, impression, resume, dismissal, or button press cannot award currency. Preserve both exactly-once guards.
 - Result UI may display readiness and suppress pending taps, but currency and level progression remain controller-owned. Unavailable/early-close/failure must always restore or continue the normal Collect path.
 - After plugin/API upgrades, rerun the focused suite and validate the Android merged manifest, test-ad rendering, earned callback, early close, interstitial cadence, process background/resume, and post-consumption reload on a device.
+# AI Knowledge Addendum — Post-AdMob Reward and Size Fix
+
+- Never advance from Collect or rewarded dismissal. Resolve the reward in-place, expose `NEXT LEVEL`, and require a separate press.
+- Only `OnUserEarnedRewardListener` may grant the one bonus copy. Preserve manager session guards, controller reward guards, and the overlay's immediate double-tap guard.
+- Early close/unavailable/show failure must grant zero, clear the pending result action, preserve Collect, and allow a safe retry when readiness returns.
+- Interstitial cadence belongs to explicit completed-level departure after reward resolution. It must never run from the rewarded callback or during the reward-total animation.
+- The next generated level is paused behind `HomeOverlayLayer.present_level_intro()` until Play. Do not resume gameplay from Next Level itself.
+- Android application ID authority is `export_presets.cfg` and must remain `com.owais.majestygems`.
+- Keep `gradle_build/compress_native_libraries=true`, arm64 as the only production ABI, and the focused AdMob export exclusions. Do not restore sample translation registration or optional ICU/sample/editor payloads.
+- Do not remove required Poing bridges, Google Mobile Ads SDK/transitives, or runtime GDScript API classes to chase size.

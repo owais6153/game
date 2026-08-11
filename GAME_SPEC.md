@@ -1,3 +1,12 @@
+# Post-AdMob Level Complete flow — 2026-08-11
+
+- Level Complete begins with the existing base reward and current banked total plus `COLLECT` and `DOUBLE COINS`.
+- Collect resolves the base reward exactly once, animates the visible total, keeps the modal open, removes both reward choices, and exposes `NEXT LEVEL`.
+- Double Coins may add exactly one base-reward bonus only from the rewarded earned callback. Dismissal/failure without earnings restores Collect and never advances the level.
+- Next Level is a separate explicit transition. It may show the scheduled every-two-level interstitial, then opens the existing Level Intro/Ready modal. Play explicitly begins gameplay.
+- Rewarded dismissal, Android resume, and reward animation never start the next level or trigger an interstitial.
+- Physics, gem movement, collision, merge, target generation/counts, difficulty, table perspective, and game-asset quality remain unchanged.
+
 # Majestic Gems branding + draggable push line v1 — 2026-08-11
 
 - Home and fallback boot branding use the complete supplied transparent `MAJESTIC GEMS` logo without cropping or aspect distortion.
