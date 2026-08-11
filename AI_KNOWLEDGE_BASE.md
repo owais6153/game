@@ -580,3 +580,12 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 
 
 - Branding hotfix: Home now uses `assets/runtime/gem-aim-logo.png`, Android/game icon now uses `assets/runtime/gem-aim-icon.png`, settings icon was switched to a crisp PNG derivative, and the home tagline size was increased for readability.
+# AI Knowledge Addendum - 2026-08-11 AdMob Integration v1
+
+- Keep production ad-unit IDs only in `scripts/ad_config.gd`: `INTERSTITIAL_AD_UNIT_ID` and `REWARDED_AD_UNIT_ID`. Never paste production units into controllers, scenes, reports, or the manager.
+- Debug builds must continue using Google's Android test units. Do not test production units or replace the AdMob application ID without explicit authorization.
+- `AdManager` is the sole owner of SDK initialization, loaders, readiness, fullscreen callbacks, retry/reload, and consumed-ad destruction. Never create ad objects in UI or gameplay code.
+- Interstitial eligibility is a completed-level transition rule: positive level number divisible by `AdConfig.INTERSTITIAL_LEVEL_INTERVAL`. Do not trigger ads from Pause, Settings, failure, Retry, launch, merge, or target events.
+- A rewarded bonus is valid only after `OnUserEarnedRewardListener`. Load, show, impression, resume, dismissal, or button press cannot award currency. Preserve both exactly-once guards.
+- Result UI may display readiness and suppress pending taps, but currency and level progression remain controller-owned. Unavailable/early-close/failure must always restore or continue the normal Collect path.
+- After plugin/API upgrades, rerun the focused suite and validate the Android merged manifest, test-ad rendering, earned callback, early close, interstitial cadence, process background/resume, and post-consumption reload on a device.

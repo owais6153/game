@@ -488,3 +488,13 @@
 
 
 - Branding hotfix: Home now uses `assets/runtime/gem-aim-logo.png`, Android/game icon now uses `assets/runtime/gem-aim-icon.png`, settings icon was switched to a crisp PNG derivative, and the home tagline size was increased for readability.
+# 2026-08-11 - AdMob Integration v1
+
+- Added Poing Studios Godot AdMob v5.0.0 as the Android fullscreen-ad bridge and registered one `AdManager` autoload.
+- Centralized debug/release unit selection and the every-two-completed-level cadence in `scripts/ad_config.gd`; debug exports use Google's official Android interstitial and rewarded test units, while release IDs remain explicit placeholders.
+- Added initialization-once, preload/readiness signals, duplicate fullscreen guards, load retry, consumed-ad destruction/reload, fail-open completions, and a lifecycle safety timeout.
+- Added Collect and Double Coins to the existing Level Complete modal without altering result qualification or gameplay presentation roots.
+- Routed the extra reward only from the rewarded callback with manager- and controller-level exactly-once guards; early close, unavailable inventory, and show failure grant no bonus and restore Collect.
+- Routed interstitials only through natural completed-level transitions after levels divisible by two. Pause, Settings, active gameplay, Retry, and failure never request ads.
+- Added `tests/run_admob_integration_tests.gd` for ID routing, cadence, readiness/reload, unavailable/failure behavior, duplicate callbacks/taps, confirmed reward, early close, and result fallback.
+- No physics, collision, launcher, merge, target, difficulty, danger, or normal scoring rules changed.

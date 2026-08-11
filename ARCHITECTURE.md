@@ -397,3 +397,10 @@ Dynamic HUD containers that rely on spacer-based left/right distribution or Cent
 Home Settings emits `music_toggled`, `sound_toggled`, and `vibration_toggled`. `GameController` connects these to the same `_on_*_toggled` handlers already used by `GameplayHudLayer`, keeping settings persistence centralized in `GameSettingsService` and avoiding duplicate state ownership.
 
 `UiDesignSystem` now supplies a `SettingsSwitch` Button variation and a frosted `home_status_card_style()`. Pause and Home settings therefore share the same glass/switch language while keeping gameplay simulation isolated.
+# Architecture Addendum - AdMob Integration v1
+
+`AdConfig` is the single source for fullscreen ad-unit selection and interstitial cadence. `AdManager` is an always-processing autoload that owns the Poing AdMob v5.0.0 listener/loader/ad objects and all fullscreen lifecycle state. It initializes once, loads each format independently, emits readiness, rejects overlapping shows, destroys consumed objects, retries failed loads, and invokes transition completions on every unavailable/dismiss/failure path.
+
+`GameController` remains the progression and currency authority. On a qualified result it derives the displayed level reward from confirmed run coins. Collect asks the manager for an eligible interstitial and advances from the completion callback. Double Coins asks for rewarded playback; only `_on_rewarded_bonus_earned()` may persist one extra base reward, guarded by both the manager session ID and the controller's `rewarded_bonus_granted` flag. Dismissal without the earned callback restores result actions. `ResultOverlayLayer` owns presentation/button state only.
+
+No ad module imports, updates, or participates in `BoardSimulation`, `ContactMergeService`, `GemPiece`, launcher state, target collection, danger timers, or HUD snapshots. Ads are reachable only from terminal victory UI and may never block gameplay when inventory is unavailable.

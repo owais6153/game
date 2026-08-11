@@ -10,6 +10,7 @@ const ICON_HOME = preload("res://assets/runtime/ui/icons/home_navy.svg")
 
 signal retry_requested
 signal next_level_requested
+signal double_coins_requested
 signal home_requested
 
 ## Dedicated result UI. It owns only its backdrop and panel; gameplay roots,
@@ -17,6 +18,7 @@ signal home_requested
 var visible_result := false
 var result_won := false
 var result_score := 0
+var level_reward := 0
 var present_count := 0
 
 var root_control: Control
@@ -31,7 +33,11 @@ var fail_badge: PanelContainer
 var score_label: Label
 var transition_label: Label
 var retry_button: Button
+var double_button: Button
 var home_button: Button
+var _rewarded_available := false
+var _actions_pending := false
+var _reward_bonus_applied := false
 var _entrance_tween: Tween
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 
@@ -54,13 +60,17 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
-func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8) -> bool:
+func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8, level_reward_amount: int = 0, rewarded_available: bool = false) -> bool:
 	_build_ui()
 	if visible_result:
 		return false
 	visible_result = true
 	result_won = won
 	result_score = score
+	level_reward = maxi(0, level_reward_amount)
+	_rewarded_available = rewarded_available
+	_actions_pending = false
+	_reward_bonus_applied = false
 	present_count += 1
 	title_label.text = "LEVEL COMPLETE" if won else "TRY AGAIN"
 	celebration_label.visible = won
@@ -68,11 +78,14 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8)
 	result_icon.visible = won
 	result_icon.texture = AssetCatalogType.gem_texture(result_tier) if won else null
 	fail_badge.visible = not won
-	score_label.text = "COINS  %s" % ScoreFormatterType.format(score)
+	_refresh_reward_copy()
 	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • READY TO RETRY" % level_number
-	retry_button.text = "NEXT LEVEL" if won else "RETRY"
+	retry_button.text = "COLLECT" if won else "RETRY"
 	retry_button.icon = ICON_NEXT if won else ICON_RETRY
 	retry_button.tooltip_text = "Continue to Level %d" % (level_number + 1) if won else "Retry Level %d" % level_number
+	double_button.visible = won
+	double_button.tooltip_text = "Watch a rewarded ad to double this level's coins" if rewarded_available else "Rewarded ad unavailable; Collect still works"
+	_refresh_action_state()
 	root_control.visible = true
 	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
 	_start_entrance()
@@ -83,6 +96,7 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8)
 
 func dismiss() -> void:
 	visible_result = false
+	_actions_pending = false
 	_kill_entrance_tween()
 	if root_control != null:
 		root_control.visible = false
@@ -104,6 +118,7 @@ func layout_metrics() -> Dictionary:
 	return {
 		"panel": panel.get_global_rect(),
 		"button": retry_button.get_global_rect(),
+		"double_button": double_button.get_global_rect(),
 		"icon": result_icon.get_global_rect(),
 		"fail_badge": fail_badge.get_global_rect(),
 	}
@@ -215,7 +230,7 @@ func _build_ui() -> void:
 	reward_card.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
 	reward_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(reward_card)
-	score_label = _label("COINS  0", 28, UiDesignSystemType.COLOR_BLUE_DEEP)
+	score_label = _label("COINS  0", 20, UiDesignSystemType.COLOR_BLUE_DEEP)
 	score_label.name = "ResultScore"
 	score_label.custom_minimum_size = Vector2(0.0, 66.0)
 	reward_card.add_child(score_label)
@@ -225,17 +240,37 @@ func _build_ui() -> void:
 	transition_label.custom_minimum_size = Vector2(0.0, 32.0)
 	column.add_child(transition_label)
 
+	var action_row := HBoxContainer.new()
+	action_row.name = "ResultActionRow"
+	action_row.custom_minimum_size = Vector2(424.0, 82.0)
+	action_row.add_theme_constant_override("separation", 12)
+	action_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(action_row)
+
 	retry_button = Button.new()
 	retry_button.name = "ResultActionButton"
-	retry_button.text = "NEXT LEVEL"
-	retry_button.custom_minimum_size = Vector2(424.0, 82.0)
+	retry_button.text = "COLLECT"
+	retry_button.custom_minimum_size = Vector2(206.0, 82.0)
+	retry_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	retry_button.focus_mode = Control.FOCUS_ALL
 	retry_button.expand_icon = false
 	retry_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	retry_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	retry_button.pressed.connect(_on_action_pressed)
 	_wire_button_motion(retry_button)
-	column.add_child(retry_button)
+	action_row.add_child(retry_button)
+
+	double_button = Button.new()
+	double_button.name = "ResultDoubleCoinsButton"
+	double_button.text = "DOUBLE COINS"
+	double_button.custom_minimum_size = Vector2(206.0, 82.0)
+	double_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	double_button.focus_mode = Control.FOCUS_ALL
+	double_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	double_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	double_button.pressed.connect(_on_double_pressed)
+	_wire_button_motion(double_button)
+	action_row.add_child(double_button)
 
 	home_button = Button.new()
 	home_button.name = "ResultHomeButton"
@@ -252,10 +287,63 @@ func _build_ui() -> void:
 	column.add_child(home_button)
 
 func _on_action_pressed() -> void:
+	if _actions_pending:
+		return
 	if result_won:
 		next_level_requested.emit()
 	else:
 		retry_requested.emit()
+
+
+func _on_double_pressed() -> void:
+	if not result_won or _actions_pending or _reward_bonus_applied or not _rewarded_available:
+		return
+	double_coins_requested.emit()
+
+
+func set_rewarded_available(available: bool) -> void:
+	_rewarded_available = available
+	if double_button != null:
+		double_button.tooltip_text = "Watch a rewarded ad to double this level's coins" if available else "Rewarded ad unavailable; Collect still works"
+	_refresh_action_state()
+
+
+func set_actions_pending(pending: bool) -> void:
+	_actions_pending = pending
+	_refresh_action_state()
+
+
+func mark_double_reward_applied(updated_score: int) -> void:
+	if _reward_bonus_applied:
+		return
+	_reward_bonus_applied = true
+	result_score = updated_score
+	_refresh_reward_copy()
+	_refresh_action_state()
+
+
+func _refresh_reward_copy() -> void:
+	if score_label == null:
+		return
+	if result_won:
+		var shown_reward := level_reward * (2 if _reward_bonus_applied else 1)
+		score_label.text = "REWARD +%s  |  TOTAL %s" % [ScoreFormatterType.format(shown_reward), ScoreFormatterType.format(result_score)]
+	else:
+		score_label.text = "COINS  %s" % ScoreFormatterType.format(result_score)
+
+
+func _refresh_action_state() -> void:
+	if retry_button == null or double_button == null or home_button == null:
+		return
+	retry_button.disabled = _actions_pending
+	home_button.disabled = _actions_pending
+	double_button.disabled = _actions_pending or not _rewarded_available or _reward_bonus_applied
+	if _reward_bonus_applied:
+		double_button.text = "DOUBLED"
+	elif _rewarded_available:
+		double_button.text = "DOUBLE COINS"
+	else:
+		double_button.text = "AD UNAVAILABLE"
 
 
 func _start_entrance() -> void:
@@ -313,7 +401,9 @@ func _wire_button_motion(button: BaseButton) -> void:
 		return
 	button.button_down.connect(func() -> void:
 		button.pivot_offset = button.size * 0.5
-		GlobalTweens.button_press(button, 0.055)
+		var global_tweens := get_node_or_null("/root/GlobalTweens")
+		if global_tweens != null:
+			global_tweens.call("button_press", button, 0.055)
 	)
 
 

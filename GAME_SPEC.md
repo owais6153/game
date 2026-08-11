@@ -325,3 +325,10 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 
 
 - Branding hotfix: Home now uses `assets/runtime/gem-aim-logo.png`, Android/game icon now uses `assets/runtime/gem-aim-icon.png`, settings icon was switched to a crisp PNG derivative, and the home tagline size was increased for readability.
+# AdMob Integration v1 - 2026-08-11
+
+- AdMob is presentation/transition infrastructure only. It must never affect board simulation, collision, merge eligibility, targets, difficulty, launcher behavior, or score qualification.
+- Debug Android exports use Google's published Android test units. Release exports read production unit IDs only from `scripts/ad_config.gd`; an empty release placeholder means that format fails open and gameplay continues without an ad.
+- Interstitials are eligible only when leaving a naturally completed even-numbered level. No ad may start from gameplay, Pause, Settings, Retry, or failure.
+- A completed result exposes Collect and Double Coins. Collect immediately banks the already-confirmed run reward. Double Coins adds exactly one extra copy of that level's reward only after the rewarded SDK callback, then follows the normal completion transition.
+- Loading, show failure, early rewarded close, unavailable inventory, duplicate taps/callbacks, and lifecycle restoration must never duplicate currency or trap the normal Collect path.

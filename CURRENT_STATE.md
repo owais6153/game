@@ -257,3 +257,10 @@ The pause modal keeps Resume, Restart, and Home, but its layout is normalized to
 
 
 - Branding hotfix: Home now uses `assets/runtime/gem-aim-logo.png`, Android/game icon now uses `assets/runtime/gem-aim-icon.png`, settings icon was switched to a crisp PNG derivative, and the home tagline size was increased for readability.
+# Current State Addendum - AdMob Integration v1
+
+The project now has one pause-safe `AdManager` autoload backed by Poing Studios Godot AdMob v5.0.0. It initializes once, preloads interstitial and rewarded ads, exposes readiness, prevents overlapping fullscreen sessions, retries load failures, destroys consumed ads, and reloads each format. Debug builds are hard-routed to Google's Android test units; release unit placeholders are centralized in `scripts/ad_config.gd`.
+
+Only the natural completed-level exit may request an interstitial, at levels 2, 4, 6, and so on. The Level Complete modal keeps the existing reward/total display and now offers Collect plus Double Coins. The normal reward remains controller-authoritative; exactly one additional copy is persisted only from the confirmed rewarded callback. Early close/failure restores Collect without a bonus. Pause, Settings, active gameplay, Retry, failure, physics, targets, difficulty, and merge behavior are unchanged.
+
+Godot 4.6.3 whole-project import/parse passes. The focused AdMob suite and existing branding/push-line suite reach PASS; the Windows headless test runner still exits with its known post-PASS teardown access violation. APK and physical-device status are recorded in `BUILD_MANIFEST.md` and `reports/ADMOB_INTEGRATION_V1_REPORT.md` after export validation.
