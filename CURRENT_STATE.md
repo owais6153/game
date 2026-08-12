@@ -278,3 +278,5 @@ The post-reward `NEXT LEVEL` state no longer exists. Normal Collect and earned D
 Rewarded earnings remain exactly-once and controller-owned. The earned callback persists the bonus, while the x2/result/HUD animation waits for rewarded dismissal so it cannot complete behind the ad. Early close/failure restores Collect/Double on the same popup with no bonus or progression.
 
 Android keeps the native Majestic-blue system splash and disables the extra Godot Android boot splash. A dedicated in-engine splash uses the existing contained Majestic Gems logo for a 1.05-second hold plus 0.20-second fade before Home. Application display name is now `Majestic Gems`; package remains `com.owais.majestygems`.
+
+Verified debug APK: `build/android/majestic-gems-flow-reward-splash-polish-debug.apk`, 53,370,111 bytes, SHA-256 `06A5C78AF3DE4A63BBE2107A074E0B0C22D363A0B129D7F8DD20D5B58C999265`. Package, arm64-only payload, forbidden-file, and v2 signature audits pass. ADB returned no connected device, so physical startup, reward/ad playback, and lifecycle behavior are not claimed.

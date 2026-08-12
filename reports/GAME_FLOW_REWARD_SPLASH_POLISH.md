@@ -71,6 +71,8 @@ Android controls the native system splash duration/masking, so exact OEM transit
 - Size: 53,370,111 bytes (50.90 MiB)
 - Export timestamp: `2026-08-12T04:41:43.6371289+05:00`
 - SHA-256: `06A5C78AF3DE4A63BBE2107A074E0B0C22D363A0B129D7F8DD20D5B58C999265`
+- Source commit: `48399b568449b53be3b4b4c0a4b47ac967bf057d` (`feat: streamline reward flow and polish startup`)
+- Delivery tag: `game-flow-reward-splash-polish-v1`
 - Package audit: `com.owais.majestygems`, application label/version name `Majestic Gems`, version code `1`, min SDK `24`, target/compile SDK `36`.
 - Payload audit: 928 ZIP entries, five DEX files, arm64-v8a Godot runtime only, and no packaged `reports/`, `tests/`, `tools/`, raw `.gd`, `.tscn`, or `.md` payloads.
 - Signing audit: APK Signature Scheme v2 verifies with one RSA-2048 Godot debug signer. This is a validation build, not a store-release signing claim.

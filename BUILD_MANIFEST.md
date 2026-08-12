@@ -1,5 +1,21 @@
 # Build Manifest
 
+## Game Flow + Reward + Splash Polish
+
+- APK: `build/android/majestic-gems-flow-reward-splash-polish-debug.apk`
+- Size: 53,370,111 bytes (50.90 MiB)
+- Export timestamp: 2026-08-12T04:41:43.6371289+05:00 (Asia/Karachi)
+- SHA-256: `06A5C78AF3DE4A63BBE2107A074E0B0C22D363A0B129D7F8DD20D5B58C999265`
+- Source commit: `48399b568449b53be3b4b4c0a4b47ac967bf057d` (`feat: streamline reward flow and polish startup`)
+- Delivery tag: `game-flow-reward-splash-polish-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; Gradle-enabled, arm64-only, compressed native libraries, debug signing.
+- Package: `com.owais.majestygems`; versionCode `1`; versionName/application label `Majestic Gems`; minSdk `24`; target/compile SDK `36`.
+- Validation: editor import/parse PASS with exit 0; focused flow/reward/splash and AdMob suites print PASS before the known Windows teardown behavior; package/manifest, 928-entry payload, five DEX files, arm64-only runtime, forbidden-payload, and APK Signature Scheme v2 checks PASS with one RSA-2048 signer.
+- AdMob: the existing application ID, permissions, plugin registrations, and Google debug interstitial/rewarded unit routing remain unchanged. Production unit placeholders remain blank.
+- Export-process note: the stable APK was fully written before the outer Godot/Gradle wrapper exceeded the command timeout; the two identified orphaned export processes were stopped.
+- Device status: `adb devices -l` returned an empty list. Physical install, native-to-custom cold-launch continuity, reward/ad playback, early-close/background-resume behavior, and on-device interstitial cadence are not claimed.
+- Report: `reports/GAME_FLOW_REWARD_SPLASH_POLISH.md`.
+
 ## Post-AdMob Reward Flow and Size Fix
 
 - APK: `build/android/majestic-gems-post-admob-fix-debug.apk`
