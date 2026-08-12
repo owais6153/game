@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Single Splash Correction
+
+- APK: `build/android/majestic-gems-single-splash-correction-debug.apk`
+- Size: 53,368,728 bytes (50.90 MiB)
+- Export timestamp: 2026-08-12T06:44:06.4725555+05:00 (Asia/Karachi)
+- SHA-256: `65575E1B14AF81E88608CB07BDFAB37604B2D5B1B014F340BFC5F6D467351840`
+- Source commit: `852538c8cc9fcb3e324f4eb2c8e3d60e33216ce4` (`fix: remove remaining second splash state`)
+- Delivery tag: `single-splash-correction-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; exit 0; Gradle-enabled, arm64-only, compressed native libraries, debug signing.
+- Package: `com.owais.majestygems`; versionCode `1`; versionName/application label `Majestic Gems`; minSdk `24`; target/compile SDK `36`.
+- Validation: whole-project import/parse PASS with exit 0; focused flow/splash suite prints PASS before known Windows teardown; package/manifest, 926-entry payload, five DEX files, arm64-only runtime, forbidden-payload, removed-splash-payload, and APK Signature Scheme v2 checks PASS with one RSA-2048 signer.
+- Splash: Android system splash only, using `assets/runtime/ui/majestic_gems_adaptive_foreground_v1.png` over the required opaque Majestic blue. Godot Android boot splash is disabled; Home has no timed startup state.
+- Device status: ADB query timed out and its hung process was stopped. Physical installation and force-stopped cold launch are not claimed.
+- Report: `reports/SINGLE_SPLASH_CORRECTION.md`.
+
 ## Splash and Reward UI Polish
 
 - APK: `build/android/majestic-gems-splash-reward-ui-polish-debug.apk`

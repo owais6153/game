@@ -42,6 +42,8 @@ It then transitions directly to Home, whose existing full-screen background rema
 - Size: 53,368,728 bytes (50.90 MiB)
 - Export timestamp: `2026-08-12T06:44:06.4725555+05:00`
 - SHA-256: `65575E1B14AF81E88608CB07BDFAB37604B2D5B1B014F340BFC5F6D467351840`
+- Source commit: `852538c8cc9fcb3e324f4eb2c8e3d60e33216ce4` (`fix: remove remaining second splash state`)
+- Delivery tag: `single-splash-correction-v1`
 - Package: `com.owais.majestygems`; version code `1`; version/application label `Majestic Gems`; min SDK `24`; target/compile SDK `36`.
 - Payload: 926 ZIP entries, five DEX files, arm64-v8a Godot runtime only, zero forbidden raw-source/report/test/tool paths, and zero `startup_splash` entries.
 - Signature: APK Signature Scheme v2 verifies with one RSA-2048 Godot debug signer.
