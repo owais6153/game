@@ -97,6 +97,8 @@ func _ready() -> void:
 	ad_manager = get_node_or_null("/root/AdManager")
 	if ad_manager != null and ad_manager.has_signal("rewarded_availability_changed"):
 		ad_manager.rewarded_availability_changed.connect(_on_rewarded_availability_changed)
+	if ad_manager != null and ad_manager.has_signal("privacy_options_availability_changed"):
+		ad_manager.privacy_options_availability_changed.connect(_on_privacy_options_availability_changed)
 	var saved := ProgressionSaveServiceType.load_progress()
 	var saved_settings := GameSettingsServiceType.load_settings()
 	level_number = int(saved.level_number)
@@ -105,6 +107,9 @@ func _ready() -> void:
 	level_start_coins = coins
 	_configure_generated_level(level_number, level_seed)
 	_setup_asset_presentation()
+	_on_privacy_options_availability_changed(
+		ad_manager != null and bool(ad_manager.call("is_privacy_options_available"))
+	)
 	_refresh_background_fill()
 	var viewport := get_viewport()
 	if viewport != null:
@@ -433,6 +438,8 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.music_toggled.connect(_on_music_toggled)
 	gameplay_ui.sound_toggled.connect(_on_sound_toggled)
 	gameplay_ui.vibration_toggled.connect(_on_vibration_toggled)
+	gameplay_ui.privacy_policy_requested.connect(_on_privacy_policy_requested)
+	gameplay_ui.privacy_options_requested.connect(_on_privacy_options_requested)
 	effects_layer = GameplayEffectsLayerType.new()
 	effects_layer.z_index = 0
 	gameplay_ui.attach_reward_foreground(effects_layer)
@@ -452,6 +459,8 @@ func _setup_asset_presentation() -> void:
 	home_overlay.music_toggled.connect(_on_music_toggled)
 	home_overlay.sound_toggled.connect(_on_sound_toggled)
 	home_overlay.vibration_toggled.connect(_on_vibration_toggled)
+	home_overlay.privacy_policy_requested.connect(_on_privacy_policy_requested)
+	home_overlay.privacy_options_requested.connect(_on_privacy_options_requested)
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
@@ -885,6 +894,22 @@ func _on_vibration_toggled(value: bool) -> void:
 		haptics_feedback.enabled = value
 	_save_settings()
 	_refresh_hud()
+
+func _on_privacy_policy_requested() -> void:
+	if ad_manager != null:
+		ad_manager.call("open_privacy_policy")
+	else:
+		OS.shell_open(AdConfigType.PRIVACY_POLICY_URL)
+
+func _on_privacy_options_requested() -> void:
+	if ad_manager != null:
+		ad_manager.call("show_privacy_options")
+
+func _on_privacy_options_availability_changed(available: bool) -> void:
+	if home_overlay != null:
+		home_overlay.set_privacy_options_available(available)
+	if gameplay_ui != null:
+		gameplay_ui.set_privacy_options_available(available)
 
 func _save_settings() -> void:
 	GameSettingsServiceType.save_settings(

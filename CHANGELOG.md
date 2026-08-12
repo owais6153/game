@@ -536,3 +536,12 @@
 - Kept Godot's additional Android boot splash disabled and retained the existing mask-safe Majestic system-splash icon.
 - Documented the Android 12+ platform constraint: its system splash requires an opaque color plus icon and cannot provide a full-screen cover bitmap without adding a second in-app phase.
 - Reward presentation, gameplay, physics, targets, ads, level logic, package name, and Home layout remain unchanged.
+# 2026-08-12 — Poing UMP authoritative consent gate patch
+
+- Added a local one-method patch to Poing v5.0.0's Android `PoingGodotAdMobConsentInformation` bridge, exposing Google UMP `canRequestAds()` as `can_request_ads()` without changing dependency versions or unrelated native APIs.
+- Rebuilt and installed matching debug/release Poing Ads AARs; retained the reviewable upstream source delta under `patches/`.
+- Gated Android Mobile Ads initialization and every load/request behind the authoritative value, including update failure with a prior valid consent state, while keeping the game usable when ads are not authorized.
+- Prevented consent callbacks from duplicating SDK initialization or interstitial/rewarded preloads and discard cached ads if permission becomes unavailable.
+- Added Privacy Policy and conditional official UMP Privacy Options actions to Home and Pause Settings.
+- Added debug-only EEA/not-EEA UMP testing controls that are forcibly disabled in release builds.
+- Preserved interstitial cadence, rewarded exact-once rewards, ad IDs, gameplay, level flow, physics, UI theme, splash, and package ID.

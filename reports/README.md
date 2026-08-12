@@ -1,5 +1,7 @@
 # Reports Index
 
+- `POING_UMP_CAN_REQUEST_ADS_PATCH.md` - local Poing v5.0.0 native `canRequestAds()` bridge patch, rebuilt AARs, authoritative consent gate, Settings privacy actions, UMP debug testing, APK verification, and dashboard/manual-device requirements.
+
 - `SINGLE_SPLASH_CORRECTION.md` - removal of the remaining Home-owned splash-like state, single Android-system-splash configuration, platform constraint, validation, and delivery.
 
 - `SPLASH_AND_REWARD_UI_POLISH.md` - removal of the extra custom splash, Home-owned cover/crop startup, shared coin-icon reward hierarchy, animation validation, APK audit, and delivery.

@@ -22,6 +22,8 @@ signal home_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
 signal vibration_toggled(enabled: bool)
+signal privacy_policy_requested
+signal privacy_options_requested
 
 var root_control: Control
 var hud_canvas: Control
@@ -60,6 +62,7 @@ var home_button: Button
 var music_toggle: Button
 var sound_toggle: Button
 var vibration_toggle: Button
+var privacy_options_button: Button
 
 var _built := false
 var _snapshot: Dictionary = {}
@@ -798,7 +801,7 @@ func _build_pause_popup() -> void:
 	pause_safe_margin.add_child(center)
 	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
-	pause_panel.custom_minimum_size = Vector2(520.0, 690.0)
+	pause_panel.custom_minimum_size = Vector2(520.0, 760.0)
 	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
@@ -849,6 +852,20 @@ func _build_pause_popup() -> void:
 		_sync_switch_label(vibration_toggle)
 		vibration_toggled.emit(enabled)
 	)
+	var privacy_row := HBoxContainer.new()
+	privacy_row.name = "PausePrivacyActions"
+	privacy_row.custom_minimum_size = Vector2(424.0, 56.0)
+	privacy_row.add_theme_constant_override("separation", 12)
+	column.add_child(privacy_row)
+	var privacy_policy := _button("PausePrivacyPolicy", "PRIVACY POLICY", Vector2(0.0, 56.0), "SecondaryButton")
+	privacy_policy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	privacy_policy.pressed.connect(func() -> void: privacy_policy_requested.emit())
+	privacy_row.add_child(privacy_policy)
+	privacy_options_button = _button("PausePrivacyOptions", "PRIVACY OPTIONS", Vector2(0.0, 56.0), "SecondaryButton")
+	privacy_options_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	privacy_options_button.visible = false
+	privacy_options_button.pressed.connect(func() -> void: privacy_options_requested.emit())
+	privacy_row.add_child(privacy_options_button)
 	resume_button = _button("ResumeButton", "RESUME", Vector2(424.0, 82.0), "")
 	resume_button.icon = ICON_PLAY
 	resume_button.expand_icon = false
@@ -956,6 +973,11 @@ func _sync_pause_switch_labels() -> void:
 	_sync_switch_label(music_toggle)
 	_sync_switch_label(sound_toggle)
 	_sync_switch_label(vibration_toggle)
+
+
+func set_privacy_options_available(available: bool) -> void:
+	if privacy_options_button != null:
+		privacy_options_button.visible = available
 
 
 func _gem_texture_rect(node_name: String) -> TextureRect:

@@ -1,0 +1,13 @@
+diff --git a/platforms/android/src/ads/src/main/java/com/poingstudios/godot/admob/ads/PoingGodotAdMobConsentInformation.kt b/platforms/android/src/ads/src/main/java/com/poingstudios/godot/admob/ads/PoingGodotAdMobConsentInformation.kt
+--- a/platforms/android/src/ads/src/main/java/com/poingstudios/godot/admob/ads/PoingGodotAdMobConsentInformation.kt
++++ b/platforms/android/src/ads/src/main/java/com/poingstudios/godot/admob/ads/PoingGodotAdMobConsentInformation.kt
+@@ -53,2 +53,7 @@ class PoingGodotAdMobConsentInformation(godot: Godot?) : org.godotengine.godot.
+     }
++    @UsedByGodot
++    fun can_request_ads() : Boolean{
++        return UserMessagingPlatform.getConsentInformation(aActivity).canRequestAds()
++    }
++
+     @UsedByGodot
+     fun get_is_consent_form_available() : Boolean{
+         return UserMessagingPlatform.getConsentInformation(aActivity).isConsentFormAvailable

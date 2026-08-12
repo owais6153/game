@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Poing UMP `canRequestAds()` Patch v1
+
+- APK: `build/android/ump-can-request-ads-patch-v1-debug.apk`
+- Size: 53,376,732 bytes (50.90 MiB)
+- Export timestamp: 2026-08-12T10:29:57.0991603+05:00 (Asia/Karachi)
+- SHA-256: `DB2299C1E6F6C779D548A2CFC21833DF32B43353EFEF9324D1771288BF2686C6`
+- Source commit: recorded by the source milestone commit following this manifest update.
+- Delivery tag: `ump-can-request-ads-patch-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; Gradle-enabled, arm64-only, compressed native libraries, debug signing. The stable APK and Gradle output APK were written before the outer process timed out; exact orphaned Godot/Java processes were stopped, so a clean outer exit is not claimed.
+- Native plugin: local Poing v5.0.0 patch; debug/release Ads AAR Gradle build PASS. APK DEX contains `boolean can_request_ads()` on `PoingGodotAdMobConsentInformation`.
+- Package: `com.owais.majestygems`; min SDK 24; target/compile SDK 36; five DEX files; arm64-v8a only.
+- Validation: Godot import/parse PASS; `ADMOB_INTEGRATION_TESTS`, `GAME_FLOW_REWARD_SPLASH_TESTS`, and `BRANDING_PUSH_LINE_TESTS` print PASS before their documented Windows post-PASS exits; packaged Google debug units/privacy URL, APK DEX patch, ABI, and v2 signature checks PASS.
+- Device status: `adb devices -l` returned no device. Installation, launch, live UMP forms, live Google test ads, and physical lifecycle acceptance are not claimed.
+- Report: `reports/POING_UMP_CAN_REQUEST_ADS_PATCH.md`.
+
 ## Single Splash Correction
 
 - APK: `build/android/majestic-gems-single-splash-correction-debug.apk`

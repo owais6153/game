@@ -296,3 +296,10 @@ The timed logo-only state inside `HomeOverlayLayer` is removed. Mobile startup n
 Android 12+ does not support a full-screen cover bitmap in its system splash; it requires an opaque background color and a constrained icon. The current single-splash configuration therefore keeps the mask-safe Majestic icon over its matched blue and does not add another in-app image phase.
 
 Verified debug APK: `build/android/majestic-gems-single-splash-correction-debug.apk`, 53,368,728 bytes, SHA-256 `65575E1B14AF81E88608CB07BDFAB37604B2D5B1B014F340BFC5F6D467351840`. Export exited 0; package, arm64-only payload, removed-splash payload, forbidden-file, and v2 signature audits pass. ADB timed out, so physical cold-launch behavior is not claimed.
+# Current State Addendum — Poing UMP `canRequestAds()` Patch v1
+
+Poing AdMob v5.0.0 now carries a local one-method Android bridge patch exposing Google UMP `ConsentInformation.canRequestAds()` as GDScript `can_request_ads()`. Android startup updates consent information and uses that authoritative result before initializing/loading ads, including the documented update-failure case where a valid previous-session decision may remain usable. If ads are not allowed, Home and gameplay remain usable without an ad request.
+
+Home and Pause Settings contain the published Privacy Policy link and conditionally expose Poing's official UMP Privacy Options form. Debug EEA/not-EEA forcing is centralized, disabled by default, and hard-disabled for release builds. Existing interstitial cadence, rewarded exact-once behavior, production/test IDs, rewards, gameplay, physics, package, and splash are unchanged.
+
+Patched AARs and reapplication source are recorded in `reports/POING_UMP_CAN_REQUEST_ADS_PATCH.md`. Debug APK: `build/android/ump-can-request-ads-patch-v1-debug.apk`, 53,376,732 bytes, SHA-256 `DB2299C1E6F6C779D548A2CFC21833DF32B43353EFEF9324D1771288BF2686C6`. Native AAR build, parse, focused regression markers, APK DEX/package/ABI/configuration/signature audits pass. No Android device was connected, so live UMP/ad acceptance is not claimed.

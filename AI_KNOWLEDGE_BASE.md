@@ -623,3 +623,11 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Keep `splash_screen/disable_godot_boot_splash=true` for Android.
 - Android 12+ native splash supports an opaque color and constrained icon, not a full-screen cover/cropped bitmap. Never claim the Home background can be placed there cross-version; doing so requires a second in-app splash and violates the one-splash requirement.
 - Package ID stays `com.owais.majestygems`; AdMob App ID, test/production unit selection, saves, gameplay, physics, collision, merges, targets, difficulty, table/background/HUD layout, audio, and haptics are out of scope.
+# 2026-08-12 — Poing UMP patch maintenance guardrails
+
+- The project intentionally carries a local patch against Poing v5.0.0. Before any Poing upgrade, inspect whether upstream native and GDScript `ConsentInformation` expose `canRequestAds()`; remove the local patch if upstream owns the capability.
+- Never replace `_can_request_ads_authoritatively()` with consent-status inference. Google UMP can retain a valid previous-session decision after an update failure.
+- Never call `MobileAds.initialize()` or an ad loader directly from consent callbacks. All callbacks converge on `_refresh_ad_request_permission()` and `_start_mobile_ads_once()`.
+- Keep `UMP_DEBUG_GEOGRAPHY` disabled normally. Release helper functions must continue returning disabled geography and no test-device IDs.
+- Privacy Policy is always available in Settings. Privacy Options is UMP-owned and visible only for `PrivacyOptionsRequirementStatus.REQUIRED`; do not build a custom consent popup.
+- Native reapplication steps, artifact hashes, tests, and manual dashboard requirements are in `reports/POING_UMP_CAN_REQUEST_ADS_PATCH.md`.

@@ -363,3 +363,11 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Android startup has one branded launch phase only: the platform system splash, followed immediately by the fully populated Home menu.
 - Home must never hide its controls or run a timed logo-only startup state. The former `startup_intro` path is removed.
 - Godot's Android boot splash remains disabled. Android 12+ system splash constraints require an opaque color plus a mask-safe icon; a full-screen background bitmap would require a second in-app splash and is therefore intentionally not used.
+# AdMob UMP authoritative consent gate — 2026-08-12
+
+- Android must update Google UMP consent information before Mobile Ads initialization or any ad load/request.
+- Only native `ConsentInformation.canRequestAds()` authorizes ads. Update failure may still proceed when that method reports a valid previous-session decision; otherwise the game continues without ads.
+- Consent/ad callbacks share one initialization guard and must never duplicate interstitial or rewarded preload work.
+- Settings opens the published Majestic Gems privacy policy and exposes Google's official Privacy Options form only when UMP requires the entry point.
+- UMP geography forcing is debug-only and disabled by default. Release builds never accept forced test geography or test-device IDs.
+- Every-two-level interstitial cadence, rewarded Double Coins exact-once behavior, ad IDs, rewards, gameplay, package ID, splash, and UI theme remain unchanged.

@@ -1,6 +1,8 @@
 extends Node
 
 signal initialization_completed(success: bool)
+signal consent_state_changed(can_request_ads: bool)
+signal privacy_options_availability_changed(available: bool)
 signal interstitial_availability_changed(ready: bool)
 signal rewarded_availability_changed(ready: bool)
 signal fullscreen_started(ad_format: String)
@@ -13,6 +15,13 @@ const FULLSCREEN_SAFETY_TIMEOUT_SECONDS := 180.0
 
 var _initialized := false
 var _initializing := false
+var _consent_update_started := false
+var _consent_form_loading := false
+var _consent_form_showing := false
+var _privacy_options_showing := false
+var _privacy_options_available := false
+var _ads_requests_allowed := false
+var _ads_start_committed := false
 var _interstitial_loading := false
 var _rewarded_loading := false
 var _fullscreen_showing := false
@@ -34,6 +43,7 @@ var _reward_granted_for_session := false
 var _fullscreen_generation := 0
 var _interstitial_retry_generation := 0
 var _rewarded_retry_generation := 0
+var _consent_can_request_ads_override_for_testing: Variant = null
 
 
 func _ready() -> void:
@@ -42,6 +52,108 @@ func _ready() -> void:
 
 
 func initialize_once() -> void:
+	if OS.get_name() == "Android":
+		_request_consent_information_once()
+		return
+	_ads_requests_allowed = true
+	_start_mobile_ads_once()
+
+
+func _request_consent_information_once() -> void:
+	if _consent_update_started:
+		return
+	_consent_update_started = true
+	var request := ConsentRequestParameters.new()
+	request.tag_for_under_age_of_consent = false
+	var debug_geography := AdConfigType.ump_debug_geography_for_current_build()
+	if debug_geography != AdConfigType.UMP_DEBUG_GEOGRAPHY_DISABLED:
+		var debug_settings := ConsentDebugSettings.new()
+		debug_settings.debug_geography = debug_geography
+		for hashed_id in AdConfigType.ump_test_device_hashed_ids_for_current_build():
+			debug_settings.test_device_hashed_ids.append(hashed_id)
+		request.consent_debug_settings = debug_settings
+	UserMessagingPlatform.consent_information.update(
+		request,
+		_on_consent_information_updated,
+		_on_consent_information_update_failed
+	)
+
+
+func _on_consent_information_updated() -> void:
+	_refresh_privacy_options_availability()
+	_refresh_ad_request_permission()
+	var consent_information = UserMessagingPlatform.consent_information
+	if (
+		consent_information.get_consent_status() == ConsentInformation.ConsentStatus.REQUIRED
+		and consent_information.get_is_consent_form_available()
+	):
+		_load_required_consent_form()
+
+
+func _on_consent_information_update_failed(error: FormError) -> void:
+	_log_consent_failure("information update", error)
+	_refresh_privacy_options_availability()
+	# Google documents that a previous-session decision can remain usable even
+	# when this launch's network update fails. Only canRequestAds is authoritative.
+	_refresh_ad_request_permission()
+
+
+func _load_required_consent_form() -> void:
+	if _consent_form_loading or _consent_form_showing:
+		return
+	_consent_form_loading = true
+	UserMessagingPlatform.load_consent_form(
+		_on_consent_form_loaded,
+		_on_consent_form_load_failed
+	)
+
+
+func _on_consent_form_loaded(form: ConsentForm) -> void:
+	_consent_form_loading = false
+	if UserMessagingPlatform.consent_information.get_consent_status() != ConsentInformation.ConsentStatus.REQUIRED:
+		_refresh_ad_request_permission()
+		return
+	_consent_form_showing = true
+	form.show(_on_consent_form_dismissed)
+
+
+func _on_consent_form_load_failed(error: FormError) -> void:
+	_consent_form_loading = false
+	_log_consent_failure("form load", error)
+	_refresh_ad_request_permission()
+
+
+func _on_consent_form_dismissed(error: FormError) -> void:
+	_consent_form_showing = false
+	if error != null:
+		_log_consent_failure("form dismissal", error)
+	_refresh_privacy_options_availability()
+	_refresh_ad_request_permission()
+
+
+func _refresh_ad_request_permission() -> bool:
+	var allowed := _can_request_ads_authoritatively()
+	var changed := allowed != _ads_requests_allowed
+	_ads_requests_allowed = allowed
+	if changed:
+		consent_state_changed.emit(allowed)
+	if allowed:
+		_start_mobile_ads_once()
+	else:
+		_discard_cached_ads()
+	return allowed
+
+
+func _can_request_ads_authoritatively() -> bool:
+	if _consent_can_request_ads_override_for_testing != null:
+		return bool(_consent_can_request_ads_override_for_testing)
+	return UserMessagingPlatform.consent_information.can_request_ads()
+
+
+func _start_mobile_ads_once() -> void:
+	if _ads_start_committed:
+		return
+	_ads_start_committed = true
 	if _initialized or _initializing:
 		return
 	if not AdConfigType.is_configured_for_current_build():
@@ -66,16 +178,58 @@ func _finish_initialization(callback_received: bool) -> void:
 	_initializing = false
 	_initialized = true
 	initialization_completed.emit(callback_received)
-	preload_interstitial()
-	preload_rewarded()
+	if _ads_requests_allowed:
+		preload_interstitial()
+		preload_rewarded()
+
+
+func is_privacy_options_available() -> bool:
+	return _privacy_options_available
+
+
+func show_privacy_options() -> bool:
+	if (
+		not _privacy_options_available
+		or _privacy_options_showing
+		or _consent_form_loading
+		or _consent_form_showing
+		or _fullscreen_showing
+	):
+		return false
+	_privacy_options_showing = true
+	UserMessagingPlatform.show_privacy_options_form(_on_privacy_options_form_dismissed)
+	return true
+
+
+func open_privacy_policy() -> bool:
+	return OS.shell_open(AdConfigType.PRIVACY_POLICY_URL) == OK
+
+
+func _on_privacy_options_form_dismissed(error: FormError) -> void:
+	_privacy_options_showing = false
+	if error != null:
+		_log_consent_failure("privacy options", error)
+	_refresh_privacy_options_availability()
+	_refresh_ad_request_permission()
+
+
+func _refresh_privacy_options_availability() -> void:
+	var available := (
+		UserMessagingPlatform.consent_information.get_privacy_options_requirement_status()
+		== ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+	)
+	if available == _privacy_options_available:
+		return
+	_privacy_options_available = available
+	privacy_options_availability_changed.emit(available)
 
 
 func is_interstitial_ready() -> bool:
-	return _interstitial_ad != null and not _interstitial_showing and not _fullscreen_showing
+	return _ads_requests_allowed and _interstitial_ad != null and not _interstitial_showing and not _fullscreen_showing
 
 
 func is_rewarded_ready() -> bool:
-	return _rewarded_ad != null and not _rewarded_showing and not _fullscreen_showing
+	return _ads_requests_allowed and _rewarded_ad != null and not _rewarded_showing and not _fullscreen_showing
 
 
 func is_fullscreen_showing() -> bool:
@@ -84,7 +238,7 @@ func is_fullscreen_showing() -> bool:
 
 func preload_interstitial() -> void:
 	var ad_unit_id := AdConfigType.current_interstitial_ad_unit_id()
-	if not _initialized or ad_unit_id.is_empty() or _interstitial_loading or _interstitial_ad != null or _interstitial_showing:
+	if not _ads_requests_allowed or not _initialized or ad_unit_id.is_empty() or _interstitial_loading or _interstitial_ad != null or _interstitial_showing:
 		return
 	_interstitial_loading = true
 	_interstitial_loader = InterstitialAdLoader.new()
@@ -92,6 +246,10 @@ func preload_interstitial() -> void:
 	callback.on_ad_loaded = func(ad: InterstitialAd) -> void:
 		_interstitial_loading = false
 		_interstitial_retry_generation += 1
+		if not _ads_requests_allowed:
+			ad.destroy()
+			interstitial_availability_changed.emit(false)
+			return
 		if _interstitial_ad != null:
 			_interstitial_ad.destroy()
 		_interstitial_ad = ad
@@ -107,7 +265,7 @@ func preload_interstitial() -> void:
 
 func preload_rewarded() -> void:
 	var ad_unit_id := AdConfigType.current_rewarded_ad_unit_id()
-	if not _initialized or ad_unit_id.is_empty() or _rewarded_loading or _rewarded_ad != null or _rewarded_showing:
+	if not _ads_requests_allowed or not _initialized or ad_unit_id.is_empty() or _rewarded_loading or _rewarded_ad != null or _rewarded_showing:
 		return
 	_rewarded_loading = true
 	_rewarded_loader = RewardedAdLoader.new()
@@ -115,6 +273,10 @@ func preload_rewarded() -> void:
 	callback.on_ad_loaded = func(ad: RewardedAd) -> void:
 		_rewarded_loading = false
 		_rewarded_retry_generation += 1
+		if not _ads_requests_allowed:
+			ad.destroy()
+			rewarded_availability_changed.emit(false)
+			return
 		if _rewarded_ad != null:
 			_rewarded_ad.destroy()
 		_rewarded_ad = ad
@@ -295,6 +457,25 @@ func _log_show_failure(ad_format: String, error) -> void:
 	var code := int(error.code) if error != null else -1
 	var message := String(error.message) if error != null else "unknown"
 	print("AdManager: %s show failed (%d): %s" % [ad_format, code, message])
+
+
+func _log_consent_failure(operation: String, error) -> void:
+	var code := int(error.error_code) if error != null else -1
+	var message := String(error.message) if error != null else "unknown"
+	print("AdManager: consent %s failed (%d): %s" % [operation, code, message])
+
+
+func _discard_cached_ads() -> void:
+	_interstitial_retry_generation += 1
+	_rewarded_retry_generation += 1
+	if _interstitial_ad != null:
+		_interstitial_ad.destroy()
+		_interstitial_ad = null
+	if _rewarded_ad != null:
+		_rewarded_ad.destroy()
+		_rewarded_ad = null
+	interstitial_availability_changed.emit(false)
+	rewarded_availability_changed.emit(false)
 
 
 func _exit_tree() -> void:

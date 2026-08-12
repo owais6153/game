@@ -21,6 +21,8 @@ signal level_intro_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
 signal vibration_toggled(enabled: bool)
+signal privacy_policy_requested
+signal privacy_options_requested
 
 var root_control: Control
 var home_backdrop: TextureRect
@@ -40,6 +42,7 @@ var settings_panel: PanelContainer
 var settings_music_toggle: Button
 var settings_sound_toggle: Button
 var settings_vibration_toggle: Button
+var settings_privacy_options_button: Button
 
 var level_intro_blocker: Control
 var level_intro_panel: PanelContainer
@@ -308,7 +311,7 @@ func _build_settings_popup() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	settings_panel = PanelContainer.new()
 	settings_panel.name = "HomeSettingsPanel"
-	settings_panel.custom_minimum_size = Vector2(500.0, 520.0)
+	settings_panel.custom_minimum_size = Vector2(500.0, 610.0)
 	settings_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	settings_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(settings_panel)
@@ -339,6 +342,20 @@ func _build_settings_popup() -> void:
 		_sync_switch_label(settings_vibration_toggle)
 		vibration_toggled.emit(enabled)
 	)
+	var privacy_row := HBoxContainer.new()
+	privacy_row.name = "HomePrivacyActions"
+	privacy_row.custom_minimum_size = Vector2(400.0, 58.0)
+	privacy_row.add_theme_constant_override("separation", 12)
+	column.add_child(privacy_row)
+	var privacy_policy := _button("HomePrivacyPolicy", "PRIVACY POLICY", Vector2(0.0, 58.0), "SecondaryButton")
+	privacy_policy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	privacy_policy.pressed.connect(func() -> void: privacy_policy_requested.emit())
+	privacy_row.add_child(privacy_policy)
+	settings_privacy_options_button = _button("HomePrivacyOptions", "PRIVACY OPTIONS", Vector2(0.0, 58.0), "SecondaryButton")
+	settings_privacy_options_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	settings_privacy_options_button.visible = false
+	settings_privacy_options_button.pressed.connect(func() -> void: privacy_options_requested.emit())
+	privacy_row.add_child(settings_privacy_options_button)
 	var done := _button("HomeSettingsDone", "DONE", Vector2(400.0, 82.0), "")
 	done.icon = ICON_CHECK
 	done.expand_icon = false
@@ -487,6 +504,11 @@ func _sync_settings_from_snapshot() -> void:
 	_sync_switch_label(settings_music_toggle)
 	_sync_switch_label(settings_sound_toggle)
 	_sync_switch_label(settings_vibration_toggle)
+
+
+func set_privacy_options_available(available: bool) -> void:
+	if settings_privacy_options_button != null:
+		settings_privacy_options_button.visible = available
 
 func _sync_switch_label(toggle: Button) -> void:
 	if toggle != null:

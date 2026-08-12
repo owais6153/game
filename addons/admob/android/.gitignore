@@ -1,2 +1,10 @@
 # Remove /bin folder line if you want to commit
 /bin
+!/bin/
+/bin/*
+!/bin/ads/
+/bin/ads/*
+!/bin/ads/libs/
+/bin/ads/libs/*
+!/bin/ads/libs/poing-godot-admob-ads-debug.aar
+!/bin/ads/libs/poing-godot-admob-ads-release.aar

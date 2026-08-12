@@ -434,3 +434,10 @@ The dedicated `StartupSplashLayer` described above is removed and superseded. `G
 ## Single splash correction
 
 The Home-owned startup state described above is superseded and removed. `GameController._ready()` now calls `_show_home()` with no startup mode on mobile, and `HomeOverlayLayer.present()` always builds the complete normal Home composition immediately. Startup ownership is solely Android's native launch theme; Godot's Android boot splash remains disabled. This avoids both a second CanvasLayer and a second timed state within Home.
+# Ad consent architecture — local Poing v5.0.0 patch
+
+`AdManager` remains the sole ad runtime owner. On Android its startup boundary is now UMP consent rather than direct Mobile Ads initialization: update consent information, show the existing Poing/Google form only when required, evaluate native `can_request_ads()`, then enter the existing one-time initialization/preload path. Update failure follows the same authoritative evaluation so a valid previous-session decision can proceed without inventing state. Game/UI startup does not await or depend on ad authorization.
+
+The native extension is deliberately minimal: Poing's existing `PoingGodotAdMobConsentInformation` class forwards `can_request_ads()` to Google UMP `ConsentInformation.canRequestAds()`. The existing GDScript `ConsentInformation` wrapper forwards the method. `patches/poing-admob-v5.0.0-can-request-ads.patch` is the maintenance authority; the rebuilt debug/release Ads AARs are the runtime artifacts.
+
+`_ads_start_committed` serializes consent callbacks into the existing `_initializing`/`_initialized` and per-format loading guards. `_ads_requests_allowed` gates readiness, preload, and late load callbacks. Privacy Options can revoke cached readiness without changing fullscreen ownership or reward authority. `GameController` only routes Settings actions and availability to `HomeOverlayLayer`/`GameplayHudLayer`; it does not acquire ad or consent rules.

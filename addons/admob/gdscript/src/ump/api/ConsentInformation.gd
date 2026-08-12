@@ -40,6 +40,12 @@ func get_consent_status() -> ConsentStatus:
 	return ConsentStatus.UNKNOWN
 
 
+func can_request_ads() -> bool:
+	if _plugin:
+		return _plugin.can_request_ads()
+	return false
+
+
 func get_is_consent_form_available() -> bool:
 	if _plugin:
 		return _plugin.get_is_consent_form_available()

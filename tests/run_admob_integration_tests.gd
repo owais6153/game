@@ -4,6 +4,7 @@ const AdConfigType = preload("res://scripts/ad_config.gd")
 const AdManagerType = preload("res://scripts/ad_manager.gd")
 const ResultOverlayType = preload("res://scripts/result_overlay_layer.gd")
 const CoinIconType = preload("res://scripts/coin_icon.gd")
+const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
 
 var failures: Array[String] = []
 
@@ -14,9 +15,11 @@ func _init() -> void:
 
 func _run() -> void:
 	_test_ad_ids_and_cadence()
+	_test_consent_gate_contract()
 	await _test_manager_lifecycle_and_fail_open_paths()
 	_test_reward_callback_is_exactly_once()
 	await _test_result_actions()
+	await _test_privacy_settings_actions()
 	if failures.is_empty():
 		print("ADMOB_INTEGRATION_TESTS: PASS")
 		quit(0)
@@ -36,6 +39,24 @@ func _test_ad_ids_and_cadence() -> void:
 	_assert(AdConfigType.should_show_interstitial_after_level(2), "Level 2 completion must request an interstitial")
 	_assert(not AdConfigType.should_show_interstitial_after_level(3), "Level 3 completion must not request an interstitial")
 	_assert(AdConfigType.should_show_interstitial_after_level(4), "Level 4 completion must request an interstitial")
+	_assert(AdConfigType.PRIVACY_POLICY_URL == "https://teckvertexlabs.vercel.app/privacy/majestic-gems", "Privacy Policy must use the published Majestic Gems URL")
+	_assert(AdConfigType.ump_debug_geography(false) == AdConfigType.UMP_DEBUG_GEOGRAPHY_DISABLED, "Release builds must always disable forced UMP geography")
+	_assert(AdConfigType.ump_test_device_hashed_ids(false).is_empty(), "Release builds must never receive UMP test device IDs")
+
+
+func _test_consent_gate_contract() -> void:
+	var consent_information := ConsentInformation.new()
+	_assert(consent_information.has_method("can_request_ads"), "Poing's existing ConsentInformation wrapper must expose can_request_ads")
+	var manager := AdManagerType.new()
+	var source: String = manager.get_script().source_code
+	_assert(source.contains("UserMessagingPlatform.consent_information.can_request_ads()"), "AdManager must use the authoritative native canRequestAds bridge")
+	manager._initialized = true
+	manager._ads_start_committed = true
+	manager._consent_can_request_ads_override_for_testing = false
+	_assert(not manager._refresh_ad_request_permission() and not manager._ads_requests_allowed, "A failed/unknown consent path must not request ads when canRequestAds is false")
+	manager._consent_can_request_ads_override_for_testing = true
+	_assert(manager._refresh_ad_request_permission() and manager._ads_requests_allowed, "Previous valid consent must allow ads when canRequestAds remains true")
+	manager.free()
 
 
 func _test_manager_lifecycle_and_fail_open_paths() -> void:
@@ -166,6 +187,21 @@ func _test_result_actions() -> void:
 	_assert(overlay.retry_button.text == "RETRY" and not overlay.double_button.visible, "Failure flow must remain Retry-only")
 	overlay.queue_free()
 	await process_frame
+
+
+func _test_privacy_settings_actions() -> void:
+	var home := HomeOverlayType.new()
+	root.add_child(home)
+	await process_frame
+	_assert(home.root_control.find_child("HomePrivacyPolicy", true, false) != null, "Home Settings must expose Privacy Policy")
+	_assert(not home.settings_privacy_options_button.visible, "Home Privacy Options must stay hidden until UMP requires an entry point")
+	home.set_privacy_options_available(true)
+	_assert(home.settings_privacy_options_button.visible, "Home Privacy Options must appear when UMP requires it")
+	home.queue_free()
+	await process_frame
+
+	var hud_source := FileAccess.get_file_as_string("res://scripts/gameplay_hud_layer.gd")
+	_assert(hud_source.contains("PausePrivacyPolicy") and hud_source.contains("PausePrivacyOptions"), "Pause Settings must expose Privacy Policy and conditional UMP Privacy Options")
 
 
 func _assert(condition: bool, message: String) -> void:
