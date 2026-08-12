@@ -49,6 +49,8 @@ Level Complete keeps the existing light blue/glass modal shell, completed target
 - Size: 53,369,788 bytes (50.90 MiB)
 - Export timestamp: `2026-08-12T06:17:25.8474273+05:00`
 - SHA-256: `1A500655BBCF5BC8AAE68F36983B46951C5C1C1C6449DBB8D759A7A826055827`
+- Source commit: `c51cda96bf576a3a6bdaf3b04a4f9e8bf331e555` (`fix: unify startup and polish reward presentation`)
+- Delivery tag: `splash-reward-ui-polish-v1`
 - Package: `com.owais.majestygems`; version code `1`; version/application label `Majestic Gems`; min SDK `24`; target/compile SDK `36`.
 - Payload: 926 ZIP entries, five DEX files, arm64-v8a Godot runtime only, zero forbidden report/test/tool/raw-source paths, and zero `startup_splash` payload entries.
 - Signature: APK Signature Scheme v2 verifies with one RSA-2048 Godot debug signer. This is a test build, not a production signing claim.

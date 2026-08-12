@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Splash and Reward UI Polish
+
+- APK: `build/android/majestic-gems-splash-reward-ui-polish-debug.apk`
+- Size: 53,369,788 bytes (50.90 MiB)
+- Export timestamp: 2026-08-12T06:17:25.8474273+05:00 (Asia/Karachi)
+- SHA-256: `1A500655BBCF5BC8AAE68F36983B46951C5C1C1C6449DBB8D759A7A826055827`
+- Source commit: `c51cda96bf576a3a6bdaf3b04a4f9e8bf331e555` (`fix: unify startup and polish reward presentation`)
+- Delivery tag: `splash-reward-ui-polish-v1`
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-debug`; Gradle-enabled, arm64-only, compressed native libraries, debug signing.
+- Package: `com.owais.majestygems`; versionCode `1`; versionName/application label `Majestic Gems`; minSdk `24`; target/compile SDK `36`.
+- Validation: whole-project import/parse PASS with exit 0; focused flow/splash/reward and AdMob suites print PASS before known Windows teardown behavior; package/manifest, 926-entry payload, five DEX files, arm64-only runtime, forbidden-payload, removed-splash-payload, and APK Signature Scheme v2 checks PASS with one RSA-2048 signer.
+- Export-process note: the stable APK was fully written before the outer Godot/Gradle wrapper reached its known timeout; no Godot or Java export process remained afterward.
+- Device status: ADB queries did not return within the validation window and the hung ADB process was stopped. Physical installation, force-stopped cold launch, crop/transition review, and Google-served ad playback are not claimed.
+- Report: `reports/SPLASH_AND_REWARD_UI_POLISH.md`.
+
 ## Game Flow + Reward + Splash Polish
 
 - APK: `build/android/majestic-gems-flow-reward-splash-polish-debug.apk`
