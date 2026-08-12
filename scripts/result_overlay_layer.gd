@@ -4,6 +4,7 @@ extends CanvasLayer
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/score_formatter.gd")
 const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
+const CoinIconType = preload("res://scripts/coin_icon.gd")
 const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_navy.svg")
 
@@ -30,6 +31,14 @@ var celebration_label: Label
 var subtitle_label: Label
 var result_icon: TextureRect
 var fail_badge: PanelContainer
+var reward_card: PanelContainer
+var earned_label: Label
+var reward_row: HBoxContainer
+var reward_coin_icon: Control
+var reward_value_label: Label
+var total_row: HBoxContainer
+var total_caption_label: Label
+var total_coin_icon: Control
 var score_label: Label
 var transition_label: Label
 var retry_button: Button
@@ -81,10 +90,13 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 	present_count += 1
 	title_label.text = "LEVEL COMPLETE" if won else "TRY AGAIN"
 	celebration_label.visible = won
+	celebration_label.text = "✦"
+	celebration_label.modulate = Color.WHITE
 	subtitle_label.text = "LEVEL %d COMPLETE" % level_number if won else "THE TABLE REACHED THE DANGER LINE"
 	result_icon.visible = won
 	result_icon.texture = AssetCatalogType.gem_texture(result_tier) if won else null
 	fail_badge.visible = not won
+	reward_card.custom_minimum_size = Vector2(424.0, 132.0 if won else 74.0)
 	_refresh_reward_copy()
 	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • READY TO RETRY" % level_number
 	retry_button.text = "COLLECT" if won else "RETRY"
@@ -203,13 +215,13 @@ func _build_ui() -> void:
 
 	var art_slot := CenterContainer.new()
 	art_slot.name = "ResultArtSlot"
-	art_slot.custom_minimum_size = Vector2(132.0, 132.0)
+	art_slot.custom_minimum_size = Vector2(112.0, 112.0)
 	art_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(art_slot)
 
 	var icon_aspect := AspectRatioContainer.new()
 	icon_aspect.name = "ResultGemSlot"
-	icon_aspect.custom_minimum_size = Vector2(118.0, 118.0)
+	icon_aspect.custom_minimum_size = Vector2(104.0, 104.0)
 	icon_aspect.ratio = 1.0
 	icon_aspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art_slot.add_child(icon_aspect)
@@ -232,16 +244,59 @@ func _build_ui() -> void:
 	fail_badge.add_child(fail_mark)
 	fail_badge.visible = false
 
-	var reward_card := PanelContainer.new()
+	reward_card = PanelContainer.new()
 	reward_card.name = "ResultRewardCard"
-	reward_card.custom_minimum_size = Vector2(424.0, 74.0)
+	reward_card.custom_minimum_size = Vector2(424.0, 132.0)
 	reward_card.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
 	reward_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(reward_card)
-	score_label = _label("COINS  0", 20, UiDesignSystemType.COLOR_BLUE_DEEP)
+	var reward_margin := MarginContainer.new()
+	reward_margin.add_theme_constant_override("margin_left", 24)
+	reward_margin.add_theme_constant_override("margin_top", 10)
+	reward_margin.add_theme_constant_override("margin_right", 24)
+	reward_margin.add_theme_constant_override("margin_bottom", 10)
+	reward_card.add_child(reward_margin)
+	var reward_column := VBoxContainer.new()
+	reward_column.alignment = BoxContainer.ALIGNMENT_CENTER
+	reward_column.add_theme_constant_override("separation", 3)
+	reward_margin.add_child(reward_column)
+	earned_label = _label("YOU EARNED", 14, UiDesignSystemType.COLOR_TEXT_MUTED)
+	earned_label.name = "RewardCaption"
+	earned_label.custom_minimum_size = Vector2(0.0, 22.0)
+	reward_column.add_child(earned_label)
+	reward_row = HBoxContainer.new()
+	reward_row.name = "EarnedCoinRow"
+	reward_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	reward_row.add_theme_constant_override("separation", 10)
+	reward_column.add_child(reward_row)
+	reward_coin_icon = CoinIconType.new()
+	reward_coin_icon.name = "EarnedCoinIcon"
+	reward_coin_icon.custom_minimum_size = Vector2(50.0, 50.0)
+	reward_row.add_child(reward_coin_icon)
+	reward_value_label = _label("+0", 38, UiDesignSystemType.COLOR_BLUE_DEEP)
+	reward_value_label.name = "EarnedCoinValue"
+	reward_value_label.custom_minimum_size = Vector2(120.0, 50.0)
+	reward_row.add_child(reward_value_label)
+	var divider := HSeparator.new()
+	divider.custom_minimum_size = Vector2(320.0, 2.0)
+	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reward_column.add_child(divider)
+	total_row = HBoxContainer.new()
+	total_row.name = "TotalCoinRow"
+	total_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	total_row.add_theme_constant_override("separation", 7)
+	reward_column.add_child(total_row)
+	total_caption_label = _label("TOTAL", 13, UiDesignSystemType.COLOR_TEXT_MUTED)
+	total_caption_label.custom_minimum_size = Vector2(62.0, 28.0)
+	total_row.add_child(total_caption_label)
+	total_coin_icon = CoinIconType.new()
+	total_coin_icon.name = "TotalCoinIcon"
+	total_coin_icon.custom_minimum_size = Vector2(28.0, 28.0)
+	total_row.add_child(total_coin_icon)
+	score_label = _label("0", 24, UiDesignSystemType.COLOR_BLUE_DEEP)
 	score_label.name = "ResultScore"
-	score_label.custom_minimum_size = Vector2(0.0, 66.0)
-	reward_card.add_child(score_label)
+	score_label.custom_minimum_size = Vector2(94.0, 30.0)
+	total_row.add_child(score_label)
 
 	transition_label = _label("LEVEL 1  →  LEVEL 2", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
 	transition_label.name = "ResultTransition"
@@ -339,16 +394,20 @@ func resolve_reward(updated_score: int, doubled: bool) -> void:
 
 
 func _refresh_reward_copy() -> void:
-	if score_label == null:
+	if score_label == null or reward_value_label == null:
 		return
 	if result_won:
 		var shown_reward := level_reward * (2 if _reward_doubled else 1)
-		var reward_copy := "REWARD +%s" % ScoreFormatterType.format(shown_reward)
-		if _reward_resolved:
-			reward_copy += "  COLLECTED"
-		score_label.text = "%s  |  TOTAL %s" % [reward_copy, ScoreFormatterType.format(_displayed_total)]
+		earned_label.visible = true
+		reward_row.visible = true
+		total_caption_label.text = "TOTAL"
+		reward_value_label.text = "+%s" % ScoreFormatterType.format(shown_reward)
+		score_label.text = ScoreFormatterType.format(_displayed_total)
 	else:
-		score_label.text = "COINS  %s" % ScoreFormatterType.format(result_score)
+		earned_label.visible = false
+		reward_row.visible = false
+		total_caption_label.text = "COINS"
+		score_label.text = ScoreFormatterType.format(result_score)
 
 
 func _refresh_action_state() -> void:
@@ -371,7 +430,7 @@ func _refresh_action_state() -> void:
 	if _reward_doubled:
 		double_button.text = "DOUBLED"
 	elif _rewarded_available:
-		double_button.text = "DOUBLE COINS"
+		double_button.text = "WATCH AD ×2"
 	else:
 		double_button.text = "AD UNAVAILABLE"
 
@@ -394,7 +453,10 @@ func _animate_reward_resolution(target: int, doubled: bool) -> void:
 		_total_tween.tween_callback(func() -> void:
 			_reward_doubled = true
 			_refresh_reward_copy()
+			reward_row.pivot_offset = _node_center(reward_row)
+			reward_row.scale = Vector2.ONE * 1.14
 		)
+		_total_tween.tween_property(reward_row, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	else:
 		_reward_doubled = false
 		celebration_label.text = "âœ¦"
@@ -405,10 +467,13 @@ func _animate_reward_resolution(target: int, doubled: bool) -> void:
 	_total_tween.tween_callback(func() -> void:
 		_displayed_total = target
 		_refresh_reward_copy()
-		score_label.pivot_offset = _node_center(score_label)
-		score_label.scale = Vector2.ONE * 1.08
+		total_row.pivot_offset = _node_center(total_row)
+		total_row.scale = Vector2.ONE * 1.10
+		reward_coin_icon.pivot_offset = _node_center(reward_coin_icon)
+		reward_coin_icon.scale = Vector2.ONE * 1.12
 	)
-	_total_tween.tween_property(score_label, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_total_tween.tween_property(total_row, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_total_tween.parallel().tween_property(reward_coin_icon, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_total_tween.tween_callback(func() -> void: reward_animation_finished.emit())
 
 

@@ -280,3 +280,11 @@ Rewarded earnings remain exactly-once and controller-owned. The earned callback 
 Android keeps the native Majestic-blue system splash and disables the extra Godot Android boot splash. A dedicated in-engine splash uses the existing contained Majestic Gems logo for a 1.05-second hold plus 0.20-second fade before Home. Application display name is now `Majestic Gems`; package remains `com.owais.majestygems`.
 
 Verified debug APK: `build/android/majestic-gems-flow-reward-splash-polish-debug.apk`, 53,370,111 bytes, SHA-256 `06A5C78AF3DE4A63BBE2107A074E0B0C22D363A0B129D7F8DD20D5B58C999265`. Package, arm64-only payload, forbidden-file, and v2 signature audits pass. ADB returned no connected device, so physical startup, reward/ad playback, and lifecycle behavior are not claimed.
+
+# Current State Addendum - Splash and Reward UI Correction
+
+The extra `StartupSplashLayer` has been removed. Android enters the existing Home overlay directly; that same overlay briefly shows its exact full-bleed `level_bg_1.png` cover backdrop and contained Majestic Gems logo before revealing Home controls. There is no second custom CanvasLayer or intermediary scene.
+
+Level Complete now separates the prominent earned amount from the bank total. Both values use the same `CoinIcon`/`AssetCatalog.COIN_REWARD` presentation path as the top-left gameplay HUD. Collect and rewarded x2 still lock immediately, animate the authoritative final total, and transition only after the popup and HUD animations finish.
+
+Verified debug APK: `build/android/majestic-gems-splash-reward-ui-polish-debug.apk`, 53,369,788 bytes, SHA-256 `1A500655BBCF5BC8AAE68F36983B46951C5C1C1C6449DBB8D759A7A826055827`. Package, arm64-only payload, removed-splash payload, forbidden-file, and v2 signature audits pass. ADB did not return, so no physical cold-launch or ad verification is claimed.

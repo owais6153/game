@@ -82,3 +82,7 @@ Android controls the native system splash duration/masking, so exact OEM transit
 ## Known limitations / physical-device checklist
 
 No connected Android device was available at implementation time. Still required: force-stop cold launch; verify native-to-custom splash continuity/logo scale/no flash; verify Home PLAY reveals game screen before Level Ready; normal Collect count-up and automatic Level Ready; rewarded test-ad success/early close/background-resume; even-level interstitial after reward feedback; unavailable-ad fail-open; and no duplicate reward/modal after lifecycle restoration.
+
+## Superseded startup implementation
+
+The later `SPLASH_AND_REWARD_UI_POLISH` correction removes the dedicated `StartupSplashLayer`. Startup is now a short state of the existing Home overlay so its background and logo are literally shared with Home instead of duplicated in another custom layer. See `reports/SPLASH_AND_REWARD_UI_POLISH.md`.

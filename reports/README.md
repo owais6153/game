@@ -1,5 +1,7 @@
 # Reports Index
 
+- `SPLASH_AND_REWARD_UI_POLISH.md` - removal of the extra custom splash, Home-owned cover/crop startup, shared coin-icon reward hierarchy, animation validation, APK audit, and delivery.
+
 - `GAME_FLOW_REWARD_SPLASH_POLISH.md` - simplified Home/Level Ready and post-reward flow, exactly-once rewarded lifecycle, coin/result animation, interstitial placement, Android splash audit, validation, and delivery.
 
 - `POST_ADMOB_REWARD_FLOW_AND_SIZE_FIX.md` — APK regression audit/optimization, explicit reward→Next→Ready→Play flow, AdMob lifecycle safety, package migration, and final verification.

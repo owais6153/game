@@ -519,3 +519,12 @@
 - Added one short in-engine Majestic Gems splash using the existing logo and the same blue as Android native/Godot fallback startup. The extra Godot Android boot splash stays disabled.
 - Updated the application display label from Gem Aim to Majestic Gems without changing `com.owais.majestygems`, AdMob identifiers/configuration, saves, gameplay, physics, collisions, merges, targets, difficulty, backgrounds, tables, HUD layout, sound, or vibration.
 - Added focused flow/reward/splash regression coverage and updated the AdMob result-action suite.
+
+# 2026-08-12 - Splash and reward UI correction
+
+- Removed the extra `StartupSplashLayer` and its controller wiring.
+- Made startup a brief presentation state of the existing Home overlay, reusing `assets/runtime/backgrounds/level_bg_1.png` with centered aspect-cover behavior and the existing aspect-contained Majestic Gems logo.
+- Replaced the plain `REWARD +N | TOTAL N` line with a game-like `YOU EARNED` coin/value row and a secondary `TOTAL` coin/value row.
+- Reused the exact gameplay `CoinIcon` component backed by `assets/runtime/effects/coin_reward_reference_v2.png` for both reward values.
+- Added a clearer `WATCH AD ×2` action and retained the same-popup x2 pop, interpolated popup/HUD totals, immediate input locking, exactly-once rewards, and post-animation transition.
+- No gameplay, physics, targets, ads, level rules, package name, or general layout changed.

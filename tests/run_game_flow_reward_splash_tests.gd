@@ -1,7 +1,6 @@
 extends SceneTree
 
 const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
-const StartupSplashType = preload("res://scripts/startup_splash_layer.gd")
 
 var failures: Array[String] = []
 
@@ -12,7 +11,7 @@ func _init() -> void:
 
 func _run() -> void:
 	await _test_home_to_game_level_ready()
-	await _test_branded_startup_splash()
+	await _test_home_owned_startup_presentation()
 	_test_controller_flow_guards()
 	if failures.is_empty():
 		print("GAME_FLOW_REWARD_SPLASH_TESTS: PASS")
@@ -44,23 +43,23 @@ func _test_home_to_game_level_ready() -> void:
 	await process_frame
 
 
-func _test_branded_startup_splash() -> void:
-	var splash := StartupSplashType.new()
-	root.add_child(splash)
+func _test_home_owned_startup_presentation() -> void:
+	var home := HomeOverlayType.new()
+	root.add_child(home)
 	await process_frame
-	_assert(not splash.root_control.visible, "Custom splash must stay dormant until the mobile startup flow explicitly plays it")
-	var state := {"finished_count": 0}
-	splash.finished.connect(func() -> void: state.finished_count += 1)
-	splash.play()
-	_assert(splash.logo.texture != null and splash.logo.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "Splash must use contained existing Majestic Gems artwork")
-	await create_timer(1.6).timeout
-	_assert(int(state.finished_count) == 1 and not splash.root_control.visible, "Custom splash must finish once within the short startup budget")
-	splash.queue_free()
+	home.present(1, 0, {}, true)
+	_assert(home.home_backdrop.texture.resource_path == "res://assets/runtime/backgrounds/level_bg_1.png", "Startup must reuse the exact Home background asset")
+	_assert(home.home_backdrop.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Home-owned startup background must preserve aspect and cover/crop the full viewport")
+	_assert(not home.play_button.visible and not home.top_controls_margin.visible, "Startup must begin with only the existing Home backdrop and centered logo")
+	await create_timer(1.5).timeout
+	_assert(home.play_button.visible and home.top_controls_margin.visible, "The same Home overlay must reveal its controls within the startup budget")
+	home.queue_free()
 	await process_frame
 
 
 func _test_controller_flow_guards() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
+	_assert(not source.contains("StartupSplash") and not FileAccess.file_exists("res://scripts/startup_splash_layer.gd"), "The extra custom splash layer must be fully removed")
 	_assert(not source.contains("next_level_requested.connect"), "Controller must not wire the removed post-reward Next Level action")
 	_assert(source.contains("result_overlay.reward_animation_finished.connect(_on_reward_animation_finished)"), "Progression must wait for reward animation completion")
 	_assert(source.contains("result_overlay.resolve_reward(coins, true)") and source.find("result_overlay.resolve_reward(coins, true)") > source.find("func _on_rewarded_ad_finished"), "Rewarded x2 animation must begin after fullscreen dismissal, not inside the earned callback")

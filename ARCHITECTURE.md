@@ -424,3 +424,9 @@ Rewarded currency authority remains the earned callback. Presentation authority 
 `GameplayHudLayer.prepare_completion_reward_display()` and `animate_completion_reward()` are presentation-only. They interpolate the visible bank from the pre-level total to the controller's final exact integer, then pulse the existing coin HUD. They cannot mutate saved/controller coins.
 
 `StartupSplashLayer` is a dedicated layer-80 presentation module. It contains the existing `AssetCatalog.BRAND_LOGO` with aspect preservation over the same Majestic blue configured for native/Godot fallback startup, holds for 1.05 seconds, fades for 0.20 seconds, and emits `finished` to show Home. Android's separate Godot boot splash remains disabled, so startup is native system splash -> matched custom splash -> Home.
+
+## Splash and reward UI correction
+
+The dedicated `StartupSplashLayer` described above is removed and superseded. `GameController` now calls `HomeOverlayLayer.present(..., startup_intro=true)` on mobile. Home owns one background node for both startup and menu: `AssetCatalog.background_texture(0)` with `STRETCH_KEEP_ASPECT_COVERED`. Its startup state hides Home controls, keeps the existing logo contained, then reveals the same Home tree after a bounded tween. No scene or CanvasLayer handoff occurs.
+
+`ResultOverlayLayer` remains presentation-only. Its reward card now owns two `CoinIcon` instances plus separate earned and total labels. `CoinIcon -> CoinVisuals -> AssetCatalog.COIN_REWARD` is the same rendering dependency used by `GameplayHudLayer`; currency authority and reward lifecycle remain in `GameController`.

@@ -12,7 +12,6 @@ const ProgressionSaveServiceType = preload("res://scripts/progression_save_servi
 const GameSettingsServiceType = preload("res://scripts/game_settings_service.gd")
 const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
 const AdConfigType = preload("res://scripts/ad_config.gd")
-const StartupSplashType = preload("res://scripts/startup_splash_layer.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -66,7 +65,6 @@ var gameplay_ui: GameplayHudLayer
 var effects_layer: GameplayEffectsLayer
 var result_overlay: ResultOverlayLayer
 var home_overlay: HomeOverlayLayer
-var startup_splash: StartupSplashLayer
 var ad_manager: Node
 var level_reward_for_completion := 0
 var completion_action_pending := false
@@ -122,7 +120,7 @@ func _ready() -> void:
 	_refresh_hud()
 	queue_redraw()
 	if OS.has_feature("mobile"):
-		startup_splash.play()
+		_show_home(true)
 	else:
 		app_flow_state = AppFlowState.PLAYING
 
@@ -454,9 +452,6 @@ func _setup_asset_presentation() -> void:
 	home_overlay.music_toggled.connect(_on_music_toggled)
 	home_overlay.sound_toggled.connect(_on_sound_toggled)
 	home_overlay.vibration_toggled.connect(_on_vibration_toggled)
-	startup_splash = StartupSplashType.new()
-	add_child(startup_splash)
-	startup_splash.finished.connect(_show_home)
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
@@ -1022,7 +1017,7 @@ func _on_result_home_requested() -> void:
 		_on_restart_requested()
 		_show_home()
 
-func _show_home() -> void:
+func _show_home(startup_intro: bool = false) -> void:
 	if home_overlay == null:
 		return
 	if gameplay_ui != null:
@@ -1030,7 +1025,7 @@ func _show_home() -> void:
 	if result_overlay != null:
 		result_overlay.dismiss()
 	app_flow_state = AppFlowState.HOME
-	home_overlay.present(level_number, coins, hud_snapshot())
+	home_overlay.present(level_number, coins, hud_snapshot(), startup_intro)
 	if is_inside_tree():
 		get_tree().paused = true
 

@@ -34,6 +34,7 @@ var coins_label: Label
 var play_button: Button
 var tagline_label: Label
 var settings_button: TextureButton
+var status_row: HBoxContainer
 
 var settings_blocker: Control
 var settings_panel: PanelContainer
@@ -79,7 +80,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			# not reveal the Home composition underneath or begin gameplay.
 			get_viewport().set_input_as_handled()
 
-func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
+func present(level_number: int, coins: int, snapshot: Dictionary = {}, startup_intro: bool = false) -> void:
 	_build()
 	_current_level = level_number
 	_current_coins = coins
@@ -95,8 +96,12 @@ func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	_set_home_stage_visible(true)
 	root_control.visible = true
 	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
-	_start_entrance()
-	if play_button.is_inside_tree():
+	if startup_intro:
+		_start_home_splash_intro()
+	else:
+		_set_home_controls_visible(true)
+		_start_entrance()
+	if not startup_intro and play_button.is_inside_tree():
 		play_button.grab_focus()
 
 
@@ -206,7 +211,7 @@ func _build() -> void:
 	tagline_label.add_theme_color_override("font_outline_color", Color(0.02, 0.30, 0.34, 0.85))
 	column.add_child(tagline_label)
 
-	var status_row := HBoxContainer.new()
+	status_row = HBoxContainer.new()
 	status_row.name = "HomePlayerStatus"
 	status_row.custom_minimum_size = Vector2(492.0, 94.0)
 	status_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -569,6 +574,44 @@ func _start_entrance() -> void:
 	_entrance_tween.tween_property(content_panel, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_entrance_tween.tween_property(content_panel, "modulate:a", 1.0, 0.20).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_entrance_tween.finished.connect(_start_idle_motion, CONNECT_ONE_SHOT)
+
+
+func _start_home_splash_intro() -> void:
+	# The startup presentation is the Home overlay itself: the exact same
+	# aspect-cover backdrop and logo remain mounted while the controls reveal.
+	# No separate splash CanvasLayer or intermediary scene is created.
+	_kill_tween()
+	_kill_idle_tween()
+	_set_home_controls_visible(false)
+	content_panel.pivot_offset = content_panel.size * 0.5
+	content_panel.scale = Vector2.ONE
+	content_panel.modulate = Color.WHITE
+	logo_rect.pivot_offset = logo_rect.size * 0.5 if logo_rect.size != Vector2.ZERO else logo_rect.custom_minimum_size * 0.5
+	logo_rect.scale = Vector2.ONE * 0.96
+	if not is_inside_tree():
+		_set_home_controls_visible(true)
+		logo_rect.scale = Vector2.ONE
+		return
+	_entrance_tween = create_tween()
+	_entrance_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_entrance_tween.tween_property(logo_rect, "scale", Vector2.ONE, 0.78).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_entrance_tween.tween_interval(0.10)
+	_entrance_tween.tween_property(content_panel, "modulate:a", 0.0, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_entrance_tween.tween_callback(func() -> void: call_deferred("_finish_home_splash_intro"))
+
+
+func _finish_home_splash_intro() -> void:
+	_set_home_controls_visible(true)
+	logo_rect.scale = Vector2.ONE
+	_start_entrance()
+	if play_button.is_inside_tree():
+		play_button.grab_focus()
+
+
+func _set_home_controls_visible(visible: bool) -> void:
+	for control in [tagline_label, status_row, play_button, top_controls_margin]:
+		if control != null:
+			control.visible = visible
 
 func _start_idle_motion() -> void:
 	_kill_idle_tween()

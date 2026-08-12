@@ -609,4 +609,11 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - `GameplayHudLayer` completion count-up is visual reconciliation only. Controller/save integers remain authoritative and must never be incremented from tween callbacks.
 - Interstitial cadence remains positive even levels only and starts after reward feedback. Unavailable inventory must fail open directly to Level Ready.
 - Preserve `StartupSplashLayer` as the only custom startup phase: existing contained Majestic logo, Majestic blue, 1.05-second hold, 0.20-second fade. Keep Android Godot boot splash disabled and native system colors/icon matched as closely as Android allows.
+
+## Splash and reward UI correction - 2026-08-12
+
+- The `StartupSplashLayer` rule above is superseded: that module is deleted. Mobile startup must use the existing `HomeOverlayLayer` tree, background, and logo, with Home controls temporarily hidden and then revealed.
+- The authoritative shared startup/Home background is `assets/runtime/backgrounds/level_bg_1.png`, resolved by `AssetCatalog.background_texture(0)`. It must remain centered aspect-cover; never stretch, letterbox, or substitute a solid-color custom splash.
+- Result reward icons must be `CoinIcon`, which renders the same `AssetCatalog.COIN_REWARD` texture as the gameplay coin HUD. Do not introduce emoji or a second coin asset.
+- Keep result animation presentation-only. `GameController` remains the authority for persisted totals, exactly-once rewarded bonuses, ad completion, and next-level transition.
 - Package ID stays `com.owais.majestygems`; AdMob App ID, test/production unit selection, saves, gameplay, physics, collision, merges, targets, difficulty, table/background/HUD layout, audio, and haptics are out of scope.

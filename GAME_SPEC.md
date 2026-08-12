@@ -350,3 +350,10 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Rewarded earnings are persisted exactly once from the earned callback, but the visible `+base -> x2 -> +double` sequence starts only after the fullscreen ad has dismissed back to the same Level Complete instance.
 - Rewarded failure/early close grants nothing, restores the same Level Complete choices, and cannot progress. Interstitial unavailability fails open to Level Ready.
 - Gameplay physics, collision, merging, target generation/counts, difficulty, launcher behavior, table/background/HUD layout, sound, vibration, package ID, AdMob App ID, and debug/production unit routing are unchanged.
+
+# Splash and Reward UI Correction - 2026-08-12
+
+- No separate in-engine splash layer or intermediary scene exists. Mobile startup presents the existing Home overlay with its controls briefly hidden, then reveals those controls on the same mounted surface.
+- Startup and Home share `assets/runtime/backgrounds/level_bg_1.png` through one centered `TextureRect.STRETCH_KEEP_ASPECT_COVERED` backdrop. The existing Majestic Gems logo remains aspect-contained and centered.
+- Level Complete presents a distinct `YOU EARNED` coin row and a smaller `TOTAL` coin row. Both reuse the exact `CoinIcon` component and `AssetCatalog.COIN_REWARD` texture used by the gameplay HUD.
+- Collect and confirmed Double Coins retain the existing exactly-once controller/ad lifecycle. Only presentation hierarchy, tweening, and button copy change.

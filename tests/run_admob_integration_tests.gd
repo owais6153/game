@@ -3,6 +3,7 @@ extends SceneTree
 const AdConfigType = preload("res://scripts/ad_config.gd")
 const AdManagerType = preload("res://scripts/ad_manager.gd")
 const ResultOverlayType = preload("res://scripts/result_overlay_layer.gd")
+const CoinIconType = preload("res://scripts/coin_icon.gd")
 
 var failures: Array[String] = []
 
@@ -125,6 +126,8 @@ func _test_result_actions() -> void:
 	overlay.reward_animation_finished.connect(func() -> void: state.reward_finished += 1)
 	_assert(overlay.present(true, 1200, 2, 8, 300, false), "Completed result must present once")
 	_assert(overlay.retry_button.text == "COLLECT", "Completed result must expose the normal Collect action")
+	_assert(overlay.reward_coin_icon is CoinIconType and overlay.total_coin_icon is CoinIconType, "Reward and total must reuse the exact gameplay HUD CoinIcon component")
+	_assert(overlay.reward_value_label.text == "+300" and overlay.score_label.text == "900", "Reward hierarchy must separate the prominent earned amount from the current total")
 	_assert(overlay._displayed_total == 900, "Completed result must show the banked total before its pending reward")
 	_assert(overlay.double_button.visible and overlay.double_button.disabled, "Unavailable rewarded action must be visible but disabled")
 	overlay._on_action_pressed()
