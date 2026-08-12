@@ -616,4 +616,10 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - The authoritative shared startup/Home background is `assets/runtime/backgrounds/level_bg_1.png`, resolved by `AssetCatalog.background_texture(0)`. It must remain centered aspect-cover; never stretch, letterbox, or substitute a solid-color custom splash.
 - Result reward icons must be `CoinIcon`, which renders the same `AssetCatalog.COIN_REWARD` texture as the gameplay coin HUD. Do not introduce emoji or a second coin asset.
 - Keep result animation presentation-only. `GameController` remains the authority for persisted totals, exactly-once rewarded bonuses, ad completion, and next-level transition.
+
+## Single splash correction - 2026-08-12
+
+- Do not recreate `startup_intro`, a logo-only Home state, `StartupSplashLayer`, or any other timed in-app startup phase. Android system splash must transition directly to complete Home.
+- Keep `splash_screen/disable_godot_boot_splash=true` for Android.
+- Android 12+ native splash supports an opaque color and constrained icon, not a full-screen cover/cropped bitmap. Never claim the Home background can be placed there cross-version; doing so requires a second in-app splash and violates the one-splash requirement.
 - Package ID stays `com.owais.majestygems`; AdMob App ID, test/production unit selection, saves, gameplay, physics, collision, merges, targets, difficulty, table/background/HUD layout, audio, and haptics are out of scope.

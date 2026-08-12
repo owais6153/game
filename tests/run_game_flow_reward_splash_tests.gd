@@ -11,7 +11,7 @@ func _init() -> void:
 
 func _run() -> void:
 	await _test_home_to_game_level_ready()
-	await _test_home_owned_startup_presentation()
+	await _test_single_native_splash_to_home()
 	_test_controller_flow_guards()
 	if failures.is_empty():
 		print("GAME_FLOW_REWARD_SPLASH_TESTS: PASS")
@@ -43,23 +43,25 @@ func _test_home_to_game_level_ready() -> void:
 	await process_frame
 
 
-func _test_home_owned_startup_presentation() -> void:
+func _test_single_native_splash_to_home() -> void:
 	var home := HomeOverlayType.new()
 	root.add_child(home)
 	await process_frame
-	home.present(1, 0, {}, true)
-	_assert(home.home_backdrop.texture.resource_path == "res://assets/runtime/backgrounds/level_bg_1.png", "Startup must reuse the exact Home background asset")
-	_assert(home.home_backdrop.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Home-owned startup background must preserve aspect and cover/crop the full viewport")
-	_assert(not home.play_button.visible and not home.top_controls_margin.visible, "Startup must begin with only the existing Home backdrop and centered logo")
-	await create_timer(1.5).timeout
-	_assert(home.play_button.visible and home.top_controls_margin.visible, "The same Home overlay must reveal its controls within the startup budget")
+	home.present(1, 0, {})
+	_assert(home.home_backdrop.texture.resource_path == "res://assets/runtime/backgrounds/level_bg_1.png", "Home must retain its exact full-bleed background asset")
+	_assert(home.home_backdrop.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Home background must preserve aspect and cover/crop the full viewport")
+	_assert(home.play_button.visible and home.top_controls_margin.visible, "Home controls must be visible immediately; no second splash-like Home state may run")
 	home.queue_free()
 	await process_frame
 
 
 func _test_controller_flow_guards() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
-	_assert(not source.contains("StartupSplash") and not FileAccess.file_exists("res://scripts/startup_splash_layer.gd"), "The extra custom splash layer must be fully removed")
+	var home_source := FileAccess.get_file_as_string("res://scripts/home_overlay_layer.gd")
+	var export_source := FileAccess.get_file_as_string("res://export_presets.cfg")
+	_assert(not source.contains("StartupSplash") and not FileAccess.file_exists("res://scripts/startup_splash_layer.gd"), "The extra custom splash layer must remain removed")
+	_assert(not source.contains("_show_home(true)") and not home_source.contains("startup_intro") and not home_source.contains("_start_home_splash_intro"), "No hidden-controls Home intro may act as a second splash")
+	_assert(export_source.contains("splash_screen/disable_godot_boot_splash=true"), "Godot Android boot splash must stay disabled so only the platform launch splash remains")
 	_assert(not source.contains("next_level_requested.connect"), "Controller must not wire the removed post-reward Next Level action")
 	_assert(source.contains("result_overlay.reward_animation_finished.connect(_on_reward_animation_finished)"), "Progression must wait for reward animation completion")
 	_assert(source.contains("result_overlay.resolve_reward(coins, true)") and source.find("result_overlay.resolve_reward(coins, true)") > source.find("func _on_rewarded_ad_finished"), "Rewarded x2 animation must begin after fullscreen dismissal, not inside the earned callback")

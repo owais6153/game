@@ -120,7 +120,7 @@ func _ready() -> void:
 	_refresh_hud()
 	queue_redraw()
 	if OS.has_feature("mobile"):
-		_show_home(true)
+		_show_home()
 	else:
 		app_flow_state = AppFlowState.PLAYING
 
@@ -1017,7 +1017,7 @@ func _on_result_home_requested() -> void:
 		_on_restart_requested()
 		_show_home()
 
-func _show_home(startup_intro: bool = false) -> void:
+func _show_home() -> void:
 	if home_overlay == null:
 		return
 	if gameplay_ui != null:
@@ -1025,7 +1025,7 @@ func _show_home(startup_intro: bool = false) -> void:
 	if result_overlay != null:
 		result_overlay.dismiss()
 	app_flow_state = AppFlowState.HOME
-	home_overlay.present(level_number, coins, hud_snapshot(), startup_intro)
+	home_overlay.present(level_number, coins, hud_snapshot())
 	if is_inside_tree():
 		get_tree().paused = true
 

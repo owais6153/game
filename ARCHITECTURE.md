@@ -430,3 +430,7 @@ Rewarded currency authority remains the earned callback. Presentation authority 
 The dedicated `StartupSplashLayer` described above is removed and superseded. `GameController` now calls `HomeOverlayLayer.present(..., startup_intro=true)` on mobile. Home owns one background node for both startup and menu: `AssetCatalog.background_texture(0)` with `STRETCH_KEEP_ASPECT_COVERED`. Its startup state hides Home controls, keeps the existing logo contained, then reveals the same Home tree after a bounded tween. No scene or CanvasLayer handoff occurs.
 
 `ResultOverlayLayer` remains presentation-only. Its reward card now owns two `CoinIcon` instances plus separate earned and total labels. `CoinIcon -> CoinVisuals -> AssetCatalog.COIN_REWARD` is the same rendering dependency used by `GameplayHudLayer`; currency authority and reward lifecycle remain in `GameController`.
+
+## Single splash correction
+
+The Home-owned startup state described above is superseded and removed. `GameController._ready()` now calls `_show_home()` with no startup mode on mobile, and `HomeOverlayLayer.present()` always builds the complete normal Home composition immediately. Startup ownership is solely Android's native launch theme; Godot's Android boot splash remains disabled. This avoids both a second CanvasLayer and a second timed state within Home.

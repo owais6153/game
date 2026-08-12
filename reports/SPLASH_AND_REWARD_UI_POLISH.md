@@ -59,3 +59,7 @@ Level Complete keeps the existing light blue/glass modal shell, completed target
 ## Physical-device status
 
 ADB device queries did not return within the validation window and the hung ADB process was stopped. No connected-device state, installation, or force-stopped cold launch is claimed. A physical cold launch is still required to judge native-to-Home continuity, crop on the target phone, and Google-served rewarded/interstitial presentation; none is inferred from export success.
+
+## Superseded Home startup state
+
+The later `SINGLE_SPLASH_CORRECTION` removes the timed background/logo-only state inside Home because it still read as a second splash. Mobile now transitions directly from the Android system splash to complete Home. See `reports/SINGLE_SPLASH_CORRECTION.md`.

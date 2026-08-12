@@ -288,3 +288,11 @@ The extra `StartupSplashLayer` has been removed. Android enters the existing Hom
 Level Complete now separates the prominent earned amount from the bank total. Both values use the same `CoinIcon`/`AssetCatalog.COIN_REWARD` presentation path as the top-left gameplay HUD. Collect and rewarded x2 still lock immediately, animate the authoritative final total, and transition only after the popup and HUD animations finish.
 
 Verified debug APK: `build/android/majestic-gems-splash-reward-ui-polish-debug.apk`, 53,369,788 bytes, SHA-256 `1A500655BBCF5BC8AAE68F36983B46951C5C1C1C6449DBB8D759A7A826055827`. Package, arm64-only payload, removed-splash payload, forbidden-file, and v2 signature audits pass. ADB did not return, so no physical cold-launch or ad verification is claimed.
+
+# Current State Addendum - Single Android Splash
+
+The timed logo-only state inside `HomeOverlayLayer` is removed. Mobile startup now shows only Android's platform-owned splash and then renders the complete Home menu immediately, including logo, level, coins, Play, and Settings. `StartupSplashLayer` remains deleted and the separate Godot Android boot splash remains disabled.
+
+Android 12+ does not support a full-screen cover bitmap in its system splash; it requires an opaque background color and a constrained icon. The current single-splash configuration therefore keeps the mask-safe Majestic icon over its matched blue and does not add another in-app image phase.
+
+Verified debug APK: `build/android/majestic-gems-single-splash-correction-debug.apk`, 53,368,728 bytes, SHA-256 `65575E1B14AF81E88608CB07BDFAB37604B2D5B1B014F340BFC5F6D467351840`. Export exited 0; package, arm64-only payload, removed-splash payload, forbidden-file, and v2 signature audits pass. ADB timed out, so physical cold-launch behavior is not claimed.

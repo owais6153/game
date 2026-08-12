@@ -528,3 +528,11 @@
 - Reused the exact gameplay `CoinIcon` component backed by `assets/runtime/effects/coin_reward_reference_v2.png` for both reward values.
 - Added a clearer `WATCH AD ×2` action and retained the same-popup x2 pop, interpolated popup/HUD totals, immediate input locking, exactly-once rewards, and post-animation transition.
 - No gameplay, physics, targets, ads, level rules, package name, or general layout changed.
+
+# 2026-08-12 - Single splash correction
+
+- Removed the `startup_intro` Home mode and its timed hidden-controls/logo-only tween, which still appeared as a second splash.
+- Mobile startup now routes directly from Android's one platform splash to the complete Home menu.
+- Kept Godot's additional Android boot splash disabled and retained the existing mask-safe Majestic system-splash icon.
+- Documented the Android 12+ platform constraint: its system splash requires an opaque color plus icon and cannot provide a full-screen cover bitmap without adding a second in-app phase.
+- Reward presentation, gameplay, physics, targets, ads, level logic, package name, and Home layout remain unchanged.
