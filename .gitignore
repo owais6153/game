@@ -10,6 +10,7 @@ android/build/
 android/.gradle/
 *.apk
 *.aab
+majestic-gems-upload-key.jks
 *.avi
 
 # User-supplied comparison recordings are local reference inputs, never source assets.

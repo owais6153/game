@@ -33,8 +33,8 @@ func _run() -> void:
 func _test_ad_ids_and_cadence() -> void:
 	_assert(AdConfigType.interstitial_ad_unit_id(true) == "ca-app-pub-3940256099942544/1033173712", "Debug interstitial must use Google's Android test unit")
 	_assert(AdConfigType.rewarded_ad_unit_id(true) == "ca-app-pub-3940256099942544/5224354917", "Debug rewarded must use Google's Android test unit")
-	_assert(AdConfigType.interstitial_ad_unit_id(false).is_empty(), "Release interstitial must remain an explicit production placeholder")
-	_assert(AdConfigType.rewarded_ad_unit_id(false).is_empty(), "Release rewarded must remain an explicit production placeholder")
+	_assert(AdConfigType.interstitial_ad_unit_id(false) == "ca-app-pub-4605895178658062/5792148613", "Release interstitial must use the Majestic Gems production unit")
+	_assert(AdConfigType.rewarded_ad_unit_id(false) == "ca-app-pub-4605895178658062/3277665917", "Release rewarded must use the Majestic Gems production unit")
 	_assert(not AdConfigType.should_show_interstitial_after_level(1), "Level 1 completion must not request an interstitial")
 	_assert(AdConfigType.should_show_interstitial_after_level(2), "Level 2 completion must request an interstitial")
 	_assert(not AdConfigType.should_show_interstitial_after_level(3), "Level 3 completion must not request an interstitial")

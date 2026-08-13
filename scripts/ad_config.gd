@@ -6,10 +6,10 @@ const DEBUG_INTERSTITIAL_AD_UNIT_ID := "ca-app-pub-3940256099942544/1033173712"
 const DEBUG_REWARDED_AD_UNIT_ID := "ca-app-pub-3940256099942544/5224354917"
 
 ## RELEASE CONFIGURATION
-## Paste the two production ad-unit IDs between these quotes before exporting a
-## release build. Keep production IDs centralized here and nowhere else.
-const INTERSTITIAL_AD_UNIT_ID := ""
-const REWARDED_AD_UNIT_ID := ""
+## Production ad units used only by non-debug exports. Keep production IDs
+## centralized here and nowhere else.
+const INTERSTITIAL_AD_UNIT_ID := "ca-app-pub-4605895178658062/5792148613"
+const REWARDED_AD_UNIT_ID := "ca-app-pub-4605895178658062/3277665917"
 
 const INTERSTITIAL_LEVEL_INTERVAL := 2
 const PRIVACY_POLICY_URL := "https://teckvertexlabs.vercel.app/privacy/majestic-gems"
