@@ -1,5 +1,19 @@
 # Build Manifest
 
+## Google Play Closed Testing release AAB
+
+- AAB: `build/android/majestic-gems-closed-test.aab`
+- Size: 47,475,500 bytes (45.28 MiB raw bundle)
+- Export timestamp: 2026-08-13T10:09:17.3928442+05:00 (Asia/Karachi)
+- SHA-256: `700CA075051FB62F4356B62C477CADD5DD428056DAB44D5B6635741409649912`
+- Source commit: `6d72e238063ecceafb89abf778fefb36cf8c5c1b` (`build: configure Play closed test release`)
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-release`; Gradle AAB, arm64-v8a only, compressed native libraries.
+- Signing: user-provided Majestic Gems upload key; JAR signature verification PASS; signer differs from the Godot debug certificate. Keystore and credentials remain ignored and untracked.
+- Package/version: `com.owais.majestygems`; versionCode `1`; versionName `Majestic Gems`; min SDK 24; target/compile SDK 36.
+- Validation: focused AdMob/UMP suite reached PASS before its documented late Poing mock callback; Bundletool validation PASS; bundle ZIP readable; manifest identity/App ID/permissions/SDK/plugin audit PASS; `android:debuggable` absent; release compiled configuration selects both production units, forced geography `0`, zero release UMP test devices, no consent reset marker, and no temporary device hash; patched native `can_request_ads()` is present in packaged DEX.
+- Device status: the AAB is not directly installable and was not Play-delivered to the connected device. No production-ad impression or Play split-install test is claimed.
+- Report: `reports/PLAY_CLOSED_TEST_RELEASE_AAB.md`.
+
 ## Poing UMP `canRequestAds()` Patch v1
 
 - APK: `build/android/ump-can-request-ads-patch-v1-debug.apk`

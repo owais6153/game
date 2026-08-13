@@ -303,3 +303,11 @@ Poing AdMob v5.0.0 now carries a local one-method Android bridge patch exposing 
 Home and Pause Settings contain the published Privacy Policy link and conditionally expose Poing's official UMP Privacy Options form. Debug EEA/not-EEA forcing is centralized, disabled by default, and hard-disabled for release builds. Existing interstitial cadence, rewarded exact-once behavior, production/test IDs, rewards, gameplay, physics, package, and splash are unchanged.
 
 Patched AARs and reapplication source are recorded in `reports/POING_UMP_CAN_REQUEST_ADS_PATCH.md`. Debug APK: `build/android/ump-can-request-ads-patch-v1-debug.apk`, 53,376,732 bytes, SHA-256 `DB2299C1E6F6C779D548A2CFC21833DF32B43353EFEF9324D1771288BF2686C6`. Native AAR build, parse, focused regression markers, APK DEX/package/ABI/configuration/signature audits pass. No Android device was connected, so live UMP/ad acceptance is not claimed.
+
+# Current State Addendum — Google Play Closed Testing release
+
+The Android export preset now targets a Gradle release App Bundle at `build/android/majestic-gems-closed-test.aab`. Non-debug builds select the Majestic Gems production interstitial and rewarded units; debug builds retain Google's test units. The user-provided upload keystore and Godot export credentials are local/ignored and are not part of source control.
+
+The verified bundle uses package `com.owais.majestygems`, versionCode `1`, versionName `Majestic Gems`, min SDK 24, target/compile SDK 36, and arm64-v8a only. Its release manifest is not debuggable and contains the configured production AdMob App ID. Packaged release routing resolves both production units, forced UMP geography is disabled, the release test-device list is empty, and no consent reset or temporary device hash is packaged.
+
+UMP remains the official production flow: update consent information, show Google's form only when required, use the locally patched authoritative `canRequestAds()`, and initialize/load ads only when allowed. Ad unavailability and consent/update failures remain fail-open for gameplay; ad success is never required to continue.

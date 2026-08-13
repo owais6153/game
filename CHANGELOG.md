@@ -545,3 +545,12 @@
 - Added Privacy Policy and conditional official UMP Privacy Options actions to Home and Pause Settings.
 - Added debug-only EEA/not-EEA UMP testing controls that are forcibly disabled in release builds.
 - Preserved interstitial cadence, rewarded exact-once rewards, ad IDs, gameplay, level flow, physics, UI theme, splash, and package ID.
+
+# 2026-08-13 — Google Play Closed Testing release configuration
+
+- Configured the Android preset to export a Gradle release App Bundle named `majestic-gems-closed-test.aab`.
+- Added the supplied production interstitial and rewarded units to the non-debug AdMob branch while retaining Google test units exclusively for debug builds.
+- Added regression assertions for the exact production release routing and preserved the every-two-completed-level interstitial and exactly-once rewarded behavior.
+- Kept production UMP behavior unchanged: no forced geography, consent reset, temporary test-device hash, custom consent form, or bypass of authoritative `canRequestAds()`.
+- Added an explicit Git ignore rule for the local upload keystore; no keystore, password, credential, or generated AAB is tracked.
+- Produced and inspected the signed release AAB without changing gameplay, physics, collisions, progression, rewards, presentation, audio, splash, or save data.
