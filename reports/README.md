@@ -1,5 +1,7 @@
 # Reports Index
 
+- `ANDROID_DEVICE_COMPATIBILITY_V2.md` - verified dual-ARM closed-test AAB, native dependency/ABI audit, Play required-feature analysis, release signing, bundletool validation, and tester-specific limitations.
+
 - `PLAY_CLOSED_TEST_RELEASE_AAB.md` - signed Google Play Closed Testing AAB, production AdMob/UMP configuration, bundle/signature/manifest/package audit, and Play Console handoff checklist.
 
 - `POING_UMP_CAN_REQUEST_ADS_PATCH.md` - local Poing v5.0.0 native `canRequestAds()` bridge patch, rebuilt AARs, authoritative consent gate, Settings privacy actions, UMP debug testing, APK verification, and dashboard/manual-device requirements.

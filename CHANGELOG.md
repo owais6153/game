@@ -1,3 +1,11 @@
+# 2026-08-14 — Android device compatibility v2
+
+- Audited the actual v1 AAB, Godot 4.6.3 Android template, active Poing AdMob/UMP dependency graph, all bundled Poing AARs, merged manifest, and generated v2 AAB before enabling 32-bit ARM.
+- Enabled `armeabi-v7a` alongside `arm64-v8a`; kept `x86` and `x86_64` disabled. The release contains matching Godot engine and C++ runtime libraries for both ARM ABIs and no other native `.so` dependency.
+- Incremented Android versionCode from `1` to `2`, normalized versionName from `Majestic Gems` to `1.0.1`, and moved the output to the non-overwriting `majestic-gems-closed-test-v2.aab` filename.
+- Verified the two Play-inferred required features as `android.hardware.faketouch` and `android.hardware.screen.portrait`; both are necessary for the current touch/portrait game. Preserved the necessary GLES 3.0, min SDK 24, production AdMob, authoritative UMP, privacy, signing, and failure-safety configuration.
+- No gameplay, UI, asset, audio, economy, ad cadence, rewarded behavior, or consent behavior changed.
+
 # 2026-08-11 — Post-AdMob reward flow, package migration, and APK size fix
 
 - Split Level Complete into unresolved reward choices and a resolved `NEXT LEVEL` state; Collect and earned Double Coins now update the visible total while the popup stays open.

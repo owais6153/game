@@ -1,5 +1,19 @@
 # Build Manifest
 
+## Android Device Compatibility V2 closed-test AAB
+
+- AAB: `build/android/majestic-gems-closed-test-v2.aab`
+- Size: 73,049,656 bytes (69.67 MiB raw bundle)
+- Export timestamp: 2026-08-14T07:42:15.8111993+05:00 (Asia/Karachi)
+- SHA-256: `E00DBBDDD3D19DA81450788B2DF18E062E01A24F33EE1AD3DEB43CA982B10B05`
+- Source baseline: `05ca6ed4736d1d470fc5a18fed445ed936d8ab92` / `play-closed-test-release-aab-v1`; configuration and documentation are delivered by the compatibility-v2 commit/tag.
+- Export preset/method: `Android`; Godot 4.6.3 headless `--export-release`; Gradle AAB; compressed `arm64-v8a` and `armeabi-v7a` native libraries.
+- Package/version: `com.owais.majestygems`; versionCode `2`; versionName `1.0.1`; min SDK 24; target/compile SDK 36; non-debuggable.
+- Signing: existing Play upload key; `jarsigner` PASS; RSA-2048 certificate SHA-256 matches the v1 AAB exactly.
+- Validation: Bundletool 1.18.3 PASS; both ABI library pairs present; manifest/package/version/SDK/features PASS; packaged production interstitial/rewarded and UMP probes PASS; forced geography `0`; zero release test devices; native `can_request_ads` and privacy URL present; no runtime consent reset. Focused AdMob test printed PASS before the documented late mock callback/exit 1.
+- Device status: `adb devices -l` returned no device. AAB install, Play split delivery, and tester-device compatibility are not claimed.
+- Report: `reports/ANDROID_DEVICE_COMPATIBILITY_V2.md`.
+
 ## Google Play Closed Testing release AAB
 
 - AAB: `build/android/majestic-gems-closed-test.aab`

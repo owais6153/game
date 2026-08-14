@@ -23,6 +23,13 @@ Android startup intentionally disables the separate Godot boot splash in the exp
 - Fast-feel values are centralized in `GameConfig`: launch 1200, damping 195, sleep 10, merge presentation .36, launcher handoff .22, target collection .40, target swap delay .26, coin flight .92, chain stagger .03.
 - The latest supplied ZIP contains the MIT `addons/at-icons` library. Use curated runtime derivatives under `assets/runtime/ui/icons/` for player-facing generic actions and keep the editor plugin API out of runtime logic.
 
+# Android closed-test compatibility v2
+
+- Production Android releases use Gradle AAB export with `arm64-v8a` plus `armeabi-v7a`; do not enable x86 variants without a production requirement.
+- The active Poing AdMob/Google Ads/UMP graph packages no native `.so` files. Godot 4.6.3 and `libc++_shared` are the only native libraries and must remain complete for every enabled ABI. Re-audit the generated AAB if any Android plugin or SDK dependency changes.
+- Keep package `com.owais.majestygems`, min SDK 24, target/compile SDK 36, GLES 3.0, portrait activity, production AdMob routing, authoritative native UMP `can_request_ads()`, and the existing upload certificate unless a specific release task authorizes otherwise.
+- Play infers `android.hardware.faketouch` and `android.hardware.screen.portrait`. They are intentional for the current touch-driven portrait game and must not be removed merely to enlarge the device catalog.
+
 # AI Knowledge Base
 
 ## 2026-08-08 — Light Glass Gameplay HUD v1

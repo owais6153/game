@@ -24,6 +24,12 @@ Gameplay pacing is intentionally quicker without changing merge eligibility or b
 
 The latest supplied archive also contains `addons/at-icons`; curated runtime derivatives are now integrated for generic UI affordances while the original library remains intact.
 
+# Current State Addendum — Android Device Compatibility V2
+
+The closed-test release preset now produces `build/android/majestic-gems-closed-test-v2.aab` with versionCode `2`, versionName `1.0.1`, and both `arm64-v8a` and `armeabi-v7a`. The previous arm64-only delivery was caused by the preset explicitly disabling v7a, not by an unsupported AdMob/UMP native dependency.
+
+The generated AAB contains only `libgodot_android.so` and `libc++_shared.so`, with a complete pair for each ARM ABI. Bundletool validation, manifest/package/version/SDK checks, existing-upload-certificate verification, production AdMob/UMP probes, and non-debuggable verification pass. Play's two inferred required features are faketouch and portrait; both remain necessary. GLES 3.0 and min SDK 24 also remain intentional. See `reports/ANDROID_DEVICE_COMPATIBILITY_V2.md`.
+
 # Current State
 
 # Light Glass Gameplay HUD v1 — Current Presentation
