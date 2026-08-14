@@ -63,3 +63,21 @@ Intentional unsupported categories include Android versions below API 24, GLES 2
 - Connected-device status: `adb devices -l` returned no device. No install, Play split delivery, live consent, or production-ad impression is claimed.
 
 The locally generated universal APK and `.apks` set were inspection-only outputs signed by bundletool's debug key. They are not release deliverables; the signed AAB above is the upload artifact.
+
+## Signed sideload test APK
+
+A release-configured universal APK was subsequently derived from the same validated v2 AAB and signed with the existing Play upload key:
+
+- Path: `D:\Owais\game\build\android\majestic-gems-v2-test.apk`
+- Size: 74,123,752 bytes (70.69 MiB)
+- Modified: `2026-08-14T07:57:42.6614200+05:00`
+- SHA-256: `10D9515CBD513358AABE337896D90DC072DD1672A4205487F64C3AD9C2413961`
+- APK Signature Scheme v2: PASS
+- APK Signature Scheme v3: PASS
+- Signer: one RSA-2048 signer; certificate SHA-256 matches the AAB/v1 upload certificate
+- Package/version: `com.owais.majestygems`, versionCode `2`, versionName `1.0.1`
+- ABIs: `arm64-v8a`, `armeabi-v7a`
+- Non-debuggable: PASS
+- Production AdMob App ID: PASS
+
+This APK is intended for direct sideload testing. It may not update a copy installed from Google Play because Play App Signing commonly signs delivered APKs with a different app-signing certificate. If Android reports a signature conflict, preserve any needed local data, uninstall the Play-installed copy, and then install this APK; alternatively, upload the AAB and test through the closed track.

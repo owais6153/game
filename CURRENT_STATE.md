@@ -30,6 +30,8 @@ The closed-test release preset now produces `build/android/majestic-gems-closed-
 
 The generated AAB contains only `libgodot_android.so` and `libc++_shared.so`, with a complete pair for each ARM ABI. Bundletool validation, manifest/package/version/SDK checks, existing-upload-certificate verification, production AdMob/UMP probes, and non-debuggable verification pass. Play's two inferred required features are faketouch and portrait; both remain necessary. GLES 3.0 and min SDK 24 also remain intentional. See `reports/ANDROID_DEVICE_COMPATIBILITY_V2.md`.
 
+The matching release-configured sideload artifact is `build/android/majestic-gems-v2-test.apk` (74,123,752 bytes; SHA-256 `10D9515CBD513358AABE337896D90DC072DD1672A4205487F64C3AD9C2413961`). It is signed with the existing upload certificate and contains both ARM ABIs. No connected device was available for installation or launch.
+
 # Current State
 
 # Light Glass Gameplay HUD v1 — Current Presentation

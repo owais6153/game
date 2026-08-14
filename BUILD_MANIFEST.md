@@ -1,5 +1,19 @@
 # Build Manifest
 
+## Android Device Compatibility V2 sideload test APK
+
+- APK: `build/android/majestic-gems-v2-test.apk`
+- Size: 74,123,752 bytes (70.69 MiB)
+- Export timestamp: 2026-08-14T07:57:42.6614200+05:00 (Asia/Karachi)
+- SHA-256: `10D9515CBD513358AABE337896D90DC072DD1672A4205487F64C3AD9C2413961`
+- Source AAB: `build/android/majestic-gems-closed-test-v2.aab`, generated from commit/tag `4791379` / `android-device-compatibility-v2` configuration.
+- Generation method: bundletool 1.18.3 universal APK derived from the validated release AAB and signed with the existing Play upload key.
+- Package/version: `com.owais.majestygems`; versionCode `2`; versionName `1.0.1`; min SDK 24; target/compile SDK 36; non-debuggable.
+- ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains matching `libgodot_android.so` and `libc++_shared.so`.
+- Signing/validation: APK Signature Scheme v2 PASS; v3 PASS; one RSA-2048 signer; certificate SHA-256 matches the v1/v2 upload certificate. Manifest identity, production AdMob App ID, GLES 3.0, portrait/faketouch features, ABI list, and APK existence checks PASS.
+- Device status: `adb devices -l` returned no device, so installation and launch are not claimed. If a Play-installed copy uses Google Play's app-signing certificate rather than the upload certificate, uninstall it before sideloading this APK or test the AAB through the Play closed track.
+- Report: `reports/ANDROID_DEVICE_COMPATIBILITY_V2.md`.
+
 ## Android Device Compatibility V2 closed-test AAB
 
 - AAB: `build/android/majestic-gems-closed-test-v2.aab`
