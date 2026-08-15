@@ -562,3 +562,10 @@
 - Kept production UMP behavior unchanged: no forced geography, consent reset, temporary test-device hash, custom consent form, or bypass of authoritative `canRequestAds()`.
 - Added an explicit Git ignore rule for the local upload keystore; no keystore, password, credential, or generated AAB is tracked.
 - Produced and inspected the signed release AAB without changing gameplay, physics, collisions, progression, rewards, presentation, audio, splash, or save data.
+# 2026-08-16 — Responsive reference UI + scale test v1
+
+- Rebuilt gameplay HUD hierarchy as Coins / centered Target / Next + Settings, removed the redundant Level box, and moved the complete eight-gem path into a centered bottom-safe panel.
+- Recalibrated the supplied table through one responsive `GameConfig` transform shared by rendering and every table/rail simulation landmark; tested 576×1312 through 1080×2400, including simulated top and bottom cutouts.
+- Enlarged L1-L8 from `30/33/36/39/42/45/48/51` to `36/39/42/45/48/51/54/57 px`, keeping visual and circle-collision radii identical and the endpoint ratio bounded at 1.583×.
+- Reduced only the presentation opacity/weight of the aim guide and danger warning so gem artwork remains visually dominant. No input, merge, physics timing, targets, scoring, progression, ads/UMP, audio, result, or animation behavior changed.
+- Added `tests/run_ui_scale_layout_tests.gd` for responsive HUD bounds/centering/safe areas, table geometry, texture mapping, removal of Level, and the eight-tier size ladder.

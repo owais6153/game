@@ -319,3 +319,10 @@ The Android export preset now targets a Gradle release App Bundle at `build/andr
 The verified bundle uses package `com.owais.majestygems`, versionCode `1`, versionName `Majestic Gems`, min SDK 24, target/compile SDK 36, and arm64-v8a only. Its release manifest is not debuggable and contains the configured production AdMob App ID. Packaged release routing resolves both production units, forced UMP geography is disabled, the release test-device list is empty, and no consent reset or temporary device hash is packaged.
 
 UMP remains the official production flow: update consent information, show Google's form only when required, use the locally patched authoritative `canRequestAds()`, and initialize/load ads only when allowed. Ad unavailability and consent/update failures remain fail-open for gameplay; ad success is never required to continue.
+# Current State Addendum — Responsive reference UI + scale test v1
+
+Gameplay now follows the supplied portrait reference hierarchy while retaining the existing Majestic Gems theme and artwork: Coins is left, Target is the centered dominant top card, Next and Settings share the right slot, and the redundant Level box is removed. The complete authoritative eight-gem progression path is centered in its own bottom-safe panel.
+
+The table is centered and dominant across supported portrait shapes. `GameConfig` owns one responsive trapezoid transform shared by table artwork, rails, board bounds, launcher, drag clamp, danger line, containment, and perspective sampling. At the 720×1280 design size the table spans y=360..1145; over the tested 720×1600 canvas it spans y=488..1446. Backgrounds still cover/crop without distortion.
+
+Active L1-L8 gem radii are `36/39/42/45/48/51/54/57 px`. The same radius remains authoritative for alpha-trimmed visual diameter and circle collision size; the ladder is monotonic and bounded at 1.583× from L1 to L8. Merge eligibility, target/scoring/progression logic, movement tuning, audio, ads/UMP, results, and animations are unchanged. Validation and the test-APK record are in `reports/RESPONSIVE_UI_SCALE_TEST_REPORT.md`.

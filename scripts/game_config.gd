@@ -5,45 +5,50 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.
-## Proven table rail model from `new-table-shadow-contact-fix-v1`, translated
-## by the exact +116 px Y delta used when the table artwork was bottom-aligned.
-## These points remain the sole source for rendering diagnostics, containment,
-## launcher limits, and the danger-line width.
-const TABLE_TEXTURE_CENTER := Vector2(360.0, 846.0)
+## The reference composition reserves a compact top HUD and a bottom-safe merge
+## path. The table remains the dominant center surface and every visual/physics
+## landmark below is transformed together on taller portrait viewports.
+const TABLE_LAYOUT_BASE_TOP := 360.0
+const TABLE_LAYOUT_BASE_BOTTOM := 1145.0
+const TABLE_TEXTURE_CENTER := Vector2(360.0, 752.5)
 const TABLE_TEXTURE_SIZE := Vector2(920.0, 810.0)
-const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7826087, 1.1802469)
+const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7391304, 0.9691358)
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
-const TABLE_BOTTOM_ALIGNMENT_DELTA_Y := 116.0
-const BOARD_TOP := 416.0
-const BOARD_BOTTOM := 1228.0
-const TABLE_INNER_LEFT_TOP := 178.0
-const TABLE_INNER_LEFT_BOTTOM := 44.0
-const TABLE_INNER_RIGHT_TOP := 542.0
-const TABLE_INNER_RIGHT_BOTTOM := 676.0
-const DANGER_LINE_Y := 1046.0
+const TABLE_BOTTOM_ALIGNMENT_DELTA_Y := 0.0
+const BOARD_TOP := 400.0
+const BOARD_BOTTOM := 1070.0
+const TABLE_INNER_LEFT_TOP := 188.0
+const TABLE_INNER_LEFT_BOTTOM := 62.0
+const TABLE_INNER_RIGHT_TOP := 532.0
+const TABLE_INNER_RIGHT_BOTTOM := 658.0
+const DANGER_LINE_Y := 920.0
 const DANGER_LINE_COLOR := Color("e85f52")
 ## Presentation-only guide/warning values. They never enter input, collision,
 ## overflow detection, timing, or solver decisions.
-const AIM_GUIDE_WIDTH := 3.0
-const AIM_GUIDE_ALPHA := 0.62
+const AIM_GUIDE_WIDTH := 2.0
+const AIM_GUIDE_ALPHA := 0.44
 const AIM_GUIDE_TOUCH_HALF_WIDTH := 28.0
 const DANGER_WARNING_NEAR_DISTANCE := 76.0
 const DANGER_WARNING_PULSE_HZ := 1.65
-const LAUNCH_Y := 1144.0
-## Expanded portrait screens keep the HUD top-anchored but move the complete
-## table coordinate system to the physical bottom. This offset is shared by
-## artwork, rails, bounds, spawn, drag, danger, and depth interpolation.
+const LAUNCH_Y := 1002.0
+## Expanded portrait screens distribute extra height between the scenery above
+## the table and a bounded vertical table stretch. The complete table model is
+## transformed together; HUD geometry remains presentation-only and independent.
+const TABLE_EXTRA_TOP_OFFSET_SHARE := 0.40
+const TABLE_TALL_SCALE_MAX := 1.22
+const TABLE_TALL_SCALE_REFERENCE_EXTRA := 320.0
 static var portrait_bottom_offset_y := 0.0
 static var viewport_center_offset_x := 0.0
-## Largest active gameplay radius. L1-L8 use a moderate three-pixel progression
-## so the reference-like tier contrast remains readable without oversized ends.
-const PIECE_RADIUS := 51.0
+static var table_vertical_scale_y := 1.0
+## Largest active gameplay radius. L1-L8 keep a controlled three-pixel step,
+## with a larger readable L1 baseline and a bounded 1.583x L8/L1 endpoint.
+const PIECE_RADIUS := 57.0
 ## One authoritative radius drives both the alpha-trimmed visual body and its
 ## simple circle collider. Gold rims, glows, shadows and transparent texture
 ## padding never add collision size. L9-L18 remain outside the current level
 ## and retain their earlier 42px fallback. Values stay fixed for a lifetime.
-const GEM_COLLISION_RADIUS := {1: 30.0, 2: 33.0, 3: 36.0, 4: 39.0, 5: 42.0, 6: 45.0, 7: 48.0, 8: 51.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0}
+const GEM_COLLISION_RADIUS := {1: 36.0, 2: 39.0, 3: 42.0, 4: 45.0, 5: 48.0, 6: 51.0, 7: 54.0, 8: 57.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0}
 ## Runtime visual-body expansion maps the opaque gem body to the stable
 ## simple collider; it is a visual calibration only.
 ## Body-only textures are trimmed independently from their former baked
@@ -116,7 +121,7 @@ const MAJOR_COIN_BURST_RADIUS := 52.0
 const COIN_DRAW_RADIUS := 17.0
 const COIN_COUNTER_PULSE_DURATION := 0.14
 const COIN_EFFECT_LIMIT := 32
-const COIN_HUD_FALLBACK_DESTINATION := Vector2(78.0, 244.0)
+const COIN_HUD_FALLBACK_DESTINATION := Vector2(92.0, 78.0)
 const TARGET_COLLECTION_DURATION := 0.40
 const TARGET_COLLECTION_FADE_START := 0.84
 const TARGET_COLLECTION_POP_SCALE := 1.20
@@ -163,7 +168,7 @@ const TARGET_BODY_RECT := Rect2(253.0, 222.0, 214.0, 74.0)
 const TARGET_PREVIEW_BOUNDS := Vector2(54.0, 50.0)
 const RESTART_BUTTON_RECT := Rect2(472.0, 231.0, 138.0, 46.0)
 const SETTINGS_BUTTON_RECT := Rect2(620.0, 206.0, 88.0, 88.0)
-const TARGET_COLLECTION_DESTINATION := Vector2(360.0, 259.0)
+const TARGET_COLLECTION_DESTINATION := Vector2(360.0, 82.0)
 const OVERLAY_RECT := Rect2(76.0, 398.0, 568.0, 484.0)
 const SAFE_VISUAL_MARGIN := 24.0
 const TARGET_LEVEL := 5
@@ -282,12 +287,19 @@ static func gem_color(level: int) -> Color:
 
 static func configure_portrait_bottom(viewport_height: float) -> void:
 	viewport_center_offset_x = 0.0
-	portrait_bottom_offset_y = maxf(0.0, viewport_height - VIEWPORT_SIZE.y)
+	_configure_table_height(viewport_height)
 
 
 static func configure_viewport(viewport_size: Vector2) -> void:
 	viewport_center_offset_x = maxf(0.0, (viewport_size.x - VIEWPORT_SIZE.x) * 0.5)
-	portrait_bottom_offset_y = maxf(0.0, viewport_size.y - VIEWPORT_SIZE.y)
+	_configure_table_height(viewport_size.y)
+
+
+static func _configure_table_height(viewport_height: float) -> void:
+	var extra_height := maxf(0.0, viewport_height - VIEWPORT_SIZE.y)
+	portrait_bottom_offset_y = extra_height * TABLE_EXTRA_TOP_OFFSET_SHARE
+	var tall_t := clampf(extra_height / TABLE_TALL_SCALE_REFERENCE_EXTRA, 0.0, 1.0)
+	table_vertical_scale_y = lerpf(1.0, TABLE_TALL_SCALE_MAX, tall_t)
 
 
 static func table_center_x() -> float:
@@ -295,19 +307,35 @@ static func table_center_x() -> float:
 
 
 static func table_texture_center() -> Vector2:
-	return TABLE_TEXTURE_CENTER + Vector2(viewport_center_offset_x, portrait_bottom_offset_y)
+	return Vector2(table_center_x(), _table_y(TABLE_TEXTURE_CENTER.y))
+
+
+static func table_texture_render_scale() -> Vector2:
+	return Vector2(TABLE_TEXTURE_RENDER_SCALE.x, TABLE_TEXTURE_RENDER_SCALE.y * table_vertical_scale_y)
+
+
+static func table_outer_top() -> float:
+	return _table_y(TABLE_LAYOUT_BASE_TOP)
+
+
+static func table_outer_bottom() -> float:
+	return _table_y(TABLE_LAYOUT_BASE_BOTTOM)
 
 static func board_top() -> float:
-	return BOARD_TOP + portrait_bottom_offset_y
+	return _table_y(BOARD_TOP)
 
 static func board_bottom() -> float:
-	return BOARD_BOTTOM + portrait_bottom_offset_y
+	return _table_y(BOARD_BOTTOM)
 
 static func danger_line_y() -> float:
-	return DANGER_LINE_Y + portrait_bottom_offset_y
+	return _table_y(DANGER_LINE_Y)
 
 static func launch_y() -> float:
-	return LAUNCH_Y + portrait_bottom_offset_y
+	return _table_y(LAUNCH_Y)
+
+
+static func _table_y(base_y: float) -> float:
+	return TABLE_LAYOUT_BASE_TOP + portrait_bottom_offset_y + (base_y - TABLE_LAYOUT_BASE_TOP) * table_vertical_scale_y
 
 static func table_interpolation(y_position: float) -> float:
 	return inverse_lerp(board_top(), board_bottom(), clampf(y_position, board_top(), board_bottom()))

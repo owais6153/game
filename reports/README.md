@@ -1,5 +1,7 @@
 # Reports Index
 
+- `RESPONSIVE_UI_SCALE_TEST_REPORT.md` — supplied-reference HUD recomposition, shared responsive table geometry, L1-L8 visual/collider scale ladder, multi-viewport validation, and TEST APK delivery.
+
 - `ANDROID_DEVICE_COMPATIBILITY_V2.md` - verified dual-ARM closed-test AAB, native dependency/ABI audit, Play required-feature analysis, release signing, bundletool validation, and tester-specific limitations.
 
 - `PLAY_CLOSED_TEST_RELEASE_AAB.md` - signed Google Play Closed Testing AAB, production AdMob/UMP configuration, bundle/signature/manifest/package audit, and Play Console handoff checklist.

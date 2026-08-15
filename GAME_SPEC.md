@@ -371,3 +371,11 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Settings opens the published Majestic Gems privacy policy and exposes Google's official Privacy Options form only when UMP requires the entry point.
 - UMP geography forcing is debug-only and disabled by default. Release builds never accept forced test geography or test-device IDs.
 - Every-two-level interstitial cadence, rewarded Double Coins exact-once behavior, ad IDs, rewards, gameplay, package ID, splash, and UI theme remain unchanged.
+# Responsive reference UI + scale test v1 — 2026-08-16
+
+- Gameplay HUD order is Coins left, Target centered and dominant, Next right, and Settings adjacent to Next. A separate Level box is forbidden.
+- The complete L1-L8 merge path is centered at the bottom and must remain inside horizontal and bottom safe areas without clipping or overlap.
+- The supplied table remains centered and dominant. Rendering, rails, board bounds, launcher, danger line, containment, and perspective must consume one responsive `GameConfig` geometry model.
+- Active L1-L8 base radii are `36/39/42/45/48/51/54/57 px`; alpha-trimmed sprite bodies and simple circular colliders use the same values. Visual tier growth must be clear but not exaggerated.
+- Backgrounds cover the portrait viewport without distortion. Aim/danger guides remain subtle presentation only.
+- Merge rules, launch/movement tuning, target/scoring/progression rules, rewards, ads/UMP, audio, results, and animation sequencing are frozen for this milestone.

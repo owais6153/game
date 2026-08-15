@@ -638,3 +638,10 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Keep `UMP_DEBUG_GEOGRAPHY` disabled normally. Release helper functions must continue returning disabled geography and no test-device IDs.
 - Privacy Policy is always available in Settings. Privacy Options is UMP-owned and visible only for `PrivacyOptionsRequirementStatus.REQUIRED`; do not build a custom consent popup.
 - Native reapplication steps, artifact hashes, tests, and manual dashboard requirements are in `reports/POING_UMP_CAN_REQUEST_ADS_PATCH.md`.
+# 2026-08-16 knowledge note — responsive reference UI and gem scale
+
+- Do not restore a gameplay Level box. The approved top order is Coins / centered Target / Next + Settings, with equal side-slot widths so Target remains centered.
+- Keep all eight mapped gems in the bottom-safe progression panel. It reads controller snapshots only and must never own level or merge logic.
+- For portrait layout changes, update the centralized `GameConfig` table transform; never move the texture independently from rails, bounds, launcher, danger line, or perspective calculations.
+- Active L1-L8 radii are `36/39/42/45/48/51/54/57 px`. Preserve strict monotonic growth, identical visual/collider authority, and the 57/36 bounded endpoint unless a later gameplay-calibration task explicitly supersedes it.
+- The focused guard is `tests/run_ui_scale_layout_tests.gd`; it covers eight viewport/cutout cases, table containment, all eight progression icons, texture resolution, Level removal, and Target/path centering.

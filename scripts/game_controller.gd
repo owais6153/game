@@ -423,7 +423,7 @@ func _setup_asset_presentation() -> void:
 	table.texture = AssetCatalogType.NEW_TABLE
 	table_sprite = table
 	table.position = GameConfig.table_texture_center()
-	table.scale = GameConfig.TABLE_TEXTURE_RENDER_SCALE
+	table.scale = GameConfig.table_texture_render_scale()
 	table.z_index = -10
 	add_child(table)
 	gem_sprite_layer = GemSpriteLayerType.new()
@@ -466,11 +466,14 @@ func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
 		return
 	# `expand` exposes additional portrait canvas height. Cover it with the
-	# supplied background while preserving image proportions; table and
-	# simulation coordinates remain in their fixed design space.
+	# supplied background while preserving image proportions. The shared table
+	# geometry below updates artwork and simulation landmarks together.
 	var viewport_size := get_viewport_rect().size if is_inside_tree() else GameConfig.VIEWPORT_SIZE
 	GameConfig.configure_viewport(viewport_size)
-	var new_offset := Vector2(GameConfig.viewport_center_offset_x, GameConfig.portrait_bottom_offset_y)
+	var new_offset := Vector2(
+		GameConfig.viewport_center_offset_x,
+		GameConfig.table_texture_center().y - GameConfig.TABLE_TEXTURE_CENTER.y
+	)
 	var offset_delta := new_offset - Vector2(applied_table_offset_x, applied_table_offset_y)
 	if not offset_delta.is_zero_approx():
 		for piece in pieces:
@@ -489,6 +492,7 @@ func _refresh_background_fill() -> void:
 		applied_table_offset_y = new_offset.y
 	if table_sprite != null:
 		table_sprite.position = GameConfig.table_texture_center()
+		table_sprite.scale = GameConfig.table_texture_render_scale()
 	var source_size := background_sprite.texture.get_size()
 	var cover_scale := maxf(viewport_size.x / source_size.x, viewport_size.y / source_size.y)
 	background_sprite.position = viewport_size * 0.5
@@ -1125,7 +1129,7 @@ func _draw() -> void:
 	var pulse := 0.0
 	if warning_strength > 0.0:
 		pulse = (sin(float(Time.get_ticks_msec()) * 0.001 * TAU * GameConfig.DANGER_WARNING_PULSE_HZ) + 1.0) * 0.5
-	var warning_alpha := lerpf(0.56, 0.92, warning_strength * (0.55 + pulse * 0.45))
+	var warning_alpha := lerpf(0.42, 0.78, warning_strength * (0.55 + pulse * 0.45))
 	var danger_color := GameConfig.DANGER_LINE_COLOR
 	danger_color.a = warning_alpha
 	draw_dashed_line(danger_start, danger_end, Color(0.26, 0.12, 0.07, lerpf(0.22, 0.42, warning_strength)), lerpf(6.0, 8.0, warning_strength), 11.0)
