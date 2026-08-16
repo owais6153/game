@@ -129,3 +129,6 @@ Manual phone checklist for this superseding path: confirm there is no background
 - Automated validation covers independent resource paths, continuous-player readiness, toggle stop/resume, bounded cache/player count, target-only coin routing, ordinary-merge exclusion, and unchanged contact cooldowns. Dummy-audio tests do not prove phone-speaker loudness.
 
 Manual phone checklist: listen through one full 29.72-second loop and seam; confirm music stays soft and does not restart on launch/drag/contact/merge; confirm ordinary merges use only gem cues; confirm one coin cue on each L5/L7/L8 reward; confirm coin and high-tier merge cues dominate the music without clipping; verify the audio toggle stops/resumes both layers. Haptic feel remains unchanged and still requires hardware validation.
+# Superseding audio note - 2026-08-16
+
+Current active audio mappings and gains are documented in `SOUND_MAPPING_CORRECTION_V2_REPORT.md`. This historical report remains authoritative only for its original milestone evidence and haptics behavior.

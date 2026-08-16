@@ -7,9 +7,6 @@ const SuppliedGemCollision: AudioStream = preload("res://assets/runtime/audio/ge
 const SuppliedRailCollision: AudioStream = preload("res://assets/runtime/audio/gems-rail-colide.mp3")
 const SuppliedBasicMerge: AudioStream = preload("res://assets/runtime/audio/merge-basic.mp3")
 const SuppliedTargetMerge: AudioStream = preload("res://assets/runtime/audio/merge-target.mp3")
-const SuppliedTargetCollection: AudioStream = preload("res://assets/runtime/audio/mixkit-fairy-arcade-sparkle-866.wav")
-const SuppliedTargetComplete: AudioStream = preload("res://assets/runtime/audio/mixkit-game-flute-bonus-2313.wav")
-const SuppliedLevelSuccess: AudioStream = preload("res://assets/runtime/audio/mixkit-game-success-alert-2039.wav")
 const SuppliedUiTap: AudioStream = preload("res://assets/runtime/audio/mixkit-on-or-off-light-switch-tap-2585.wav")
 
 ## Confirmed controller events use cached one-shots. Independently supplied
@@ -135,12 +132,18 @@ func _build_stream_cache() -> void:
 		"launch": _build_crystal_stream(GameConfig.AUDIO_TONES.launch, 1),
 		"gem_contact": SuppliedGemCollision,
 		"wall_contact": SuppliedRailCollision,
-		"merge_basic": SuppliedBasicMerge,
-		"target_merge": SuppliedTargetMerge,
-		"target_collect": SuppliedTargetCollection,
+		"normal_merge": SuppliedTargetMerge,
+		"merge_2": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_2, 2),
+		"merge_3": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_3, 3),
+		"merge_4": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_4, 4),
+		"merge_5": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_5, 5),
+		"merge_6": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_6, 6),
+		"merge_7": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_7, 7),
+		"merge_8": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_8, 8),
+		"chain": _build_crystal_stream(GameConfig.AUDIO_TONES.chain, 9),
+		"target_collect": _build_crystal_stream(GameConfig.AUDIO_TONES.target_collect, 10),
 		"coin_reward": SuppliedCoinReward,
-		"target_complete": SuppliedTargetComplete,
-		"win": SuppliedLevelSuccess,
+		"win": SuppliedBasicMerge,
 		"button": SuppliedUiTap,
 	}
 

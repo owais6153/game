@@ -504,3 +504,13 @@ The native extension is deliberately minimal: Poing's existing `PoingGodotAdMobC
 - `GameConfig._configure_table_height()` owns the portrait table transform. `table_texture_center()`, `table_texture_render_scale()`, `board_top()`, `board_bottom()`, `danger_line_y()`, `launch_y()`, and trapezoid rail interpolation consume that same state.
 - `GameController` only applies the shared table transform to presentation and continues delegating containment, launcher clamping, collision, merging, danger, and scoring to their existing authorities.
 - `GEM_COLLISION_RADIUS` remains the one source for both `GemSpriteLayer` visual-body diameter and physics circles. Artwork padding, HUD previews, and progression icons do not enter collision or merge decisions.
+# Sound mapping correction boundary - 2026-08-16
+
+- `AudioFeedbackService` remains the single audio owner. Its five supplied replacements are gem contact, rail contact, ordinary merge, UI tap, and final success; restored procedural merge-tier, chain, target-arrival, and launch streams remain initialization-cached alongside the existing supplied coin/music streams.
+- `GameController` selects `normal_merge` only for an ordinary result. A result satisfying the active target routes its original `merge_<tier>` cue, with original chain feedback retained for chained resolution. Objective completion advances without a separate audio event; target arrival and final victory retain distinct routes.
+- Music/SFX bus separation, limiter, five reusable priority-aware voices, collision cooldown/pitch variation, post-resolution contact routing, and exact merged-pair collision suppression remain presentation-only and cannot affect simulation decisions.
+# Sound mapping correction boundary - 2026-08-16
+
+- `AudioFeedbackService` remains the single audio owner. Its five supplied replacements are gem contact, rail contact, ordinary merge, UI tap, and final success; restored procedural merge-tier, chain, target-arrival, and launch streams remain initialization-cached alongside the existing supplied coin/music streams.
+- `GameController` selects `normal_merge` only for an ordinary result. A result satisfying the active target routes its original `merge_<tier>` cue, with original chain feedback retained for chained resolution. Objective completion advances without a separate audio event; target arrival and final victory retain distinct routes.
+- Music/SFX bus separation, limiter, five reusable priority-aware voices, collision cooldown/pitch variation, post-resolution contact routing, and exact merged-pair collision suppression remain presentation-only and cannot affect simulation decisions.

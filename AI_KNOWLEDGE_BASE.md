@@ -711,3 +711,15 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - For portrait layout changes, update the centralized `GameConfig` table transform; never move the texture independently from rails, bounds, launcher, danger line, or perspective calculations.
 - Active L1-L8 radii are `36/39/42/45/48/51/54/57 px`. Preserve strict monotonic growth, identical visual/collider authority, and the 57/36 bounded endpoint unless a later gameplay-calibration task explicitly supersedes it.
 - The focused guard is `tests/run_ui_scale_layout_tests.gd`; it covers eight viewport/cutout cases, table containment, all eight progression icons, texture resolution, Level removal, and Target/path centering.
+# 2026-08-16 - Sound mapping correction v2 guardrails
+
+- The only active newly supplied replacements are gem contact `gems-colide.mp3`, rail contact `gems-rail-colide.mp3`, ordinary merge `merge-target.mp3`, UI tap `mixkit-on-or-off-light-switch-tap-2585.wav`, and final success `merge-basic.mp3`.
+- Target-producing merge, chain, target arrival, launch/push, and coin retain their prior identities. Do not route the supplied sparkle, flute, or success-alert files unless a later request explicitly re-enables them. Objective completion has no separate sound and lose/game-over has no audio route.
+- Current linear gains: music `0.06`, gem `0.34`, rail `0.39`, ordinary merge `0.70`, UI `0.32`, final success `0.84`, coin `1.0`; tier/chain/arrival procedural gains remain defined in `GameConfig`.
+- Preserve 65/90 ms contact cooldowns, `0.96..1.04` / `0.97..1.03` pitch ranges, exact merge-pair collision suppression, the five-voice priority pool, Music/SFX buses, and limiter.
+# 2026-08-16 - Sound mapping correction v2 guardrails
+
+- The only active newly supplied replacements are gem contact `gems-colide.mp3`, rail contact `gems-rail-colide.mp3`, ordinary merge `merge-target.mp3`, UI tap `mixkit-on-or-off-light-switch-tap-2585.wav`, and final success `merge-basic.mp3`.
+- Target-producing merge, chain, target arrival, launch/push, and coin retain their prior identities. Do not route the supplied sparkle, flute, or success-alert files unless a later request explicitly re-enables them. Objective completion has no separate sound and lose/game-over has no audio route.
+- Current linear gains: music `0.06`, gem `0.34`, rail `0.39`, ordinary merge `0.70`, UI `0.32`, final success `0.84`, coin `1.0`; tier/chain/arrival procedural gains remain defined in `GameConfig`.
+- Preserve 65/90 ms contact cooldowns, `0.96..1.04` / `0.97..1.03` pitch ranges, exact merge-pair collision suppression, the five-voice priority pool, Music/SFX buses, and limiter.

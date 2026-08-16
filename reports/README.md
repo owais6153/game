@@ -1,5 +1,7 @@
 # Reports Index
 
+- `SOUND_MAPPING_CORRECTION_V2_REPORT.md` - five requested replacement mappings, restored original cues, corrective music/SFX gains, regression evidence, and no-build status.
+
 - `SOUND_INTEGRATION_PRIVACY_LINK_V1_REPORT.md` - supplied SFX mapping/mix, collision spam and merge suppression, target/success timing, Music/SFX limiter architecture, Home Privacy Policy relocation, regressions, and TEST APK status.
 
 - `REGENERATED_SCENE_ART_INTEGRATION_V1_REPORT.md` - replacement 19-background/10-table integration, deterministic level selection, fixed-physics rail/danger calibration, runtime optimization, all-table Godot evidence, and no-build status.

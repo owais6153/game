@@ -69,3 +69,9 @@ Test launch, gem contact, rail contact, ordinary merge, target merge, target arr
 - Payload: 990 ZIP entries; one manifest; eight supplied runtime-audio imports; preserved existing music/coin resources; compiled bus layout; zero source/report/test leakage
 
 The production AAB preset was restored exactly and no AAB was generated. The APK was fully written and validated before the outer Windows Godot wrapper reached its known silent five-minute timeout; no Godot or Java process remained. ADB returned no device entry, so installation, launch, speaker balance, perceived distortion, haptics, and physical safe-area acceptance remain for device testing.
+# Corrective sound mapping v2 addendum
+
+The mapping below records the original v1 delivery and is superseded by `SOUND_MAPPING_CORRECTION_V2_REPORT.md`. The active correction keeps only five supplied replacements, raises music to `0.06`, lowers those replacement gains, restores target merge/chain/target-arrival identities, and removes the distinct objective-completion cue. The delivered v1 APK has not been rebuilt and therefore does not contain this correction.
+# Corrective sound mapping v2 addendum
+
+The mapping below records the original v1 delivery and is superseded by `SOUND_MAPPING_CORRECTION_V2_REPORT.md`. The active correction keeps only five supplied replacements, raises music to `0.06`, lowers those replacement gains, restores target merge/chain/target-arrival identities, and removes the distinct objective-completion cue. The delivered v1 APK has not been rebuilt and therefore does not contain this correction.

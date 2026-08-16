@@ -639,3 +639,17 @@
 - Enlarged L1-L8 from `30/33/36/39/42/45/48/51` to `36/39/42/45/48/51/54/57 px`, keeping visual and circle-collision radii identical and the endpoint ratio bounded at 1.583×.
 - Reduced only the presentation opacity/weight of the aim guide and danger warning so gem artwork remains visually dominant. No input, merge, physics timing, targets, scoring, progression, ads/UMP, audio, result, or animation behavior changed.
 - Added `tests/run_ui_scale_layout_tests.gd` for responsive HUD bounds/centering/safe areas, table geometry, texture mapping, removal of Level, and the eight-tier size ladder.
+# 2026-08-16 - Sound mapping correction v2
+
+- Kept only the five requested supplied replacements: gem contact, rail contact, ordinary merge (`merge-target.mp3`), UI tap, and final success (`merge-basic.mp3`).
+- Restored original procedural target-producing merge, chain, and target-arrival cues; removed the supplied objective-completion route. Existing launch and coin identities remain unchanged and no lose sound is routed.
+- Raised background music gain from `0.035` to `0.06`; reduced the five replacement gains to `0.34`, `0.39`, `0.70`, `0.32`, and `0.84` respectively.
+- Preserved collision cooldown/pitch spam controls, exact merge-pair suppression, priority voice pool, Music/SFX buses, and limiter. No gameplay, physics, UI, privacy, ads, or build configuration changed.
+- Updated focused routing/mix regressions and documentation. TEST APK export is pending; no AAB will be generated.
+# 2026-08-16 - Sound mapping correction v2
+
+- Kept only the five requested supplied replacements: gem contact, rail contact, ordinary merge (`merge-target.mp3`), UI tap, and final success (`merge-basic.mp3`).
+- Restored original procedural target-producing merge, chain, and target-arrival cues; removed the supplied objective-completion route. Existing launch and coin identities remain unchanged and no lose sound is routed.
+- Raised background music gain from `0.035` to `0.06`; reduced the five replacement gains to `0.34`, `0.39`, `0.70`, `0.32`, and `0.84` respectively.
+- Preserved collision cooldown/pitch spam controls, exact merge-pair suppression, priority voice pool, Music/SFX buses, and limiter. No gameplay, physics, UI, privacy, ads, or build configuration changed.
+- Updated focused routing/mix regressions and documentation. No APK or AAB was generated.

@@ -282,3 +282,9 @@ All sources remain intact. Live gameplay loads only the new body textures and ne
 - `assets/buttons/Generated image 10.png`: SCORE `(632,358,360,232)`, NEXT `(632,610,360,400)`, GOAL blank red header `(46,428,530,142)`, GOAL blank cream body `(38,620,550,190)`, and settings cog `(276,832,180,180)` are sampled directly at runtime; the original is unchanged.
 - `assets/ui/Generated image 3.png`: literal RESTART control `(321,1128,300,100)` is sampled directly at runtime at its native 3:1 aspect ratio; the opaque source original is unchanged and no derivative is created.
 - Asset review found BACK arrows but no circular restart/refresh icon. BACK art is not mapped to restart behavior.
+# Supplied gameplay SFX corrective activation v2 - 2026-08-16
+
+All eight user-provided originals and byte-identical runtime copies remain preserved. Runtime routing now activates only five replacements: `gems-colide.mp3` (gem contact), `gems-rail-colide.mp3` (rail contact), `merge-target.mp3` (ordinary merge), `mixkit-on-or-off-light-switch-tap-2585.wav` (UI tap), and `merge-basic.mp3` (final level success). `mixkit-fairy-arcade-sparkle-866.wav`, `mixkit-game-flute-bonus-2313.wav`, and `mixkit-game-success-alert-2039.wav` are preserved but inactive. This is a mapping correction only; no audio asset was deleted or re-encoded.
+# Supplied gameplay SFX corrective activation v2 - 2026-08-16
+
+All eight user-provided originals and byte-identical runtime copies remain preserved. Runtime routing now activates only five replacements: `gems-colide.mp3` (gem contact), `gems-rail-colide.mp3` (rail contact), `merge-target.mp3` (ordinary merge), `mixkit-on-or-off-light-switch-tap-2585.wav` (UI tap), and `merge-basic.mp3` (final level success). `mixkit-fairy-arcade-sparkle-866.wav`, `mixkit-game-flute-bonus-2313.wav`, and `mixkit-game-success-alert-2039.wav` are preserved but inactive. This is a mapping correction only; no audio asset was deleted or re-encoded.

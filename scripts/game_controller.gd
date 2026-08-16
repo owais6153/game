@@ -538,10 +538,11 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			if awarded_coins > 0:
 				var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
 				effects_layer.begin_target_coin_reward(merge_event, awarded_coins, coin_destination)
-		audio_feedback.emit_event("target_merge" if completes_active_target else "merge_basic")
+		audio_feedback.emit_event("merge_%d" % result_level if completes_active_target else "normal_merge")
 		if awarded_coins > 0:
 			audio_feedback.emit_event("coin_reward")
 		if int(merge_event.get("depth", 0)) > 0:
+			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
 		else:
 			haptics_feedback.emit_event("major_merge" if result_level >= GameConfig.MAJOR_REWARD_TIER else "merge")
@@ -737,7 +738,6 @@ func _finish_target_collection() -> void:
 	target_progress += 1
 	if target_progress < active_target_quantity():
 		return
-	audio_feedback.emit_event("target_complete")
 	target_index += 1
 	target_progress = 0
 	if target_index >= target_sequence().size():
