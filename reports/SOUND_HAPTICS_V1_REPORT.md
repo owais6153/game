@@ -132,3 +132,6 @@ Manual phone checklist: listen through one full 29.72-second loop and seam; conf
 # Superseding audio note - 2026-08-16
 
 Current active audio mappings and gains are documented in `SOUND_MAPPING_CORRECTION_V2_REPORT.md`. This historical report remains authoritative only for its original milestone evidence and haptics behavior.
+# Immediate merge synchronization note - 2026-08-16
+
+The current merge-attack timing is documented in `MERGE_SOUND_SYNC_FIX_V3_REPORT.md`. The supplied source's half-second lead-in is removed only in a runtime derivative; controller routing remains confirmed-event-only and haptics are unchanged.

@@ -52,3 +52,6 @@ Both script runners reached their PASS sentinels before the known Windows teardo
 - Validation: v2 signature PASS with one RSA-2048 Godot debug signer; AAPT/ZIP PASS; both `arm64-v8a` and `armeabi-v7a`; 990 entries; one manifest and primary dex; zero report/test/source-audio leakage.
 - Export note: the production AAB preset was restored exactly and no AAB was generated. The stable APK passed artifact validation although the outer Godot wrapper timed out after writing it. Its exact two export-owned Godot/Java processes were stopped afterward and none remained.
 - Device status: ADB did not return within its check window, so installation, launch, and subjective speaker listening are not claimed.
+# Immediate merge synchronization v3 addendum
+
+The `normal_merge -> merge-target.mp3` identity/gain decision in this report remains active, but production now loads the non-destructive trimmed derivative `merge-target-immediate.ogg`. See `MERGE_SOUND_SYNC_FIX_V3_REPORT.md`; the v2 APK does not contain this timing correction.

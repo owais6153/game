@@ -6,7 +6,10 @@ const SuppliedCoinReward: AudioStream = preload("res://assets/runtime/audio/supp
 const SuppliedGemCollision: AudioStream = preload("res://assets/runtime/audio/gems-colide.mp3")
 const SuppliedRailCollision: AudioStream = preload("res://assets/runtime/audio/gems-rail-colide.mp3")
 const SuppliedBasicMerge: AudioStream = preload("res://assets/runtime/audio/merge-basic.mp3")
-const SuppliedTargetMerge: AudioStream = preload("res://assets/runtime/audio/merge-target.mp3")
+## Runtime-only derivative of the preserved supplied MP3. Its measured 0.523 s
+## leading silence is trimmed to 0.008 s so the audible attack matches the
+## confirmed merge frame without changing gameplay or presentation timing.
+const SuppliedTargetMerge: AudioStream = preload("res://assets/runtime/audio/merge-target-immediate.ogg")
 const SuppliedUiTap: AudioStream = preload("res://assets/runtime/audio/mixkit-on-or-off-light-switch-tap-2585.wav")
 
 ## Confirmed controller events use cached one-shots. Independently supplied

@@ -511,6 +511,10 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			processed_merge_result_ids[result_id] = true
 		var result_level: int = int(merge_event.level)
 		var completes_active_target := result_level == active_target_tier()
+		# Audio confirmation belongs to the accepted merge itself. Route it before
+		# any presentation setup so the audible attack and result creation share
+		# the same confirmed frame; this remains downstream of merge resolution.
+		audio_feedback.emit_event("merge_%d" % result_level if completes_active_target else "normal_merge")
 		# Cache all presentation resources at confirmation time. The draw path
 		# never loads textures or performs catalog analysis/lookups per frame.
 		merge_event.source_texture = AssetCatalogType.gem_texture(maxi(1, result_level - 1))
@@ -538,7 +542,6 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			if awarded_coins > 0:
 				var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
 				effects_layer.begin_target_coin_reward(merge_event, awarded_coins, coin_destination)
-		audio_feedback.emit_event("merge_%d" % result_level if completes_active_target else "normal_merge")
 		if awarded_coins > 0:
 			audio_feedback.emit_event("coin_reward")
 		if int(merge_event.get("depth", 0)) > 0:

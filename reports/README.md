@@ -1,5 +1,7 @@
 # Reports Index
 
+- `MERGE_SOUND_SYNC_FIX_V3_REPORT.md` - measured supplied-file lead-in, non-destructive trimmed runtime derivative, same-frame pre-presentation routing, regressions, and TEST APK delivery status.
+
 - `SOUND_MAPPING_CORRECTION_V2_REPORT.md` - five requested replacement mappings, restored original cues, corrective music/SFX gains, regression evidence, and no-build status.
 
 - `SOUND_INTEGRATION_PRIVACY_LINK_V1_REPORT.md` - supplied SFX mapping/mix, collision spam and merge suppression, target/success timing, Music/SFX limiter architecture, Home Privacy Policy relocation, regressions, and TEST APK status.

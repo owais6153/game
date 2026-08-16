@@ -514,3 +514,13 @@ The native extension is deliberately minimal: Poing's existing `PoingGodotAdMobC
 - `AudioFeedbackService` remains the single audio owner. Its five supplied replacements are gem contact, rail contact, ordinary merge, UI tap, and final success; restored procedural merge-tier, chain, target-arrival, and launch streams remain initialization-cached alongside the existing supplied coin/music streams.
 - `GameController` selects `normal_merge` only for an ordinary result. A result satisfying the active target routes its original `merge_<tier>` cue, with original chain feedback retained for chained resolution. Objective completion advances without a separate audio event; target arrival and final victory retain distinct routes.
 - Music/SFX bus separation, limiter, five reusable priority-aware voices, collision cooldown/pitch variation, post-resolution contact routing, and exact merged-pair collision suppression remain presentation-only and cannot affect simulation decisions.
+# Immediate merge-audio boundary - 2026-08-16
+
+- `GameController._apply_confirmed_merge_events()` emits the selected merge cue immediately after classifying the confirmed result and before caching or starting result presentation. The route remains downstream of `ContactMergeService.resolve()` and cannot affect merge acceptance, result creation, physics, or animation.
+- `AudioFeedbackService` preloads the trimmed runtime derivative `merge-target-immediate.ogg` for the existing `normal_merge` mapping. No seek, decode, load, or player allocation occurs at merge time.
+- The original supplied MP3 remains provenance-only under `assets/sound/`. Its runtime derivative changes leading silence only; event mapping, gain, voice priority, cooldown, limiter, and all other audio identities are unchanged.
+# Immediate merge-audio boundary - 2026-08-16
+
+- `GameController._apply_confirmed_merge_events()` emits the selected merge cue immediately after classifying the confirmed result and before caching or starting result presentation. The route remains downstream of `ContactMergeService.resolve()` and cannot affect merge acceptance, result creation, physics, or animation.
+- `AudioFeedbackService` preloads the trimmed runtime derivative `merge-target-immediate.ogg` for the existing `normal_merge` mapping. No seek, decode, load, or player allocation occurs at merge time.
+- The original supplied MP3 remains provenance-only under `assets/sound/`. Its runtime derivative changes leading silence only; event mapping, gain, voice priority, cooldown, limiter, and all other audio identities are unchanged.

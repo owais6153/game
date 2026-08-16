@@ -44,7 +44,7 @@ func _test_audio_service() -> void:
 	var expected_paths := {
 		"gem_contact": "res://assets/runtime/audio/gems-colide.mp3",
 		"wall_contact": "res://assets/runtime/audio/gems-rail-colide.mp3",
-		"normal_merge": "res://assets/runtime/audio/merge-target.mp3",
+		"normal_merge": "res://assets/runtime/audio/merge-target-immediate.ogg",
 		"coin_reward": "res://assets/runtime/audio/supplied_coin_reward_v4.ogg",
 		"win": "res://assets/runtime/audio/merge-basic.mp3",
 		"button": "res://assets/runtime/audio/mixkit-on-or-off-light-switch-tap-2585.wav",
@@ -53,6 +53,7 @@ func _test_audio_service() -> void:
 		var stream: AudioStream = service.stream_for_event(event_name)
 		_assert(stream != null and stream.resource_path == String(expected_paths[event_name]), "%s must resolve to its approved supplied stream" % event_name)
 		_assert(stream != null and stream.get_length() > 0.0, "%s supplied stream must have playable duration" % event_name)
+	_assert(service.stream_for_event("normal_merge").get_length() < 1.60, "Normal-merge runtime derivative must remove the supplied MP3's half-second leading silence")
 	for event_name in ["launch", "merge_2", "merge_8", "chain", "target_collect"]:
 		_assert(service.stream_for_event(event_name) is AudioStreamWAV, "%s must retain its original procedural identity" % event_name)
 	_assert(service.stream_for_event("target_complete") == null and service.stream_for_event("target_merge") == null, "Reverted supplied target-only cues must not remain routed")
@@ -108,6 +109,10 @@ func _test_privacy_link_relocation() -> void:
 func _test_confirmed_event_routing_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
 	_assert(source.contains("audio_feedback.emit_event(\"merge_%d\" % result_level if completes_active_target else \"normal_merge\")"), "Normal merges must use the requested replacement while target-producing merges retain tier audio")
+	var merge_classified := source.find("var completes_active_target := result_level == active_target_tier()")
+	var merge_cue := source.find("audio_feedback.emit_event(\"merge_%d\" % result_level if completes_active_target else \"normal_merge\")", merge_classified)
+	var presentation_setup := source.find("merge_event.source_texture =", merge_classified)
+	_assert(merge_classified >= 0 and merge_cue > merge_classified and presentation_setup > merge_cue, "Merge audio must route immediately after confirmation and before result presentation setup")
 	_assert(source.contains("audio_feedback.emit_event(\"chain\")"), "Original chain feedback must be restored")
 	_assert(source.contains("audio_feedback.emit_event(\"target_collect\")"), "Target arrival must retain its original cue")
 	_assert(not source.contains("audio_feedback.emit_event(\"target_complete\")"), "The supplied objective-completion cue must be reverted")

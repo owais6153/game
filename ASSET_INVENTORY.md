@@ -288,3 +288,13 @@ All eight user-provided originals and byte-identical runtime copies remain prese
 # Supplied gameplay SFX corrective activation v2 - 2026-08-16
 
 All eight user-provided originals and byte-identical runtime copies remain preserved. Runtime routing now activates only five replacements: `gems-colide.mp3` (gem contact), `gems-rail-colide.mp3` (rail contact), `merge-target.mp3` (ordinary merge), `mixkit-on-or-off-light-switch-tap-2585.wav` (UI tap), and `merge-basic.mp3` (final level success). `mixkit-fairy-arcade-sparkle-866.wav`, `mixkit-game-flute-bonus-2313.wav`, and `mixkit-game-success-alert-2039.wav` are preserved but inactive. This is a mapping correction only; no audio asset was deleted or re-encoded.
+# Immediate merge runtime derivative v3 - 2026-08-16
+
+| Purpose | Preserved source | Runtime derivative | Processing / verification |
+| --- | --- | --- | --- |
+| Approved v2 ordinary-merge cue with immediate attack | `assets/sound/merge-target.mp3` — 41,760 bytes — SHA-256 `B68136FA50DD04F5D82BFD8EE05F4E5EB0CE25BA4AC8406AD5639DBCD7711250` | `assets/runtime/audio/merge-target-immediate.ogg` — 14,316 bytes — SHA-256 `05E9EE864FAACBCC73BB7ECF0FE6DC7A2663EB7A82AA1F20B0E7A3A5C541D085` | FFmpeg `atrim=start=0.515,asetpts=PTS-STARTPTS`, Vorbis q5, stereo 24 kHz. Leading silence reduced from `0.523125 s` to `0.008042 s`; source hash unchanged. |
+# Immediate merge runtime derivative v3 - 2026-08-16
+
+| Purpose | Preserved source | Runtime derivative | Processing / verification |
+| --- | --- | --- | --- |
+| Approved v2 ordinary-merge cue with immediate attack | `assets/sound/merge-target.mp3` — 41,760 bytes — SHA-256 `B68136FA50DD04F5D82BFD8EE05F4E5EB0CE25BA4AC8406AD5639DBCD7711250` | `assets/runtime/audio/merge-target-immediate.ogg` — 14,316 bytes — SHA-256 `05E9EE864FAACBCC73BB7ECF0FE6DC7A2663EB7A82AA1F20B0E7A3A5C541D085` | FFmpeg `atrim=start=0.515,asetpts=PTS-STARTPTS`, Vorbis q5, stereo 24 kHz. Leading silence reduced from `0.523125 s` to `0.008042 s`; source hash unchanged. |

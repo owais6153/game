@@ -723,3 +723,15 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Target-producing merge, chain, target arrival, launch/push, and coin retain their prior identities. Do not route the supplied sparkle, flute, or success-alert files unless a later request explicitly re-enables them. Objective completion has no separate sound and lose/game-over has no audio route.
 - Current linear gains: music `0.06`, gem `0.34`, rail `0.39`, ordinary merge `0.70`, UI `0.32`, final success `0.84`, coin `1.0`; tier/chain/arrival procedural gains remain defined in `GameConfig`.
 - Preserve 65/90 ms contact cooldowns, `0.96..1.04` / `0.97..1.03` pitch ranges, exact merge-pair collision suppression, the five-voice priority pool, Music/SFX buses, and limiter.
+# 2026-08-16 - Immediate merge-sound synchronization v3 guardrails
+
+- `assets/sound/merge-target.mp3` has `0.523125 s` measured leading silence. Keep it untouched; production must use `assets/runtime/audio/merge-target-immediate.ogg` for the approved `normal_merge` mapping.
+- The runtime derivative trims `0.515 s` and has about `0.008042 s` of silence before the audible attack. Do not restore the untrimmed runtime mapping or add a timer/animation delay workaround.
+- Emit merge audio immediately after confirmed result classification and before presentation setup. It must remain downstream of merge resolution and must never influence physics, eligibility, result IDs, targets, or animation timing.
+- Preserve v2 mappings/gains, exact-pair collision suppression, cooldowns, pitch ranges, five-voice pool, Music/SFX buses, limiter, and no-lose route.
+# 2026-08-16 - Immediate merge-sound synchronization v3 guardrails
+
+- `assets/sound/merge-target.mp3` has `0.523125 s` measured leading silence. Keep it untouched; production must use `assets/runtime/audio/merge-target-immediate.ogg` for the approved `normal_merge` mapping.
+- The runtime derivative trims `0.515 s` and has about `0.008042 s` of silence before the audible attack. Do not restore the untrimmed runtime mapping or add a timer/animation delay workaround.
+- Emit merge audio immediately after confirmed result classification and before presentation setup. It must remain downstream of merge resolution and must never influence physics, eligibility, result IDs, targets, or animation timing.
+- Preserve v2 mappings/gains, exact-pair collision suppression, cooldowns, pitch ranges, five-voice pool, Music/SFX buses, limiter, and no-lose route.
