@@ -1,3 +1,21 @@
+# Supplied sound and Home privacy-link boundary - 2026-08-16
+
+- `AudioFeedbackService` remains the only audio runtime owner. It preloads the eight supplied SFX, preserves the existing music/launch/coin streams, creates five reusable priority-aware one-shot players, and never allocates or loads during gameplay events.
+- `default_bus_layout.tres` owns Music and SFX buses. Continuous music routes to Music; confirmed one-shots route to SFX through one limiter. Both buses send to Master.
+- `GameController` routes only confirmed events: launch, typed physical contacts, resolved normal/target merges, target animation arrival, full objective completion, accepted victory presentation, and UI intent. It never feeds audio results back into gameplay decisions.
+- `BoardSimulation` telemetry is still read-only. The controller resolves merges before routing captured impacts so only the exact contact pair consumed by a merge loses its collision clink; no simulation order, impulse, radius, candidate, or position changes.
+- `HomeOverlayLayer`, `GameplayHudLayer`, and `ResultOverlayLayer` emit one `ui_tap_requested` intent per standard button. The controller owns the single quiet tap route, avoiding layered duplicate clicks.
+- `HomePrivacyPolicyLink` is presentation-only and bottom-safe-area anchored. It emits the existing Home privacy intent to `AdManager`; Home/Pause Settings retain only conditional UMP Privacy Options. Ad configuration and consent authority remain unchanged.
+
+# Supplied sound and Home privacy-link boundary - 2026-08-16
+
+- `AudioFeedbackService` remains the only audio runtime owner. It preloads the eight supplied SFX, preserves the existing music/launch/coin streams, creates five reusable priority-aware one-shot players, and never allocates or loads during gameplay events.
+- `default_bus_layout.tres` owns Music and SFX buses. Continuous music routes to Music; confirmed one-shots route to SFX through one limiter. Both buses send to Master.
+- `GameController` routes only confirmed events: launch, typed physical contacts, resolved normal/target merges, target animation arrival, full objective completion, accepted victory presentation, and UI intent. It never feeds audio results back into gameplay decisions.
+- `BoardSimulation` telemetry is still read-only. The controller resolves merges before routing captured impacts so only the exact contact pair consumed by a merge loses its collision clink; no simulation order, impulse, radius, candidate, or position changes.
+- `HomeOverlayLayer`, `GameplayHudLayer`, and `ResultOverlayLayer` emit one `ui_tap_requested` intent per standard button. The controller owns the single quiet tap route, avoiding layered duplicate clicks.
+- `HomePrivacyPolicyLink` is presentation-only and bottom-safe-area anchored. It emits the existing Home privacy intent to `AdManager`; Home/Pause Settings retain only conditional UMP Privacy Options. Ad configuration and consent authority remain unchanged.
+
 # Regenerated scene-art boundary - 2026-08-16
 
 - `AssetCatalog.LEVEL_BACKGROUNDS` and `LEVEL_TABLES` preload the active 19/10 optimized sets. `GameController` selects both only from `LevelConfig.generated()` indices, so a level and retry reproduce one presentation pair.

@@ -13,6 +13,7 @@ signal collect_requested
 signal double_coins_requested
 signal home_requested
 signal reward_animation_finished
+signal ui_tap_requested
 
 ## Dedicated result UI. It owns only its backdrop and panel; gameplay roots,
 ## gem sprites, simulation state, and reward timing are never modified here.
@@ -551,6 +552,7 @@ func _wire_button_motion(button: BaseButton) -> void:
 		if global_tweens != null:
 			global_tweens.call("button_press", button, 0.055)
 	)
+	button.pressed.connect(func() -> void: ui_tap_requested.emit())
 
 
 func _node_center(control: Control) -> Vector2:

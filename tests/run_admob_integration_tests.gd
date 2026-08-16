@@ -193,7 +193,8 @@ func _test_privacy_settings_actions() -> void:
 	var home := HomeOverlayType.new()
 	root.add_child(home)
 	await process_frame
-	_assert(home.root_control.find_child("HomePrivacyPolicy", true, false) != null, "Home Settings must expose Privacy Policy")
+	_assert(home.root_control.find_child("HomePrivacyPolicyLink", true, false) != null, "Home must expose the bottom Privacy Policy link")
+	_assert(home.root_control.find_child("HomePrivacyPolicy", true, false) == null, "Home Settings must not contain the old Privacy Policy button")
 	_assert(not home.settings_privacy_options_button.visible, "Home Privacy Options must stay hidden until UMP requires an entry point")
 	home.set_privacy_options_available(true)
 	_assert(home.settings_privacy_options_button.visible, "Home Privacy Options must appear when UMP requires it")
@@ -201,7 +202,7 @@ func _test_privacy_settings_actions() -> void:
 	await process_frame
 
 	var hud_source := FileAccess.get_file_as_string("res://scripts/gameplay_hud_layer.gd")
-	_assert(hud_source.contains("PausePrivacyPolicy") and hud_source.contains("PausePrivacyOptions"), "Pause Settings must expose Privacy Policy and conditional UMP Privacy Options")
+	_assert(not hud_source.contains("PausePrivacyPolicy") and hud_source.contains("PausePrivacyOptions"), "Pause Settings must remove Privacy Policy while retaining conditional UMP Privacy Options")
 
 
 func _assert(condition: bool, message: String) -> void:

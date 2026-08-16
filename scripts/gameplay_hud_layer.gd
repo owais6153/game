@@ -22,8 +22,8 @@ signal home_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
 signal vibration_toggled(enabled: bool)
-signal privacy_policy_requested
 signal privacy_options_requested
+signal ui_tap_requested
 
 var root_control: Control
 var hud_canvas: Control
@@ -750,6 +750,7 @@ func _build_settings_button() -> TextureButton:
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.self_modulate = Color.WHITE
 	button.pressed.connect(func() -> void: settings_requested.emit())
+	button.pressed.connect(func() -> void: ui_tap_requested.emit())
 	button.button_down.connect(_on_settings_button_down)
 	button.button_up.connect(_on_settings_button_up)
 	return button
@@ -779,7 +780,7 @@ func _build_pause_popup() -> void:
 	pause_safe_margin.add_child(center)
 	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
-	pause_panel.custom_minimum_size = Vector2(520.0, 760.0)
+	pause_panel.custom_minimum_size = Vector2(520.0, 700.0)
 	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
@@ -830,20 +831,10 @@ func _build_pause_popup() -> void:
 		_sync_switch_label(vibration_toggle)
 		vibration_toggled.emit(enabled)
 	)
-	var privacy_row := HBoxContainer.new()
-	privacy_row.name = "PausePrivacyActions"
-	privacy_row.custom_minimum_size = Vector2(424.0, 56.0)
-	privacy_row.add_theme_constant_override("separation", 12)
-	column.add_child(privacy_row)
-	var privacy_policy := _button("PausePrivacyPolicy", "PRIVACY POLICY", Vector2(0.0, 56.0), "SecondaryButton")
-	privacy_policy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	privacy_policy.pressed.connect(func() -> void: privacy_policy_requested.emit())
-	privacy_row.add_child(privacy_policy)
-	privacy_options_button = _button("PausePrivacyOptions", "PRIVACY OPTIONS", Vector2(0.0, 56.0), "SecondaryButton")
-	privacy_options_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	privacy_options_button = _button("PausePrivacyOptions", "PRIVACY OPTIONS", Vector2(424.0, 56.0), "SecondaryButton")
 	privacy_options_button.visible = false
 	privacy_options_button.pressed.connect(func() -> void: privacy_options_requested.emit())
-	privacy_row.add_child(privacy_options_button)
+	column.add_child(privacy_options_button)
 	resume_button = _button("ResumeButton", "RESUME", Vector2(424.0, 82.0), "")
 	resume_button.icon = ICON_PLAY
 	resume_button.expand_icon = false
@@ -942,6 +933,7 @@ func _wire_button_motion(button: BaseButton) -> void:
 		if tween_service != null:
 			tween_service.button_press(button, 0.055)
 	)
+	button.pressed.connect(func() -> void: ui_tap_requested.emit())
 
 
 func _energy_pulse(control: Control) -> void:

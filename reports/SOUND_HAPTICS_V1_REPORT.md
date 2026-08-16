@@ -1,5 +1,7 @@
 # Sound + Haptics v1 Report
 
+> Current sound routing is superseded by [Supplied Sound Integration + Home Privacy Link v1](SOUND_INTEGRATION_PRIVACY_LINK_V1_REPORT.md). The dedicated feedback-service/controller boundary and existing haptic behavior remain intact; supplied SFX, priority voices, Music/SFX buses, and no-lose routing are now authoritative.
+
 > Current background-music routing is superseded by [New Background Music v1](NEW_BACKGROUND_MUSIC_V1_REPORT.md): the user-supplied v5 derivative loops continuously at `0.10`. Existing confirmed-event gem, coin, and haptic boundaries remain unchanged.
 
 ## Scope and baseline

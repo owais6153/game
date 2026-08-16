@@ -23,6 +23,7 @@ signal sound_toggled(enabled: bool)
 signal vibration_toggled(enabled: bool)
 signal privacy_policy_requested
 signal privacy_options_requested
+signal ui_tap_requested
 
 var root_control: Control
 var home_backdrop: TextureRect
@@ -36,6 +37,8 @@ var coins_label: Label
 var play_button: Button
 var tagline_label: Label
 var settings_button: TextureButton
+var privacy_link_margin: MarginContainer
+var privacy_policy_link: LinkButton
 
 var settings_blocker: Control
 var settings_panel: PanelContainer
@@ -129,6 +132,7 @@ func layout_metrics() -> Dictionary:
 		"logo": logo_rect.get_global_rect(),
 		"button": play_button.get_global_rect(),
 		"settings": settings_button.get_global_rect(),
+		"privacy_link": privacy_policy_link.get_global_rect(),
 		"settings_popup": settings_panel.get_global_rect(),
 		"level_intro": level_intro_panel.get_global_rect(),
 	}
@@ -262,6 +266,7 @@ func _build() -> void:
 	column.add_child(play_button)
 
 	_build_top_settings_control()
+	_build_privacy_policy_link()
 	_build_settings_popup()
 	_build_level_intro_popup()
 
@@ -303,6 +308,36 @@ func _build_top_settings_control() -> void:
 	_wire_button_motion(settings_button)
 	center.add_child(settings_button)
 
+func _build_privacy_policy_link() -> void:
+	privacy_link_margin = MarginContainer.new()
+	privacy_link_margin.name = "HomePrivacyLinkMargin"
+	privacy_link_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_control.add_child(privacy_link_margin)
+	privacy_link_margin.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	privacy_link_margin.offset_top = -96.0
+	privacy_link_margin.offset_bottom = 0.0
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	privacy_link_margin.add_child(center)
+	privacy_policy_link = LinkButton.new()
+	privacy_policy_link.name = "HomePrivacyPolicyLink"
+	privacy_policy_link.text = "Privacy Policy"
+	privacy_policy_link.underline = LinkButton.UNDERLINE_MODE_ALWAYS
+	privacy_policy_link.custom_minimum_size = Vector2(180.0, 46.0)
+	privacy_policy_link.focus_mode = Control.FOCUS_ALL
+	privacy_policy_link.mouse_filter = Control.MOUSE_FILTER_STOP
+	privacy_policy_link.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	privacy_policy_link.add_theme_font_override("font", UiDesignSystemType.font())
+	privacy_policy_link.add_theme_font_size_override("font_size", 16)
+	privacy_policy_link.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.94))
+	privacy_policy_link.add_theme_color_override("font_hover_color", UiDesignSystemType.COLOR_BLUE_LIGHT)
+	privacy_policy_link.add_theme_constant_override("outline_size", 4)
+	privacy_policy_link.add_theme_color_override("font_outline_color", Color(0.02, 0.22, 0.28, 0.82))
+	privacy_policy_link.tooltip_text = "Open the Majestic Gems Privacy Policy"
+	privacy_policy_link.pressed.connect(func() -> void: privacy_policy_requested.emit())
+	_wire_button_motion(privacy_policy_link)
+	center.add_child(privacy_policy_link)
+
 func _build_settings_popup() -> void:
 	settings_blocker = _popup_blocker("HomeSettingsBlocker")
 	var center := CenterContainer.new()
@@ -311,7 +346,7 @@ func _build_settings_popup() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	settings_panel = PanelContainer.new()
 	settings_panel.name = "HomeSettingsPanel"
-	settings_panel.custom_minimum_size = Vector2(500.0, 610.0)
+	settings_panel.custom_minimum_size = Vector2(500.0, 550.0)
 	settings_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	settings_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(settings_panel)
@@ -342,20 +377,10 @@ func _build_settings_popup() -> void:
 		_sync_switch_label(settings_vibration_toggle)
 		vibration_toggled.emit(enabled)
 	)
-	var privacy_row := HBoxContainer.new()
-	privacy_row.name = "HomePrivacyActions"
-	privacy_row.custom_minimum_size = Vector2(400.0, 58.0)
-	privacy_row.add_theme_constant_override("separation", 12)
-	column.add_child(privacy_row)
-	var privacy_policy := _button("HomePrivacyPolicy", "PRIVACY POLICY", Vector2(0.0, 58.0), "SecondaryButton")
-	privacy_policy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	privacy_policy.pressed.connect(func() -> void: privacy_policy_requested.emit())
-	privacy_row.add_child(privacy_policy)
-	settings_privacy_options_button = _button("HomePrivacyOptions", "PRIVACY OPTIONS", Vector2(0.0, 58.0), "SecondaryButton")
-	settings_privacy_options_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	settings_privacy_options_button = _button("HomePrivacyOptions", "PRIVACY OPTIONS", Vector2(400.0, 58.0), "SecondaryButton")
 	settings_privacy_options_button.visible = false
 	settings_privacy_options_button.pressed.connect(func() -> void: privacy_options_requested.emit())
-	privacy_row.add_child(settings_privacy_options_button)
+	column.add_child(settings_privacy_options_button)
 	var done := _button("HomeSettingsDone", "DONE", Vector2(400.0, 82.0), "")
 	done.icon = ICON_CHECK
 	done.expand_icon = false
@@ -411,7 +436,7 @@ func _build_level_intro_popup() -> void:
 	column.add_child(intro_start_button)
 
 func _set_home_stage_visible(visible: bool) -> void:
-	for node in [home_backdrop, home_wash, safe_margin, top_controls_margin]:
+	for node in [home_backdrop, home_wash, safe_margin, top_controls_margin, privacy_link_margin]:
 		if node != null:
 			node.visible = visible
 
@@ -660,6 +685,7 @@ func _wire_button_motion(button: BaseButton) -> void:
 		if global_tweens != null:
 			global_tweens.call("button_press", button, 0.055)
 	)
+	button.pressed.connect(func() -> void: ui_tap_requested.emit())
 
 func _refresh_safe_margins() -> void:
 	if safe_margin == null or not is_inside_tree():
@@ -670,6 +696,8 @@ func _refresh_safe_margins() -> void:
 			continue
 		for entry in [["left", insets.x], ["top", insets.y], ["right", insets.z], ["bottom", insets.w]]:
 			container.add_theme_constant_override("margin_%s" % entry[0], int(ceil(maxf(18.0, float(entry[1]) + UiDesignSystemType.SAFE_INSET_PADDING))))
+	if privacy_link_margin != null:
+		privacy_link_margin.add_theme_constant_override("margin_bottom", int(ceil(maxf(10.0, insets.w + 8.0))))
 
 func _safe_insets() -> Vector4:
 	if _safe_insets_override.x >= 0.0:

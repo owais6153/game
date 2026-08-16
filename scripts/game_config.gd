@@ -192,49 +192,54 @@ const TARGET_COIN_REWARD_BY_RESULT_LEVEL := {
 const MERGE_COIN_REWARD_BY_RESULT_LEVEL := TARGET_COIN_REWARD_BY_RESULT_LEVEL
 const MERGE_SCORE_BY_RESULT_LEVEL := TARGET_COIN_REWARD_BY_RESULT_LEVEL
 ## Feedback routing is presentation-only. Confirmed gameplay events use the
-## bounded gem tones plus the independently supplied coin cue. The clean music
+## supplied one-shots plus the preserved launch and coin cues. The clean music
 ## loop has its own dedicated player and always stays below event feedback.
-const AUDIO_MAX_CONCURRENT_PLAYERS := 3
+const AUDIO_MAX_CONCURRENT_PLAYERS := 5
 const AUDIO_SAMPLE_RATE := 22050.0
-const AUDIO_MUSIC_VOLUME := 0.10
+## 35% of the prior 0.10 linear service gain (about -9.12 dB relative).
+const AUDIO_MUSIC_VOLUME := 0.035
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
-	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.46, "brightness": 0.82, "fall": 0.64},
-	"wall_contact": {"frequency": 760.0, "duration": 0.065, "volume": 0.32, "brightness": 0.34, "fall": 0.58},
-	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.56, "brightness": 0.60, "fall": 1.16},
-	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.60, "brightness": 0.68, "fall": 1.20},
-	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.65, "brightness": 0.76, "fall": 1.24},
-	"merge_5": {"frequency": 1318.0, "duration": 0.19, "volume": 0.70, "brightness": 0.88, "fall": 1.30},
-	"merge_6": {"frequency": 1480.0, "duration": 0.24, "volume": 0.75, "brightness": 0.90, "fall": 1.32},
-	"merge_7": {"frequency": 1661.0, "duration": 0.27, "volume": 0.80, "brightness": 0.92, "fall": 1.34},
-	"merge_8": {"frequency": 1760.0, "duration": 0.30, "volume": 0.85, "brightness": 0.94, "fall": 1.36},
-	"chain": {"frequency": 1568.0, "duration": 0.13, "volume": 0.70, "brightness": 0.92, "fall": 1.24},
-	"target_collect": {"frequency": 1760.0, "duration": 0.22, "volume": 0.82, "brightness": 0.94, "fall": 1.34},
-	"coin_reward": {"frequency": 0.0, "duration": 0.975, "volume": 1.0, "brightness": 0.0, "fall": 1.0},
-	"win": {"frequency": 1318.0, "duration": 0.34, "volume": 0.90, "brightness": 0.96, "fall": 1.55},
-	"fail": {"frequency": 523.0, "duration": 0.24, "volume": 0.58, "brightness": 0.33, "fall": 0.56},
-	"button": {"frequency": 1180.0, "duration": 0.04, "volume": 0.30, "brightness": 0.55, "fall": 0.84},
+	"gem_contact": {"volume": 0.40},
+	"wall_contact": {"volume": 0.46},
+	"merge_basic": {"volume": 0.80},
+	"target_merge": {"volume": 0.96},
+	"target_collect": {"volume": 0.76},
+	"coin_reward": {"volume": 0.86},
+	"target_complete": {"volume": 0.96},
+	"win": {"volume": 1.0},
+	"button": {"volume": 0.40},
 }
 const GEM_CONTACT_SOUND_THRESHOLD := 170.0
 const WALL_CONTACT_SOUND_THRESHOLD := 220.0
-const CONTACT_SOUND_COOLDOWN := 0.075
+const CONTACT_SOUND_COOLDOWN := 0.065
 const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN,
-	"wall_contact": 0.11,
+	"wall_contact": 0.09,
 	"launch": 0.05,
-	"merge_2": 0.04,
-	"merge_3": 0.04,
-	"merge_4": 0.03,
-	"merge_5": 0.03,
-	"merge_6": 0.03,
-	"merge_7": 0.03,
-	"merge_8": 0.03,
-	"chain": 0.04,
+	"merge_basic": 0.04,
+	"target_merge": 0.04,
 	"target_collect": 0.16,
 	"coin_reward": 0.20,
+	"target_complete": 0.25,
 	"win": 0.25,
-	"fail": 0.25,
-	"button": 0.05,
+	"button": 0.08,
+}
+const AUDIO_PITCH_RANGE_BY_EVENT := {
+	"gem_contact": Vector2(0.96, 1.04),
+	"wall_contact": Vector2(0.97, 1.03),
+}
+const AUDIO_PRIORITY_BY_EVENT := {
+	"button": 10,
+	"wall_contact": 20,
+	"gem_contact": 30,
+	"launch": 40,
+	"target_collect": 50,
+	"coin_reward": 60,
+	"merge_basic": 70,
+	"target_merge": 80,
+	"target_complete": 90,
+	"win": 100,
 }
 ## Compatibility only for the retired extracted-event service. Production
 ## does not route these reference slices to movement, contact, or rewards.

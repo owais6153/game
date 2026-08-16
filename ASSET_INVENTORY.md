@@ -1,3 +1,37 @@
+# Supplied gameplay SFX v1 - 2026-08-16
+
+The exact supplied files are preserved under `assets/sound/` and mapped byte-for-byte to active copies under `assets/runtime/audio/`. `assets/sound/*` remains Android-export excluded; only the runtime copies are packaged.
+
+| Event | Source/runtime basename | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| Gem to gem contact | `gems-colide.mp3` | 11,520 | `18753271A75E742689D7F2CB6B38E8616982A0277FE1E030AC7820AC64B3BADB` |
+| Gem to rail contact | `gems-rail-colide.mp3` | 12,288 | `1E893D5A26EBF85827DC4D037A2F1E5774170F7DCD95682ADC94590232DDAC21` |
+| Normal merge | `merge-basic.mp3` | 57,678 | `A66B2829A307BCB5B1F6551D7CDC72FE45BBE9A91ABFB994D28DB8D5E4E42EA8` |
+| Target-producing merge | `merge-target.mp3` | 41,760 | `B68136FA50DD04F5D82BFD8EE05F4E5EB0CE25BA4AC8406AD5639DBCD7711250` |
+| Target arrival | `mixkit-fairy-arcade-sparkle-866.wav` | 264,132 | `429C4D316D6269A8B66E97698D560F0FDE01FB48DBD5AB794208EC5215E897F6` |
+| Objective completion | `mixkit-game-flute-bonus-2313.wav` | 656,572 | `2670161AEA58C04505C0FE9F857AEDD94DB77BC6FF8643CEF059C431B6A2095F` |
+| Level success | `mixkit-game-success-alert-2039.wav` | 342,502 | `7FD53035349A866EF8A886D295F4DD881F68DE04E403C466522AC8D40A722344` |
+| UI tap | `mixkit-on-or-off-light-switch-tap-2585.wav` | 195,092 | `F8BCC70FCA395B92AB2EF111EF874BF38C8659BC574452341F4E30BEF4EC2397` |
+
+The existing runtime music `supplied_background_music_v5.ogg`, procedural launch/push stream, and `supplied_coin_reward_v4.ogg` remain authoritative and unchanged. Supplied filenames are provenance only; no license or ownership claim is inferred.
+
+# Supplied gameplay SFX v1 - 2026-08-16
+
+The exact supplied files are preserved under `assets/sound/` and mapped byte-for-byte to active copies under `assets/runtime/audio/`. `assets/sound/*` remains Android-export excluded; only the runtime copies are packaged.
+
+| Event | Source/runtime basename | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| Gem to gem contact | `gems-colide.mp3` | 11,520 | `18753271A75E742689D7F2CB6B38E8616982A0277FE1E030AC7820AC64B3BADB` |
+| Gem to rail contact | `gems-rail-colide.mp3` | 12,288 | `1E893D5A26EBF85827DC4D037A2F1E5774170F7DCD95682ADC94590232DDAC21` |
+| Normal merge | `merge-basic.mp3` | 57,678 | `A66B2829A307BCB5B1F6551D7CDC72FE45BBE9A91ABFB994D28DB8D5E4E42EA8` |
+| Target-producing merge | `merge-target.mp3` | 41,760 | `B68136FA50DD04F5D82BFD8EE05F4E5EB0CE25BA4AC8406AD5639DBCD7711250` |
+| Target arrival | `mixkit-fairy-arcade-sparkle-866.wav` | 264,132 | `429C4D316D6269A8B66E97698D560F0FDE01FB48DBD5AB794208EC5215E897F6` |
+| Objective completion | `mixkit-game-flute-bonus-2313.wav` | 656,572 | `2670161AEA58C04505C0FE9F857AEDD94DB77BC6FF8643CEF059C431B6A2095F` |
+| Level success | `mixkit-game-success-alert-2039.wav` | 342,502 | `7FD53035349A866EF8A886D295F4DD881F68DE04E403C466522AC8D40A722344` |
+| UI tap | `mixkit-on-or-off-light-switch-tap-2585.wav` | 195,092 | `F8BCC70FCA395B92AB2EF111EF874BF38C8659BC574452341F4E30BEF4EC2397` |
+
+The existing runtime music `supplied_background_music_v5.ogg`, procedural launch/push stream, and `supplied_coin_reward_v4.ogg` remain authoritative and unchanged. Supplied filenames are provenance only; no license or ownership claim is inferred.
+
 # Regenerated scene art integration v1 - 2026-08-16
 
 | Purpose | Preserved replacement sources | Active runtime derivatives | Processing / boundary |

@@ -150,10 +150,11 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		return
 	simulation.step(pieces, delta, merge_service)
-	_route_collision_feedback()
+	var collision_impacts := simulation.consume_collision_impacts()
 	var result := merge_service.resolve(pieces, next_piece_id)
 	pieces = result.pieces
 	next_piece_id = result.next_id
+	_route_collision_feedback(collision_impacts, result.presentation_events)
 	_apply_confirmed_merge_events(result.presentation_events)
 	_update_merge_presentations(delta)
 	_update_target_collection(delta)
@@ -438,8 +439,8 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.music_toggled.connect(_on_music_toggled)
 	gameplay_ui.sound_toggled.connect(_on_sound_toggled)
 	gameplay_ui.vibration_toggled.connect(_on_vibration_toggled)
-	gameplay_ui.privacy_policy_requested.connect(_on_privacy_policy_requested)
 	gameplay_ui.privacy_options_requested.connect(_on_privacy_options_requested)
+	gameplay_ui.ui_tap_requested.connect(_on_ui_tap_requested)
 	effects_layer = GameplayEffectsLayerType.new()
 	effects_layer.z_index = 0
 	gameplay_ui.attach_reward_foreground(effects_layer)
@@ -452,6 +453,7 @@ func _setup_asset_presentation() -> void:
 	result_overlay.double_coins_requested.connect(_on_double_coins_requested)
 	result_overlay.home_requested.connect(_on_result_home_requested)
 	result_overlay.reward_animation_finished.connect(_on_reward_animation_finished)
+	result_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	home_overlay = HomeOverlayType.new()
 	add_child(home_overlay)
 	home_overlay.play_requested.connect(_on_home_play_requested)
@@ -461,6 +463,7 @@ func _setup_asset_presentation() -> void:
 	home_overlay.vibration_toggled.connect(_on_vibration_toggled)
 	home_overlay.privacy_policy_requested.connect(_on_privacy_policy_requested)
 	home_overlay.privacy_options_requested.connect(_on_privacy_options_requested)
+	home_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
@@ -535,11 +538,10 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			if awarded_coins > 0:
 				var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
 				effects_layer.begin_target_coin_reward(merge_event, awarded_coins, coin_destination)
-		audio_feedback.emit_event("merge_%d" % result_level)
+		audio_feedback.emit_event("target_merge" if completes_active_target else "merge_basic")
 		if awarded_coins > 0:
 			audio_feedback.emit_event("coin_reward")
 		if int(merge_event.get("depth", 0)) > 0:
-			audio_feedback.emit_event("chain")
 			haptics_feedback.emit_event("chain")
 		else:
 			haptics_feedback.emit_event("major_merge" if result_level >= GameConfig.MAJOR_REWARD_TIER else "merge")
@@ -614,7 +616,6 @@ func _trigger_failure() -> void:
 		gem_sprite_layer.clear_presentation_scales()
 	if effects_layer != null:
 		effects_layer.clear()
-	audio_feedback.emit_event("fail")
 	haptics_feedback.emit_event("fail")
 	result_overlay.present(false, score, level_number, active_target_tier())
 
@@ -736,6 +737,7 @@ func _finish_target_collection() -> void:
 	target_progress += 1
 	if target_progress < active_target_quantity():
 		return
+	audio_feedback.emit_event("target_complete")
 	target_index += 1
 	target_progress = 0
 	if target_index >= target_sequence().size():
@@ -870,7 +872,6 @@ func _on_settings_requested() -> void:
 	if gameplay_ui == null or failed or win_presented or gameplay_ui.is_pause_visible():
 		return
 	dragging = false
-	audio_feedback.emit_event("button")
 	gameplay_ui.show_pause()
 	if is_inside_tree():
 		get_tree().paused = true
@@ -881,7 +882,6 @@ func _on_resume_requested() -> void:
 	gameplay_ui.hide_pause(true)
 	if is_inside_tree():
 		get_tree().paused = false
-	audio_feedback.emit_event("button")
 
 func _on_music_toggled(value: bool) -> void:
 	if audio_feedback != null:
@@ -900,6 +900,10 @@ func _on_vibration_toggled(value: bool) -> void:
 		haptics_feedback.enabled = value
 	_save_settings()
 	_refresh_hud()
+
+func _on_ui_tap_requested() -> void:
+	if audio_feedback != null:
+		audio_feedback.emit_event("button")
 
 func _on_privacy_policy_requested() -> void:
 	if ad_manager != null:
@@ -929,7 +933,6 @@ func _on_restart_requested() -> void:
 		gameplay_ui.hide_pause(false)
 	if is_inside_tree():
 		get_tree().paused = false
-	audio_feedback.emit_event("button")
 	restart()
 	app_flow_state = AppFlowState.PLAYING
 
@@ -1083,8 +1086,6 @@ func _on_home_play_requested() -> void:
 	app_flow_state = AppFlowState.PLAYING
 	if is_inside_tree():
 		get_tree().paused = false
-	if audio_feedback != null:
-		audio_feedback.emit_event("button")
 
 
 func _on_home_level_intro_requested() -> void:
@@ -1107,17 +1108,28 @@ func _on_coin_arrived(_result_id: int, value: int, final_coin: bool) -> void:
 	if final_coin and haptics_feedback != null:
 		haptics_feedback.emit_event("coin_collect")
 
-func _route_collision_feedback() -> void:
-	for impact in simulation.consume_collision_impacts():
+func _route_collision_feedback(impacts: Array[Dictionary], merge_events: Array[Dictionary] = []) -> void:
+	var merged_pairs: Dictionary = {}
+	for merge_event in merge_events:
+		var source_ids: Array = merge_event.get("source_ids", [])
+		if source_ids.size() == 2:
+			var first_id := int(source_ids[0])
+			var second_id := int(source_ids[1])
+			merged_pairs["%d:%d" % [mini(first_id, second_id), maxi(first_id, second_id)]] = true
+	for impact in impacts:
 		if debug_calibration_enabled and impact.has("position"):
 			debug_contact_points.append({"position": impact.position, "age": 0.0})
 		var kind := String(impact.get("kind", "gem"))
 		var strength := float(impact.get("strength", 0.0))
-		var normal: Vector2 = impact.get("normal", Vector2.RIGHT)
 		if kind == "wall":
 			if strength >= GameConfig.WALL_CONTACT_SOUND_THRESHOLD:
 				audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75))
 		elif strength >= GameConfig.GEM_CONTACT_SOUND_THRESHOLD:
+			var first_id := int(impact.get("first_id", -1))
+			var second_id := int(impact.get("second_id", -1))
+			var pair_key := "%d:%d" % [mini(first_id, second_id), maxi(first_id, second_id)]
+			if merged_pairs.has(pair_key):
+				continue
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 
 func _draw() -> void:

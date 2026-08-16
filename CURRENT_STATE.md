@@ -1,3 +1,19 @@
+# Current State Addendum - Supplied sound integration and Home privacy link v1
+
+The eight newly supplied SFX are active through the existing centralized `AudioFeedbackService`: gem/rail contact, normal merge, target-producing merge, target-arrival sparkle, completed-objective reward, final level success, and UI tap. The existing background music, procedural launch/push cue, and supplied coin cue are preserved. Music service gain is reduced from `0.10` to `0.035` linear (-9.12 dB relative); there is no lose/game-over audio route.
+
+Confirmed merge contacts suppress their matching collision clink, gem contact uses a 65 ms cooldown and `0.96x..1.04x` pitch range, rail contact uses 90 ms and `0.97x..1.03x`, and five reusable priority-aware SFX voices prevent quiet contacts/taps from interrupting reward cues. Dedicated Music/SFX buses are active; the SFX bus has a -0.8 dB ceiling limiter. Physics, merge eligibility, targets, scoring, reward values, animation durations, ads, and production signing are unchanged.
+
+Privacy Policy is no longer a button in either Home Settings or Pause Settings. It is one underlined, bottom-centered, safe-area-aware `HomePrivacyPolicyLink` on the Home screen and continues through the existing `AdManager.open_privacy_policy()` path. Conditional UMP Privacy Options remain in both Settings panels. Focused sound/link, AdMob/privacy, game-flow, responsive layout, and push-line regressions pass by their sentinels. TEST APK delivery is pending the source milestone export. See `reports/SOUND_INTEGRATION_PRIVACY_LINK_V1_REPORT.md`.
+
+# Current State Addendum - Supplied sound integration and Home privacy link v1
+
+The eight newly supplied SFX are active through the existing centralized `AudioFeedbackService`: gem/rail contact, normal merge, target-producing merge, target-arrival sparkle, completed-objective reward, final level success, and UI tap. The existing background music, procedural launch/push cue, and supplied coin cue are preserved. Music service gain is reduced from `0.10` to `0.035` linear (-9.12 dB relative); there is no lose/game-over audio route.
+
+Confirmed merge contacts suppress their matching collision clink, gem contact uses a 65 ms cooldown and `0.96x..1.04x` pitch range, rail contact uses 90 ms and `0.97x..1.03x`, and five reusable priority-aware SFX voices prevent quiet contacts/taps from interrupting reward cues. Dedicated Music/SFX buses are active; the SFX bus has a -0.8 dB ceiling limiter. Physics, merge eligibility, targets, scoring, reward values, animation durations, ads, and production signing are unchanged.
+
+Privacy Policy is no longer a button in either Home Settings or Pause Settings. It is one underlined, bottom-centered, safe-area-aware `HomePrivacyPolicyLink` on the Home screen and continues through the existing `AdManager.open_privacy_policy()` path. Conditional UMP Privacy Options remain in both Settings panels. Focused sound/link, AdMob/privacy, game-flow, responsive layout, and push-line regressions pass by their sentinels. TEST APK delivery is pending the source milestone export. See `reports/SOUND_INTEGRATION_PRIVACY_LINK_V1_REPORT.md`.
+
 # Current State Addendum - Regenerated scene art integration v1
 
 All 19 regenerated beach backgrounds and all 10 regenerated transparent table styles are active through the existing deterministic per-level `background_index` and `table_index` selection. Retries retain the same scene pair. The previous background/table source images and the temporary single-table runtime asset were removed as requested; the supplied replacements are preserved under canonical `assets/source/` names and optimized runtime WebPs remain under `assets/runtime/`.

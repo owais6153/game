@@ -1,3 +1,23 @@
+# 2026-08-16 - Supplied sound integration and Home privacy link v1
+
+- Integrated eight supplied contact, merge, target, success, and UI SFX through the existing reusable `AudioFeedbackService`; preserved the approved music, launch/push, and coin identities.
+- Reduced music gain from `0.10` to `0.035`, added dedicated Music/SFX buses and an SFX limiter, expanded the bounded pool to five priority-aware voices, and kept all one-shots initialization-cached.
+- Added 65/90 ms gem/rail cooldowns, subtle collision-only pitch ranges, and exact merge-pair collision suppression so normal and target merges each play one exclusive merge cue.
+- Routed target sparkle at collection arrival, objective reward only after target quantity completion, and level success only after accepted victory-overlay presentation; removed the existing lose-sound route.
+- Routed one quiet supplied tap per standard UI interaction without stacking controller and layer cues.
+- Removed Privacy Policy from Home/Pause Settings and added one bottom-centered safe-area-aware Home link using the unchanged published URL/AdManager path. Conditional UMP Privacy Options remain in Settings.
+- Added focused stream/bus/priority/cooldown/timing/layout tests and updated AdMob privacy expectations. No gameplay physics, merge, target, reward, timing, ad, or package behavior changed.
+
+# 2026-08-16 - Supplied sound integration and Home privacy link v1
+
+- Integrated eight supplied contact, merge, target, success, and UI SFX through the existing reusable `AudioFeedbackService`; preserved the approved music, launch/push, and coin identities.
+- Reduced music gain from `0.10` to `0.035`, added dedicated Music/SFX buses and an SFX limiter, expanded the bounded pool to five priority-aware voices, and kept all one-shots initialization-cached.
+- Added 65/90 ms gem/rail cooldowns, subtle collision-only pitch ranges, and exact merge-pair collision suppression so normal and target merges each play one exclusive merge cue.
+- Routed target sparkle at collection arrival, objective reward only after target quantity completion, and level success only after accepted victory-overlay presentation; removed the existing lose-sound route.
+- Routed one quiet supplied tap per standard UI interaction without stacking controller and layer cues.
+- Removed Privacy Policy from Home/Pause Settings and added one bottom-centered safe-area-aware Home link using the unchanged published URL/AdManager path. Conditional UMP Privacy Options remain in Settings.
+- Added focused stream/bus/priority/cooldown/timing/layout tests and updated AdMob privacy expectations. No gameplay physics, merge, target, reward, timing, ad, or package behavior changed.
+
 # 2026-08-16 - Regenerated scene art integration v1
 
 - Replaced the previous 19 background sources and 10 table sources with the user's regenerated 941x1672 RGB backgrounds and 1343x1171 RGBA tables, using canonical source filenames.

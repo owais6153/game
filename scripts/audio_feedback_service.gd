@@ -3,11 +3,22 @@ extends Node
 
 const SuppliedBackgroundMusic: AudioStream = preload("res://assets/runtime/audio/supplied_background_music_v5.ogg")
 const SuppliedCoinReward: AudioStream = preload("res://assets/runtime/audio/supplied_coin_reward_v4.ogg")
+const SuppliedGemCollision: AudioStream = preload("res://assets/runtime/audio/gems-colide.mp3")
+const SuppliedRailCollision: AudioStream = preload("res://assets/runtime/audio/gems-rail-colide.mp3")
+const SuppliedBasicMerge: AudioStream = preload("res://assets/runtime/audio/merge-basic.mp3")
+const SuppliedTargetMerge: AudioStream = preload("res://assets/runtime/audio/merge-target.mp3")
+const SuppliedTargetCollection: AudioStream = preload("res://assets/runtime/audio/mixkit-fairy-arcade-sparkle-866.wav")
+const SuppliedTargetComplete: AudioStream = preload("res://assets/runtime/audio/mixkit-game-flute-bonus-2313.wav")
+const SuppliedLevelSuccess: AudioStream = preload("res://assets/runtime/audio/mixkit-game-success-alert-2039.wav")
+const SuppliedUiTap: AudioStream = preload("res://assets/runtime/audio/mixkit-on-or-off-light-switch-tap-2585.wav")
 
 ## Confirmed controller events use cached one-shots. Independently supplied
 ## music owns one continuous player whose gain is intentionally below merge
 ## and coin feedback; movement never starts, seeks, or restarts it.
-var sfx_enabled := true
+var sfx_enabled := true:
+	set(value):
+		sfx_enabled = value
+		_sync_enabled_state()
 var music_enabled := true:
 	set(value):
 		music_enabled = value
@@ -26,20 +37,24 @@ var _stream_cache: Dictionary = {}
 var _music_player: AudioStreamPlayer
 var _clock := 0.0
 var _variation_index := 0
+var _play_serial := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_stream_cache()
 	for index in range(GameConfig.AUDIO_MAX_CONCURRENT_PLAYERS):
 		var player := AudioStreamPlayer.new()
-		player.bus = "Master"
+		player.name = "SfxVoice%d" % (index + 1)
+		player.bus = "SFX"
 		player.process_mode = Node.PROCESS_MODE_ALWAYS
+		player.set_meta("audio_priority", 0)
+		player.set_meta("play_serial", 0)
 		add_child(player)
 		_players.append(player)
 	_music_player = AudioStreamPlayer.new()
 	_music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	_music_player.name = "SuppliedBackgroundMusic"
-	_music_player.bus = "Master"
+	_music_player.bus = "Music"
 	var loop_stream := SuppliedBackgroundMusic.duplicate()
 	if loop_stream is AudioStreamOggVorbis:
 		loop_stream.loop = true
@@ -57,31 +72,52 @@ func emit_event(event_name: String, intensity: float = 1.0) -> bool:
 	var cooldown := float(GameConfig.AUDIO_COOLDOWN_BY_EVENT.get(event_name, 0.0))
 	if _clock - float(_last_played_at.get(event_name, -100.0)) < cooldown:
 		return false
+	if not _play_event(event_name, clampf(intensity, 0.20, 1.0)):
+		return false
 	_last_played_at[event_name] = _clock
 	emitted_events.append(event_name)
-	_play_event(event_name, clampf(intensity, 0.20, 1.0))
 	return true
 
 func clear_trace() -> void:
 	emitted_events.clear()
 
-func _play_event(event_name: String, intensity: float) -> void:
-	if _players.is_empty():
-		return
+func _play_event(event_name: String, intensity: float) -> bool:
+	if _players.is_empty() or not _stream_cache.has(event_name):
+		return false
 	var available := _players.filter(func(candidate: AudioStreamPlayer) -> bool: return not candidate.playing)
-	var player: AudioStreamPlayer = available.front() if not available.is_empty() else _players[0]
+	var event_priority := int(GameConfig.AUDIO_PRIORITY_BY_EVENT.get(event_name, 0))
+	var player: AudioStreamPlayer
+	if not available.is_empty():
+		player = available.front()
+	else:
+		player = _players[0]
+		for candidate in _players:
+			var candidate_priority := int(candidate.get_meta("audio_priority", 0))
+			var selected_priority := int(player.get_meta("audio_priority", 0))
+			if candidate_priority < selected_priority or (candidate_priority == selected_priority and int(candidate.get_meta("play_serial", 0)) < int(player.get_meta("play_serial", 0))):
+				player = candidate
+		if event_priority < int(player.get_meta("audio_priority", 0)):
+			return false
 	var tone: Dictionary = GameConfig.AUDIO_TONES.get(event_name, GameConfig.AUDIO_TONES.button)
-	player.stream = _stream_cache.get(event_name, _stream_cache.get("button"))
+	player.stream = _stream_cache[event_name]
 	player.volume_db = linear_to_db(float(tone.volume) * intensity)
-	if event_name == "coin_reward":
+	var pitch_range: Vector2 = GameConfig.AUDIO_PITCH_RANGE_BY_EVENT.get(event_name, Vector2.ONE)
+	if pitch_range.is_equal_approx(Vector2.ONE):
 		player.pitch_scale = 1.0
 	else:
 		_variation_index += 1
-		player.pitch_scale = 0.94 + float(_variation_index % 5) * 0.03
+		player.pitch_scale = lerpf(pitch_range.x, pitch_range.y, float(_variation_index % 5) / 4.0)
+	_play_serial += 1
+	player.set_meta("audio_priority", event_priority)
+	player.set_meta("play_serial", _play_serial)
 	player.play()
+	return true
 
 func cached_stream_count() -> int:
 	return _stream_cache.size()
+
+func stream_for_event(event_name: String) -> AudioStream:
+	return _stream_cache.get(event_name)
 
 func ambience_is_ready() -> bool:
 	return _music_player != null and _music_player.stream != null and _music_player.playing
@@ -95,13 +131,18 @@ func music_volume_linear() -> float:
 func _build_stream_cache() -> void:
 	if not _stream_cache.is_empty():
 		return
-	var seed := 1
-	for event_name in GameConfig.AUDIO_TONES.keys():
-		if String(event_name) == "coin_reward":
-			_stream_cache[event_name] = SuppliedCoinReward
-		else:
-			_stream_cache[event_name] = _build_crystal_stream(GameConfig.AUDIO_TONES[event_name], seed)
-		seed += 1
+	_stream_cache = {
+		"launch": _build_crystal_stream(GameConfig.AUDIO_TONES.launch, 1),
+		"gem_contact": SuppliedGemCollision,
+		"wall_contact": SuppliedRailCollision,
+		"merge_basic": SuppliedBasicMerge,
+		"target_merge": SuppliedTargetMerge,
+		"target_collect": SuppliedTargetCollection,
+		"coin_reward": SuppliedCoinReward,
+		"target_complete": SuppliedTargetComplete,
+		"win": SuppliedLevelSuccess,
+		"button": SuppliedUiTap,
+	}
 
 func _sync_enabled_state() -> void:
 	if _music_player == null:
@@ -111,6 +152,7 @@ func _sync_enabled_state() -> void:
 			_music_player.play()
 	else:
 		_music_player.stop()
+	if not sfx_enabled:
 		for player in _players:
 			player.stop()
 

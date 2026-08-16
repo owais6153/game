@@ -1,3 +1,25 @@
+# 2026-08-16 - Supplied sound and Home privacy-link guardrails
+
+- Preserve `AudioFeedbackService` as the single runtime audio owner and the Music/SFX bus split. Do not add per-screen or per-gem audio players.
+- Active supplied mappings are gem contact `gems-colide.mp3`, rail `gems-rail-colide.mp3`, normal merge `merge-basic.mp3`, target merge `merge-target.mp3`, arrival sparkle `mixkit-fairy-arcade-sparkle-866.wav`, objective complete `mixkit-game-flute-bonus-2313.wav`, level success `mixkit-game-success-alert-2039.wav`, and UI tap `mixkit-on-or-off-light-switch-tap-2585.wav`.
+- Preserve existing `supplied_background_music_v5.ogg`, the procedural launch stream, and `supplied_coin_reward_v4.ogg`. Music gain is `0.035`; do not reintroduce a lose/game-over sound.
+- Merge audio is exclusive: one confirmed result emits `target_merge` or `merge_basic`, never both and never an additional chain tone. Suppress only the collision impact whose exact pair appears in the resolved merge event.
+- Keep gem/rail cooldowns at 65/90 ms, collision pitch within `0.96..1.04` / `0.97..1.03`, the five-voice cap, priority protection, and the SFX limiter unless a documented listening pass supersedes them.
+- Target sparkle belongs at `_finish_target_collection()` arrival. `target_complete` belongs after full quantity progress and before target advance. `win` belongs only after the victory overlay accepts presentation.
+- Privacy Policy must remain the single bottom-centered `HomePrivacyPolicyLink`, outside Home and Pause Settings, using the existing AdManager URL action. Conditional UMP Privacy Options remain in both Settings panels.
+- UI layers may emit `ui_tap_requested`; only the controller routes the sound. Never emit a second tap in the action handler.
+
+# 2026-08-16 - Supplied sound and Home privacy-link guardrails
+
+- Preserve `AudioFeedbackService` as the single runtime audio owner and the Music/SFX bus split. Do not add per-screen or per-gem audio players.
+- Active supplied mappings are gem contact `gems-colide.mp3`, rail `gems-rail-colide.mp3`, normal merge `merge-basic.mp3`, target merge `merge-target.mp3`, arrival sparkle `mixkit-fairy-arcade-sparkle-866.wav`, objective complete `mixkit-game-flute-bonus-2313.wav`, level success `mixkit-game-success-alert-2039.wav`, and UI tap `mixkit-on-or-off-light-switch-tap-2585.wav`.
+- Preserve existing `supplied_background_music_v5.ogg`, the procedural launch stream, and `supplied_coin_reward_v4.ogg`. Music gain is `0.035`; do not reintroduce a lose/game-over sound.
+- Merge audio is exclusive: one confirmed result emits `target_merge` or `merge_basic`, never both and never an additional chain tone. Suppress only the collision impact whose exact pair appears in the resolved merge event.
+- Keep gem/rail cooldowns at 65/90 ms, collision pitch within `0.96..1.04` / `0.97..1.03`, the five-voice cap, priority protection, and the SFX limiter unless a documented listening pass supersedes them.
+- Target sparkle belongs at `_finish_target_collection()` arrival. `target_complete` belongs after full quantity progress and before target advance. `win` belongs only after the victory overlay accepts presentation.
+- Privacy Policy must remain the single bottom-centered `HomePrivacyPolicyLink`, outside Home and Pause Settings, using the existing AdManager URL action. Conditional UMP Privacy Options remain in both Settings panels.
+- UI layers may emit `ui_tap_requested`; only the controller routes the sound. Never emit a second tap in the action handler.
+
 # 2026-08-16 - Regenerated scene-art guardrails
 
 - This section supersedes the temporary original-table-only guardrail below. Production uses all 19 `LEVEL_BACKGROUNDS` and all 10 `LEVEL_TABLES`; there is no `AssetCatalog.ORIGINAL_TABLE` path.
