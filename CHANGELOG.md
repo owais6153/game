@@ -645,7 +645,7 @@
 - Restored original procedural target-producing merge, chain, and target-arrival cues; removed the supplied objective-completion route. Existing launch and coin identities remain unchanged and no lose sound is routed.
 - Raised background music gain from `0.035` to `0.06`; reduced the five replacement gains to `0.34`, `0.39`, `0.70`, `0.32`, and `0.84` respectively.
 - Preserved collision cooldown/pitch spam controls, exact merge-pair suppression, priority voice pool, Music/SFX buses, and limiter. No gameplay, physics, UI, privacy, ads, or build configuration changed.
-- Updated focused routing/mix regressions and documentation. TEST APK export is pending; no AAB will be generated.
+- Updated focused routing/mix regressions and documentation; exported and audited `build/android/majestic-gems-sound-mapping-v2-test.apk`. No AAB was generated and device installation was unavailable.
 # 2026-08-16 - Sound mapping correction v2
 
 - Kept only the five requested supplied replacements: gem contact, rail contact, ordinary merge (`merge-target.mp3`), UI tap, and final success (`merge-basic.mp3`).
