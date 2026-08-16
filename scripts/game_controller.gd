@@ -420,7 +420,7 @@ func _setup_asset_presentation() -> void:
 	background.z_index = -20
 	add_child(background)
 	var table := Sprite2D.new()
-	table.texture = AssetCatalogType.NEW_TABLE
+	table.texture = AssetCatalogType.table_texture(int(level_config.get("table_index", 0)))
 	table_sprite = table
 	table.position = GameConfig.table_texture_center()
 	table.scale = GameConfig.table_texture_render_scale()
@@ -561,7 +561,9 @@ func _configure_generated_level(requested_level: int, requested_seed: int) -> vo
 	next_level = LevelConfigType.initial_launcher_level(level_config)
 	if background_sprite != null:
 		background_sprite.texture = AssetCatalogType.background_texture(int(level_config.get("background_index", 0)))
-		_refresh_background_fill()
+	if table_sprite != null:
+		table_sprite.texture = AssetCatalogType.table_texture(int(level_config.get("table_index", 0)))
+	_refresh_background_fill()
 
 func target_sequence() -> Array:
 	return level_config.get("target_sequence", []) as Array

@@ -48,7 +48,7 @@ func _test_single_native_splash_to_home() -> void:
 	root.add_child(home)
 	await process_frame
 	home.present(1, 0, {})
-	_assert(home.home_backdrop.texture.resource_path == "res://assets/runtime/backgrounds/level_bg_1.png", "Home must retain its exact full-bleed background asset")
+	_assert(home.home_backdrop.texture.resource_path == "res://assets/runtime/backgrounds/scene_bg_01.webp", "Home must retain its exact full-bleed background asset")
 	_assert(home.home_backdrop.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Home background must preserve aspect and cover/crop the full viewport")
 	_assert(home.play_button.visible and home.top_controls_margin.visible, "Home controls must be visible immediately; no second splash-like Home state may run")
 	home.queue_free()

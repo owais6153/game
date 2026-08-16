@@ -1,3 +1,12 @@
+# Responsive scene catalog and table-presentation boundary - 2026-08-16
+
+- `AssetCatalog.LEVEL_BACKGROUNDS` and `LEVEL_TABLES` preload the complete optimized runtime sets and expose wrapping presentation lookups. Catalog images never supply coordinates, radii, or rules.
+- `LevelConfig.generated()` owns deterministic `background_index` and `table_index` values after the existing generated launcher/mapping work. Reconstructing a level from the same number/seed reconstructs the same presentation without persistence schema changes.
+- `GameController` applies both textures during initial presentation and level restart. It continues to position and scale every table texture only through `GameConfig.table_texture_center()` and `table_texture_render_scale()`.
+- All ten tables are normalized to the same 920x810 alpha canvas. `GameConfig` remains the sole table geometry authority for rendering, rails, board bounds, drag clamps, spawn limits, launcher, danger line, collision, and containment.
+- `GameplayHudLayer` uses an edge-to-center hierarchy: enlarged Coins at left, a right-side `VBoxContainer` with enlarged Next then Settings, and an independent centered Target/path stack. UI remains snapshot-only and has no board input or progression authority.
+- Source artwork is isolated under export-excluded `assets/source/`; only explicit runtime derivatives are eligible for the Android package.
+
 # Table / Target / merge-path presentation boundary - 2026-08-16
 
 - `GameConfig` remains the sole geometry authority. Its table texture center, outer bounds, board bounds, danger line, launcher, rails, drag clamp, spawn limits, and containment paths share the same 40-design-pixel baseline translation and existing tall-screen transform.

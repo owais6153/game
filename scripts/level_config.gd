@@ -1,6 +1,8 @@
 class_name LevelConfig
 extends RefCounted
 
+const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
+
 ## Small data boundary for the first level. Targets are sequential: one card is
 ## active, then its collected result advances the queue after animation.
 static func level_1() -> Dictionary:
@@ -93,7 +95,8 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		"difficulty_band": difficulty_band,
 		"target_sequence": targets,
 		"gem_identity_by_tier": mapping,
-		"background_index": rng.randi_range(0, 4),
+		"background_index": rng.randi_range(0, AssetCatalogType.BACKGROUND_COUNT - 1),
+		"table_index": rng.randi_range(0, AssetCatalogType.TABLE_COUNT - 1),
 		"starting_board": [],
 	}
 

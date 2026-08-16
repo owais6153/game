@@ -1,3 +1,14 @@
+# Responsive scene variety and cleanup v1 - 2026-08-16
+
+| Purpose | Preserved source set | Active runtime set | Processing / boundary |
+| --- | --- | --- | --- |
+| Level backgrounds | `assets/source/backgrounds/scene_bg_01_source.png` through `scene_bg_19_source.png` (19 RGB PNGs, 941x1672) | `assets/runtime/backgrounds/scene_bg_01.webp` through `scene_bg_19.webp` (19 RGB WebPs, 720x1280) | Chronological supplied order; Lanczos resize, WebP quality 82/picture preset. Cover-scaled presentation only. |
+| Level tables | `assets/source/tables/table_01_source.png` through `table_10_source.png` (10 alpha PNGs, 1385x1136) | `assets/runtime/tables/table_01.webp` through `table_10.webp` (10 alpha WebPs, shared 920x810 canvas) | Numeric supplied order; Lanczos normalization, WebP quality 90/picture preset. Presentation-only variants share one `GameConfig` geometry model. |
+
+The preserved source set totals 57.40 MiB. The active scene derivatives total 2.93 MiB, a 94.90% reduction before Godot import. `export_presets.cfg` excludes the complete `assets/source/*` tree. Mapping is one-to-one by the two-digit basename; no original was overwritten.
+
+Dependency review removed 66 unused files totaling 27.83 MiB: five retired level backgrounds plus the old tropical backdrop, the superseded single table, five first-generation gem bodies, Crystal Magic/Gem Aim runtime branding, reference-only audio and its unused service, the old coin derivative, the retired UI source, and unused cog/next SVG variants. Current Majestic Gems branding sources/derivatives, coin provenance, production audio, gem shadow, calibrated 18-gem textures/manifests, and active UI icons remain.
+
 # Majestic Gems branding v1 — 2026-08-11
 
 | Purpose | Preserved supplied source | Active runtime derivative | Audit |

@@ -470,23 +470,28 @@ func _build_hud() -> void:
 	utility_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	utility_row.add_child(utility_spacer)
 
-	var right_slot := HBoxContainer.new()
+	var right_slot := VBoxContainer.new()
 	right_slot.name = "NextSettingsSlot"
-	right_slot.custom_minimum_size = Vector2(UiDesignSystemType.NEXT_PANEL_SIZE.x + 6.0 + UiDesignSystemType.TOP_SETTINGS_SIZE, UiDesignSystemType.TOP_HUD_HEIGHT)
-	right_slot.alignment = BoxContainer.ALIGNMENT_END
-	right_slot.add_theme_constant_override("separation", 6)
+	right_slot.custom_minimum_size = Vector2(UiDesignSystemType.NEXT_PANEL_SIZE.x, UiDesignSystemType.NEXT_PANEL_SIZE.y + 8.0 + UiDesignSystemType.TOP_SETTINGS_SIZE)
+	right_slot.alignment = BoxContainer.ALIGNMENT_BEGIN
+	right_slot.add_theme_constant_override("separation", 8)
 	right_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	utility_row.add_child(right_slot)
 	next_panel = _build_next_panel()
-	next_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	next_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
 	right_slot.add_child(next_panel)
+	var settings_row := HBoxContainer.new()
+	settings_row.name = "SettingsRow"
+	settings_row.alignment = BoxContainer.ALIGNMENT_END
+	settings_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	right_slot.add_child(settings_row)
 	var settings_frame := PanelContainer.new()
 	settings_frame.name = "SettingsFrame"
 	settings_frame.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE
 	settings_frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	settings_frame.add_theme_stylebox_override("panel", UiDesignSystemType.utility_frame_style())
 	settings_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	right_slot.add_child(settings_frame)
+	settings_row.add_child(settings_frame)
 	var settings_center := CenterContainer.new()
 	settings_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	settings_frame.add_child(settings_center)

@@ -1,3 +1,12 @@
+# Responsive scene variety and HUD hierarchy v1 - 2026-08-16
+
+- Each generated level deterministically selects one of 19 supplied portrait backgrounds and one of 10 supplied transparent table presentations. Retrying the same level/seed must retain both selections.
+- Background and table selection are presentation-only. Every table variant uses the same normalized runtime canvas and the one authoritative `GameConfig` rail/board/launcher/danger geometry.
+- Gameplay attention order remains table first, Target second, merge path third. The baseline table is translated down another 20 design pixels; all physical and visual table landmarks move together.
+- Coins and Next are 12.5% larger. Next remains at the upper-right and Settings sits directly below it. The centered Target/path stack must not overlap either edge utility group on supported portrait viewports.
+- Supplied originals remain under `assets/source/`; mobile runtime derivatives remain under `assets/runtime/`. Originals, reports, tests, build output, and calibration manifests must stay outside Android packaging.
+- This milestone must not change gem radii, movement, merge eligibility, score/reward authority, launcher pacing, danger timing, target rules, queue behavior, audio/haptics, ads, or result flow.
+
 # Post-AdMob Level Complete flow — 2026-08-11
 
 - Level Complete begins with the existing base reward and current banked total plus `COLLECT` and `DOUBLE COINS`.

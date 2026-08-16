@@ -3,13 +3,40 @@ extends RefCounted
 
 ## Presentation-only texture catalog. Simulation must never read these resources.
 const LEVEL_BACKGROUNDS: Array[Texture2D] = [
-	preload("res://assets/runtime/backgrounds/level_bg_1.png"),
-	preload("res://assets/runtime/backgrounds/level_bg_2.png"),
-	preload("res://assets/runtime/backgrounds/level_bg_3.png"),
-	preload("res://assets/runtime/backgrounds/level_bg_4.png"),
-	preload("res://assets/runtime/backgrounds/level_bg_5.png"),
+	preload("res://assets/runtime/backgrounds/scene_bg_01.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_02.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_03.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_04.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_05.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_06.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_07.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_08.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_09.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_10.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_11.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_12.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_13.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_14.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_15.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_16.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_17.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_18.webp"),
+	preload("res://assets/runtime/backgrounds/scene_bg_19.webp"),
 ]
-const NEW_TABLE: Texture2D = preload("res://assets/runtime/table/new_table_v1.png")
+const LEVEL_TABLES: Array[Texture2D] = [
+	preload("res://assets/runtime/tables/table_01.webp"),
+	preload("res://assets/runtime/tables/table_02.webp"),
+	preload("res://assets/runtime/tables/table_03.webp"),
+	preload("res://assets/runtime/tables/table_04.webp"),
+	preload("res://assets/runtime/tables/table_05.webp"),
+	preload("res://assets/runtime/tables/table_06.webp"),
+	preload("res://assets/runtime/tables/table_07.webp"),
+	preload("res://assets/runtime/tables/table_08.webp"),
+	preload("res://assets/runtime/tables/table_09.webp"),
+	preload("res://assets/runtime/tables/table_10.webp"),
+]
+const BACKGROUND_COUNT := 19
+const TABLE_COUNT := 10
 const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_soft_shadow.png")
 ## Cropped mobile derivative of the supplied glossy coin artwork. The original
 ## remains untouched under assets/buttons and this texture is presentation-only.
@@ -80,6 +107,9 @@ static func identity_for_local_tier(level: int) -> int:
 
 static func background_texture(index: int) -> Texture2D:
 	return LEVEL_BACKGROUNDS[posmod(index, LEVEL_BACKGROUNDS.size())]
+
+static func table_texture(index: int) -> Texture2D:
+	return LEVEL_TABLES[posmod(index, LEVEL_TABLES.size())]
 
 static func gem_entry(level: int) -> Dictionary:
 	var identity := identity_for_local_tier(level)

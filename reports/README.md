@@ -1,5 +1,7 @@
 # Reports Index
 
+- `RESPONSIVE_SCENE_VARIETY_ASSET_OPTIMIZATION_V1_REPORT.md` - 19-background/10-table deterministic integration, responsive table/HUD hierarchy, source/runtime mapping, audited asset cleanup, regressions, ANGLE evidence, and TEST APK delivery.
+
 - `TARGET_PATH_HIERARCHY_FIX_REPORT.md` - supplied-reference review, top-panel collision correction, table-adjacent Target/path composition, shared geometry translation, responsive assertions, real ANGLE renders, and TEST APK delivery.
 
 - `RESPONSIVE_UI_SCALE_TEST_REPORT.md` — supplied-reference HUD recomposition, shared responsive table geometry, L1-L8 visual/collider scale ladder, multi-viewport validation, and TEST APK delivery.

@@ -1,3 +1,12 @@
+# 2026-08-16 - Scene variety and responsive hierarchy guardrails
+
+- Keep the 19/10 scene catalogs presentation-only. Add new artwork by preserving originals under `assets/source/`, generating runtime derivatives under `assets/runtime/`, and updating both the catalog and scene-variety regression.
+- A level's `background_index` and `table_index` are seeded outputs. Do not select either with global randomness during controller setup; retries must reproduce the same pair.
+- All table variants must remain 920x810 normalized presentation canvases and use the unchanged `GameConfig` transform. Never derive rails, radii, launcher positions, drag clamps, danger bounds, or merge behavior from pixels.
+- The right utility order is Next then Settings vertically. Coins/Next are 12.5% above the previous compact size. Keep Target and the complete eight-gem merge path in their independent centered stack.
+- Current baseline table landmarks are outer `420..1205`, board `460..1130`, danger `980`, launcher `1062`, and texture center Y `812.5`. Any future composition move must translate all authoritative landmarks together and update responsive geometry tests.
+- `assets/source/*`, tests, reports, and build outputs must remain Android-export excluded. Do not restore retired scene art, reference audio, Crystal Magic/Gem Aim branding, first-generation gem bodies, or unused icon variants unless a new explicit runtime dependency and inventory entry are added.
+
 # 2026-08-11 — Majestic Gems branding and push-line guardrails
 
 - Supplied originals: `assets/logo/majestic_gems_logo_source_v1.png` and `assets/logo/majestic_gems_icon_source_v1.jpeg`. Do not overwrite them.

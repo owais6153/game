@@ -1,3 +1,11 @@
+# Current State Addendum - Responsive scene variety and asset optimization v1
+
+Generated levels now use all 19 newly supplied tropical backgrounds and all 10 newly supplied table styles through deterministic seed-based indices. A retry preserves its scene pairing. The raw PNG originals are organized under `assets/source/backgrounds/` and `assets/source/tables/`; 720x1280 background and 920x810 alpha-table WebP derivatives under `assets/runtime/` reduce the new scene payload from 57.40 MiB to 2.93 MiB without giving artwork any gameplay authority.
+
+The table and its shared physics model move down another 20 design pixels. Coins and Next are 12.5% larger, Next is top-right, and Settings is stacked below it. The centered Target and high-contrast merge path remain immediately above the table without collisions across the tested 576x1312 through notched 1080x2400 portrait set.
+
+Sixty-six proven-unused legacy asset files totaling 27.83 MiB were removed, including retired backgrounds/table art, old brand sets, reference-only audio, first-generation gem bodies, and unused icon variants. Active branding sources, coin provenance, calibrated L1-L18 gems, production music/reward audio, AdMob, and dual-ARM Android support remain intact. Source milestone/APK details are recorded in `reports/RESPONSIVE_SCENE_VARIETY_ASSET_OPTIMIZATION_V1_REPORT.md`.
+
 # Current State Addendum - Table / Target / merge-path hierarchy correction v1
 
 The gameplay screen now reserves the top safe-area row for Coins, Next, and Settings only. A separate centered stack places the larger Target card above a bright, enlarged eight-gem merge path immediately before the table. The progression strip is no longer hidden at the bottom edge, and its opaque glass body, rim, shadow, larger icons, and stronger connectors remain readable over both sky and beach scenery.
