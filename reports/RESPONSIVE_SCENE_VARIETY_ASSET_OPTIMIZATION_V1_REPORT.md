@@ -1,5 +1,7 @@
 # Responsive Scene Variety and Asset Optimization v1
 
+> Table-selection status changed on 2026-08-16: random backgrounds remain active, but gameplay temporarily uses the restored original single table while replacement rails are regenerated. See `ORIGINAL_TABLE_RESTORE_V1_REPORT.md`.
+
 Date: 2026-08-16
 
 ## Request and baseline

@@ -1,3 +1,12 @@
+# 2026-08-16 - Original table restoration v1
+
+- Stopped and discarded the rejected all-table scale recalibration and its generated proof captures.
+- Restored `assets/runtime/table/new_table_v1.png` as the single gameplay table at the original `0.7391304 x 0.9691358` base transform.
+- Restored the pre-random-table shared Y landmarks: outer `400..1185`, board `440..1110`, danger `960`, launcher `1042`, and texture center `792.5`.
+- Kept the 19 optimized backgrounds active and retained the ten replacement table assets as inactive inputs for the user's upcoming rail regeneration.
+- Kept the current HUD hierarchy/legibility changes and all non-positional gameplay tuning unchanged.
+- Created no APK or AAB; final Godot visual acceptance is intentionally deferred to the user.
+
 # 2026-08-16 - Table-art containment and HUD legibility v1
 
 - Added a 1.15x horizontal presentation coverage factor to every random table, widening the effective base art scale from `0.7391304` to `0.85` while preserving the existing vertical transform.

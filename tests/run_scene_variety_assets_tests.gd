@@ -22,6 +22,9 @@ func _init() -> void:
 func _test_runtime_assets() -> void:
 	_assert(AssetCatalogType.LEVEL_BACKGROUNDS.size() == AssetCatalogType.BACKGROUND_COUNT, "Background catalog count must match its public bound")
 	_assert(AssetCatalogType.LEVEL_TABLES.size() == AssetCatalogType.TABLE_COUNT, "Table catalog count must match its public bound")
+	_assert(AssetCatalogType.ORIGINAL_TABLE != null, "The restored original table must load")
+	if AssetCatalogType.ORIGINAL_TABLE != null:
+		_assert(AssetCatalogType.ORIGINAL_TABLE.get_size() == Vector2(920.0, 810.0), "The restored original table must retain its 920x810 canvas")
 	for index in range(AssetCatalogType.BACKGROUND_COUNT):
 		var texture := AssetCatalogType.background_texture(index)
 		_assert(texture != null, "Background %d must load" % index)

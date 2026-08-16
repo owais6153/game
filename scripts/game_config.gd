@@ -8,25 +8,21 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## The reference composition reserves a compact utility row plus a visible
 ## Target/path stack above the table. The table remains the dominant center
 ## surface and every visual/physics landmark is transformed together.
-const TABLE_LAYOUT_BASE_TOP := 420.0
-const TABLE_LAYOUT_BASE_BOTTOM := 1205.0
-const TABLE_TEXTURE_CENTER := Vector2(360.0, 812.5)
+const TABLE_LAYOUT_BASE_TOP := 400.0
+const TABLE_LAYOUT_BASE_BOTTOM := 1185.0
+const TABLE_TEXTURE_CENTER := Vector2(360.0, 792.5)
 const TABLE_TEXTURE_SIZE := Vector2(920.0, 810.0)
 const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7391304, 0.9691358)
-## The random table canvases share dimensions but not identical visible inner
-## rail widths. Widen presentation only so the narrowest supplied artwork wraps
-## the unchanged authoritative rails, danger line, and valid gem extents.
-const TABLE_ART_HORIZONTAL_COVERAGE_SCALE := 1.15
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
 const TABLE_BOTTOM_ALIGNMENT_DELTA_Y := 0.0
-const BOARD_TOP := 460.0
-const BOARD_BOTTOM := 1130.0
+const BOARD_TOP := 440.0
+const BOARD_BOTTOM := 1110.0
 const TABLE_INNER_LEFT_TOP := 188.0
 const TABLE_INNER_LEFT_BOTTOM := 62.0
 const TABLE_INNER_RIGHT_TOP := 532.0
 const TABLE_INNER_RIGHT_BOTTOM := 658.0
-const DANGER_LINE_Y := 980.0
+const DANGER_LINE_Y := 960.0
 const DANGER_LINE_COLOR := Color("e85f52")
 ## Presentation-only guide/warning values. They never enter input, collision,
 ## overflow detection, timing, or solver decisions.
@@ -35,7 +31,7 @@ const AIM_GUIDE_ALPHA := 0.44
 const AIM_GUIDE_TOUCH_HALF_WIDTH := 28.0
 const DANGER_WARNING_NEAR_DISTANCE := 76.0
 const DANGER_WARNING_PULSE_HZ := 1.65
-const LAUNCH_Y := 1062.0
+const LAUNCH_Y := 1042.0
 ## Expanded portrait screens distribute extra height between the scenery above
 ## the table and a bounded vertical table stretch. The complete table model is
 ## transformed together; HUD geometry remains presentation-only and independent.
@@ -315,7 +311,7 @@ static func table_texture_center() -> Vector2:
 
 
 static func table_texture_render_scale() -> Vector2:
-	return Vector2(TABLE_TEXTURE_RENDER_SCALE.x * TABLE_ART_HORIZONTAL_COVERAGE_SCALE, TABLE_TEXTURE_RENDER_SCALE.y * table_vertical_scale_y)
+	return Vector2(TABLE_TEXTURE_RENDER_SCALE.x, TABLE_TEXTURE_RENDER_SCALE.y * table_vertical_scale_y)
 
 
 static func table_outer_top() -> float:

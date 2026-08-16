@@ -1,3 +1,11 @@
+# 2026-08-16 - Original table restoration guardrails
+
+- The active gameplay table is temporarily `AssetCatalog.ORIGINAL_TABLE` (`assets/runtime/table/new_table_v1.png`). Do not select `LEVEL_TABLES` until the user supplies regenerated rail artwork.
+- The rejected `TABLE_ART_HORIZONTAL_COVERAGE_SCALE = 1.15` path is superseded. Keep the original unstretched X scale `0.7391304` and Y scale `0.9691358`.
+- Current authoritative base landmarks are outer `400..1185`, board `440..1110`, rails `188/532 -> 62/658`, danger `960`, launcher `1042`, and texture center Y `792.5`.
+- Random backgrounds remain active. The ten replacement tables are preserved but presentation-inactive so they can be replaced/calibrated in a later supplied-art task.
+- Do not change Coins/Next alignment, Next sizing, stronger text, Target/path hierarchy, gem radii, collision, movement, merge, target, reward, or input behavior as part of this temporary table restoration.
+
 # 2026-08-16 - Table-art containment and HUD legibility guardrails
 
 - The ten supplied table canvases do not have identical visible inner-rail widths. Preserve `TABLE_ART_HORIZONTAL_COVERAGE_SCALE = 1.15` unless a new all-table visual calibration supersedes it.

@@ -23,7 +23,7 @@ func _init() -> void:
 
 func _run() -> void:
 	_test_tier_radius_progression()
-	_test_table_art_coverage_without_physics_changes()
+	_test_original_table_geometry()
 	_test_responsive_table_geometry()
 	for viewport_size in VIEWPORTS:
 		await _test_hud_viewport(viewport_size, viewport_size == Vector2i(1080, 2400))
@@ -48,23 +48,19 @@ func _test_tier_radius_progression() -> void:
 	_assert(GameConfig.PIECE_RADIUS == 57.0, "PIECE_RADIUS fallback must match the largest active tier")
 
 
-func _test_table_art_coverage_without_physics_changes() -> void:
-	# These are the verified pre-fix simulation landmarks. The correction may
-	# widen supplied artwork around them but must never move or resize physics.
-	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_TOP, 420.0), "Table-art correction must not move the physical table top")
-	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_BOTTOM, 1205.0), "Table-art correction must not move the physical table bottom")
-	_assert(is_equal_approx(GameConfig.BOARD_TOP, 460.0), "Table-art correction must not move the physical board top")
-	_assert(is_equal_approx(GameConfig.BOARD_BOTTOM, 1130.0), "Table-art correction must not move the physical board bottom")
-	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_TOP, 188.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_TOP, 532.0), "Table-art correction must preserve the back physical rails")
-	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_BOTTOM, 62.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_BOTTOM, 658.0), "Table-art correction must preserve the front physical rails")
-	_assert(is_equal_approx(GameConfig.DANGER_LINE_Y, 980.0), "Table-art correction must not move the danger line")
-	_assert(is_equal_approx(GameConfig.LAUNCH_Y, 1062.0), "Table-art correction must not move the launcher")
-	_assert(GameConfig.TABLE_TEXTURE_RENDER_SCALE.is_equal_approx(Vector2(0.7391304, 0.9691358)), "The verified base table-art transform must remain available")
-	_assert(is_equal_approx(GameConfig.TABLE_ART_HORIZONTAL_COVERAGE_SCALE, 1.15), "All random tables must receive the calibrated 15% horizontal coverage")
+func _test_original_table_geometry() -> void:
+	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_TOP, 400.0), "Original table top must be restored")
+	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_BOTTOM, 1185.0), "Original table bottom must be restored")
+	_assert(is_equal_approx(GameConfig.BOARD_TOP, 440.0), "Original board top must be restored")
+	_assert(is_equal_approx(GameConfig.BOARD_BOTTOM, 1110.0), "Original board bottom must be restored")
+	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_TOP, 188.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_TOP, 532.0), "Original back rails must remain intact")
+	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_BOTTOM, 62.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_BOTTOM, 658.0), "Original front rails must remain intact")
+	_assert(is_equal_approx(GameConfig.DANGER_LINE_Y, 960.0), "Original danger-line position must be restored")
+	_assert(is_equal_approx(GameConfig.LAUNCH_Y, 1042.0), "Original launcher position must be restored")
+	_assert(GameConfig.TABLE_TEXTURE_RENDER_SCALE.is_equal_approx(Vector2(0.7391304, 0.9691358)), "Original table-art scale must be restored")
 	GameConfig.configure_viewport(GameConfig.VIEWPORT_SIZE)
 	var render_scale := GameConfig.table_texture_render_scale()
-	_assert(is_equal_approx(render_scale.x, GameConfig.TABLE_TEXTURE_RENDER_SCALE.x * 1.15), "Runtime table art must widen around the fixed rails")
-	_assert(is_equal_approx(render_scale.y, GameConfig.TABLE_TEXTURE_RENDER_SCALE.y), "Table-art correction must not vertically stretch or move the table")
+	_assert(render_scale.is_equal_approx(GameConfig.TABLE_TEXTURE_RENDER_SCALE), "Runtime table art must use the original unstretched transform")
 
 
 func _test_responsive_table_geometry() -> void:
@@ -72,7 +68,7 @@ func _test_responsive_table_geometry() -> void:
 		GameConfig.configure_viewport(Vector2(720.0, design_height))
 		var table_height := GameConfig.table_outer_bottom() - GameConfig.table_outer_top()
 		_assert(is_equal_approx(GameConfig.table_center_x(), 360.0), "Table must stay horizontally centered at design height %.0f" % design_height)
-		_assert(GameConfig.table_outer_top() >= 410.0, "Table must clear the table-adjacent objective stack at design height %.0f" % design_height)
+		_assert(GameConfig.table_outer_top() >= 390.0, "Original table must clear the table-adjacent objective stack at design height %.0f" % design_height)
 		_assert(GameConfig.table_outer_bottom() <= design_height - 72.0, "Table must remain inside the lower safe composition at design height %.0f" % design_height)
 		_assert(table_height / design_height >= 0.57, "Table must remain the dominant center surface at design height %.0f" % design_height)
 		_assert(GameConfig.table_left_at(GameConfig.board_top()) >= 180.0 and GameConfig.table_right_at(GameConfig.board_top()) <= 540.0, "Back rails must stay centered and bounded")

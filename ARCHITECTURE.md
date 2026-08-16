@@ -1,3 +1,10 @@
+# Original table restoration boundary - 2026-08-16
+
+- `AssetCatalog.ORIGINAL_TABLE` is the only gameplay table selected by `GameController` while replacement rail art is being regenerated. The ten normalized replacement tables stay cataloged but inactive.
+- `GameConfig` again owns the original single-table transform: center Y `792.5`, scale `0.7391304 x 0.9691358`, outer `400..1185`, board `440..1110`, danger `960`, and launcher `1042`. There is no independent horizontal artwork multiplier.
+- The 20-pixel restoration moves the complete authoritative table model together. Rails, board bounds, launcher, danger evaluation, drag clamps, spawn limits, pieces, effects, and table artwork continue to share the same responsive transform.
+- Random backgrounds remain seeded presentation data. Generated `table_index` metadata and replacement table assets are dormant until a later supplied-art integration explicitly re-enables them.
+
 # Table-art coverage and HUD legibility boundary - 2026-08-16
 
 - `GameConfig.TABLE_ART_HORIZONTAL_COVERAGE_SCALE` is presentation-only. `GameController` applies it only through `table_texture_render_scale()` to the table `Sprite2D`; no simulation, collision, rail, danger, launcher, drag, spawn, merge, or input path reads it.

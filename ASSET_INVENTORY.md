@@ -1,3 +1,12 @@
+# Original table restoration v1 - 2026-08-16
+
+| Purpose | Runtime asset | Status / boundary |
+| --- | --- | --- |
+| Active gameplay table | `assets/runtime/table/new_table_v1.png` | Restored tracked 920x810 RGBA derivative, 1,132,907 bytes, SHA-256 `1C32E185D32DC71A65C9CAC67C1351D1A5898D9B11B6599C3BA03BEC90F0236B`; selected through `AssetCatalog.ORIGINAL_TABLE` at the original transform. |
+| Replacement table inputs | `assets/runtime/tables/table_01.webp` through `table_10.webp` | Preserved but inactive while their rail artwork is regenerated; they have no physics authority. |
+
+The 19 optimized random backgrounds remain active. Restoring the table does not derive rails or colliders from pixels; `GameConfig` remains authoritative.
+
 # Responsive scene variety and cleanup v1 - 2026-08-16
 
 | Purpose | Preserved source set | Active runtime set | Processing / boundary |

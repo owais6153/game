@@ -35,6 +35,9 @@ const LEVEL_TABLES: Array[Texture2D] = [
 	preload("res://assets/runtime/tables/table_09.webp"),
 	preload("res://assets/runtime/tables/table_10.webp"),
 ]
+## Stable pre-random-table artwork restored while replacement rails are being
+## regenerated. It is presentation-only and does not define simulation bounds.
+const ORIGINAL_TABLE: Texture2D = preload("res://assets/runtime/table/new_table_v1.png")
 const BACKGROUND_COUNT := 19
 const TABLE_COUNT := 10
 const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_soft_shadow.png")

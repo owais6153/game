@@ -1,5 +1,7 @@
 # Table-Art Containment and HUD Legibility v1
 
+> Superseded on 2026-08-16 by `ORIGINAL_TABLE_RESTORE_V1_REPORT.md`. The user rejected this global multi-table width calibration; gameplay no longer uses its 1.15 factor or randomized table selection.
+
 Date: 2026-08-16
 
 ## Request and diagnosis

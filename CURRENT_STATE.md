@@ -1,3 +1,9 @@
+# Current State Addendum - Original table restoration v1
+
+The rejected multi-table width calibration has been removed. Gameplay now renders the restored single original table, `assets/runtime/table/new_table_v1.png`, at its original unstretched scale and pre-random-table position. The complete shared geometry returned by 20 design pixels to outer `400..1185`, board `440..1110`, danger `960`, launcher `1042`, and texture center Y `792.5`; rail X coordinates, gem radii, collision response, merge rules, movement tuning, targets, rewards, and input behavior were not retuned.
+
+The 19 optimized random backgrounds remain active. The ten replacement table files remain preserved but are not selected by gameplay while new rail artwork is being regenerated. Coins/Next alignment, larger Next card, stronger text, Target placement, and merge-path hierarchy remain unchanged. No APK/AAB was created, and no final Godot acceptance run is claimed because the user stopped the calibration to replace the artwork. See `reports/ORIGINAL_TABLE_RESTORE_V1_REPORT.md`.
+
 # Current State Addendum - Table-art containment and HUD legibility v1
 
 All ten random table textures now receive a presentation-only 1.15x horizontal coverage factor around the unchanged 920x810 normalized canvas. The effective base render scale is `0.85 x 0.9691358` instead of `0.7391304 x 0.9691358`, so the narrowest supplied inner rails wrap the existing legal gem extents and complete danger line. Physics remains exactly at outer `420..1205`, board `460..1130`, rails `188/532 -> 62/658`, danger `980`, and launcher `1062`; no solver, radius, collision, input, merge, or movement value changed.
