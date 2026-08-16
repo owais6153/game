@@ -1,3 +1,11 @@
+# Current State Addendum - Regenerated scene art integration v1
+
+All 19 regenerated beach backgrounds and all 10 regenerated transparent table styles are active through the existing deterministic per-level `background_index` and `table_index` selection. Retries retain the same scene pair. The previous background/table source images and the temporary single-table runtime asset were removed as requested; the supplied replacements are preserved under canonical `assets/source/` names and optimized runtime WebPs remain under `assets/runtime/`.
+
+The new table set uses the restored fixed layout without changing physics: outer `400..1185`, board `440..1110`, rails `188/532 -> 62/658`, danger `960`, launcher `1042`, table center Y `792.5`, and render scale `0.7391304 x 0.9691358`. Offline alpha/color measurements for all ten tables and 20 real Godot captures at 720x1280/720x1600 verify that their visible inner rails meet the physical back edges and the intentionally inset danger-line endpoints within a 10-pixel tolerance. Gem radii, collision, solver, movement, input, merge, target, queue, reward, and HUD behavior were not changed.
+
+The active runtime scene-art payload is 2,145,764 bytes, down from 3,068,162 bytes (922,398 bytes / 30.06%). Asset preparation, Godot import/parse, scene-catalog tests, responsive layout/calibration tests, branding/push-line tests, and reward/game-flow tests pass by their sentinels. No APK or AAB was created, per the Godot-first request. See `reports/REGENERATED_SCENE_ART_INTEGRATION_V1_REPORT.md`.
+
 # Current State Addendum - Original table restoration v1
 
 The rejected multi-table width calibration has been removed. Gameplay now renders the restored single original table, `assets/runtime/table/new_table_v1.png`, at its original unstretched scale and pre-random-table position. The complete shared geometry returned by 20 design pixels to outer `400..1185`, board `440..1110`, danger `960`, launcher `1042`, and texture center Y `792.5`; rail X coordinates, gem radii, collision response, merge rules, movement tuning, targets, rewards, and input behavior were not retuned.

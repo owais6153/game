@@ -1,5 +1,7 @@
 # Reports Index
 
+- `REGENERATED_SCENE_ART_INTEGRATION_V1_REPORT.md` - replacement 19-background/10-table integration, deterministic level selection, fixed-physics rail/danger calibration, runtime optimization, all-table Godot evidence, and no-build status.
+
 - `ORIGINAL_TABLE_RESTORE_V1_REPORT.md` - stopped rejected scale calibration, restored the single original table and pre-random-table shared position, preserved backgrounds/HUD, and recorded the no-build/no-acceptance status.
 
 - `TABLE_ART_CONTAINMENT_HUD_LEGIBILITY_V1_REPORT.md` - presentation-only all-table coverage calibration, frozen physics landmarks, Coins/Next alignment, stronger text, focused regressions, and six Godot ANGLE proofs; no Android artifact.

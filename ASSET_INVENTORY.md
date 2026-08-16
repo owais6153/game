@@ -1,3 +1,12 @@
+# Regenerated scene art integration v1 - 2026-08-16
+
+| Purpose | Preserved replacement sources | Active runtime derivatives | Processing / boundary |
+| --- | --- | --- | --- |
+| Level backgrounds | `assets/source/backgrounds/scene_bg_01_source.png` through `scene_bg_19_source.png` (19 opaque RGB PNGs, 941x1672; 35,609,686 bytes) | `assets/runtime/backgrounds/scene_bg_01.webp` through `scene_bg_19.webp` (19 RGB WebPs, 720x1280; 1,252,320 bytes) | One-to-one numeric mapping; Lanczos resize and WebP quality 0.82. Cover-scaled presentation only. |
+| Level tables | `assets/source/tables/table_01_source.png` through `table_10_source.png` (10 transparent RGBA PNGs, 1343x1171; 15,367,180 bytes) | `assets/runtime/tables/table_01.webp` through `table_10.webp` (10 transparent WebPs, shared 920x810 canvas; 893,444 bytes) | One-to-one numeric mapping; Lanczos resize and WebP quality 0.90. All variants use one fixed `GameConfig` geometry model. |
+
+The user's new source files replace the prior canonical scene sources; the temporary `assets/runtime/table/new_table_v1.png` is deleted. `tests/prepare_regenerated_scene_assets.gd` is the reproducible source-to-runtime preparation path and rejects a table whose outer corner is opaque. The active runtime background/table payload is 2,145,764 bytes versus the previous 3,068,162 bytes, saving 922,398 bytes (30.06%). Artwork is presentation-only and never defines physics.
+
 # Original table restoration v1 - 2026-08-16
 
 | Purpose | Runtime asset | Status / boundary |

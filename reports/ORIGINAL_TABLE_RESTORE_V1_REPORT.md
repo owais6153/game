@@ -1,5 +1,7 @@
 # Original Table Restoration v1
 
+> Superseded on 2026-08-16 by `REGENERATED_SCENE_ART_INTEGRATION_V1_REPORT.md`: the regenerated replacement table set is now active and the temporary original-table runtime asset has been removed.
+
 Date: 2026-08-16
 
 ## Request

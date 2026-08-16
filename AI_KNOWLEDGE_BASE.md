@@ -1,3 +1,12 @@
+# 2026-08-16 - Regenerated scene-art guardrails
+
+- This section supersedes the temporary original-table-only guardrail below. Production uses all 19 `LEVEL_BACKGROUNDS` and all 10 `LEVEL_TABLES`; there is no `AssetCatalog.ORIGINAL_TABLE` path.
+- Preserve deterministic `LevelConfig` scene indices. Never use global randomness in `GameController`, and never let retry choose a new background/table pair.
+- Keep the fixed unstretched table model: outer `400..1185`, board `440..1110`, rails `188/532 -> 62/658`, danger `960`, launcher `1042`, center Y `792.5`, and render scale `0.7391304 x 0.9691358`.
+- All table variants must remain transparent 920x810 presentation canvases and use the identical `GameConfig` transform. Never derive rails, gem radius, collision, danger, launcher, clamp, spawn, merge, or score behavior from artwork.
+- The measured table-edge arrays in `run_ui_scale_layout_tests.gd` are regression evidence only. Do not move them into runtime code or use them for per-table offsets/scales.
+- Preserve replacement originals under canonical `assets/source/` names and make optimized derivatives only under `assets/runtime/`. Run the preparation tool and scene/layout regressions after any replacement.
+
 # 2026-08-16 - Original table restoration guardrails
 
 - The active gameplay table is temporarily `AssetCatalog.ORIGINAL_TABLE` (`assets/runtime/table/new_table_v1.png`). Do not select `LEVEL_TABLES` until the user supplies regenerated rail artwork.

@@ -22,9 +22,6 @@ func _init() -> void:
 func _test_runtime_assets() -> void:
 	_assert(AssetCatalogType.LEVEL_BACKGROUNDS.size() == AssetCatalogType.BACKGROUND_COUNT, "Background catalog count must match its public bound")
 	_assert(AssetCatalogType.LEVEL_TABLES.size() == AssetCatalogType.TABLE_COUNT, "Table catalog count must match its public bound")
-	_assert(AssetCatalogType.ORIGINAL_TABLE != null, "The restored original table must load")
-	if AssetCatalogType.ORIGINAL_TABLE != null:
-		_assert(AssetCatalogType.ORIGINAL_TABLE.get_size() == Vector2(920.0, 810.0), "The restored original table must retain its 920x810 canvas")
 	for index in range(AssetCatalogType.BACKGROUND_COUNT):
 		var texture := AssetCatalogType.background_texture(index)
 		_assert(texture != null, "Background %d must load" % index)
@@ -35,6 +32,8 @@ func _test_runtime_assets() -> void:
 		_assert(texture != null, "Table %d must load" % index)
 		if texture != null:
 			_assert(texture.get_size() == Vector2(920.0, 810.0), "Table %d must use the shared 920x810 presentation canvas" % index)
+			var table_image := texture.get_image()
+			_assert(table_image != null and table_image.get_pixel(0, 0).a <= 0.02, "Table %d must retain transparent outer corners" % index)
 	_assert(AssetCatalogType.background_texture(-1) == AssetCatalogType.background_texture(AssetCatalogType.BACKGROUND_COUNT - 1), "Background lookup must wrap safely")
 	_assert(AssetCatalogType.table_texture(-1) == AssetCatalogType.table_texture(AssetCatalogType.TABLE_COUNT - 1), "Table lookup must wrap safely")
 

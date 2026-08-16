@@ -1,3 +1,14 @@
+# 2026-08-16 - Regenerated scene art integration v1
+
+- Replaced the previous 19 background sources and 10 table sources with the user's regenerated 941x1672 RGB backgrounds and 1343x1171 RGBA tables, using canonical source filenames.
+- Generated 720x1280 background and shared-canvas 920x810 alpha-table runtime WebPs; removed the superseded single-table `assets/runtime/table/new_table_v1.png`.
+- Re-enabled deterministic per-level table selection alongside the existing deterministic background selection, preserving retry identity.
+- Kept the restored fixed table geometry and unstretched `0.7391304 x 0.9691358` transform; no physics, gem, merge, input, target, reward, queue, or HUD behavior changed.
+- Added measured all-ten-table rail/danger-line calibration regression and transparent-corner/runtime-dimension coverage.
+- Reviewed 20 real Godot table proofs across 720x1280 and 720x1600; all visible rails contain the fixed legal playfield and danger line.
+- Reduced active runtime scene-art files from 3,068,162 to 2,145,764 bytes (30.06%).
+- Created no APK or AAB, per the requested Godot-first workflow.
+
 # 2026-08-16 - Original table restoration v1
 
 - Stopped and discarded the rejected all-table scale recalibration and its generated proof captures.

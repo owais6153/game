@@ -1,3 +1,11 @@
+# Regenerated scene-art boundary - 2026-08-16
+
+- `AssetCatalog.LEVEL_BACKGROUNDS` and `LEVEL_TABLES` preload the active 19/10 optimized sets. `GameController` selects both only from `LevelConfig.generated()` indices, so a level and retry reproduce one presentation pair.
+- `GameConfig` remains the sole runtime geometry authority: outer `400..1185`, board `440..1110`, rails `188/532 -> 62/658`, danger `960`, launcher `1042`, center Y `792.5`, and table-art scale `0.7391304 x 0.9691358`. Raster pixels never define collisions or limits.
+- Every table is normalized to a transparent 920x810 presentation canvas. `GameController` applies the same center and scale to every variant; no per-table gameplay transform exists.
+- `run_ui_scale_layout_tests.gd` contains offline measured visible-field edges for calibration only. Those constants prove alignment within 10 pixels and are never imported by production code.
+- Supplied originals are canonicalized under `assets/source/backgrounds/` and `assets/source/tables/`; runtime derivatives live under `assets/runtime/`. The former single-table path and its selection constant are removed.
+
 # Original table restoration boundary - 2026-08-16
 
 - `AssetCatalog.ORIGINAL_TABLE` is the only gameplay table selected by `GameController` while replacement rail art is being regenerated. The ten normalized replacement tables stay cataloged but inactive.
