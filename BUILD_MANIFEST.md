@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Regenerated Scene Art TEST APK v1
+
+- APK: `build/android/majestic-gems-regenerated-scene-art-test.apk`
+- Size: 80,913,394 bytes (77.17 MiB)
+- Export timestamp: 2026-08-16T10:01:08.0608124+05:00 (Asia/Karachi)
+- SHA-256: `18D35421FFFF50627732E37C70EA6E155198078421502B67B62E3EBDD1368CD4`
+- Source commit/tag: `f540969` / `regenerated-scene-art-integration-v1`.
+- Export preset/method: the existing `Android` preset was temporarily switched from Gradle AAB to Gradle APK for one Godot 4.6.3 headless `--export-debug` command, then restored exactly to `majestic-gems-closed-test-v2.aab` / AAB format. No AAB was generated.
+- Export-process status: the stable APK reached its final timestamp, size, readable ZIP state, and successful signature/package validation before the outer Godot wrapper reached its five-minute silent timeout. No export-owned Godot or Java process remained afterward; a clean outer exit is not claimed.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 2; versionName 1.0.1; min SDK 24; target/compile SDK 36; debug build.
+- ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
+- Signing/package validation: APK Signature Scheme v2 PASS with one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT identity/SDK checks and ZIP checks PASS: 972 entries, one manifest, 19 regenerated background imports, 10 regenerated table imports, zero temporary original-table entries, and zero scoped source/report/test entries.
+- Device status: `adb devices -l` started its daemon and returned no device entry; the daemon was stopped afterward. Installation, launch, touch behavior, performance, and physical safe-area review are not claimed.
+- Report: `reports/REGENERATED_SCENE_ART_INTEGRATION_V1_REPORT.md`.
+
 ## Responsive Scene Variety TEST APK v1
 
 - APK: `build/android/majestic-gems-responsive-scene-variety-test.apk`

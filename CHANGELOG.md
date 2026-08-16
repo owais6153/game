@@ -7,7 +7,7 @@
 - Added measured all-ten-table rail/danger-line calibration regression and transparent-corner/runtime-dimension coverage.
 - Reviewed 20 real Godot table proofs across 720x1280 and 720x1600; all visible rails contain the fixed legal playfield and danger line.
 - Reduced active runtime scene-art files from 3,068,162 to 2,145,764 bytes (30.06%).
-- Created no APK or AAB, per the requested Godot-first workflow.
+- Exported and audited `build/android/majestic-gems-regenerated-scene-art-test.apk` after the requested Godot-first source review; package, v2 debug signature, both ARM ABIs, all 19/10 scene imports, and exclusion checks pass. No AAB was created and no device installation is claimed.
 
 # 2026-08-16 - Original table restoration v1
 

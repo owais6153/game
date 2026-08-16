@@ -55,6 +55,19 @@ The replacement source set totals 50,976,866 bytes, 9,214,096 bytes below the re
 
 On Windows, several script-runner processes returned exit code 1 during known engine teardown after printing their PASS sentinel; the editor import/parse run exited 0. An optional additional six background/table pairing capture was not rerun because the execution approval service reached its usage limit. Existing catalog determinism tests and the completed 20-table renders are the acceptance evidence for this source milestone.
 
+## Test APK delivery
+
+- File: `build/android/majestic-gems-regenerated-scene-art-test.apk`
+- Size: 80,913,394 bytes (77.17 MiB)
+- SHA-256: `18D35421FFFF50627732E37C70EA6E155198078421502B67B62E3EBDD1368CD4`
+- Source: `f540969` / `regenerated-scene-art-integration-v1`
+- Package: `com.owais.majestygems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36
+- Signature: APK Signature Scheme v2 PASS; one RSA-2048 Godot debug signer
+- Native support: `arm64-v8a` and `armeabi-v7a`, each with Godot and C++ shared libraries
+- Payload audit: 972 ZIP entries; one manifest; 19 background imports; 10 table imports; zero temporary original-table, source, report, or test entries
+
+The APK was fully written and passed all package/signature checks before the outer Windows Godot wrapper reached its known silent five-minute timeout. No Godot or Java export process remained. ADB returned no device entry, so installation, launch, touch behavior, performance, and physical safe-area acceptance remain for the user's device test. The production AAB preset was restored exactly and no AAB was created.
+
 ## Scope boundaries
 
-No gem radius, collision response, solver, rail coordinate, movement, launch, input, merge, target, queue, reward, scoring, audio/haptic, ad, result, or HUD behavior changed. No APK or AAB was created, as requested.
+No gem radius, collision response, solver, rail coordinate, movement, launch, input, merge, target, queue, reward, scoring, audio/haptic, ad, result, or HUD behavior changed. The delivered artifact is a debug test APK only; no AAB was created.
