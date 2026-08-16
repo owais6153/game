@@ -6,6 +6,7 @@
 - The right utility order is Next then Settings vertically. Coins/Next are 12.5% above the previous compact size. Keep Target and the complete eight-gem merge path in their independent centered stack.
 - Current baseline table landmarks are outer `420..1205`, board `460..1130`, danger `980`, launcher `1062`, and texture center Y `812.5`. Any future composition move must translate all authoritative landmarks together and update responsive geometry tests.
 - `assets/source/*`, tests, reports, and build outputs must remain Android-export excluded. Do not restore retired scene art, reference audio, Crystal Magic/Gem Aim branding, first-generation gem bodies, or unused icon variants unless a new explicit runtime dependency and inventory entry are added.
+- Keep the tracked `.webp.import` profiles even though generic `*.import` files are ignored. Backgrounds use lossy quality 0.85 and alpha tables use 0.92 with mipmaps disabled; deleting these profiles restores default lossless package expansion and adds roughly 16.7 MiB to the scene texture payload.
 
 # 2026-08-11 — Majestic Gems branding and push-line guardrails
 

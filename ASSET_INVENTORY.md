@@ -7,6 +7,8 @@
 
 The preserved source set totals 57.40 MiB. The active scene derivatives total 2.93 MiB, a 94.90% reduction before Godot import. `export_presets.cfg` excludes the complete `assets/source/*` tree. Mapping is one-to-one by the two-digit basename; no original was overwritten.
 
+Tracked Godot import profiles use lossy texture storage at quality 0.85 for backgrounds and 0.92 for alpha tables, with mipmaps disabled. This reduces the imported scene-texture payload from 19.83 MiB under the default lossless profile to 3.12 MiB (84.27%) while retaining the full runtime dimensions. Six refreshed ANGLE renders were reviewed after reimport; no visible rail, alpha-edge, panel, or background defect was accepted.
+
 Dependency review removed 66 unused files totaling 27.83 MiB: five retired level backgrounds plus the old tropical backdrop, the superseded single table, five first-generation gem bodies, Crystal Magic/Gem Aim runtime branding, reference-only audio and its unused service, the old coin derivative, the retired UI source, and unused cog/next SVG variants. Current Majestic Gems branding sources/derivatives, coin provenance, production audio, gem shadow, calibrated 18-gem textures/manifests, and active UI icons remain.
 
 # Majestic Gems branding v1 — 2026-08-11

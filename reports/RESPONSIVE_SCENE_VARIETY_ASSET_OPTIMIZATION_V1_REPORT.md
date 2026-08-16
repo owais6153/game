@@ -22,6 +22,7 @@ No gem radius, collision, merge rule, launch speed, danger timing, target progre
 - Preserved 19 original 941x1672 background PNGs under `assets/source/backgrounds/` and 10 original 1385x1136 alpha-table PNGs under `assets/source/tables/`.
 - Generated 19 quality-82 720x1280 WebP backgrounds and 10 quality-90 alpha WebP tables on one 920x810 runtime canvas under `assets/runtime/`.
 - Reduced the supplied 57.40 MiB set to a 2.93 MiB runtime set (94.90% reduction) and excluded the entire source tree from Android export.
+- Tracked explicit Godot lossy import profiles at quality 0.85 for backgrounds and 0.92 for alpha tables. They reduce imported scene textures from 19.83 MiB to 3.12 MiB (84.27%) without reducing runtime dimensions.
 - `LevelConfig.generated()` now produces bounded deterministic background/table indices. The same level seed produces the same pair on retry; 500-level coverage reaches every supplied variant.
 - `GameController` swaps presentation textures only. All table art continues to consume the one centralized `GameConfig` geometry.
 
@@ -38,6 +39,7 @@ Sixty-six dependency-audited unused files totaling 27.83 MiB were removed: retir
 - `GAME_FLOW_REWARD_SPLASH_TESTS`: PASS.
 - `ADMOB_INTEGRATION_TESTS`: printed PASS; its existing late mock callback still reports the known shutdown-only null callback afterward.
 - `RESPONSIVE_SCENE_VARIETY_CAPTURE`: PASS using Godot 4.6.3 Compatibility/ANGLE.
+- Refreshed all six ANGLE frames after applying the optimized import profiles; visual review found no accepted background, alpha-edge, or rail degradation.
 - `git diff --check`: PASS.
 
 Godot headless tests print their PASS sentinels but return code 1 after the Windows root-certificate-store warning in this environment. The new catalog test additionally produced one Windows shutdown access-violation code after PASS. Assertions and logs are recorded truthfully by their PASS sentinels; these post-quit environment codes are not represented as clean process exits.

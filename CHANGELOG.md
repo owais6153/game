@@ -2,6 +2,7 @@
 
 - Integrated 19 supplied portrait backgrounds and 10 supplied alpha-table variants with deterministic per-level selection and stable retry identity.
 - Normalized runtime derivatives to 720x1280 background WebP and a shared 920x810 table WebP canvas, reducing the supplied 57.40 MiB source set to a 2.93 MiB runtime set while preserving all originals under `assets/source/`.
+- Added tracked 0.85/0.92 lossy Godot import profiles, reducing the imported scene-texture payload from 19.83 MiB to 3.12 MiB; refreshed ANGLE renders show no accepted visible degradation.
 - Moved the complete shared table model down 20 design pixels, enlarged Coins and Next by 12.5%, and stacked Settings below the right-side Next card.
 - Added catalog bounds/dimensions/wrapping/coverage/retry regressions, updated eight responsive-layout viewports, and reviewed six real Compatibility/ANGLE captures across three scene pairings at 720x1280 and 720x1600.
 - Removed 66 dependency-audited legacy asset files (27.83 MiB) and excluded all preserved source originals from Android export. Gameplay, progression, physics, rewards, audio/haptics, ads, and dual-ARM compatibility are unchanged.
