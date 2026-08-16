@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Immediate Merge Sound Sync TEST APK v3
+
+- APK: `build/android/majestic-gems-merge-sound-sync-v3-test.apk`
+- Size: 81,319,143 bytes (77.55 MiB)
+- Export timestamp: 2026-08-16T13:37:52.4087470+05:00 (Asia/Karachi)
+- SHA-256: `58648E9C5FF783AB1D79020E2368CB6FECA56E7A3AEC232BB683303EE2A9695F`
+- Source commit/tag: `3f2fa01` / `merge-sound-sync-v3-source`.
+- Export preset/method: the existing `Android` preset was temporarily switched from Gradle AAB to Gradle APK for Godot 4.6.3 headless `--export-debug`, then restored exactly to `majestic-gems-closed-test-v2.aab` / AAB format. No AAB was generated.
+- Export-process status: the export log reached `[DONE] export` and the APK was stable across a 30-second check before the silent outer wrapper timed out. The exact export-owned Godot/Java processes were stopped and none remained; a clean outer exit is not claimed.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 2; versionName 1.0.1; min SDK 24; target/compile SDK 36; debug build.
+- ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
+- Signing/package validation: APK Signature Scheme v2 PASS with one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT/ZIP checks PASS: 992 entries, one manifest, primary dex, both ARM runtimes, packaged `merge-target-immediate.ogg` import, and zero report/test/source-audio entries.
+- Device status: the bounded `adb devices` probe did not return; its exact helper was stopped. Installation, launch, and physical-device listening are not claimed.
+- Report: `reports/MERGE_SOUND_SYNC_FIX_V3_REPORT.md`.
+
 ## Sound Mapping Correction TEST APK v2
 
 - APK: `build/android/majestic-gems-sound-mapping-v2-test.apk`

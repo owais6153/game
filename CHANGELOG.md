@@ -658,7 +658,7 @@
 - Measured `0.523125 s` of leading silence in the supplied `merge-target.mp3`, explaining why its audible attack followed result-gem appearance despite same-frame event routing.
 - Preserved the source unchanged and generated `assets/runtime/audio/merge-target-immediate.ogg`, trimming `0.515 s` and leaving a measured `0.008042 s` pre-attack lead-in.
 - Routed the selected merge cue immediately after confirmed merge classification and before any result-presentation setup in the same frame.
-- Added timing/path/duration regression coverage. Gameplay, physics, merge/target rules, animation duration, gains, other audio, UI, ads, and Android configuration are unchanged. TEST APK pending; no AAB will be generated.
+- Added timing/path/duration regression coverage. Gameplay, physics, merge/target rules, animation duration, gains, other audio, UI, ads, and Android configuration are unchanged. Exported and audited `build/android/majestic-gems-merge-sound-sync-v3-test.apk`; no AAB was generated and device installation was unavailable.
 # 2026-08-16 - Immediate merge-sound synchronization v3
 
 - Measured `0.523125 s` of leading silence in the supplied `merge-target.mp3`, explaining why its audible attack followed result-gem appearance despite same-frame event routing.

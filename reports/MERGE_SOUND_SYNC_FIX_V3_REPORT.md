@@ -33,4 +33,15 @@ Physics, contacts, collision shapes, merge eligibility and results, target match
 - `SOUND_PRIVACY_LINK_TESTS: PASS`: trimmed resource path/duration, immediate pre-presentation routing order, mappings/gains, voice pool, buses/limiter, cooldown/pitch protection, and no objective/lose route.
 - `GAME_FLOW_REWARD_SPLASH_TESTS: PASS`: merge, target, result, reward, and reset flow unchanged.
 
-Both script runners printed their PASS sentinel before the environment's known Windows teardown/root-certificate exit 1. TEST APK export/audit and device-status check remain pending. No AAB will be generated.
+Both script runners printed their PASS sentinel before the environment's known Windows teardown/root-certificate exit 1.
+
+## TEST APK delivery
+
+- APK: `build/android/majestic-gems-merge-sound-sync-v3-test.apk`
+- Size: 81,319,143 bytes (77.55 MiB)
+- SHA-256: `58648E9C5FF783AB1D79020E2368CB6FECA56E7A3AEC232BB683303EE2A9695F`
+- Source: `3f2fa01` / `merge-sound-sync-v3-source`
+- Package: `com.owais.majestygems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36
+- Validation: v2 signature PASS with one RSA-2048 Godot debug signer; AAPT/ZIP PASS; `arm64-v8a` and `armeabi-v7a`; 992 entries; one manifest and primary dex; trimmed Ogg import present; zero report/test/source-audio leakage.
+- Export note: the log reached `[DONE] export`, the APK remained stable for 30 seconds, and the exact silent wrapper processes were stopped after timeout. The production AAB preset was restored exactly and no AAB was generated.
+- Device status: the bounded ADB probe timed out and its exact helper was stopped. Installation, launch, and subjective device listening are not claimed.
