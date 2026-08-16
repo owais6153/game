@@ -1,5 +1,7 @@
 # Reports Index
 
+- `TARGET_PATH_HIERARCHY_FIX_REPORT.md` - supplied-reference review, top-panel collision correction, table-adjacent Target/path composition, shared geometry translation, responsive assertions, real ANGLE renders, and TEST APK delivery.
+
 - `RESPONSIVE_UI_SCALE_TEST_REPORT.md` — supplied-reference HUD recomposition, shared responsive table geometry, L1-L8 visual/collider scale ladder, multi-viewport validation, and TEST APK delivery.
 
 - `ANDROID_DEVICE_COMPATIBILITY_V2.md` - verified dual-ARM closed-test AAB, native dependency/ABI audit, Play required-feature analysis, release signing, bundletool validation, and tester-specific limitations.

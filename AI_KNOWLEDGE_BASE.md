@@ -32,6 +32,15 @@ Android startup intentionally disables the separate Godot boot splash in the exp
 
 # AI Knowledge Base
 
+## 2026-08-16 - Table / Target / merge-path hierarchy guardrails
+
+- Preserve the current attention order: dominant table, prominent Target, then visible complete merge path.
+- Keep Coins alone at top-left and Next plus Settings at top-right. Do not place Target back inside that top utility row.
+- Keep Target and the path in `TableObjectiveAnchor`, ordered Target then path, and position the stack from `GameConfig.table_outer_top()` after the controller configures the viewport.
+- The merge path must remain above the table and in the gameplay sightline, never return to the bottom navigation edge. Preserve all eight icons, 64 px slots, 88 px tray height, strong connectors, and high-contrast native glass.
+- Table rendering and all physics borders must continue to use the same `GameConfig` geometry. Never translate only the artwork, only the colliders, or only the launcher.
+- This correction does not authorize gem-radius, movement, collision, merge, target, score, queue, timing, audio/haptic, or result-flow changes.
+
 ## 2026-08-08 — Light Glass Gameplay HUD v1
 
 - Do not restore the old purple gameplay HUD unless explicitly requested.

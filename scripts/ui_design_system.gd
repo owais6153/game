@@ -56,18 +56,20 @@ const BUTTON_CORNER_RADIUS := 24
 const BUTTON_BORDER_WIDTH := 3
 const MIN_TOUCH_TARGET := 88.0
 const HUD_ICON_SIZE := 58.0
-const PROGRESSION_ICON_SIZE := 56.0
-const TARGET_ICON_SIZE := 76.0
+const PROGRESSION_ICON_SIZE := 64.0
+const TARGET_ICON_SIZE := 82.0
 const NEXT_ICON_SIZE := 54.0
 const HEADER_HEIGHT := 172.0
 const UTILITY_ROW_HEIGHT := 116.0
-const TOP_SIDE_SLOT_WIDTH := 184.0
 const TOP_HUD_HEIGHT := 122.0
 const TOP_SETTINGS_SIZE := 64.0
-const PROGRESSION_HEIGHT := 72.0
+const OBJECTIVE_STACK_GAP := 14.0
+const OBJECTIVE_TABLE_GAP_MIN := 20.0
+const OBJECTIVE_TABLE_GAP_MAX := 76.0
+const PROGRESSION_HEIGHT := 88.0
 const SCORE_PANEL_SIZE := Vector2(146.0, 100.0)
 const NEXT_PANEL_SIZE := Vector2(114.0, 100.0)
-const TARGET_PANEL_SIZE := Vector2(304.0, 118.0)
+const TARGET_PANEL_SIZE := Vector2(400.0, 120.0)
 
 const TITLE_FONT_SIZE := 42
 const POPUP_TITLE_FONT_SIZE := 40
@@ -302,11 +304,14 @@ static func continue_card_style() -> StyleBoxFlat:
 
 
 static func progression_panel_style() -> StyleBox:
-	var style := _frosted_glass_style(Color(1.0, 1.0, 1.0, 0.42), Color(0.80, 0.95, 1.0, 0.34), 24, 1, false, false)
-	style.content_margin_left = 8.0
-	style.content_margin_top = 3.0
-	style.content_margin_right = 8.0
-	style.content_margin_bottom = 3.0
+	# The merge path stays in the player's gameplay sightline. A bright opaque
+	# glass body, crisp rim and stronger shadow keep all eight gems readable over
+	# both sky and beach backgrounds without introducing a sampled blur shader.
+	var style := _frosted_glass_style(Color(1.0, 1.0, 0.98, 0.96), Color(0.80, 0.95, 0.97, 0.90), 27, 3, true, true)
+	style.content_margin_left = 12.0
+	style.content_margin_top = 7.0
+	style.content_margin_right = 12.0
+	style.content_margin_bottom = 7.0
 	return style
 
 

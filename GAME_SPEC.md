@@ -34,6 +34,15 @@
 
 # Game Spec — Clean Contact Merge v1
 
+## Table / Target / merge-path hierarchy correction v1
+
+- Gameplay attention order is table first, Target second, and the complete eight-gem merge path third.
+- Coins remains top-left; Next and Settings remain top-right. The top safe-area row contains utilities only, so those controls cannot collide with Target.
+- Target and the merge path form one centered stack immediately above the table. Target precedes the path vertically; the path is no longer attached to the bottom navigation edge.
+- The merge path uses a bright high-contrast native glass tray, 64-design-pixel gem slots, strong connectors, and all eight authoritative `AssetCatalog` textures.
+- Baseline table geometry moves down by 40 design pixels. Table art, rails, board bounds, danger line, launcher, drag clamp, spawn limits, containment, and collision geometry consume the same shared `GameConfig` transform.
+- Gem radii, merge eligibility, scoring, targets, queue rules, launch speed, timing, audio/haptics, result qualification, and progression rules are unchanged.
+
 ## Light Glass Gameplay HUD v1
 
 This presentation milestone supersedes the purple gameplay HUD composition while preserving all gameplay rules.

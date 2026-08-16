@@ -1,3 +1,13 @@
+# 2026-08-16 - Table / Target / merge-path hierarchy correction v1
+
+- Separated the top utilities from Target so Coins, Next, Settings, and Target cannot overlap.
+- Rebuilt the objective region as a responsive Target -> merge path -> table stack and made it refresh from the controller-configured table geometry on every authoritative HUD snapshot.
+- Moved the complete eight-gem path out of the bottom navigation edge, enlarged it from 72 to 88 design pixels high, enlarged gem slots from 56 to 64, strengthened connectors, and replaced the faint tray with a bright rimmed/shadowed glass surface.
+- Enlarged Target from 304x118 to 400x120 and strengthened its header/art spacing.
+- Shifted the shared table transform down 40 design pixels, including table art, rails, board bounds, launcher, danger line, drag clamp, spawn limits, and containment geometry.
+- Added multi-viewport hierarchy/collision assertions and deterministic 720x1280 plus 720x1600 ANGLE visual evidence.
+- Preserved all gem radii, collision and merge rules, movement tuning, target/score authority, queue rules, timing, audio/haptics, and result flow.
+
 # 2026-08-14 — Android device compatibility v2
 
 - Audited the actual v1 AAB, Godot 4.6.3 Android template, active Poing AdMob/UMP dependency graph, all bundled Poing AARs, merged manifest, and generated v2 AAB before enabling 32-bit ARM.

@@ -1,3 +1,11 @@
+# Current State Addendum - Table / Target / merge-path hierarchy correction v1
+
+The gameplay screen now reserves the top safe-area row for Coins, Next, and Settings only. A separate centered stack places the larger Target card above a bright, enlarged eight-gem merge path immediately before the table. The progression strip is no longer hidden at the bottom edge, and its opaque glass body, rim, shadow, larger icons, and stronger connectors remain readable over both sky and beach scenery.
+
+The baseline table composition moved down by 40 design pixels to create this hierarchy. Table art, rails, board bounds, launcher, danger line, drag clamp, spawn limits, and containment still read one shared `GameConfig` geometry model. No gem radius, movement, merge, target, scoring, queue, timing, or result behavior changed.
+
+Responsive geometry assertions pass across 576x1312, 720x1280, 720x1440, 720x1560, 720x1600, 1080x1920, 1080x2340, and notched 1080x2400. Real 720x1280 and 720x1600 ANGLE renders were visually reviewed. Delivery APK metadata is recorded in `BUILD_MANIFEST.md` after export.
+
 # Current State Addendum — Majestic Gems branding + draggable push line v1
 
 The current source uses the newly supplied 1536×1024 transparent `MAJESTIC GEMS` logo on Home and the fallback Godot boot splash. Android uses a 192×192 padded legacy launcher icon and paired 432×432 adaptive foreground/background assets derived non-destructively from the supplied 1254×1254 icon. The foreground artwork occupies 68% of the canvas, keeping the full composition inside common Android masks.

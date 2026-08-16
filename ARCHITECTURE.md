@@ -1,3 +1,11 @@
+# Table / Target / merge-path presentation boundary - 2026-08-16
+
+- `GameConfig` remains the sole geometry authority. Its table texture center, outer bounds, board bounds, danger line, launcher, rails, drag clamp, spawn limits, and containment paths share the same 40-design-pixel baseline translation and existing tall-screen transform.
+- `GameplayHudLayer` owns presentation only. `TopUtilityRow` contains Coins and the Next/Settings group; `TableObjectiveAnchor` contains a centered Target then merge-path `VBoxContainer`.
+- Objective placement reads the configured `GameConfig.table_outer_top()` during every controller snapshot refresh. This handles the child-HUD-before-controller startup order without duplicating table geometry or progression rules.
+- `UiDesignSystem` owns target/path sizes, stack gap, table gap, icon size, and the cached native glass style. The path uses no bitmap panel, framebuffer sampling, shader, physics, or input handler.
+- The HUD still consumes controller snapshots only. Collection destinations remain live icon rectangles, and no queue, target, scoring, collision, launch, or merge decision moved into UI code.
+
 # Majestic Gems branding + push-line input boundary — 2026-08-11
 
 - `AssetCatalog.BRAND_LOGO` owns the active Home logo mapping at `assets/runtime/ui/majestic_gems_logo_v1.png`; `project.godot` reuses it for the fallback boot splash.
