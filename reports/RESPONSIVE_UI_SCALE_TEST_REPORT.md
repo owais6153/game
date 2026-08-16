@@ -56,4 +56,14 @@ Merge eligibility and rules, launch/movement timing, target quantities/order, sc
 
 ## TEST APK
 
-The exact filename, source commit/tag, size, timestamp, SHA-256, package audit, signature result, and connected-device status are recorded after the one TEST APK export in `BUILD_MANIFEST.md` and will be mirrored here in the delivery commit. No AAB is produced by this milestone.
+- File: `build/android/majestic-gems-ui-scale-test.apk`
+- Source: `60448dd` / `responsive-ui-scale-test-v1-source`
+- Size: 85,220,655 bytes (81.27 MiB)
+- Timestamp: 2026-08-16T04:58:33.6326764+05:00
+- SHA-256: `12F5BE9848C9982A92B40A1C2FE589BEB7094C5385DA254EF7606305A4578DFB`
+- Identity: `com.owais.majestygems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36, debug build.
+- Native payload: arm64-v8a and armeabi-v7a, each with matching Godot and C++ shared libraries.
+- Signature: APK Signature Scheme v2 PASS, one RSA-2048 Godot debug signer.
+- Export status: log reached `[DONE] export`; stable final APK confirmed. The silent outer wrapper was stopped after no Godot/Java/Gradle process remained, so outer exit 0 is not claimed.
+- Preset safety: the production AAB output/format was restored exactly after export; no AAB was generated for this task and production signing was not changed.
+- Device status: ADB timed out and the exact spawned process was stopped. No installation, launch, performance, or physical-device visual validation is claimed.

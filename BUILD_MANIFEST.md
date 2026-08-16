@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Responsive UI + Scale TEST APK v1
+
+- APK: `build/android/majestic-gems-ui-scale-test.apk`
+- Size: 85,220,655 bytes (81.27 MiB)
+- Export timestamp: 2026-08-16T04:58:33.6326764+05:00 (Asia/Karachi)
+- SHA-256: `12F5BE9848C9982A92B40A1C2FE589BEB7094C5385DA254EF7606305A4578DFB`
+- Source commit/tag: `60448dd` / `responsive-ui-scale-test-v1-source`.
+- Export preset/method: the existing `Android` preset was temporarily switched from Gradle AAB to Gradle APK for one Godot 4.6.3 headless `--export-debug` command, then restored exactly to `majestic-gems-closed-test-v2.aab` / AAB format. No AAB was generated for this milestone.
+- Export-process status: the export log reached `[DONE] export` and the stable APK was present at its final size. The outer wrapper remained silent afterward and was terminated only after confirming no Godot, Java, or Gradle process remained; a clean outer exit is not claimed.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode `2`; versionName `1.0.1`; min SDK 24; target/compile SDK 36; debug build.
+- ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
+- Signing/validation: APK Signature Scheme v2 PASS; one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT package/version/SDK/orientation/features and ZIP/native-library checks PASS. The production AAB signing configuration was not changed.
+- Device status: `adb devices -l` did not return within the validation window; the exact spawned ADB process was stopped. Installation, launch, and physical-device layout review are not claimed.
+- Report: `reports/RESPONSIVE_UI_SCALE_TEST_REPORT.md`.
+
 ## Android Device Compatibility V2 sideload test APK
 
 - APK: `build/android/majestic-gems-v2-test.apk`
