@@ -6,6 +6,7 @@
 - Moved the complete shared table model down 20 design pixels, enlarged Coins and Next by 12.5%, and stacked Settings below the right-side Next card.
 - Added catalog bounds/dimensions/wrapping/coverage/retry regressions, updated eight responsive-layout viewports, and reviewed six real Compatibility/ANGLE captures across three scene pairings at 720x1280 and 720x1600.
 - Removed 66 dependency-audited legacy asset files (27.83 MiB) and excluded all preserved source originals from Android export. Gameplay, progression, physics, rewards, audio/haptics, ads, and dual-ARM compatibility are unchanged.
+- Exported and audited `majestic-gems-responsive-scene-variety-test.apk` at 81,986,750 bytes: 17.57% smaller than the diagnostic default-import build and 3.80% smaller than the prior hierarchy APK despite the 19/10 scene catalogs.
 
 # 2026-08-16 - Table / Target / merge-path hierarchy correction v1
 

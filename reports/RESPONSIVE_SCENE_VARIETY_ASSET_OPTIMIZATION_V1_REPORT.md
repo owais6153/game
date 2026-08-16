@@ -50,4 +50,12 @@ The six production captures under `reports/responsive-scene-variety/final-screen
 
 ## Android delivery
 
-Source commit/tag and final TEST APK audit will be appended after the source milestone is committed and the one consolidated Android export completes. No connected-device result is inferred from desktop validation.
+Implementation source is `62bd4b8` / `responsive-scene-variety-v1-source`. The APK-size audit then found that Godot's default lossless WebP import expanded scene textures to 19.83 MiB; the tracked high-quality import correction is `081eb1c` / `responsive-scene-variety-v1-optimized-source`.
+
+Final artifact: `build/android/majestic-gems-responsive-scene-variety-test.apk`, 81,986,750 bytes (78.19 MiB), SHA-256 `22A7F145E45EF306F79BD8FFB873455D09D3DD2C2F87177E344E0CEC82DA8249`. It is 17,480,832 bytes (17.57%) smaller than the diagnostic default-import export and 3,234,765 bytes (3.80%) smaller than the previous 85,221,515-byte hierarchy APK despite increasing active scene art from five backgrounds/one table to 19 backgrounds/10 tables.
+
+The optimized export log reached `[DONE] export`; Godot's outer process stayed silent until the wrapper timeout, so a clean outer exit is not claimed. Exact export-owned Godot/Java processes were stopped and a follow-up process check found zero remaining. The existing release preset was restored to AAB output and no AAB was generated.
+
+AAPT confirms `com.owais.majestygems`, `Majestic Gems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36, GLES 3.0, portrait, and faketouch. APK Signature Scheme v2 verification passes with the Godot debug RSA-2048 signer. ZIP audit confirms 972 entries, one Android manifest, both `arm64-v8a` and `armeabi-v7a` with matching Godot/C++ libraries, all 19 background imports, all 10 table imports, and zero scoped source/report/test/retired-asset entries.
+
+`adb devices -l` did not return within the validation window; the exact spawned ADB process was terminated and no ADB process remained. Installation, launch, physical safe-area/touch behavior, and phone performance are not claimed.

@@ -8,6 +8,8 @@ The table and its shared physics model move down another 20 design pixels. Coins
 
 Sixty-six proven-unused legacy asset files totaling 27.83 MiB were removed, including retired backgrounds/table art, old brand sets, reference-only audio, first-generation gem bodies, and unused icon variants. Active branding sources, coin provenance, calibrated L1-L18 gems, production music/reward audio, AdMob, and dual-ARM Android support remain intact. Source milestone/APK details are recorded in `reports/RESPONSIVE_SCENE_VARIETY_ASSET_OPTIMIZATION_V1_REPORT.md`.
 
+Final source is `081eb1c` / `responsive-scene-variety-v1-optimized-source`. TEST APK `build/android/majestic-gems-responsive-scene-variety-test.apk` is 81,986,750 bytes with SHA-256 `22A7F145E45EF306F79BD8FFB873455D09D3DD2C2F87177E344E0CEC82DA8249`; package, signature, both ARM ABIs, all 29 scene imports, and exclusion checks pass. ADB did not return within the device-check window, so no installation or physical-device result is claimed.
+
 # Current State Addendum - Table / Target / merge-path hierarchy correction v1
 
 The gameplay screen now reserves the top safe-area row for Coins, Next, and Settings only. A separate centered stack places the larger Target card above a bright, enlarged eight-gem merge path immediately before the table. The progression strip is no longer hidden at the bottom edge, and its opaque glass body, rim, shadow, larger icons, and stronger connectors remain readable over both sky and beach scenery.

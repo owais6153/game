@@ -1,5 +1,21 @@
 # Build Manifest
 
+## Responsive Scene Variety TEST APK v1
+
+- APK: `build/android/majestic-gems-responsive-scene-variety-test.apk`
+- Size: 81,986,750 bytes (78.19 MiB)
+- Export timestamp: 2026-08-16T07:21:56.8005654+05:00 (Asia/Karachi)
+- SHA-256: `22A7F145E45EF306F79BD8FFB873455D09D3DD2C2F87177E344E0CEC82DA8249`
+- Source commit/tag: `081eb1c` / `responsive-scene-variety-v1-optimized-source`; gameplay implementation commit/tag: `62bd4b8` / `responsive-scene-variety-v1-source`.
+- Export preset/method: the existing `Android` preset was temporarily switched from Gradle AAB to Gradle APK for one corrective Godot 4.6.3 headless `--export-debug` command, then restored to `majestic-gems-closed-test-v2.aab` / AAB format. No AAB was generated.
+- Optimization audit: tracked quality-0.85 background and quality-0.92 alpha-table import profiles reduced imported scene textures from 19.83 MiB to 3.12 MiB. The final APK is 17,480,832 bytes (17.57%) smaller than the diagnostic default-import export and 3,234,765 bytes (3.80%) smaller than the previous hierarchy APK while containing 19 backgrounds and 10 tables.
+- Export-process status: `.godot/responsive-scene-variety-optimized-apk-export.log` reached `[DONE] export` and the stable APK existed at its final size. The outer wrapper timed out in Godot's silent post-export phase; exact export-owned Godot PID 11100 and Java PID 13684 were stopped, with zero remaining afterward.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 2; versionName 1.0.1; min SDK 24; target/compile SDK 36; debug build.
+- ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
+- Signing/package validation: APK Signature Scheme v2 PASS with one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT identity/SDK/portrait/features and ZIP checks PASS: 972 entries, one manifest, 19 scene backgrounds, 10 scene tables, and zero scoped source/report/test/retired-asset entries.
+- Device status: `adb devices -l` did not return within the validation window; the exact spawned ADB process was terminated and no process remained. Installation, launch, touch behavior, performance, and physical safe-area review are not claimed.
+- Report: `reports/RESPONSIVE_SCENE_VARIETY_ASSET_OPTIMIZATION_V1_REPORT.md`.
+
 ## Target / Merge-Path Hierarchy TEST APK v1
 
 - APK: `build/android/majestic-gems-target-path-hierarchy-test.apk`
