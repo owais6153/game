@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Supplied Sound + Home Privacy Link TEST APK v1
+
+- APK: `build/android/majestic-gems-sound-pass-test.apk`
+- Size: 81,303,547 bytes (77.54 MiB)
+- Export timestamp: 2026-08-16T12:21:03.2970765+05:00 (Asia/Karachi)
+- SHA-256: `8CB63641D116907647A1C81161E59686EA6008901DF36B79622CB0EDB6EC08D3`
+- Source commit/tag: `6470a69` / `sound-integration-privacy-link-v1-source`; supplied-file baseline: `ec0f497` / `supplied-sound-assets-baseline`.
+- Export preset/method: the existing `Android` preset was temporarily switched from Gradle AAB to Gradle APK for one Godot 4.6.3 headless `--export-debug` command, then restored exactly to `majestic-gems-closed-test-v2.aab` / AAB format. No AAB was generated.
+- Export-process status: the stable APK reached its final timestamp/size and passed ZIP/signature/package validation before the outer Godot wrapper reached its five-minute silent timeout. No export-owned Godot or Java process remained afterward; a clean outer exit is not claimed.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 2; versionName 1.0.1; min SDK 24; target/compile SDK 36; debug build.
+- ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
+- Signing/package validation: APK Signature Scheme v2 PASS with one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT and ZIP checks PASS: 990 entries, one manifest, eight new supplied runtime-audio imports, preserved music/coin runtime resources, compiled default bus layout, and zero scoped source/report/test entries.
+- Device status: `adb devices -l` started its daemon and returned no device entry; the daemon was stopped afterward. Installation, launch, speaker balance, clipping perception, haptics, and Home-link safe-area review are not claimed.
+- Report: `reports/SOUND_INTEGRATION_PRIVACY_LINK_V1_REPORT.md`.
+
 ## Regenerated Scene Art TEST APK v1
 
 - APK: `build/android/majestic-gems-regenerated-scene-art-test.apk`

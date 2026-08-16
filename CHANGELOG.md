@@ -7,6 +7,7 @@
 - Routed one quiet supplied tap per standard UI interaction without stacking controller and layer cues.
 - Removed Privacy Policy from Home/Pause Settings and added one bottom-centered safe-area-aware Home link using the unchanged published URL/AdManager path. Conditional UMP Privacy Options remain in Settings.
 - Added focused stream/bus/priority/cooldown/timing/layout tests and updated AdMob privacy expectations. No gameplay physics, merge, target, reward, timing, ad, or package behavior changed.
+- Exported and audited `build/android/majestic-gems-sound-pass-test.apk`; v2 signature, package/SDK, dual ARM ABIs, eight supplied runtime imports, existing music/coin resources, compiled bus layout, and export exclusions pass. No AAB was created and no device installation is claimed.
 
 # 2026-08-16 - Supplied sound integration and Home privacy link v1
 

@@ -58,4 +58,14 @@ Test launch, gem contact, rail contact, ordinary merge, target merge, target arr
 
 ## Delivery status
 
-Source integration is complete. TEST APK export and package/device audit will be appended after the clean source milestone is committed and tagged. No AAB will be generated.
+- Source: `6470a69` / `sound-integration-privacy-link-v1-source`
+- Supplied-file baseline: `ec0f497` / `supplied-sound-assets-baseline`
+- APK: `build/android/majestic-gems-sound-pass-test.apk`
+- Size: 81,303,547 bytes (77.54 MiB)
+- SHA-256: `8CB63641D116907647A1C81161E59686EA6008901DF36B79622CB0EDB6EC08D3`
+- Package: `com.owais.majestygems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36
+- Signature: APK Signature Scheme v2 PASS; one RSA-2048 Godot debug signer
+- Native support: `arm64-v8a` and `armeabi-v7a`, each with Godot and C++ shared libraries
+- Payload: 990 ZIP entries; one manifest; eight supplied runtime-audio imports; preserved existing music/coin resources; compiled bus layout; zero source/report/test leakage
+
+The production AAB preset was restored exactly and no AAB was generated. The APK was fully written and validated before the outer Windows Godot wrapper reached its known silent five-minute timeout; no Godot or Java process remained. ADB returned no device entry, so installation, launch, speaker balance, perceived distortion, haptics, and physical safe-area acceptance remain for device testing.
