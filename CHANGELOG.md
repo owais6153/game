@@ -1,3 +1,11 @@
+# 2026-08-16 - Table-art containment and HUD legibility v1
+
+- Added a 1.15x horizontal presentation coverage factor to every random table, widening the effective base art scale from `0.7391304` to `0.85` while preserving the existing vertical transform.
+- Froze the complete pre-change physical geometry in regression coverage: outer bounds, board bounds, slanted rails, danger line, launcher, radii, and all simulation behavior remain unchanged.
+- Top-aligned Coins with Next, enlarged Next by another 10%, kept Settings below it, and strengthened gameplay heading/value typography.
+- Added responsive HUD/physics-freeze assertions plus six 720x1280/720x1600 ANGLE proofs with legal rail-edge gems on the three narrowest representative table styles.
+- Created no APK or AAB, per the requested Godot-first review workflow.
+
 # 2026-08-16 - Responsive scene variety, layout breathing room, and asset optimization v1
 
 - Integrated 19 supplied portrait backgrounds and 10 supplied alpha-table variants with deterministic per-level selection and stable retry identity.

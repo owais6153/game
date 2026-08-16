@@ -13,6 +13,10 @@ const TABLE_LAYOUT_BASE_BOTTOM := 1205.0
 const TABLE_TEXTURE_CENTER := Vector2(360.0, 812.5)
 const TABLE_TEXTURE_SIZE := Vector2(920.0, 810.0)
 const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.7391304, 0.9691358)
+## The random table canvases share dimensions but not identical visible inner
+## rail widths. Widen presentation only so the narrowest supplied artwork wraps
+## the unchanged authoritative rails, danger line, and valid gem extents.
+const TABLE_ART_HORIZONTAL_COVERAGE_SCALE := 1.15
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
 const TABLE_BOTTOM_ALIGNMENT_DELTA_Y := 0.0
@@ -311,7 +315,7 @@ static func table_texture_center() -> Vector2:
 
 
 static func table_texture_render_scale() -> Vector2:
-	return Vector2(TABLE_TEXTURE_RENDER_SCALE.x, TABLE_TEXTURE_RENDER_SCALE.y * table_vertical_scale_y)
+	return Vector2(TABLE_TEXTURE_RENDER_SCALE.x * TABLE_ART_HORIZONTAL_COVERAGE_SCALE, TABLE_TEXTURE_RENDER_SCALE.y * table_vertical_scale_y)
 
 
 static func table_outer_top() -> float:

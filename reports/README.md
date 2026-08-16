@@ -1,5 +1,7 @@
 # Reports Index
 
+- `TABLE_ART_CONTAINMENT_HUD_LEGIBILITY_V1_REPORT.md` - presentation-only all-table coverage calibration, frozen physics landmarks, Coins/Next alignment, stronger text, focused regressions, and six Godot ANGLE proofs; no Android artifact.
+
 - `RESPONSIVE_SCENE_VARIETY_ASSET_OPTIMIZATION_V1_REPORT.md` - 19-background/10-table deterministic integration, responsive table/HUD hierarchy, source/runtime mapping, audited asset cleanup, regressions, ANGLE evidence, and TEST APK delivery.
 
 - `TARGET_PATH_HIERARCHY_FIX_REPORT.md` - supplied-reference review, top-panel collision correction, table-adjacent Target/path composition, shared geometry translation, responsive assertions, real ANGLE renders, and TEST APK delivery.

@@ -1,3 +1,10 @@
+# Table-art coverage and HUD legibility boundary - 2026-08-16
+
+- `GameConfig.TABLE_ART_HORIZONTAL_COVERAGE_SCALE` is presentation-only. `GameController` applies it only through `table_texture_render_scale()` to the table `Sprite2D`; no simulation, collision, rail, danger, launcher, drag, spawn, merge, or input path reads it.
+- The unchanged authoritative geometry remains outer `420..1205`, board `460..1130`, rails `188/532 -> 62/658`, danger `980`, and launcher `1062`. Responsive Y scaling still transforms art and physical landmarks together; the extra X coverage only compensates for visible inner-rail variation among normalized table canvases.
+- `GameplayHudLayer` top-aligns the independent Coins and Next cards. `UiDesignSystem` owns the enlarged Next footprint and gameplay typography remains cached/native; HUD still consumes controller snapshots only.
+- The capture harness adds non-running proof pieces at exact legal rail limits after simulation is disabled. It is development-only and cannot alter production gameplay.
+
 # Responsive scene catalog and table-presentation boundary - 2026-08-16
 
 - `AssetCatalog.LEVEL_BACKGROUNDS` and `LEVEL_TABLES` preload the complete optimized runtime sets and expose wrapping presentation lookups. Catalog images never supply coordinates, radii, or rules.

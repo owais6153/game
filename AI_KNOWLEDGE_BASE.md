@@ -1,3 +1,11 @@
+# 2026-08-16 - Table-art containment and HUD legibility guardrails
+
+- The ten supplied table canvases do not have identical visible inner-rail widths. Preserve `TABLE_ART_HORIZONTAL_COVERAGE_SCALE = 1.15` unless a new all-table visual calibration supersedes it.
+- This multiplier is artwork-only. Never feed it into `table_left_at/right_at`, board bounds, launcher clamps, danger evaluation, gem radii, collision, merge eligibility, or movement.
+- Keep the verified physics landmarks unchanged for this correction: outer `420..1205`, board `460..1130`, rails `188/532 -> 62/658`, danger `980`, launcher `1062`, and base table vertical scale `0.9691358`.
+- Coins and Next share a top baseline; Next is `141.075 x 123.75`, Settings stays below it, and Target must remain visually stronger than either utility card.
+- Use `run_ui_scale_layout_tests.gd` for the physics-freeze/layout guard and `capture_table_art_containment_hud.gd` for 720-wide ANGLE proofs. Raw 576 subviewport captures bypass normal canvas stretching and are not valid device-composition evidence.
+
 # 2026-08-16 - Scene variety and responsive hierarchy guardrails
 
 - Keep the 19/10 scene catalogs presentation-only. Add new artwork by preserving originals under `assets/source/`, generating runtime derivatives under `assets/runtime/`, and updating both the catalog and scene-variety regression.

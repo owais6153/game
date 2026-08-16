@@ -67,10 +67,10 @@ const OBJECTIVE_STACK_GAP := 14.0
 const OBJECTIVE_TABLE_GAP_MIN := 20.0
 const OBJECTIVE_TABLE_GAP_MAX := 76.0
 const PROGRESSION_HEIGHT := 88.0
-## The two edge cards are 12.5% larger than the earlier compact layout. They
-## remain presentation-only and leave the centered objective stack untouched.
+## Coins retains the approved larger footprint. Next receives one additional
+## 10% emphasis pass while remaining secondary to the centered Target.
 const SCORE_PANEL_SIZE := Vector2(164.25, 112.5)
-const NEXT_PANEL_SIZE := Vector2(128.25, 112.5)
+const NEXT_PANEL_SIZE := Vector2(141.075, 123.75)
 const TARGET_PANEL_SIZE := Vector2(400.0, 120.0)
 
 const TITLE_FONT_SIZE := 42

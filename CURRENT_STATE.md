@@ -1,3 +1,11 @@
+# Current State Addendum - Table-art containment and HUD legibility v1
+
+All ten random table textures now receive a presentation-only 1.15x horizontal coverage factor around the unchanged 920x810 normalized canvas. The effective base render scale is `0.85 x 0.9691358` instead of `0.7391304 x 0.9691358`, so the narrowest supplied inner rails wrap the existing legal gem extents and complete danger line. Physics remains exactly at outer `420..1205`, board `460..1130`, rails `188/532 -> 62/658`, danger `980`, and launcher `1062`; no solver, radius, collision, input, merge, or movement value changed.
+
+Coins and Next now share the same top baseline. Next is an additional 10% larger at `141.075 x 123.75`, Settings remains directly below it, and stronger headings/value outlines plus larger coin/target copy improve readability while Target remains the dominant objective card.
+
+Godot parse/import, responsive UI/table coverage, all-ten-table catalog, launcher/input, and game-flow tests pass by their sentinels. Six real Compatibility/ANGLE captures at 720x1280 and 720x1600 show legal edge gems plus the danger line contained by supplied tables 02, 05, and 08. No APK or AAB was created, as requested; editor/device review remains the user's next acceptance step. Details are in `reports/TABLE_ART_CONTAINMENT_HUD_LEGIBILITY_V1_REPORT.md`.
+
 # Current State Addendum - Responsive scene variety and asset optimization v1
 
 Generated levels now use all 19 newly supplied tropical backgrounds and all 10 newly supplied table styles through deterministic seed-based indices. A retry preserves its scene pairing. The raw PNG originals are organized under `assets/source/backgrounds/` and `assets/source/tables/`; 720x1280 background and 920x810 alpha-table WebP derivatives under `assets/runtime/` reduce the new scene payload from 57.40 MiB to 2.93 MiB without giving artwork any gameplay authority.

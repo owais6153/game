@@ -461,7 +461,8 @@ func _build_hud() -> void:
 	left_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	utility_row.add_child(left_slot)
 	score_panel = _build_score_panel()
-	score_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	# Coins and Next share one top baseline even though their card heights differ.
+	score_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	left_slot.add_child(score_panel)
 
 	var utility_spacer := Control.new()
@@ -560,8 +561,8 @@ func _build_score_panel() -> Control:
 	coin_icon.pivot_offset = Vector2(17.0, 17.0)
 	row.add_child(coin_icon)
 	score_label = _label("0", 42, UiDesignSystemType.COLOR_BLUE_DEEP)
-	score_label.add_theme_constant_override("outline_size", 2)
-	score_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.82))
+	score_label.add_theme_constant_override("outline_size", 3)
+	score_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.94))
 	score_label.name = "CoinValue"
 	score_label.custom_minimum_size = Vector2(94.0, 46.0)
 	row.add_child(score_label)
@@ -580,7 +581,7 @@ func _build_next_panel() -> Control:
 	column.add_theme_constant_override("separation", 3)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(column)
-	column.add_child(_build_card_heading("NEXT", "NextHeading", 86.0))
+	column.add_child(_build_card_heading("NEXT", "NextHeading", 94.0))
 	var center := CenterContainer.new()
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -653,7 +654,7 @@ func _build_target_panel() -> Control:
 	badge.custom_minimum_size = Vector2(200.0, 38.0)
 	badge.add_theme_stylebox_override("panel", UiDesignSystemType.target_badge_style())
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var badge_label := _label("TARGET  1 / 1", 22, Color.WHITE)
+	var badge_label := _label("TARGET  1 / 1", 24, Color.WHITE)
 	badge_label.name = "Label"
 	_decorate_header_label(badge_label)
 	badge.add_child(badge_label)
@@ -704,11 +705,11 @@ func _build_target_panel() -> Control:
 	target_name_label.visible = false
 	target_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	details.add_child(target_name_label)
-	target_status_label = _label("0 / 1", 22, UiDesignSystemType.COLOR_BLUE_DEEP)
+	target_status_label = _label("0 / 1", 24, UiDesignSystemType.COLOR_BLUE_DEEP)
 	target_status_label.name = "TargetProgressText"
 	target_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	target_status_label.add_theme_constant_override("outline_size", 1)
-	target_status_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.72))
+	target_status_label.add_theme_constant_override("outline_size", 3)
+	target_status_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.94))
 	details.add_child(target_status_label)
 	target_progress_bar = ProgressBar.new()
 	target_progress_bar.name = "TargetProgressBar"
@@ -726,7 +727,7 @@ func _build_card_heading(text: String, node_name: String, width: float) -> Panel
 	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	badge.add_theme_stylebox_override("panel", UiDesignSystemType.card_header_style())
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var heading := _label(text, 16, Color.WHITE)
+	var heading := _label(text, 18, Color.WHITE)
 	heading.name = "Label"
 	_decorate_header_label(heading)
 	badge.add_child(heading)
@@ -982,8 +983,8 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	label.add_theme_font_override("font", UiDesignSystemType.font())
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
-	label.add_theme_constant_override("outline_size", 2)
-	label.add_theme_color_override("font_outline_color", Color(1.0, 0.96, 0.86, 0.76))
+	label.add_theme_constant_override("outline_size", 3)
+	label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.92))
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
 
@@ -995,10 +996,10 @@ func _decorate_header_label(label: Label) -> void:
 
 func _score_font_size(formatted: String) -> int:
 	if formatted.length() <= 4:
-		return 34
+		return 38
 	if formatted.length() <= 6:
-		return 30
-	return 26
+		return 34
+	return 30
 
 
 func _animate_score_change() -> void:

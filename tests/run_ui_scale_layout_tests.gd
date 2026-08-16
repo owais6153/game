@@ -23,6 +23,7 @@ func _init() -> void:
 
 func _run() -> void:
 	_test_tier_radius_progression()
+	_test_table_art_coverage_without_physics_changes()
 	_test_responsive_table_geometry()
 	for viewport_size in VIEWPORTS:
 		await _test_hud_viewport(viewport_size, viewport_size == Vector2i(1080, 2400))
@@ -45,6 +46,25 @@ func _test_tier_radius_progression() -> void:
 		previous = radius
 	_assert(is_equal_approx(GameConfig.gem_collision_radius(8) / GameConfig.gem_collision_radius(1), 57.0 / 36.0), "L8/L1 endpoint scale must remain the bounded 1.583x ladder")
 	_assert(GameConfig.PIECE_RADIUS == 57.0, "PIECE_RADIUS fallback must match the largest active tier")
+
+
+func _test_table_art_coverage_without_physics_changes() -> void:
+	# These are the verified pre-fix simulation landmarks. The correction may
+	# widen supplied artwork around them but must never move or resize physics.
+	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_TOP, 420.0), "Table-art correction must not move the physical table top")
+	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_BOTTOM, 1205.0), "Table-art correction must not move the physical table bottom")
+	_assert(is_equal_approx(GameConfig.BOARD_TOP, 460.0), "Table-art correction must not move the physical board top")
+	_assert(is_equal_approx(GameConfig.BOARD_BOTTOM, 1130.0), "Table-art correction must not move the physical board bottom")
+	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_TOP, 188.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_TOP, 532.0), "Table-art correction must preserve the back physical rails")
+	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_BOTTOM, 62.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_BOTTOM, 658.0), "Table-art correction must preserve the front physical rails")
+	_assert(is_equal_approx(GameConfig.DANGER_LINE_Y, 980.0), "Table-art correction must not move the danger line")
+	_assert(is_equal_approx(GameConfig.LAUNCH_Y, 1062.0), "Table-art correction must not move the launcher")
+	_assert(GameConfig.TABLE_TEXTURE_RENDER_SCALE.is_equal_approx(Vector2(0.7391304, 0.9691358)), "The verified base table-art transform must remain available")
+	_assert(is_equal_approx(GameConfig.TABLE_ART_HORIZONTAL_COVERAGE_SCALE, 1.15), "All random tables must receive the calibrated 15% horizontal coverage")
+	GameConfig.configure_viewport(GameConfig.VIEWPORT_SIZE)
+	var render_scale := GameConfig.table_texture_render_scale()
+	_assert(is_equal_approx(render_scale.x, GameConfig.TABLE_TEXTURE_RENDER_SCALE.x * 1.15), "Runtime table art must widen around the fixed rails")
+	_assert(is_equal_approx(render_scale.y, GameConfig.TABLE_TEXTURE_RENDER_SCALE.y), "Table-art correction must not vertically stretch or move the table")
 
 
 func _test_responsive_table_geometry() -> void:
@@ -106,7 +126,11 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	_assert(not score_rect.intersects(target_rect) and not next_rect.intersects(target_rect) and not settings_rect.intersects(target_rect), "%s table-adjacent Target must not overlap top utilities" % viewport_size)
 	_assert(target_rect.end.y <= progression_rect.position.y + 1.0, "%s Target must sit above the merge path" % viewport_size)
 	_assert(settings_rect.position.y >= next_rect.end.y - 1.0, "%s Settings must sit below Next" % viewport_size)
+	_assert(absf(score_rect.position.y - next_rect.position.y) <= center_tolerance, "%s Coins and Next must share the same top baseline" % viewport_size)
 	_assert(settings_rect.get_center().x >= next_rect.get_center().x - 1.0, "%s Settings must remain aligned to the right-side Next card" % viewport_size)
+	_assert(next_rect.size.x >= UiDesignSystemType.NEXT_PANEL_SIZE.x * layout_scale - 1.0, "%s Next must retain its enlarged width" % viewport_size)
+	_assert(next_rect.size.y >= UiDesignSystemType.NEXT_PANEL_SIZE.y * layout_scale - 1.0, "%s Next must retain its enlarged height" % viewport_size)
+	_assert(target_rect.size.x > next_rect.size.x * 2.0, "%s Target must remain more prominent than Next" % viewport_size)
 	_assert(score_rect.position.x >= -0.5 and settings_rect.end.x <= float(viewport_size.x) + 0.5, "%s top HUD must remain inside horizontal bounds" % viewport_size)
 	_assert(progression_rect.position.x >= -0.5 and progression_rect.end.x <= float(viewport_size.x) + 0.5, "%s merge path must stay within screen width" % viewport_size)
 	_assert(absf(progression_rect.get_center().x - float(viewport_size.x) * 0.5) <= center_tolerance, "%s merge path must remain centered" % viewport_size)
@@ -116,6 +140,10 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	_assert(progression_rect.size.y >= UiDesignSystemType.PROGRESSION_HEIGHT * layout_scale - 1.0, "%s merge path must retain its emphasized height" % viewport_size)
 	_assert(hud.root_control.find_child("LevelChip", true, false) == null, "%s Level box must be absent" % viewport_size)
 	_assert(hud.target_icon.texture != null and hud.next_icon.texture != null, "%s Target and Next textures must resolve" % viewport_size)
+	var coin_value := hud.root_control.find_child("CoinValue", true, false) as Label
+	var target_progress := hud.root_control.find_child("TargetProgressText", true, false) as Label
+	_assert(coin_value != null and coin_value.get_theme_constant("outline_size") >= 3, "%s coin text must retain the stronger contrast outline" % viewport_size)
+	_assert(target_progress != null and target_progress.get_theme_constant("outline_size") >= 3, "%s target text must retain the stronger contrast outline" % viewport_size)
 	_assert(hud.progression_icons.size() == 8, "%s complete eight-gem path must remain present" % viewport_size)
 	viewport.queue_free()
 	await process_frame
