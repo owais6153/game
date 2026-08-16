@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Target / Merge-Path Hierarchy TEST APK v1
+
+- APK: `build/android/majestic-gems-target-path-hierarchy-test.apk`
+- Size: 85,221,515 bytes (81.27 MiB)
+- Export timestamp: 2026-08-16T06:00:35.7160533+05:00 (Asia/Karachi)
+- SHA-256: `6A56FE2DC9FD7D14369B0352C08D2A1CB900A45FFFC1D0AB2634223EE4FB34B8`
+- Source commit/tag: `c7d03f0` / `target-path-hierarchy-fix-v1-source`.
+- Export preset/method: the existing `Android` preset was temporarily switched from Gradle AAB to Gradle APK for one Godot 4.6.3 headless `--export-debug` command, then restored exactly to `majestic-gems-closed-test-v2.aab` / AAB format. No AAB was generated for this milestone.
+- Export-process status: `.godot/target_path_apk_export.log` reached `[DONE] export` and the stable APK existed at its final size. The outer wrapper remained silent afterward, so a clean outer exit is not claimed. The export-owned Godot PID 1152 and Java PID 16720 were stopped; the follow-up audit found neither process.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode `2`; versionName `1.0.1`; min SDK 24; target/compile SDK 36; debug build.
+- ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
+- Signing/validation: APK Signature Scheme v2 PASS; one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT package/version/SDK and ZIP/native-library checks PASS. Standalone file existence and SHA-256 checks PASS. The production AAB signing configuration was not changed.
+- Device status: `adb devices -l` returned an empty device list after starting its local daemon; the daemon was stopped afterward. Installation, launch, and physical-device layout review are not claimed.
+- Report: `reports/TARGET_PATH_HIERARCHY_FIX_REPORT.md`.
+
 ## Responsive UI + Scale TEST APK v1
 
 - APK: `build/android/majestic-gems-ui-scale-test.apk`

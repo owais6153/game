@@ -7,6 +7,7 @@
 - Shifted the shared table transform down 40 design pixels, including table art, rails, board bounds, launcher, danger line, drag clamp, spawn limits, and containment geometry.
 - Added multi-viewport hierarchy/collision assertions and deterministic 720x1280 plus 720x1600 ANGLE visual evidence.
 - Preserved all gem radii, collision and merge rules, movement tuning, target/score authority, queue rules, timing, audio/haptics, and result flow.
+- Exported and audited `build/android/majestic-gems-target-path-hierarchy-test.apk`; no AAB was generated and the existing release preset was restored.
 
 # 2026-08-14 — Android device compatibility v2
 

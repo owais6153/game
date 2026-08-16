@@ -4,7 +4,7 @@ The gameplay screen now reserves the top safe-area row for Coins, Next, and Sett
 
 The baseline table composition moved down by 40 design pixels to create this hierarchy. Table art, rails, board bounds, launcher, danger line, drag clamp, spawn limits, and containment still read one shared `GameConfig` geometry model. No gem radius, movement, merge, target, scoring, queue, timing, or result behavior changed.
 
-Responsive geometry assertions pass across 576x1312, 720x1280, 720x1440, 720x1560, 720x1600, 1080x1920, 1080x2340, and notched 1080x2400. Real 720x1280 and 720x1600 ANGLE renders were visually reviewed. Delivery APK metadata is recorded in `BUILD_MANIFEST.md` after export.
+Responsive geometry assertions pass across 576x1312, 720x1280, 720x1440, 720x1560, 720x1600, 1080x1920, 1080x2340, and notched 1080x2400. Real 720x1280 and 720x1600 ANGLE renders were visually reviewed. Source: `c7d03f0` / `target-path-hierarchy-fix-v1-source`. TEST APK: `build/android/majestic-gems-target-path-hierarchy-test.apk` (85,221,515 bytes; SHA-256 `6A56FE2DC9FD7D14369B0352C08D2A1CB900A45FFFC1D0AB2634223EE4FB34B8`). Package/signature/ABI checks pass; no device was connected.
 
 # Current State Addendum — Majestic Gems branding + draggable push line v1
 

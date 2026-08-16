@@ -37,4 +37,8 @@ The render review caught and corrected one tall-screen initialization defect bef
 
 ## Android delivery
 
-The TEST APK and package/signature audit are recorded in `BUILD_MANIFEST.md`. No phone validation is inferred from desktop renders or export success.
+`build/android/majestic-gems-target-path-hierarchy-test.apk` was exported from `c7d03f0` / `target-path-hierarchy-fix-v1-source`. It is 85,221,515 bytes with SHA-256 `6A56FE2DC9FD7D14369B0352C08D2A1CB900A45FFFC1D0AB2634223EE4FB34B8`.
+
+AAPT confirms package `com.owais.majestygems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36, and both ARM ABIs. ZIP inspection confirms matching `libgodot_android.so` and `libc++_shared.so` pairs. APK Signature Scheme v2 verification passes with the Godot debug signer. The release preset was restored to the existing AAB destination/format, and no AAB was generated for this task.
+
+`adb devices -l` returned an empty device list. Installation, launch, touch feel, and physical-device layout review are not claimed.
