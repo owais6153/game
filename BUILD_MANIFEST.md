@@ -8,7 +8,7 @@
 - SHA-256: `12F5BE9848C9982A92B40A1C2FE589BEB7094C5385DA254EF7606305A4578DFB`
 - Source commit/tag: `60448dd` / `responsive-ui-scale-test-v1-source`.
 - Export preset/method: the existing `Android` preset was temporarily switched from Gradle AAB to Gradle APK for one Godot 4.6.3 headless `--export-debug` command, then restored exactly to `majestic-gems-closed-test-v2.aab` / AAB format. No AAB was generated for this milestone.
-- Export-process status: the export log reached `[DONE] export` and the stable APK was present at its final size. The outer wrapper remained silent afterward and was terminated only after confirming no Godot, Java, or Gradle process remained; a clean outer exit is not claimed.
+- Export-process status: the export log reached `[DONE] export` and the stable APK was present at its final size. The outer wrapper remained silent afterward, so a clean outer exit is not claimed. A final process audit found the export-owned Godot PID 10752 and Java PID 18764 still orphaned; those exact processes were stopped, and the follow-up count was zero.
 - Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode `2`; versionName `1.0.1`; min SDK 24; target/compile SDK 36; debug build.
 - ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
 - Signing/validation: APK Signature Scheme v2 PASS; one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT package/version/SDK/orientation/features and ZIP/native-library checks PASS. The production AAB signing configuration was not changed.

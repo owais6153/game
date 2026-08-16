@@ -64,6 +64,6 @@ Merge eligibility and rules, launch/movement timing, target quantities/order, sc
 - Identity: `com.owais.majestygems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36, debug build.
 - Native payload: arm64-v8a and armeabi-v7a, each with matching Godot and C++ shared libraries.
 - Signature: APK Signature Scheme v2 PASS, one RSA-2048 Godot debug signer.
-- Export status: log reached `[DONE] export`; stable final APK confirmed. The silent outer wrapper was stopped after no Godot/Java/Gradle process remained, so outer exit 0 is not claimed.
+- Export status: log reached `[DONE] export`; stable final APK confirmed. The outer wrapper never returned, and a final audit found the export-owned Godot PID 10752 plus Java PID 18764 orphaned. Those exact processes were stopped and a follow-up process count was zero; outer exit 0 is not claimed.
 - Preset safety: the production AAB output/format was restored exactly after export; no AAB was generated for this task and production signing was not changed.
 - Device status: ADB timed out and the exact spawned process was stopped. No installation, launch, performance, or physical-device visual validation is claimed.
