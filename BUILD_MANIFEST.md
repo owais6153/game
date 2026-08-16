@@ -8,7 +8,7 @@
 - SHA-256: `A3A075124A1DF0F421FF4D87A693D087D618F506420338495C9C47FCBA1FDAC8`
 - Source commit/tag: `506e08b` / `sound-mapping-correction-v2-source`.
 - Export preset/method: the existing `Android` preset was temporarily switched from Gradle AAB to Gradle APK for Godot 4.6.3 headless `--export-debug`, then restored exactly to `majestic-gems-closed-test-v2.aab` / AAB format. No AAB was generated.
-- Export-process status: the sandboxed attempt failed only because Gradle network access was denied. The approved retry wrote a stable APK which passed all artifact audits before the outer wrapper timed out; the exact export-owned Godot/Java processes subsequently exited and none remained. A clean outer exit is not claimed.
+- Export-process status: the sandboxed attempt failed only because Gradle network access was denied. The approved retry wrote a stable APK which passed all artifact audits before the outer wrapper timed out; the exact two export-owned Godot/Java processes were then stopped and none remained. A clean outer exit is not claimed.
 - Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 2; versionName 1.0.1; min SDK 24; target/compile SDK 36; debug build.
 - ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
 - Signing/package validation: APK Signature Scheme v2 PASS with one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT and ZIP checks PASS: 990 entries, one manifest, primary dex, both ARM runtimes, runtime audio resources, and zero report/test/source-audio entries.

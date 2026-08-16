@@ -50,5 +50,5 @@ Both script runners reached their PASS sentinels before the known Windows teardo
 - Source: `506e08b` / `sound-mapping-correction-v2-source`
 - Package: `com.owais.majestygems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36
 - Validation: v2 signature PASS with one RSA-2048 Godot debug signer; AAPT/ZIP PASS; both `arm64-v8a` and `armeabi-v7a`; 990 entries; one manifest and primary dex; zero report/test/source-audio leakage.
-- Export note: the production AAB preset was restored exactly and no AAB was generated. The stable APK passed artifact validation although the outer Godot wrapper timed out after writing it. No export-owned Godot/Java process remained afterward.
+- Export note: the production AAB preset was restored exactly and no AAB was generated. The stable APK passed artifact validation although the outer Godot wrapper timed out after writing it. Its exact two export-owned Godot/Java processes were stopped afterward and none remained.
 - Device status: ADB did not return within its check window, so installation, launch, and subjective speaker listening are not claimed.
