@@ -1053,3 +1053,17 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36; manifest `android:appCategory=game`, portrait orientation, and `resizeableActivity=true`; APK Signature Scheme v2 PASS with one Godot RSA-2048 debug signer.
 - Tests: `UI_SCALE_LAYOUT_TESTS: PASS`, `SOUND_PRIVACY_LINK_TESTS: PASS`, `GAME_FLOW_REWARD_SPLASH_TESTS: PASS`; Godot editor parse/import PASS. The test wrapper's known post-sentinel teardown returned exit 1 without assertion failure.
 - Device status: `adb devices -l` returned no connected device. Installation, launch, physical tablet/foldable behavior, listening, and haptic feel are not claimed.
+
+# Animation / reward / audio / large-screen polish APK v2 - 2026-08-18
+
+- Filename: `build/android/majestic-gems-animation-large-screen-polish-v2.apk`
+- Size: 81,304,035 bytes
+- Timestamp: 2026-08-18 04:48:15 +05:00
+- SHA-256: `9132197FB131F8367577573F9D01716AAB95875617975C707148E33174D4A1CA`
+- Export-source commit: `9f83eb7` (video-audit documentation plus the `tween_composer/*` Android exclusion; gameplay remains the tagged `1ef87a9` implementation).
+- Delivery tag: `animation-reward-audio-large-screen-polish-v2` on the provenance follow-up commit.
+- Export: Godot 4.6.3 `--export-debug Android`, Gradle APK format, both ARM ABIs, debug signing. The committed release AAB path/format was restored immediately after export. No AAB was generated.
+- Packaging impact: zero Tween Composer entries, two active Global Tweens entries. The APK is 16,676 bytes smaller than v1 and 15,108 bytes smaller than the pre-polish merge-sound test APK; animation/package regression is NO.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36; manifest `android:appCategory=game`, portrait orientation, and `resizeableActivity=true`; both `arm64-v8a` and `armeabi-v7a`; APK Signature Scheme v2 PASS with one Godot RSA-2048 debug signer.
+- Tests: `UI_SCALE_LAYOUT_TESTS: PASS`, `SOUND_PRIVACY_LINK_TESTS: PASS`, `GAME_FLOW_REWARD_SPLASH_TESTS: PASS`; Godot editor parse/import PASS. Each Windows runner returned the repository's known post-sentinel teardown access violation after printing PASS; no assertion failed.
+- Device status: `adb devices -l` found no connected device and no AVD was installed. Installation, launch, physical tablet/foldable behavior, listening, and haptic feel are not claimed.

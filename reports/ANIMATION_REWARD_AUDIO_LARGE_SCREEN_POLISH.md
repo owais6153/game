@@ -64,7 +64,8 @@ No manifest hack or temporary opt-out was added. The current adaptive path cente
 - `SOUND_PRIVACY_LINK_TESTS: PASS` including contact throttling/mapping.
 - `GAME_FLOW_REWARD_SPLASH_TESTS: PASS` including merge, target, reward, ads, and reset boundaries.
 - The fresh audit rerun produced all three PASS sentinels. Each Windows runner then returned the repository's known post-sentinel teardown access violation (`-1073741819`); no assertion failed.
-- APK export: PASS. `build/android/majestic-gems-animation-large-screen-polish.apk`, 81,320,711 bytes, SHA-256 `DAC8A7210CD5BADA6F1D6862613877ED61C8FEBB25BDDA31596FE7F647714B7E`.
+- Final APK export: PASS. `build/android/majestic-gems-animation-large-screen-polish-v2.apk`, 81,304,035 bytes, SHA-256 `9132197FB131F8367577573F9D01716AAB95875617975C707148E33174D4A1CA`.
+- Package-size result: 16,676 bytes smaller than the first polish APK and 15,108 bytes smaller than the pre-polish immediate-merge source APK. Tween Composer entries: 0; Global Tweens entries: 2. Animation/package regression: NO.
 - AAPT: package/version/API PASS; manifest confirms game category, portrait, and resizable activity.
 - APK Signature Scheme v2: PASS with one Godot RSA-2048 debug signer.
 - ADB: no connected device; install/launch/listening/haptics and physical large-screen behavior are not claimed.

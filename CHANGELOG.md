@@ -694,4 +694,5 @@
 - Completed an end-to-end decode, 0.5-second contact-sheet review, focused 10 fps sequence review, waveform comparison, and loudness analysis of `current-gameplay-ours.mp4` and `refrence.mp4`.
 - Confirmed the existing target flight, Target handoff, coin arrivals, Next response, and audio hierarchy are worth retaining; no new sound, mix, gameplay, UI, or gem change was justified.
 - Excluded the disabled, unused `tween_composer/*` source from Android packaging after the APK audit found 38,988 uncompressed bytes still present. Global Tweens remains active and packaged.
+- Exported and audited `build/android/majestic-gems-animation-large-screen-polish-v2.apk`; it is 16,676 bytes smaller than the first polish APK and contains no Tween Composer entries.
 - Kept the APK-only release scope. No AAB was generated.
