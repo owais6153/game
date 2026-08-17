@@ -531,3 +531,7 @@ The native extension is deliberately minimal: Poing's existing `PoingGodotAdMobC
 Merge timing remains a controller presentation gate over already-confirmed merge results. Gameplay state does not depend on effects-layer particles, target/coin proxies, or collision deformation completing successfully.
 
 Large-screen containment remains configuration-driven: Godot's expanding canvas exposes additional width, `GameConfig.configure_viewport()` centers the unchanged 720-design-pixel table model, and the background uses aspect-preserving cover. The table is not horizontally scaled for wide windows.
+
+## Animation tooling packaging boundary - 2026-08-18
+
+`GlobalTweens.gd` is the only active shared tween autoload and remains available to UI presentation. Tween Composer is preserved as repository source for possible future evaluation, but it is not an enabled editor plugin, has no runtime references, and is excluded from Android export through `tween_composer/*`. Gameplay feedback continues to use controller-owned state plus built-in Godot tweens/transforms; neither animation utility may own simulation or progression state.

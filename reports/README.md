@@ -1,6 +1,6 @@
 # Reports Index
 
-- `ANIMATION_REWARD_AUDIO_LARGE_SCREEN_POLISH.md` - current-video tooling limitation, existing feedback audit, 300 ms merge and collision micro-feedback changes, Android 16/game-category analysis, wide-window regression, and APK-only delivery.
+- `ANIMATION_REWARD_AUDIO_LARGE_SCREEN_POLISH.md` - full two-video frame/audio comparison, existing feedback audit, 300 ms merge and collision micro-feedback changes, Android 16/game-category analysis, wide-window regression, Tween Composer package cleanup, and APK-only delivery.
 
 - `MERGE_SOUND_SYNC_FIX_V3_REPORT.md` - measured supplied-file lead-in, non-destructive trimmed runtime derivative, same-frame pre-presentation routing, regressions, and TEST APK delivery status.
 

@@ -423,3 +423,9 @@ The export preset is prepared for the next release with versionCode `4` and vers
 - Android keeps the intentional portrait-phone setting. The existing `canvas_items` + `expand` viewport, centered authoritative table geometry, cover-scaled background, and `package/app_category=2` game declaration remain active; wide virtual canvases are now regression-covered without horizontal table stretch.
 - Global Tweens remains restored as the existing autoload. Tween Composer remains excluded because current controller/native tweens already own these bounded effects and restoring its data would add duplicate runtime machinery.
 - This milestone delivers an APK only. No AAB is created.
+
+# Video comparison and animation-package audit - 2026-08-18
+
+Both supplied root videos now have an end-to-end local decode, full-timeline contact-sheet review, focused launch/merge/target/reward sequences, waveform review, and loudness comparison recorded in `reports/ANIMATION_REWARD_AUDIO_LARGE_SCREEN_POLISH.md`. The comparison supports retaining the current target, reward, Next, music, and SFX systems; the delivered implementation gaps remain the corrected 0.30 s merge and new collision micro-feedback.
+
+Tween Composer remains preserved but disabled and unreferenced. Android export now excludes `tween_composer/*` after the prior APK was found to contain 38,988 uncompressed bytes from that unused editor tool. Global Tweens remains the active autoload. No gameplay, UI, audio, asset, AdMob, UMP, save, version, or AAB behavior changed.

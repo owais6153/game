@@ -753,3 +753,4 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Suppress collision visual/audio feedback for the exact contact pair consumed by a confirmed merge; the merge cue/effect owns that contact.
 - Preserve `canvas_items` + `expand`, centered `GameConfig` geometry, aspect-preserving background cover, phone portrait orientation, and Android game category. Wide screens gain scenery around the fixed-width composition; never stretch the table horizontally.
 - Global Tweens is already an autoload. Do not restore Tween Composer unless a future effect cannot be expressed cleanly through the existing controller/native tween paths and its Android package cost is revalidated.
+- Tween Composer source is intentionally preserved but disabled and excluded from Android with `tween_composer/*`. Do not remove that exclusion unless the plugin is deliberately re-enabled, used by production runtime, and its APK cost is measured again.

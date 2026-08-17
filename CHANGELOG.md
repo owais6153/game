@@ -688,3 +688,10 @@
 - Added focused timing/deformation contracts and wide/resizable table containment tests.
 - Audited Android 16 behavior: retained portrait on phones, the game category, adaptive `expand` canvas, centered fixed-width table, and background fill. No AdMob, UMP, economy, progression, physics, gem asset, or UI-layout behavior changed.
 - Produced only the requested debug APK; no AAB export was performed.
+
+# 2026-08-18 - Video audit and Tween Composer packaging cleanup
+
+- Completed an end-to-end decode, 0.5-second contact-sheet review, focused 10 fps sequence review, waveform comparison, and loudness analysis of `current-gameplay-ours.mp4` and `refrence.mp4`.
+- Confirmed the existing target flight, Target handoff, coin arrivals, Next response, and audio hierarchy are worth retaining; no new sound, mix, gameplay, UI, or gem change was justified.
+- Excluded the disabled, unused `tween_composer/*` source from Android packaging after the APK audit found 38,988 uncompressed bytes still present. Global Tweens remains active and packaged.
+- Kept the APK-only release scope. No AAB was generated.
