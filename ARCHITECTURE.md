@@ -524,3 +524,10 @@ The native extension is deliberately minimal: Poing's existing `PoingGodotAdMobC
 - `GameController._apply_confirmed_merge_events()` emits the selected merge cue immediately after classifying the confirmed result and before caching or starting result presentation. The route remains downstream of `ContactMergeService.resolve()` and cannot affect merge acceptance, result creation, physics, or animation.
 - `AudioFeedbackService` preloads the trimmed runtime derivative `merge-target-immediate.ogg` for the existing `normal_merge` mapping. No seek, decode, load, or player allocation occurs at merge time.
 - The original supplied MP3 remains provenance-only under `assets/sound/`. Its runtime derivative changes leading silence only; event mapping, gain, voice priority, cooldown, limiter, and all other audio identities are unchanged.
+# Presentation polish boundary - 2026-08-18
+
+`GameController` converts confirmed, non-merge collision telemetry into short-lived visual feedback records. `GemSpriteLayer` applies those records only to `ImpactAxis`, below the root that mirrors `GemPiece.position` and perspective. Artwork counter-rotation preserves identity while the axis-local scale supplies a small contact compression. Neither `BoardSimulation` nor `ContactMergeService` imports or reads presentation state.
+
+Merge timing remains a controller presentation gate over already-confirmed merge results. Gameplay state does not depend on effects-layer particles, target/coin proxies, or collision deformation completing successfully.
+
+Large-screen containment remains configuration-driven: Godot's expanding canvas exposes additional width, `GameConfig.configure_viewport()` centers the unchanged 720-design-pixel table model, and the background uses aspect-preserving cover. The table is not horizontally scaled for wide windows.

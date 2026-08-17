@@ -93,12 +93,15 @@ const CONTACT_EPSILON := 0.20
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.36 # faster reward beat; presentation only
-const MERGE_SOURCE_PULL_DURATION := 0.075
-const MERGE_RESULT_START_SCALE := 0.60
-const MERGE_RESULT_POP_SCALE := 1.23
-const MERGE_RESULT_POP_DURATION := 0.14
+const MERGE_PRESENTATION_DURATION := 0.30 # complete impact/combine/pop/settle beat; presentation only
+const MERGE_SOURCE_PULL_DURATION := 0.07
+const MERGE_RESULT_START_SCALE := 0.68
+const MERGE_RESULT_POP_SCALE := 1.18
+const MERGE_RESULT_POP_DURATION := 0.15
 const MERGE_PULSE_SCALE := 1.22
+const COLLISION_VISUAL_DURATION := 0.11
+const COLLISION_VISUAL_MAX_COMPRESSION := 0.055
+const COLLISION_VISUAL_COOLDOWN := 0.10
 const SCORE_POPUP_DURATION := 0.46
 const SCORE_POPUP_RISE := 36.0
 const MAJOR_REWARD_TIER := 6

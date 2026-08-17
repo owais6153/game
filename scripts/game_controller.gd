@@ -77,6 +77,8 @@ var app_flow_state := AppFlowState.STARTUP
 var presentation_event_trace: Array[Dictionary] = []
 var process_frame_index := 0
 var piece_visual_feedbacks: Dictionary = {}
+var collision_visual_last_at: Dictionary = {}
+var collision_visual_clock := 0.0
 ## Developer-only inspection aid. F8 toggles it in editor/desktop builds; it
 ## starts disabled and has no input or gameplay authority on Android.
 var debug_calibration_enabled := false
@@ -131,6 +133,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	process_frame_index += 1
+	collision_visual_clock += delta
 	for marker in debug_contact_points:
 		marker.age = float(marker.get("age", 0.0)) + delta
 	debug_contact_points = debug_contact_points.filter(func(marker: Dictionary) -> bool: return float(marker.get("age", 0.0)) < 0.45)
@@ -379,6 +382,8 @@ func restart() -> void:
 	presentation_event_trace.clear()
 	process_frame_index = 0
 	piece_visual_feedbacks.clear()
+	collision_visual_last_at.clear()
+	collision_visual_clock = 0.0
 	chain_multiplier = 1
 	danger_timers.clear()
 	won = false
@@ -821,11 +826,11 @@ func _merge_result_visual_transform(elapsed: float, result_id: int) -> Dictionar
 	else:
 		var settle_duration := maxf(0.001, GameConfig.MERGE_PRESENTATION_DURATION - GameConfig.MERGE_RESULT_POP_DURATION)
 		var settle_t := clampf((elapsed - GameConfig.MERGE_RESULT_POP_DURATION) / settle_duration, 0.0, 1.0)
-		# Restore the prior damped, uniform settle without changing the rigid
-		# silhouette or feeding presentation scale into the simulation.
+		# A short damped uniform settle keeps the result readable without feeding
+		# presentation scale into the simulation.
 		uniform_scale = 1.0 + (GameConfig.MERGE_RESULT_POP_SCALE - 1.0) * exp(-4.2 * settle_t) * cos(settle_t * PI * 1.65)
-	# The reference never changes a piece's silhouette. Merge emphasis is one
-	# centered uniform pop only: no squash, stretch, tilt, or presentation kick.
+	# The result uses one centered uniform pop; source compression and contact
+	# response are separate presentation-only transforms.
 	return {"scale": Vector2.ONE * uniform_scale, "uniform_scale": uniform_scale, "offset": Vector2.ZERO, "rotation": 0.0}
 
 func _update_piece_visual_feedbacks(delta: float) -> void:
@@ -836,8 +841,18 @@ func _update_piece_visual_feedbacks(delta: float) -> void:
 		feedback.elapsed = float(feedback.get("elapsed", 0.0)) + delta
 		var duration := maxf(0.001, float(feedback.get("duration", 0.1)))
 		var t := clampf(float(feedback.elapsed) / duration, 0.0, 1.0)
+		var kind := String(feedback.get("kind", ""))
+		if kind == "collision":
+			var envelope := sin(t * PI)
+			var compression := float(feedback.get("compression", 0.03)) * envelope
+			var normal: Vector2 = feedback.get("normal", Vector2.RIGHT)
+			gem_sprite_layer.set_impact_transform(int(piece_id), Vector2(1.0 - compression, 1.0 + compression * 0.55), normal)
+			if t >= 1.0:
+				gem_sprite_layer.clear_impact_scale(int(piece_id))
+				piece_visual_feedbacks.erase(piece_id)
+			continue
 		var scale := 1.0
-		if String(feedback.get("kind", "")) == "spawn":
+		if kind == "spawn":
 			if t <= 0.68:
 				var rise := 1.0 - pow(1.0 - t / 0.68, 3.0)
 				scale = lerpf(0.84, 1.06, rise)
@@ -1127,6 +1142,7 @@ func _route_collision_feedback(impacts: Array[Dictionary], merge_events: Array[D
 		if kind == "wall":
 			if strength >= GameConfig.WALL_CONTACT_SOUND_THRESHOLD:
 				audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75))
+				_begin_collision_visual(int(impact.get("piece_id", -1)), impact.get("normal", Vector2.RIGHT), strength)
 		elif strength >= GameConfig.GEM_CONTACT_SOUND_THRESHOLD:
 			var first_id := int(impact.get("first_id", -1))
 			var second_id := int(impact.get("second_id", -1))
@@ -1134,6 +1150,22 @@ func _route_collision_feedback(impacts: Array[Dictionary], merge_events: Array[D
 			if merged_pairs.has(pair_key):
 				continue
 			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
+			var normal: Vector2 = impact.get("normal", Vector2.RIGHT)
+			_begin_collision_visual(first_id, -normal, strength)
+			_begin_collision_visual(second_id, normal, strength)
+
+func _begin_collision_visual(piece_id: int, normal: Vector2, strength: float) -> void:
+	if piece_id < 0 or collision_visual_clock - float(collision_visual_last_at.get(piece_id, -100.0)) < GameConfig.COLLISION_VISUAL_COOLDOWN:
+		return
+	collision_visual_last_at[piece_id] = collision_visual_clock
+	var intensity := clampf(strength / GameConfig.LAUNCH_SPEED, 0.0, 1.0)
+	piece_visual_feedbacks[piece_id] = {
+		"kind": "collision",
+		"elapsed": 0.0,
+		"duration": GameConfig.COLLISION_VISUAL_DURATION,
+		"normal": normal,
+		"compression": lerpf(0.018, GameConfig.COLLISION_VISUAL_MAX_COMPRESSION, intensity),
+	}
 
 func _draw() -> void:
 	# Presentation-only guide and warning feedback share authoritative geometry

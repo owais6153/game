@@ -15,9 +15,8 @@ var _presentation_scales: Dictionary = {}
 var _presentation_offsets: Dictionary = {}
 var _presentation_rotations: Dictionary = {}
 var _presentation_elevated: Dictionary = {}
-## Retained empty compatibility dictionaries for older development harnesses.
-## Production contact feedback never writes a transform: live silhouettes stay
-## rigid before, during, and after every confirmed collision.
+## Bounded, presentation-only contact response. It is applied below the
+## simulation-mirroring root and is never read by physics or merge logic.
 var _impact_scales: Dictionary = {}
 var _impact_angles: Dictionary = {}
 var _impact_offsets: Dictionary = {}
@@ -161,7 +160,13 @@ func set_impact_scale(piece_id: int, multiplier: float) -> void:
 	clear_impact_scale(piece_id)
 
 func set_impact_transform(piece_id: int, scale: Vector2, normal: Vector2, offset: Vector2 = Vector2.ZERO) -> void:
-	clear_impact_scale(piece_id)
+	var safe_normal := normal.normalized() if normal.length_squared() > 0.0001 else Vector2.RIGHT
+	_impact_scales[piece_id] = Vector2(
+		clampf(scale.x, 0.92, 1.08),
+		clampf(scale.y, 0.92, 1.08)
+	)
+	_impact_angles[piece_id] = safe_normal.angle()
+	_impact_offsets[piece_id] = offset.limit_length(2.0)
 
 func clear_impact_scale(piece_id: int) -> void:
 	_impact_scales.erase(piece_id)

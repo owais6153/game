@@ -746,3 +746,10 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - The prepared next-release values are versionCode `4` and versionName `1.0.2`; they are persisted in `export_presets.cfg`. No AAB was generated as part of this preparation.
 - Every future AAB must advance both values beyond the latest uploaded/delivered AAB. Treat `version/name` as a numeric semantic version and increment the patch component by default; never ship a new AAB under the previous visible release name.
 - Commit both values before export, include both in the AAB filename, and verify both from Bundletool's embedded manifest dump. An AAB with a reused or non-increasing code or name is not a deliverable artifact.
+# Animation and large-screen polish guardrails - 2026-08-18
+
+- Merge presentation target: 0.30 s total, 0.07 s source pull, 1.18x result overshoot. Do not delay merge resolution, target counting, coins, or launcher lifecycle for particles.
+- Collision visual response is `ImpactAxis`-only: 0.11 s, maximum 5.5% compression, 0.10 s per-piece cooldown. Never write the transform into `GemPiece`, collision radii, velocities, positions, or contact eligibility.
+- Suppress collision visual/audio feedback for the exact contact pair consumed by a confirmed merge; the merge cue/effect owns that contact.
+- Preserve `canvas_items` + `expand`, centered `GameConfig` geometry, aspect-preserving background cover, phone portrait orientation, and Android game category. Wide screens gain scenery around the fixed-width composition; never stretch the table horizontally.
+- Global Tweens is already an autoload. Do not restore Tween Composer unless a future effect cannot be expressed cleanly through the existing controller/native tween paths and its Android package cost is revalidated.

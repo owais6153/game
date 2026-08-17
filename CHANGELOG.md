@@ -681,3 +681,10 @@
 
 - Prepared the next Android release as versionCode `4` and versionName `1.0.2`; no APK or AAB was generated.
 - Extended the release guardrail so every future AAB must increase both values, persist and commit them before export, include them in the filename, and pass Bundletool embedded-manifest verification before delivery.
+# 2026-08-18 - Animation/reward/audio/large-screen polish APK
+
+- Tightened confirmed merge presentation from 0.36 s to 0.30 s and calibrated the result pop from 1.23x to 1.18x.
+- Added subtle, cooldown-protected collision compression below each gem's simulation-mirroring root; merging contact pairs remain excluded from collision feedback.
+- Added focused timing/deformation contracts and wide/resizable table containment tests.
+- Audited Android 16 behavior: retained portrait on phones, the game category, adaptive `expand` canvas, centered fixed-width table, and background fill. No AdMob, UMP, economy, progression, physics, gem asset, or UI-layout behavior changed.
+- Produced only the requested debug APK; no AAB export was performed.

@@ -29,6 +29,7 @@ func _init() -> void:
 
 func _run() -> void:
 	_test_tier_radius_progression()
+	_test_feedback_polish_contract()
 	_test_fixed_table_geometry()
 	_test_regenerated_table_art_alignment()
 	_test_responsive_table_geometry()
@@ -53,6 +54,15 @@ func _test_tier_radius_progression() -> void:
 		previous = radius
 	_assert(is_equal_approx(GameConfig.gem_collision_radius(8) / GameConfig.gem_collision_radius(1), 57.0 / 36.0), "L8/L1 endpoint scale must remain the bounded 1.583x ladder")
 	_assert(GameConfig.PIECE_RADIUS == 57.0, "PIECE_RADIUS fallback must match the largest active tier")
+
+
+func _test_feedback_polish_contract() -> void:
+	_assert(GameConfig.MERGE_PRESENTATION_DURATION >= 0.25 and GameConfig.MERGE_PRESENTATION_DURATION <= 0.32, "Merge presentation must complete inside the requested 250-320 ms window")
+	_assert(GameConfig.MERGE_SOURCE_PULL_DURATION <= 0.07, "Merge source impact/pull must remain brief")
+	_assert(GameConfig.MERGE_RESULT_POP_SCALE >= 1.12 and GameConfig.MERGE_RESULT_POP_SCALE <= 1.20, "Merge result overshoot must remain controlled")
+	_assert(GameConfig.COLLISION_VISUAL_DURATION <= 0.15, "Collision micro-feedback must remain short")
+	_assert(GameConfig.COLLISION_VISUAL_MAX_COMPRESSION <= 0.06, "Collision deformation must remain subtle")
+	_assert(GameConfig.COLLISION_VISUAL_COOLDOWN >= 0.08 and GameConfig.COLLISION_VISUAL_COOLDOWN <= 0.15, "Collision visual cooldown must prevent chatter")
 
 
 func _test_fixed_table_geometry() -> void:
@@ -101,6 +111,11 @@ func _test_responsive_table_geometry() -> void:
 		_assert(GameConfig.table_left_at(GameConfig.board_bottom()) >= 54.0 and GameConfig.table_right_at(GameConfig.board_bottom()) <= 666.0, "Front rails must stay inside horizontal safe margins")
 		_assert(GameConfig.launch_y() < GameConfig.board_bottom(), "Launcher must remain inside the board")
 		_assert(GameConfig.danger_line_y() < GameConfig.launch_y(), "Danger line must remain above the launcher")
+	for wide_size in [Vector2(1280.0, 1280.0), Vector2(1600.0, 1280.0), Vector2(1920.0, 1280.0)]:
+		GameConfig.configure_viewport(wide_size)
+		_assert(is_equal_approx(GameConfig.table_center_x(), wide_size.x * 0.5), "%s wide/resizable table must remain centered" % wide_size)
+		_assert(GameConfig.table_left_at(GameConfig.board_bottom()) > 0.0 and GameConfig.table_right_at(GameConfig.board_bottom()) < wide_size.x, "%s wide/resizable rails must remain contained" % wide_size)
+		_assert(is_equal_approx(GameConfig.table_texture_render_scale().x, GameConfig.TABLE_TEXTURE_RENDER_SCALE.x), "%s wide/resizable table must not stretch horizontally" % wide_size)
 
 
 func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:

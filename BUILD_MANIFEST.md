@@ -1041,3 +1041,14 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Tag: `supplied-hud-l7-l8-balance-v1`
 - Validation: Godot parse/import; clean contact, 18-gem chain, Level 1 flow, and motion profile checks passed. Fresh APK export succeeded.
 - Device status: no connected Android device; installation and launch were not attempted.
+# Animation / reward / audio / large-screen polish APK - 2026-08-18
+
+- Filename: `build/android/majestic-gems-animation-large-screen-polish.apk`
+- Size: 81,320,711 bytes
+- Timestamp: 2026-08-18 04:05:42 +05:00
+- SHA-256: `DAC8A7210CD5BADA6F1D6862613877ED61C8FEBB25BDDA31596FE7F647714B7E`
+- Source commit/tag at export: working milestone based on `4b16285` / `android-release-1.0.2-vc4-prepared`; final source commit/tag recorded below after milestone commit.
+- Export: Godot 4.6.3 `--export-debug Android`, Gradle APK format, both ARM ABIs, debug signing. The APK and Gradle output stabilized byte-for-byte; the known silent outer export wrapper was then terminated. The preset was restored to its existing release AAB path/format. No AAB was generated.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36; manifest `android:appCategory=game`, portrait orientation, and `resizeableActivity=true`; APK Signature Scheme v2 PASS with one Godot RSA-2048 debug signer.
+- Tests: `UI_SCALE_LAYOUT_TESTS: PASS`, `SOUND_PRIVACY_LINK_TESTS: PASS`, `GAME_FLOW_REWARD_SPLASH_TESTS: PASS`; Godot editor parse/import PASS. The test wrapper's known post-sentinel teardown returned exit 1 without assertion failure.
+- Device status: `adb devices -l` returned no connected device. Installation, launch, physical tablet/foldable behavior, listening, and haptic feel are not claimed.

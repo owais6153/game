@@ -416,3 +416,10 @@ The Android export preset stored `version/code=3` for the corrected release bund
 # Current State Addendum - Next Android release version preparation
 
 The export preset is prepared for the next release with versionCode `4` and versionName `1.0.2`. No AAB was generated. From this point onward every new AAB must advance both the integer code and semantic visible name, commit both before export, include both in its filename, and pass a Bundletool embedded-manifest check before delivery. The prior `-vc3.aab` remains the recorded versionCode 3/versionName 1.0.1 artifact; this preparation does not modify it.
+# Animation, collision feedback, and large-screen containment polish - 2026-08-18
+
+- Confirmed merges now complete their presentation in 0.30 s with a 0.07 s source pull and a controlled 1.18x result overshoot. Resolution, target qualification, rewards, and launcher state remain authoritative and animation-independent.
+- Meaningful non-merge gem/rail contacts receive an 0.11 s presentation-only compression capped at 5.5%, with a 0.10 s per-piece cooldown. The simulation root, collider, velocity, position, contact capture, and merge eligibility never read this transform.
+- Android keeps the intentional portrait-phone setting. The existing `canvas_items` + `expand` viewport, centered authoritative table geometry, cover-scaled background, and `package/app_category=2` game declaration remain active; wide virtual canvases are now regression-covered without horizontal table stretch.
+- Global Tweens remains restored as the existing autoload. Tween Composer remains excluded because current controller/native tweens already own these bounded effects and restoring its data would add duplicate runtime machinery.
+- This milestone delivers an APK only. No AAB is created.
