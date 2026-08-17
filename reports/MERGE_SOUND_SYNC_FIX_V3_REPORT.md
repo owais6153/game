@@ -2,6 +2,10 @@
 
 Date: 2026-08-16
 
+## VersionCode correction - 2026-08-17
+
+The first release AAB below used versionCode 2, which Google Play had already consumed; it is superseded and must not be uploaded. The Android preset now persists versionCode 3, and the corrected `-vc3.aab` export/validation is pending. A new repository guardrail requires every future release build to save a code greater than all previously recorded Play releases before export.
+
 ## Request and diagnosis
 
 The user reported that the selected merge sound was audible only after merging and after the result gem appeared. Static controller inspection showed that merge audio was already requested within `_apply_confirmed_merge_events()` during the confirmed merge frame. FFmpeg silence analysis then measured the actual cause in the selected `merge-target.mp3` file:

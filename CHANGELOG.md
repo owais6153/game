@@ -670,3 +670,8 @@
 - Exported `build/android/majestic-gems-merge-sound-sync-v3.aab` from the validated immediate merge-sound milestone using the unchanged production Android preset and upload certificate.
 - Bundletool, JAR signature, release manifest, package/SDK, production AdMob App ID, dual-ARM native libraries, immediate merge-audio payload, and export-exclusion audits pass.
 - Preserved package `com.owais.majestygems`, versionCode 2/versionName 1.0.1, ads/UMP, signing, gameplay, physics, UI, and audio behavior. The prior `majestic-gems-closed-test-v2.aab` was not overwritten.
+# 2026-08-17 - Android release versionCode 3 correction
+
+- Persisted Android `version/code=3` after Play rejected reuse of already-published versionCode 2.
+- Added a mandatory repository workflow rule: before every future release APK/AAB export, select and save an integer greater than the highest versionCode recorded in `BUILD_MANIFEST.md`; never reuse or revert a released code.
+- Marked the prior merge-sound versionCode-2 AAB as superseded. Corrected signed AAB export pending; package ID, versionName, signing, ads/UMP, gameplay, UI, physics, and audio remain unchanged.

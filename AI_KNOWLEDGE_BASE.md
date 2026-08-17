@@ -735,3 +735,8 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - The runtime derivative trims `0.515 s` and has about `0.008042 s` of silence before the audible attack. Do not restore the untrimmed runtime mapping or add a timer/animation delay workaround.
 - Emit merge audio immediately after confirmed result classification and before presentation setup. It must remain downstream of merge resolution and must never influence physics, eligibility, result IDs, targets, or animation timing.
 - Preserve v2 mappings/gains, exact-pair collision suppression, cooldowns, pitch ranges, five-voice pool, Music/SFX buses, limiter, and no-lose route.
+# 2026-08-17 - Android release versionCode guardrail
+
+- Current persisted Android release code is `3`. VersionCode `2` has already been used in Google Play and must never be exported as a new release again.
+- Before any release APK/AAB build, inspect `BUILD_MANIFEST.md` for the highest delivered Play versionCode, set `export_presets.cfg` `version/code` to a strictly higher integer, commit/persist that value before Gradle export, and record it with the artifact afterward.
+- Do not reset the preset to an older code after export. Package `com.owais.majestygems`, versionName `1.0.1`, production signing, AdMob/UMP, and all gameplay remain independent of this monotonic code.
