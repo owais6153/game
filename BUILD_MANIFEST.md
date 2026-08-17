@@ -1,5 +1,21 @@
 # Build Manifest
 
+## Immediate Merge Sound Sync RELEASE AAB v3 - corrected versionCode 3
+
+- AAB: `build/android/majestic-gems-merge-sound-sync-v3-vc3.aab`
+- Size: 69,163,616 bytes (65.96 MiB)
+- Export timestamp: 2026-08-17T11:21:49.6706229+05:00 (Asia/Karachi)
+- SHA-256: `29E0476F88CEA5EC33AA579AC1E15CA432AA9E761C6A7DE6CDB7B9B61A2C5E3B`
+- Build source commit/tag: `aa3a1e1` / `android-version-code-3-source`; implementation source/tag: `3f2fa01` / `merge-sound-sync-v3-source`.
+- Export preset/method: existing `Android` preset; Godot 4.6.3 headless `--export-release`; Gradle AAB; existing production signing configuration. `version/code=3` was persisted and committed before export. The output used a new `-vc3.aab` filename and did not overwrite either earlier bundle.
+- Export-process status: the export log reached `[DONE] export`; the AAB remained unchanged across a 30-second stability check. The exact export-owned Godot/Java processes that stayed open afterward were stopped; a clean outer-process exit is not claimed.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 3; versionName 1.0.1; min SDK 24; target/compile SDK 36; release manifest is not debuggable.
+- Signing: JAR verification PASS; existing self-signed RSA-2048 upload certificate owned by Muhammad Owais Khan / Teckvertex Labs; certificate SHA-256 `E3BA3287A50AF4AC49C07CBCB2E4F10940AD519642CB24F21BCF856B3F3BCE14`.
+- Bundle validation: Bundletool 1.18.3 PASS; 1,003 ZIP entries; base manifest; three DEX files; `arm64-v8a` and `armeabi-v7a` Godot/C++ pairs; immediate merge Ogg import present; zero report/test entries. Manifest production AdMob App ID is `ca-app-pub-4605895178658062~1516881747`; focused AdMob/UMP routing suite printed `ADMOB_INTEGRATION_TESTS: PASS` before its documented late mock callback teardown error.
+- Device status: AAB files are not directly installable. No Play upload/delivery or physical-device launch is claimed.
+- Supersession: `majestic-gems-merge-sound-sync-v3.aab` used already-consumed versionCode 2 and must not be uploaded. This versionCode-3 bundle replaces it.
+- Report: `reports/MERGE_SOUND_SYNC_FIX_V3_REPORT.md`.
+
 ## Immediate Merge Sound Sync RELEASE AAB v3
 
 - AAB: `build/android/majestic-gems-merge-sound-sync-v3.aab`
@@ -13,7 +29,7 @@
 - Signing: JAR verification PASS; existing self-signed RSA-2048 upload certificate owned by Muhammad Owais Khan / Teckvertex Labs; certificate SHA-256 `E3BA3287A50AF4AC49C07CBCB2E4F10940AD519642CB24F21BCF856B3F3BCE14`.
 - Bundle validation: Bundletool 1.18.3 PASS; 1,003 ZIP entries; base manifest; three DEX files; `arm64-v8a` and `armeabi-v7a` Godot/C++ pairs; immediate merge Ogg import present; zero report/test/source-audio entries. Manifest production AdMob App ID is `ca-app-pub-4605895178658062~1516881747`; focused AdMob/UMP routing suite reached PASS.
 - Device status: AAB files are not directly installable. No Play delivery or device install/launch is claimed.
-- Play note: this bundle retains requested configuration versionCode 2. Google Play requires a higher code if versionCode 2 has already been uploaded to this application.
+- Play note: superseded because Google Play had already consumed versionCode 2. Do not upload this file; use the corrected `-vc3.aab` bundle above.
 - Report: `reports/MERGE_SOUND_SYNC_FIX_V3_REPORT.md`.
 
 ## Immediate Merge Sound Sync TEST APK v3

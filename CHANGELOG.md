@@ -674,4 +674,5 @@
 
 - Persisted Android `version/code=3` after Play rejected reuse of already-published versionCode 2.
 - Added a mandatory repository workflow rule: before every future release APK/AAB export, select and save an integer greater than the highest versionCode recorded in `BUILD_MANIFEST.md`; never reuse or revert a released code.
-- Marked the prior merge-sound versionCode-2 AAB as superseded. Corrected signed AAB export pending; package ID, versionName, signing, ads/UMP, gameplay, UI, physics, and audio remain unchanged.
+- Marked the prior merge-sound versionCode-2 AAB as superseded and exported `build/android/majestic-gems-merge-sound-sync-v3-vc3.aab` with embedded versionCode 3.
+- Bundletool, JAR/upload-certificate, package/SDK, production AdMob App ID, dual-ARM, immediate merge-audio payload, and export-exclusion audits pass. Package ID, versionName, signing, ads/UMP, gameplay, UI, physics, and audio remain unchanged.

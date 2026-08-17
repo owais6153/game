@@ -4,7 +4,7 @@ Date: 2026-08-16
 
 ## VersionCode correction - 2026-08-17
 
-The first release AAB below used versionCode 2, which Google Play had already consumed; it is superseded and must not be uploaded. The Android preset now persists versionCode 3, and the corrected `-vc3.aab` export/validation is pending. A new repository guardrail requires every future release build to save a code greater than all previously recorded Play releases before export.
+The first release AAB below used versionCode 2, which Google Play had already consumed; it is superseded and must not be uploaded. The Android preset now persists versionCode 3. The corrected `build/android/majestic-gems-merge-sound-sync-v3-vc3.aab` embeds versionCode 3 and passes the release audit. A new repository guardrail requires every future release build to save a code greater than all previously recorded Play releases before export.
 
 ## Request and diagnosis
 
@@ -62,3 +62,15 @@ Both script runners printed their PASS sentinel before the environment's known W
 - Export note: the new output filename did not alter the production preset or overwrite the previous v2 AAB. The log reached `[DONE] export`; after file stability was confirmed, the exact silent wrapper processes were stopped.
 - Device status: AAB files are not directly installable; Play delivery and physical-device behavior are not claimed.
 - Play note: versionCode remains 2. If Play Console already contains versionCode 2, the project needs explicit authorization to increment it before a new upload.
+
+## Corrected RELEASE AAB delivery - versionCode 3 - 2026-08-17
+
+- AAB: `build/android/majestic-gems-merge-sound-sync-v3-vc3.aab`
+- Size: 69,163,616 bytes (65.96 MiB)
+- SHA-256: `29E0476F88CEA5EC33AA579AC1E15CA432AA9E761C6A7DE6CDB7B9B61A2C5E3B`
+- Build source: `aa3a1e1` / `android-version-code-3-source`; implementation source: `3f2fa01` / `merge-sound-sync-v3-source`
+- Package: `com.owais.majestygems`, versionCode 3, versionName 1.0.1, min SDK 24, target/compile SDK 36; release manifest is not debuggable.
+- Signing: JAR verification PASS using the existing Muhammad Owais Khan / Teckvertex Labs RSA-2048 upload certificate, SHA-256 `E3BA3287A50AF4AC49C07CBCB2E4F10940AD519642CB24F21BCF856B3F3BCE14`.
+- Validation: Bundletool 1.18.3 PASS; 1,003 entries; three DEX files; both ARM ABI library pairs; production AdMob App ID present; immediate merge Ogg import present; zero report/test entries. `ADMOB_INTEGRATION_TESTS: PASS` printed before the documented late Poing mock callback teardown error.
+- Export note: `version/code=3` was saved, committed, tagged, and pushed before export. The log reached `[DONE] export`; the AAB remained stable for 30 seconds, after which the exact two silent export processes were stopped. The versionCode-2 AAB remains untouched but superseded.
+- Device status: AAB files are not directly installable; Play upload/delivery and physical-device behavior are not claimed.
