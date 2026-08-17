@@ -1,5 +1,21 @@
 # Build Manifest
 
+## Immediate Merge Sound Sync RELEASE AAB v3
+
+- AAB: `build/android/majestic-gems-merge-sound-sync-v3.aab`
+- Size: 69,163,559 bytes (65.96 MiB)
+- Export timestamp: 2026-08-17T10:58:55.8427766+05:00 (Asia/Karachi)
+- SHA-256: `D08D5169C19AAA8E8F63FD9BFB3B6345CEE0C64B7C9C550D359B5BECC1346D30`
+- Build source commit/tag: `86f0c90` / `merge-sound-sync-v3-test-apk`; implementation source/tag: `3f2fa01` / `merge-sound-sync-v3-source`.
+- Export preset/method: existing `Android` preset; Godot 4.6.3 headless `--export-release`; Gradle AAB; existing production signing configuration; output override used a new filename and did not modify the preset or overwrite `majestic-gems-closed-test-v2.aab`.
+- Export-process status: the export log reached `[DONE] export` and the AAB remained stable across a 30-second check before the silent outer wrapper timed out. The exact export-owned Godot/Java processes were stopped and none remained; a clean outer exit is not claimed.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 2; versionName 1.0.1; min SDK 24; target/compile SDK 36; release manifest is not debuggable.
+- Signing: JAR verification PASS; existing self-signed RSA-2048 upload certificate owned by Muhammad Owais Khan / Teckvertex Labs; certificate SHA-256 `E3BA3287A50AF4AC49C07CBCB2E4F10940AD519642CB24F21BCF856B3F3BCE14`.
+- Bundle validation: Bundletool 1.18.3 PASS; 1,003 ZIP entries; base manifest; three DEX files; `arm64-v8a` and `armeabi-v7a` Godot/C++ pairs; immediate merge Ogg import present; zero report/test/source-audio entries. Manifest production AdMob App ID is `ca-app-pub-4605895178658062~1516881747`; focused AdMob/UMP routing suite reached PASS.
+- Device status: AAB files are not directly installable. No Play delivery or device install/launch is claimed.
+- Play note: this bundle retains requested configuration versionCode 2. Google Play requires a higher code if versionCode 2 has already been uploaded to this application.
+- Report: `reports/MERGE_SOUND_SYNC_FIX_V3_REPORT.md`.
+
 ## Immediate Merge Sound Sync TEST APK v3
 
 - APK: `build/android/majestic-gems-merge-sound-sync-v3-test.apk`

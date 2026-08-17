@@ -45,3 +45,16 @@ Both script runners printed their PASS sentinel before the environment's known W
 - Validation: v2 signature PASS with one RSA-2048 Godot debug signer; AAPT/ZIP PASS; `arm64-v8a` and `armeabi-v7a`; 992 entries; one manifest and primary dex; trimmed Ogg import present; zero report/test/source-audio leakage.
 - Export note: the log reached `[DONE] export`, the APK remained stable for 30 seconds, and the exact silent wrapper processes were stopped after timeout. The production AAB preset was restored exactly and no AAB was generated.
 - Device status: the bounded ADB probe timed out and its exact helper was stopped. Installation, launch, and subjective device listening are not claimed.
+
+## RELEASE AAB delivery - 2026-08-17
+
+- AAB: `build/android/majestic-gems-merge-sound-sync-v3.aab`
+- Size: 69,163,559 bytes (65.96 MiB)
+- SHA-256: `D08D5169C19AAA8E8F63FD9BFB3B6345CEE0C64B7C9C550D359B5BECC1346D30`
+- Build source: `86f0c90` / `merge-sound-sync-v3-test-apk`; implementation source: `3f2fa01` / `merge-sound-sync-v3-source`
+- Package: `com.owais.majestygems`, versionCode 2, versionName 1.0.1, min SDK 24, target/compile SDK 36; release manifest is not debuggable.
+- Signing: JAR verification PASS using the existing Muhammad Owais Khan / Teckvertex Labs RSA-2048 upload certificate, SHA-256 `E3BA3287A50AF4AC49C07CBCB2E4F10940AD519642CB24F21BCF856B3F3BCE14`.
+- Validation: Bundletool 1.18.3 PASS; 1,003 entries; three DEX files; both ARM ABI library pairs; production AdMob App ID present; immediate merge Ogg import present; zero report/test/source-audio leakage. `SOUND_PRIVACY_LINK_TESTS` and `ADMOB_INTEGRATION_TESTS` reached PASS before their documented Windows teardown messages.
+- Export note: the new output filename did not alter the production preset or overwrite the previous v2 AAB. The log reached `[DONE] export`; after file stability was confirmed, the exact silent wrapper processes were stopped.
+- Device status: AAB files are not directly installable; Play delivery and physical-device behavior are not claimed.
+- Play note: versionCode remains 2. If Play Console already contains versionCode 2, the project needs explicit authorization to increment it before a new upload.

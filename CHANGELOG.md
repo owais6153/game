@@ -665,3 +665,8 @@
 - Preserved the source unchanged and generated `assets/runtime/audio/merge-target-immediate.ogg`, trimming `0.515 s` and leaving a measured `0.008042 s` pre-attack lead-in.
 - Routed the selected merge cue immediately after confirmed merge classification and before any result-presentation setup in the same frame.
 - Added timing/path/duration regression coverage. Gameplay, physics, merge/target rules, animation duration, gains, other audio, UI, ads, and Android configuration are unchanged. TEST APK pending; no AAB will be generated.
+# 2026-08-17 - Immediate merge-sound release AAB v3
+
+- Exported `build/android/majestic-gems-merge-sound-sync-v3.aab` from the validated immediate merge-sound milestone using the unchanged production Android preset and upload certificate.
+- Bundletool, JAR signature, release manifest, package/SDK, production AdMob App ID, dual-ARM native libraries, immediate merge-audio payload, and export-exclusion audits pass.
+- Preserved package `com.owais.majestygems`, versionCode 2/versionName 1.0.1, ads/UMP, signing, gameplay, physics, UI, and audio behavior. The prior `majestic-gems-closed-test-v2.aab` was not overwritten.
