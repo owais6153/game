@@ -21,7 +21,8 @@ Before inspecting or editing project files, every future agent must read, in thi
 - Update `CHANGELOG.md` and `CURRENT_STATE.md` for every behavior change.
 - Update `ARCHITECTURE.md` and `AI_KNOWLEDGE_BASE.md` for every architecture or module change.
 - Record every delivered APK in `BUILD_MANIFEST.md`: filename, size, timestamp, commit hash, tag, validation, and device status.
-- Before every release APK or AAB export, inspect all delivered release version codes in `BUILD_MANIFEST.md`, choose an integer strictly greater than the highest code already used for this Play application, and persist it in `export_presets.cfg` before building. Never reuse or temporarily revert a released version code.
+- Before every AAB export, inspect all uploaded and delivered AAB versions in `BUILD_MANIFEST.md`. Choose a `version/code` integer strictly greater than every previously used code and a semantic `version/name` strictly greater than the latest release name (increment the patch number by default, for example `1.0.1` -> `1.0.2`). Persist and commit both values in `export_presets.cfg` before building; never reuse or temporarily revert either value.
+- Name every release AAB with its version name and version code, then use Bundletool to verify that the embedded manifest contains the prepared values before recording or delivering it. If either embedded value is not newer than the prior release, the AAB is invalid and must not be delivered.
 - Create a task-specific report for every gameplay task.
 - Create every new milestone report under `reports/`; never add a report file to the repository root. Keep `reports/README.md` indexed.
 - After local validation, commit and tag each completed milestone, then push the existing branch and its new tag to the configured GitHub `origin`. Never force-push or replace the origin URL without explicit user authorization.

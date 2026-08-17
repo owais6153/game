@@ -737,6 +737,12 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Preserve v2 mappings/gains, exact-pair collision suppression, cooldowns, pitch ranges, five-voice pool, Music/SFX buses, limiter, and no-lose route.
 # 2026-08-17 - Android release versionCode guardrail
 
-- Current persisted Android release code is `3`. VersionCode `2` has already been used in Google Play and must never be exported as a new release again.
+- VersionCode `3` was persisted for the corrected AAB after versionCode `2` had already been used in Google Play. Both codes are historical and must never be exported as a new release again.
 - Before any release APK/AAB build, inspect `BUILD_MANIFEST.md` for the highest delivered Play versionCode, set `export_presets.cfg` `version/code` to a strictly higher integer, commit/persist that value before Gradle export, and record it with the artifact afterward.
-- Do not reset the preset to an older code after export. Package `com.owais.majestygems`, versionName `1.0.1`, production signing, AdMob/UMP, and all gameplay remain independent of this monotonic code.
+- Do not reset the preset to an older code after export. Package `com.owais.majestygems`, production signing, AdMob/UMP, and all gameplay remain independent of release versioning.
+
+# 2026-08-17 - Android release versionCode and versionName guardrail
+
+- The prepared next-release values are versionCode `4` and versionName `1.0.2`; they are persisted in `export_presets.cfg`. No AAB was generated as part of this preparation.
+- Every future AAB must advance both values beyond the latest uploaded/delivered AAB. Treat `version/name` as a numeric semantic version and increment the patch component by default; never ship a new AAB under the previous visible release name.
+- Commit both values before export, include both in the AAB filename, and verify both from Bundletool's embedded manifest dump. An AAB with a reused or non-increasing code or name is not a deliverable artifact.
