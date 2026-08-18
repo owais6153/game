@@ -1,5 +1,34 @@
 # Build Manifest
 
+## Reward, Coin, and Merge Timing Restore RELEASE AAB v1.0.3 (versionCode 5)
+
+- AAB: `build/android/majestic-gems-reward-coin-merge-restore-v1.0.3-vc5.aab`
+- Size: 70,072,704 bytes (66.83 MiB)
+- Export timestamp: 2026-08-18T13:20:06.3308489+05:00 (Asia/Karachi)
+- SHA-256: `9A976CA0639E74F98FECC8B0AB5F9C0E57318C47F8E77E493E622037E22ED966`
+- Source commit/tag: `5a1fc0f` / `reward-coin-merge-restore-v1.0.3-vc5-source`; delivery tag: `reward-coin-merge-restore-v1.0.3-vc5-release`.
+- Version selection: the user confirmed Google Play currently has versionCode 3. Local tester APKs had already used code 4/name 1.0.2, so the committed preset advances permanently to versionCode 5/versionName 1.0.3 rather than reusing code 4.
+- Export preset/method: committed `Android` Gradle AAB preset; Godot 4.6.3 headless `--export-release`; existing upload key. No new signing key or credential was generated.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 5; versionName 1.0.3; min SDK 24; target/compile SDK 36; release manifest is not debuggable.
+- Signing: JAR verification PASS; existing RSA-2048 upload certificate SHA-256 `E3BA3287A50AF4AC49C07CBCB2E4F10940AD519642CB24F21BCF856B3F3BCE14`.
+- Bundle validation: Bundletool 1.18.3 PASS; 1,015 entries; base manifest; three DEX files; `arm64-v8a` and `armeabi-v7a` Godot/C++ pairs; Tween Composer Home dependency present; production AdMob App ID `ca-app-pub-4605895178658062~1516881747`; zero report/test/source-asset entries.
+- Tests: all eight repository regression sentinels PASS. The Windows test runner retains its known post-PASS teardown access violation; no assertion failed.
+- Device/Play status: AAB files are not directly installable. No Play upload or physical-device launch is claimed.
+- Report: `reports/REWARD_COIN_MERGE_TIMING_RESTORE_RELEASE.md`.
+
+## Reward, Coin, and Merge Timing Restore TEST APK v1.0.3 (versionCode 5)
+
+- APK: `build/android/majestic-gems-reward-coin-merge-restore-v1.0.3-vc5.apk`
+- Size: 82,228,028 bytes (78.42 MiB)
+- Export timestamp: 2026-08-18T13:21:31.9650153+05:00 (Asia/Karachi)
+- SHA-256: `966CF3DED40427BA70D2F8256434C1EB722E40B7C04672DEFDA5B5121EC61CDB`
+- Source commit/tag: `5a1fc0f` / `reward-coin-merge-restore-v1.0.3-vc5-source`; delivery tag: `reward-coin-merge-restore-v1.0.3-vc5-release`.
+- Export preset/method: the committed version-5 Android preset was temporarily switched from Gradle AAB to Gradle APK for Godot 4.6.3 headless `--export-debug`, then restored exactly to the committed AAB path and format.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 5; versionName 1.0.3; min SDK 24; target/compile SDK 36; debug build.
+- Signing/package validation: APK Signature Scheme v2 PASS with Godot's RSA-2048 debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT/ZIP audit PASS: 1,004 entries, both ARM Godot/C++ pairs, Tween Composer Home dependency, production AdMob App ID, and zero report/test/source-asset entries.
+- Device status: `adb devices -l` returned no attached device. Installation, on-phone timing acceptance, Back/Exit lifecycle, and subjective audio listening are not claimed.
+- Report: `reports/REWARD_COIN_MERGE_TIMING_RESTORE_RELEASE.md`.
+
 ## Animation Revert, Collision-Audio Midpoint, and Android Exit Fix TEST APK
 
 - APK: `build/android/majestic-gems-animation-revert-audio-midpoint-exit-fix.apk`

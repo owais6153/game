@@ -50,4 +50,26 @@ All eight project regression sentinels print PASS:
 - `BRANDING_PUSH_LINE_TESTS`
 - `ADMOB_INTEGRATION_TESTS`
 
-The Windows Godot 4.6.3 console runner retains its known access violation during teardown after each PASS sentinel; no assertion failed. Artifact, signing, manifest, ABI, bundletool, and device-status results are recorded after export and mirrored in `BUILD_MANIFEST.md`.
+The Windows Godot 4.6.3 console runner retains its known access violation during teardown after each PASS sentinel; no assertion failed.
+
+### Release AAB
+
+- File: `build/android/majestic-gems-reward-coin-merge-restore-v1.0.3-vc5.aab`
+- Size: 70,072,704 bytes
+- SHA-256: `9A976CA0639E74F98FECC8B0AB5F9C0E57318C47F8E77E493E622037E22ED966`
+- Bundletool 1.18.3: PASS
+- Embedded identity: `com.owais.majestygems`, versionCode 5, versionName 1.0.3, min SDK 24, target SDK 36
+- Signing: existing upload certificate, SHA-256 `E3BA3287A50AF4AC49C07CBCB2E4F10940AD519642CB24F21BCF856B3F3BCE14`
+- Contents: both ARM ABIs, Tween Composer Home dependency, production AdMob App ID, and no reports/tests/source assets
+
+### Tester APK
+
+- File: `build/android/majestic-gems-reward-coin-merge-restore-v1.0.3-vc5.apk`
+- Size: 82,228,028 bytes
+- SHA-256: `966CF3DED40427BA70D2F8256434C1EB722E40B7C04672DEFDA5B5121EC61CDB`
+- AAPT/signature/ZIP audit: PASS
+- Embedded identity: `com.owais.majestygems`, versionCode 5, versionName 1.0.3, min SDK 24, target SDK 36
+- Signing: APK Signature Scheme v2 PASS with the existing Godot debug certificate
+- Contents: both ARM ABIs, Tween Composer Home dependency, production AdMob App ID, and no reports/tests/source assets
+
+`adb devices -l` found no attached device, so installation, physical timing acceptance, Android Back/Exit behavior, and subjective listening are not claimed. The AAB was not uploaded to Play.
