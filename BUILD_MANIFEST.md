@@ -1067,3 +1067,15 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36; manifest `android:appCategory=game`, portrait orientation, and `resizeableActivity=true`; both `arm64-v8a` and `armeabi-v7a`; APK Signature Scheme v2 PASS with one Godot RSA-2048 debug signer.
 - Tests: `UI_SCALE_LAYOUT_TESTS: PASS`, `SOUND_PRIVACY_LINK_TESTS: PASS`, `GAME_FLOW_REWARD_SPLASH_TESTS: PASS`; Godot editor parse/import PASS. Each Windows runner returned the repository's known post-sentinel teardown access violation after printing PASS; no assertion failed.
 - Device status: `adb devices -l` found no connected device and no AVD was installed. Installation, launch, physical tablet/foldable behavior, listening, and haptic feel are not claimed.
+# Reference-Driven Game Feel v2 APK - 2026-08-18
+
+- Filename: `build/android/majestic-gems-reference-game-feel-v2.apk`
+- Size: 81,304,919 bytes
+- Timestamp: 2026-08-18 05:22:47 +05:00
+- SHA-256: `D4C224E14B029C70F3D8655A85F130AC1A35C11B38D6E32EB76870133EAE901F`
+- Export-source commit/tag: `f2922c8` / `reference-driven-game-feel-v2-source`.
+- Delivery tag: `reference-driven-game-feel-v2-apk` on the manifest/provenance follow-up commit.
+- Export: Godot 4.6.3 `--export-debug Android`, Gradle APK format, both `arm64-v8a` and `armeabi-v7a`, Godot debug signing. The committed release AAB path/format was restored immediately; no AAB was generated.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36; APK contains `AndroidManifest.xml`, primary DEX, and both ARM library sets; tests/reports are excluded. APK Signature Scheme v2 passes with one Godot RSA-2048 signer.
+- Tests: editor parse/import, `REFERENCE_GAME_FEEL_V2_TESTS`, `UI_SCALE_LAYOUT_TESTS`, `SOUND_PRIVACY_LINK_TESTS`, `GAME_FLOW_REWARD_SPLASH_TESTS`, `SCENE_VARIETY_ASSETS_TESTS`, and `BRANDING_PUSH_LINE_TESTS` passed.
+- Device status: `adb devices -l` found no connected device. Installation, launch, post-change screen recording, physical listening/haptics, and on-device perceptual acceptance are not claimed.

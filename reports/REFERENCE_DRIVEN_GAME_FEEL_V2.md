@@ -53,13 +53,18 @@ The reference makes success legible through immediate contact, a rapid source/re
 
 - Simulation adds 1-8 bounded substeps only when displacement requires them; ordinary settled frames remain one step. The active piece count is small and no broad-phase structure or persistent allocations were added.
 - Merge/target visuals remain immediate-mode bounded drawing. Standard/major spark counts are 10/12, coin count remains four, and existing effect caps remain active.
-- Build impact and APK audit are recorded after the final debug export.
+- Build impact: the final APK is 81,304,919 bytes, 884 bytes larger than the previous v2 polish APK. No new texture, audio, shader, plugin, or persistent particle resource was added.
 
 ## Validation status
 
 - Source videos decoded end-to-end: PASS.
 - Previous/reference normal-speed review: PASS.
-- Updated runtime normal-speed capture: pending until a comparable post-build capture can be recorded; code constants alone are not claimed as perceptual proof.
+- Updated runtime normal-speed capture: unavailable because ADB found no device and this task environment did not provide a comparable interactive capture. Code/timing differences are deliberately large, but on-device perceptual acceptance remains pending and is not overstated.
 - `REFERENCE_GAME_FEEL_V2_TESTS`: PASS.
 - `UI_SCALE_LAYOUT_TESTS`: PASS.
 - `SOUND_PRIVACY_LINK_TESTS`: PASS.
+- `GAME_FLOW_REWARD_SPLASH_TESTS`: PASS.
+- `SCENE_VARIETY_ASSETS_TESTS`: PASS.
+- `BRANDING_PUSH_LINE_TESTS`: PASS.
+- APK: PASS — `build/android/majestic-gems-reference-game-feel-v2.apk`, 81,304,919 bytes, SHA-256 `D4C224E14B029C70F3D8655A85F130AC1A35C11B38D6E32EB76870133EAE901F`.
+- AAPT/signature/dual-ARM/package audit: PASS. No AAB generated. No connected device.
