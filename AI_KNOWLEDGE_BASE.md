@@ -1,3 +1,10 @@
+# 2026-08-18 - Tester-approved cadence, contact midpoint, and Android exit guardrails
+
+- This section supersedes the slow animation values below. Preserve the exact restored cadence unless new tester feedback explicitly changes it: collision `0.11 s`, merge `0.27 s`, source pull `0.06 s`, result `0.64 -> 1.26 -> 1.0` over a `0.14 s` pop, major effect `0.36 s`, target collection `0.32 s`, target pulse `0.38 s`, coin flights `0.54/0.60 s` with `0.045/0.015 s` flight/spawn stagger, Next `0.16 s`, result hold `0.24 s`.
+- Preserve the post-pass safety architecture even though timings are reverted: controller target state advances on confirmation, HUD target state advances on arrival, presentation IDs are exactly-once, and launcher truth never waits on visual duration.
+- Active contact files are `gem_collision_medium_v2.ogg` and `rail_collision_medium_v2.ogg`. Keep gains `0.23/0.24`, thresholds `182.5/235`, global cooldowns `0.0925/0.115 s`, per-contact cooldown `0.12 s`, pitch `0.95-1.02/0.95-1.01`, and midpoint impact scaling unless another documented phone listening pass supersedes them.
+- Never call `SceneTree.quit()` synchronously from the Android Exit button. Invalidate callbacks with `prepare_for_exit()`, then post Activity `finishAndRemoveTask()` through AndroidRuntime on the UI thread. Keep deferred SceneTree quit only as a non-Android/runtime-unavailable fallback.
+
 # 2026-08-18 - Animation/audio/Back/privacy guardrails
 
 - These settings supersede older fast-feedback guidance: collision `0.14 s`, merge `0.54 s`, reveal/audio at `0.20 s`, target collection `0.70 s`, target pulse `0.22 s`, four coin visuals with `0.08 s` stagger and about `0.98 s` visible sequence, result hold `0.42 s`, and Next `0.22 s`.

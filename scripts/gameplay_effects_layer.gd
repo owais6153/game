@@ -45,7 +45,7 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 func begin_target_coin_reward(merge_event: Dictionary, awarded_coins: int, coin_destination: Vector2 = GameConfig.COIN_HUD_FALLBACK_DESTINATION) -> void:
 	if awarded_coins <= 0:
 		return
-	var delay := GameConfig.COIN_REWARD_START_DELAY + float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
+	var delay := float(merge_event.get("depth", 0)) * GameConfig.CHAIN_PRESENTATION_STAGGER
 	var midpoint: Vector2 = merge_event.get("midpoint", Vector2.ZERO)
 	var result_id := int(merge_event.get("result_id", -1))
 	var major_reward := int(merge_event.get("level", 1)) >= GameConfig.MAJOR_REWARD_TIER
@@ -187,15 +187,13 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	var spark_count := int(effect.get("spark_count", 8))
 	var major_reward := bool(effect.get("major_reward", false))
 	var t := clampf(elapsed / duration, 0.0, 1.0)
-	var impact_t := clampf(elapsed / 0.18, 0.0, 1.0)
-	var reveal_elapsed := elapsed - GameConfig.MERGE_REVEAL_START
-	var reveal_t := clampf(reveal_elapsed / maxf(0.001, duration - GameConfig.MERGE_REVEAL_START), 0.0, 1.0)
+	var impact_t := clampf(elapsed / (0.30 if major_reward else 0.18), 0.0, 1.0)
 	var center: Vector2 = effect.position
 	var color := GameConfig.gem_color(int(effect.level)).lightened(0.28)
 	color.a = 1.0 - t
 	var gem_radius := GameConfig.gem_collision_radius(int(effect.level))
 	var ring_radius := (gem_radius * 0.82 + 32.0 * impact_t) * effect_scale
-	var flash_alpha := maxf(0.0, 1.0 - reveal_t * 4.2) if reveal_elapsed >= 0.0 else 0.0
+	var flash_alpha := maxf(0.0, 1.0 - impact_t * 3.4)
 	if flash_alpha > 0.0:
 		draw_circle(center, gem_radius * (0.56 + impact_t * 0.46) * effect_scale, Color(1.0, 0.96, 0.70, flash_alpha * 0.78))
 	draw_arc(center, ring_radius, 0.0, TAU, 36 if major_reward else 28, color, 5.0 if major_reward else 3.5)
@@ -210,7 +208,7 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 		var inner := center + direction * (gem_radius * 0.72 + 17.0 * impact_t) * effect_scale
 		var outer := center + direction * (gem_radius * 1.02 + 34.0 * impact_t) * effect_scale * length_variation
 		var sparkle := Color("fff2a8") if index % 2 == 0 else color
-		sparkle.a = (1.0 - reveal_t) * 0.92 if reveal_elapsed >= 0.0 else 0.0
+		sparkle.a = (1.0 - impact_t) * 0.92
 		draw_line(inner, outer, sparkle, 3.5 if major_reward else 2.5)
 
 func _draw_score_popup(effect: Dictionary) -> void:

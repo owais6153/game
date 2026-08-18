@@ -314,6 +314,15 @@ All eight user-provided originals and byte-identical runtime copies remain prese
 
 All originals remain preserved. These files are presentation-only and never define contact, merge, target, reward, or physics behavior.
 
+# Tester midpoint contact derivatives v2 - 2026-08-18
+
+| Purpose | Preserved source | Runtime derivative | Processing / verification |
+| --- | --- | --- | --- |
+| Midpoint gem contact | `assets/sound/gems-colide.mp3` | `assets/runtime/audio/gem_collision_medium_v2.ogg` — 9,135 bytes — SHA-256 `70F9879B2C1834D9574138D0C8271282EA1D45CE2ABA9369E1145CD39DD00575` | 300 ms; 160 Hz high-pass, 7 kHz low-pass, -2 dB at 2.8 kHz, 8 ms fade-in, 80 ms fade-out; stereo 48 kHz Vorbis. |
+| Midpoint rail contact | `assets/sound/gems-rail-colide.mp3` | `assets/runtime/audio/rail_collision_medium_v2.ogg` — 8,932 bytes — SHA-256 `AFD0F5498E22DBFB8CFA075F57626E547BEB43C001ECA452AF308EB0ABC4E763` | 320 ms; 140 Hz high-pass, 6 kHz low-pass, -2.5 dB at 2.3 kHz, 10 ms fade-in, 90 ms fade-out; stereo 48 kHz Vorbis. |
+
+These v2 derivatives supersede soft v1 at runtime. The original and soft-v1 files remain preserved for provenance and comparison.
+
 # Soft contact and target-completion derivatives v1 - 2026-08-18
 
 | Purpose | Preserved source | Runtime derivative | Processing / verification |

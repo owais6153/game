@@ -3,10 +3,10 @@ extends Node
 
 const SuppliedBackgroundMusic: AudioStream = preload("res://assets/runtime/audio/supplied_background_music_v5.ogg")
 const SuppliedCoinReward: AudioStream = preload("res://assets/runtime/audio/supplied_coin_reward_v4.ogg")
-## Non-destructive, low-passed derivatives of the preserved supplied contact
-## files. Short fades and restrained top end keep routine physics beneath rewards.
-const SuppliedGemCollision: AudioStream = preload("res://assets/runtime/audio/gem_collision_soft_v1.ogg")
-const SuppliedRailCollision: AudioStream = preload("res://assets/runtime/audio/rail_collision_soft_v1.ogg")
+## Tester-directed midpoint derivatives: less harsh than the preserved supplied
+## originals, but brighter and more present than the rejected soft-v1 pass.
+const SuppliedGemCollision: AudioStream = preload("res://assets/runtime/audio/gem_collision_medium_v2.ogg")
+const SuppliedRailCollision: AudioStream = preload("res://assets/runtime/audio/rail_collision_medium_v2.ogg")
 const SuppliedBasicMerge: AudioStream = preload("res://assets/runtime/audio/merge-basic.mp3")
 ## Runtime-only derivative of the preserved supplied MP3. Its measured 0.523 s
 ## leading silence is trimmed to 0.008 s so the audible attack matches the

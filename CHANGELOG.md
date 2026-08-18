@@ -1,3 +1,11 @@
+# 2026-08-18 - Tester animation revert, collision midpoint, and Android exit correction
+
+- Restored every animation value changed by the rejected slow pass to the `5528ff6` tester-approved cadence: 270 ms merge, 320 ms target travel, prior pop/effect/coin/Next/result timings, and immediate merge audio.
+- Retained immediate authoritative target progression, arrival-timed HUD state, exactly-once presentation queueing, and launcher independence so the faster presentation cannot misclassify rapid merges or duplicate rewards.
+- Replaced the over-softened gem/rail derivatives with brighter midpoint v2 files and midpoint gains, impact thresholds, cooldowns, pitch ranges, and impact-volume scaling.
+- Replaced synchronous Android `SceneTree.quit()` from the Exit button with callback invalidation plus UI-thread `Activity.finishAndRemoveTask()` through Godot's built-in AndroidRuntime; desktop retains a deferred quit fallback.
+- Kept the exit confirmation, state-aware Back behavior, Privacy alignment, Home startup, game rules, rewards, gems, UI design, ads/UMP, saves, package, and release version unchanged.
+
 # 2026-08-18 - Animation, audio, Back, and Privacy production polish
 
 - Re-timed presentation-only feedback from a rushed 270 ms merge/320 ms target path to a readable 540 ms merge, 700 ms target journey, 220 ms target pulse, and about 980 ms four-coin sequence while keeping gameplay/launcher state authoritative and overlapping. Controller target progress commits at the confirmed merge while its separate HUD snapshot advances on visual arrival, preventing rapid follow-up merges from using stale targets.

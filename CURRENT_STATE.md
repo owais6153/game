@@ -1,3 +1,11 @@
+# Current State Addendum - Tester animation revert, contact midpoint, and Android lifecycle exit
+
+The rejected slow animation pass is superseded. Presentation is restored exactly to the pre-pass `5528ff6` cadence: collision 110 ms, merge 270 ms with a 60 ms pull and immediate `0.64 -> 1.26 -> 1.0` result pop, major effect 360 ms, target collection 320 ms, target pulse 380 ms, four coins over an 855 ms bound, Next 160 ms, and result hold 240 ms. Immediate confirmed merge audio is restored. Controller target truth remains immediate and separate from arrival-timed HUD presentation, preserving exactly-once rewards and correct rapid follow-up classification.
+
+Gem/rail contacts now use midpoint v2 derivatives rather than the harsh originals or over-softened v1 files. Gains are 0.23/0.24, thresholds 182.5/235, global cooldowns 92.5/115 ms, per-contact cooldown 120 ms, and pitch ranges `0.95-1.02` / `0.95-1.01`. The five-voice pool, event priorities, merge suppression, Music/SFX buses, limiter, and reward identities remain unchanged.
+
+Confirmed Android Exit keeps the Cancel/Exit popup but no longer synchronously kills SceneTree. It invalidates delayed ad callbacks, posts `finishAndRemoveTask()` to the current Activity through Godot AndroidRuntime on the UI thread, and leaves teardown to Android lifecycle. Desktop uses a deferred SceneTree fallback. See `reports/ANIMATION_REVERT_AUDIO_MIDPOINT_ANDROID_EXIT_FIX.md`.
+
 # Current State Addendum - Animation, audio, Back, and Privacy polish
 
 The current presentation rhythm is fast input followed by readable, overlapping success feedback: collisions are 140 ms, merges are 540 ms, target UI collection is 700 ms with a 220 ms card pulse, four reward coins remain visible for about 980 ms, and final-target-to-result presentation is about 1.66 seconds. Next remains 220 ms. Confirmed controller target state and launcher readiness no longer wait for merge, collection, particle, coin, or audio completion; the HUD keeps a separate presentation snapshot and advances at collection arrival. Presentation is queued exactly once and cannot grant duplicate targets or rewards. Reward values remain 10/25/60/150/350/800/1800 for result levels 2-8.

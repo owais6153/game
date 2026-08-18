@@ -12,7 +12,7 @@ func _init() -> void:
 
 func _run() -> void:
 	_test_timing_and_mix_contracts()
-	await _test_exactly_once_overlap_and_launcher_independence()
+	await _test_exactly_once_restored_cadence_and_launcher_independence()
 	await _test_back_state_priority()
 	await _test_privacy_alignment_across_aspects()
 	if failures.is_empty():
@@ -26,23 +26,22 @@ func _run() -> void:
 
 
 func _test_timing_and_mix_contracts() -> void:
-	_assert(GameConfig.COLLISION_VISUAL_DURATION >= 0.10 and GameConfig.COLLISION_VISUAL_DURATION <= 0.18, "Collision response must stay inside 100-180 ms")
-	_assert(GameConfig.MERGE_PRESENTATION_DURATION >= 0.45 and GameConfig.MERGE_PRESENTATION_DURATION <= 0.60, "Merge feedback must stay inside 450-600 ms")
-	_assert(GameConfig.TARGET_COLLECTION_DURATION >= 0.60 and GameConfig.TARGET_COLLECTION_DURATION <= 0.80, "Target collection must stay inside 600-800 ms")
-	_assert(GameConfig.TARGET_PANEL_PULSE_DURATION >= 0.15 and GameConfig.TARGET_PANEL_PULSE_DURATION <= 0.25, "Target pulse must stay inside 150-250 ms")
+	_assert(is_equal_approx(GameConfig.COLLISION_VISUAL_DURATION, 0.11), "Collision response must restore the tester-approved 110 ms")
+	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.27), "Merge feedback must restore the tester-approved 270 ms")
+	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_DURATION, 0.32), "Target collection must restore the tester-approved 320 ms")
+	_assert(is_equal_approx(GameConfig.TARGET_PANEL_PULSE_DURATION, 0.38), "Target pulse must restore the tester-approved 380 ms")
 	_assert(GameConfig.COIN_BURST_COUNT >= 4 and GameConfig.COIN_BURST_COUNT <= 6, "Coin reward must use four to six lightweight visuals")
-	_assert(GameConfig.COIN_FLIGHT_STAGGER >= 0.07 and GameConfig.COIN_FLIGHT_STAGGER <= 0.10, "Coin stagger must stay inside 70-100 ms")
-	_assert(GameConfig.COIN_FLIGHT_DURATION >= 0.45 and GameConfig.MAJOR_COIN_FLIGHT_DURATION <= 0.65, "Individual coin travel must stay inside 450-650 ms")
+	_assert(is_equal_approx(GameConfig.COIN_FLIGHT_STAGGER, 0.045) and is_equal_approx(GameConfig.COIN_SPAWN_STAGGER, 0.015), "Coin stagger must restore the previous cadence")
+	_assert(is_equal_approx(GameConfig.COIN_FLIGHT_DURATION, 0.54) and is_equal_approx(GameConfig.MAJOR_COIN_FLIGHT_DURATION, 0.60), "Coin travel must restore the previous cadence")
 	var visible_coin_sequence := GameConfig.COIN_BURST_DURATION + float(GameConfig.MAJOR_COIN_BURST_COUNT - 1) * GameConfig.COIN_FLIGHT_STAGGER + GameConfig.MAJOR_COIN_FLIGHT_DURATION
-	_assert(visible_coin_sequence >= 0.80 and visible_coin_sequence <= 1.10, "Visible coin sequence must stay inside 800-1100 ms")
+	_assert(is_equal_approx(visible_coin_sequence, 0.855), "Visible coin sequence must restore the previous 855 ms total")
 	var final_sequence := maxf(
-		GameConfig.TARGET_COLLECTION_OVERLAP_START + GameConfig.TARGET_COLLECTION_DURATION,
-		GameConfig.COIN_REWARD_START_DELAY + visible_coin_sequence
+		GameConfig.MERGE_PRESENTATION_DURATION + GameConfig.TARGET_COLLECTION_DURATION,
+		visible_coin_sequence
 	) + GameConfig.WIN_PRESENTATION_HOLD
-	_assert(final_sequence >= 1.50 and final_sequence <= 2.0, "Final-target-to-result presentation must stay inside 1.5-2.0 seconds")
-	_assert(GameConfig.TARGET_COLLECTION_OVERLAP_START < GameConfig.MERGE_PRESENTATION_DURATION and GameConfig.COIN_REWARD_START_DELAY < GameConfig.MERGE_PRESENTATION_DURATION, "Target and coin presentation must overlap merge settle")
-	_assert(GameConfig.NEXT_GEM_TRANSITION_DURATION >= 0.18 and GameConfig.NEXT_GEM_TRANSITION_DURATION <= 0.28, "Next gem transition must stay inside 180-280 ms")
-	_assert(GameConfig.CONTACT_SOUND_COOLDOWN >= 0.10 and GameConfig.CONTACT_SOUND_COOLDOWN <= 0.16 and GameConfig.PER_CONTACT_SOUND_COOLDOWN >= 0.10 and GameConfig.PER_CONTACT_SOUND_COOLDOWN <= 0.16, "Contact cooldowns must suppress 100-160 ms chatter")
+	_assert(is_equal_approx(final_sequence, 1.095), "Final-target-to-result presentation must restore the previous 1.095 second bound")
+	_assert(is_equal_approx(GameConfig.WIN_PRESENTATION_HOLD, 0.24), "Level-complete hold must restore 240 ms")
+	_assert(is_equal_approx(GameConfig.CONTACT_SOUND_COOLDOWN, 0.0925) and is_equal_approx(GameConfig.PER_CONTACT_SOUND_COOLDOWN, 0.12), "Contact cooldowns must use the old/current midpoint")
 	_assert(float(GameConfig.AUDIO_TONES.gem_contact.volume) < float(GameConfig.AUDIO_TONES.normal_merge.volume), "Gem collision must sit below merge")
 	_assert(float(GameConfig.AUDIO_TONES.wall_contact.volume) < float(GameConfig.AUDIO_TONES.normal_merge.volume), "Rail collision must sit below merge")
 	_assert(float(GameConfig.AUDIO_TONES.target_collect.volume) > float(GameConfig.AUDIO_TONES.normal_merge.volume), "Target arrival must sit above normal merge")
@@ -50,7 +49,7 @@ func _test_timing_and_mix_contracts() -> void:
 	_assert(ProjectSettings.get_setting("application/config/quit_on_go_back", true) == false, "Godot Android auto-quit must be disabled so app state owns Back")
 
 
-func _test_exactly_once_overlap_and_launcher_independence() -> void:
+func _test_exactly_once_restored_cadence_and_launcher_independence() -> void:
 	paused = false
 	var controller := GameControllerType.new()
 	root.add_child(controller)
@@ -85,24 +84,24 @@ func _test_exactly_once_overlap_and_launcher_independence() -> void:
 	else:
 		_assert(controller.target_index == before_target_index and controller.target_progress == before_target_progress + 1, "Confirmed target result must advance authoritative quantity immediately")
 	_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress, "HUD target state must wait for collection arrival")
-	controller._update_merge_presentations(GameConfig.TARGET_COLLECTION_OVERLAP_START + 0.01)
-	_assert(controller.collection_in_progress and controller.target_collection_queue.is_empty(), "Target travel must begin once during merge settle")
-	_assert(not controller.merge_presentations.is_empty(), "Target travel must overlap the unfinished merge presentation")
-	_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress, "Target HUD state must remain unchanged during travel")
-	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION + 0.01)
-	if before_target_progress + 1 >= required_quantity:
-		_assert(controller.presented_target_index == before_presented_index + 1 and controller.presented_target_progress == 0, "Completed target HUD must advance at collection arrival")
-	else:
-		_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress + 1, "Target HUD quantity must advance at collection arrival")
-	var expected_display_complete := controller.presented_target_index >= controller.target_sequence().size()
-	_assert(bool(controller.hud_snapshot().target_completed) == expected_display_complete, "HUD completion flag must follow presented target state")
+	controller._update_merge_presentations(GameConfig.MERGE_PRESENTATION_DURATION - 0.02)
+	_assert(not controller.collection_in_progress and not controller.merge_presentations.is_empty(), "Target travel must wait for the restored short merge to finish")
+	controller._sync_gems_and_mark_visibility()
 	controller.launcher_state = controller.LauncherState.RESOLVING
 	for piece in controller.pieces:
 		piece.is_active_launcher = false
 	controller.active_piece_id = -1
 	controller._advance_launcher_lifecycle(GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.01)
 	controller._advance_launcher_lifecycle(0.0)
-	_assert(controller.get_active_piece() != null and controller.launcher_state == controller.LauncherState.READY_TO_AIM, "Next launcher must become ready while presentation remains active")
+	_assert(controller.get_active_piece() != null and controller.launcher_state == controller.LauncherState.READY_TO_AIM, "Next launcher must remain independent of the short presentation")
+	controller._update_merge_presentations(0.03)
+	_assert(controller.collection_in_progress and controller.target_collection_queue.is_empty(), "Target travel must begin once immediately after the restored merge cadence")
+	_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress, "Target HUD state must remain unchanged during travel")
+	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION + 0.01)
+	if before_target_progress + 1 >= required_quantity:
+		_assert(controller.presented_target_index == before_presented_index + 1 and controller.presented_target_progress == 0, "Completed target HUD must advance at collection arrival")
+	else:
+		_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress + 1, "Target HUD quantity must advance at collection arrival")
 	var late_same_target := event.duplicate(true)
 	late_same_target.result_id = result_id + 1
 	var coins_after_target := controller.coins

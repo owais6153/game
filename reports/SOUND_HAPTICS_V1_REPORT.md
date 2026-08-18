@@ -144,3 +144,7 @@ The current merge-attack timing is documented in `MERGE_SOUND_SYNC_FIX_V3_REPORT
 # Animation/audio production-polish superseding note - 2026-08-18
 
 `ANIMATION_AUDIO_BACK_PRIVACY_POLISH.md` now supersedes the contact/target timing and mix values above. Gem/rail contacts use softened runtime derivatives at gains `0.18/0.16`, thresholds `195/250`, global cooldowns `120/140 ms`, and a `140 ms` per-contact cooldown. Normal merge audio now aligns to the 200 ms result reveal; target arrival uses a distinct soft crystal chime; completed target quantity uses the trimmed sparkle cue; coins tick per staggered arrival with the full cue on the final arrival. Haptic ownership and values are unchanged. A manual Android speaker listening pass remains required.
+
+# Tester midpoint superseding note - 2026-08-18
+
+The over-softened contact mix and slow merge timing above are rejected. Active gem/rail files are now `gem_collision_medium_v2.ogg` / `rail_collision_medium_v2.ogg` at gains `0.23/0.24`, thresholds `182.5/235`, global cooldowns `92.5/115 ms`, per-contact cooldown `120 ms`, and midpoint pitch/impact scaling. Immediate confirmed-frame merge audio is restored with the 270 ms tester-approved merge. Target/coin/result identities and all haptics remain unchanged. See `ANIMATION_REVERT_AUDIO_MIDPOINT_ANDROID_EXIT_FIX.md`.

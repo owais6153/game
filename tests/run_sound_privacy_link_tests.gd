@@ -36,15 +36,16 @@ func _test_audio_service() -> void:
 	_assert(sfx_bus >= 0 and AudioServer.get_bus_effect_count(sfx_bus) == 1 and AudioServer.get_bus_effect(sfx_bus, 0) is AudioEffectLimiter, "SFX bus must own the clipping limiter")
 	_assert(service._music_player.bus == "Music" and service._players.all(func(player: AudioStreamPlayer) -> bool: return player.bus == "SFX"), "Music and one-shots must route to their dedicated buses")
 	_assert(is_equal_approx(service.music_volume_linear(), 0.06), "Background music must use the documented corrective gain")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.18), "Gem contact must remain subtle at 0.18")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.16), "Rail contact must remain subtle at 0.16")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.23), "Gem contact must use the old/current midpoint gain 0.23")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.24), "Rail contact must use the old/current midpoint gain 0.24")
+	_assert(is_equal_approx(GameConfig.GEM_CONTACT_SOUND_THRESHOLD, 182.5) and is_equal_approx(GameConfig.WALL_CONTACT_SOUND_THRESHOLD, 235.0), "Contact thresholds must use the measured midpoint tuning")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.normal_merge.volume), 0.70), "Ordinary merge must clearly exceed collision gain")
 	_assert(float(GameConfig.AUDIO_TONES.target_collect.volume) > float(GameConfig.AUDIO_TONES.normal_merge.volume), "Target arrival must be more rewarding than an ordinary merge")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.button.volume), 0.32), "UI-tap replacement gain must be lowered to 0.32")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.win.volume), 0.92), "Final success must remain the strongest short supplied cue")
 	var expected_paths := {
-		"gem_contact": "res://assets/runtime/audio/gem_collision_soft_v1.ogg",
-		"wall_contact": "res://assets/runtime/audio/rail_collision_soft_v1.ogg",
+		"gem_contact": "res://assets/runtime/audio/gem_collision_medium_v2.ogg",
+		"wall_contact": "res://assets/runtime/audio/rail_collision_medium_v2.ogg",
 		"normal_merge": "res://assets/runtime/audio/merge-target-immediate.ogg",
 		"coin_reward": "res://assets/runtime/audio/supplied_coin_reward_v4.ogg",
 		"target_complete": "res://assets/runtime/audio/target_complete_soft_v1.ogg",
@@ -69,7 +70,7 @@ func _test_audio_service() -> void:
 	for player in service._players:
 		if int(player.get_meta("play_serial", 0)) > int(newest_player.get_meta("play_serial", 0)):
 			newest_player = player
-	_assert(newest_player.pitch_scale >= 0.94 and newest_player.pitch_scale <= 1.00, "Gem-contact pitch variation must stay inside the softened 0.94x..1.00x range")
+	_assert(newest_player.pitch_scale >= 0.95 and newest_player.pitch_scale <= 1.02, "Gem-contact pitch variation must stay inside the midpoint 0.95x..1.02x range")
 	for event_name in ["win", "merge_8", "chain", "normal_merge", "coin_reward"]:
 		_assert(service._play_event(event_name, 1.0), "%s must fill one bounded priority voice" % event_name)
 	_assert(not service._play_event("button", 1.0), "A quiet UI tap must not steal a fully occupied higher-priority voice pool")
@@ -113,12 +114,11 @@ func _test_privacy_link_relocation() -> void:
 
 func _test_confirmed_event_routing_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
-	_assert(source.contains("merge_event.merge_sound_event = \"merge_%d\" % result_level if completes_active_target else \"normal_merge\""), "Confirmed merges must retain their distinct sound identities")
+	_assert(source.contains("audio_feedback.emit_event(\"merge_%d\" % result_level if completes_active_target else \"normal_merge\")"), "Confirmed merges must retain their immediate distinct sound identities")
 	var merge_classified := source.find("var completes_active_target := result_level == active_target_tier()")
-	var merge_cue := source.find("merge_event.merge_sound_event =", merge_classified)
+	var merge_cue := source.find("audio_feedback.emit_event(\"merge_%d\"", merge_classified)
 	var presentation_setup := source.find("merge_event.source_texture =", merge_classified)
-	_assert(merge_classified >= 0 and merge_cue > merge_classified and presentation_setup > merge_cue, "Merge sound identity must be stored at confirmation before result presentation setup")
-	_assert(source.contains("GameConfig.MERGE_REVEAL_SOUND_AT") and source.contains("audio_feedback.emit_event(String(presentation.get(\"merge_sound_event\""), "Merge sound must play once at the visual reveal instead of the contact frame")
+	_assert(merge_classified >= 0 and merge_cue > merge_classified and presentation_setup > merge_cue, "Merge sound must restore the tester-approved confirmed-frame timing")
 	_assert(source.contains("audio_feedback.emit_event(\"chain\")"), "Original chain feedback must be restored")
 	_assert(source.contains("audio_feedback.emit_event(\"target_collect\")"), "Target arrival must retain its original cue")
 	_assert(source.contains("audio_feedback.emit_event(\"target_complete\")"), "Final target completion must own a richer cue")

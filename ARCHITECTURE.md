@@ -1,3 +1,9 @@
+# Tester animation/audio revert and Android exit boundary - 2026-08-18
+
+- `GameConfig` again owns the exact `5528ff6` fast presentation values. The later authoritative/display target split and exactly-once queue remain; restoring animation timing must never roll back those state-safety boundaries.
+- `AudioFeedbackService` loads the v2 midpoint contact derivatives. Contact telemetry remains presentation-only and continues through impact thresholds, global event cooldowns, per-contact cooldowns, exact merge-pair suppression, and bounded priority voices.
+- Home Exit is a platform lifecycle request, not gameplay navigation. On Android, `GameController` asks built-in `AndroidRuntime` for the Activity and posts `finishAndRemoveTask()` on its UI thread. `AdManager.prepare_for_exit()` invalidates asynchronous work first; `_exit_tree()` owns object destruction during lifecycle teardown. Desktop defers `SceneTree.quit()` outside the button callback.
+
 # Animation/audio/Back/privacy boundary - 2026-08-18
 
 - `GameController` remains the authoritative simulation/progression owner. Confirmed results enqueue presentation records; `merge_presentations`, `target_collection_queue`, and `GameplayEffectsLayer` may overlap, while launcher readiness and target/reward accounting do not depend on presentation completion.

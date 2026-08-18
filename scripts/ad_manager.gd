@@ -488,6 +488,13 @@ func _discard_cached_ads() -> void:
 func shutdown_for_exit() -> void:
 	if _shutting_down:
 		return
+	prepare_for_exit()
+	_discard_cached_ads()
+
+
+func prepare_for_exit() -> void:
+	if _shutting_down:
+		return
 	_shutting_down = true
 	_ads_requests_allowed = false
 	_interstitial_retry_generation += 1
@@ -496,7 +503,6 @@ func shutdown_for_exit() -> void:
 	_interstitial_completion = Callable()
 	_reward_completion = Callable()
 	_reward_finished = Callable()
-	_discard_cached_ads()
 
 
 func _exit_tree() -> void:

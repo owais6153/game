@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Animation Revert, Collision-Audio Midpoint, and Android Exit Fix](ANIMATION_REVERT_AUDIO_MIDPOINT_ANDROID_EXIT_FIX.md) — exact tester-approved animation restoration, measured contact-audio midpoint, and Activity-owned Android exit lifecycle.
+
 - [Animation, Audio, Back, and Privacy Polish](ANIMATION_AUDIO_BACK_PRIVACY_POLISH.md) — supplied-video timing comparison, overlapping readable rewards, softened contact mix, new state-aware Android Back ownership, centered Privacy link, regressions, and Android validation.
 
 - [Last-AAB Home and Android Back Regression Audit](LAST_AAB_HOME_BACK_REGRESSION_AUDIT.md) — exact version-code-3 AAB baseline, post-AAB commit audit, missing Tween Composer Android dependency, hidden-gameplay invariant, and duplicate-Back fix.
