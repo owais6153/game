@@ -1091,3 +1091,15 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36; APK Signature Scheme v2 PASS with one signer.
 - Tests: editor parse/import and game-flow, game-feel/contact, UI/layout, sound/privacy, scene assets, branding/input, and AdMob suites reached PASS.
 - Device status: `adb devices -l` found no connected device. Installation and physical startup/Home-return verification are not claimed.
+
+# Android Back, Idle, Settings, and Splash Repair APK - 2026-08-18
+
+- Filename: `build/android/majestic-gems-back-idle-settings-splash-repair.apk`
+- Size: 82,149,382 bytes
+- Timestamp: 2026-08-18 07:09:56 +05:00
+- SHA-256: `F60C5A6DBB9A17F37C3CC4C37E198DE23D33A338EA2B213FF10025297C79ED9B`
+- Export-source commit/tag: `159f9a8` / `android-back-idle-settings-splash-repair-source`.
+- Export: Godot 4.6.3 debug APK, Gradle format, both `arm64-v8a` and `armeabi-v7a`, Godot debug signing. The committed release AAB path/format was restored immediately; no AAB was generated.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36, game category and portrait support; APK Signature Scheme v2 PASS with one RSA-2048 signer; primary DEX and both Godot ARM libraries present; packaged contents include the imported 1152x1152 system-splash derivative.
+- Tests: editor parse/import and game-flow/Back/idle, sound/privacy, AdMob/shutdown, responsive layout, reference game-feel/contact, scene assets, and branding/input suites reached PASS. The Windows runner returned its known post-sentinel teardown access violation after test quit; no assertion failed.
+- Device status: `adb devices -l` found no connected device. Installation, multi-minute physical idle, OEM Back/exit behavior, and splash sharpness are not claimed.

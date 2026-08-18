@@ -20,6 +20,10 @@ The game-flow suite covers all Back states and a paused idle-Home interval while
 
 The Godot 4.6.3 Windows console runner still returns its known post-sentinel access-violation code after each suite quits, including unchanged suites; no assertion failed in the logs. No Android device was connected, so physical idle duration, OEM Back behavior, and visual splash acceptance are not claimed.
 
+## APK delivery
+
+`build/android/majestic-gems-back-idle-settings-splash-repair.apk` is the fresh debug delivery from source commit/tag `159f9a8` / `android-back-idle-settings-splash-repair-source`. It is 82,149,382 bytes with SHA-256 `F60C5A6DBB9A17F37C3CC4C37E198DE23D33A338EA2B213FF10025297C79ED9B`. AAPT reports package `com.owais.majestygems`, version code `4`, version name `1.0.2`, min SDK 24, target/compile SDK 36, game category, and portrait support. Both ARM ABIs are present and APK Signature Scheme v2 verifies with one Godot RSA-2048 debug signer. The package includes the new 1152x1152 splash import. No AAB was created; the committed release AAB preset was restored after export.
+
 ## Scope
 
 No physics, collision, merge eligibility, launcher pacing, target selection, reward values, progression, table geometry, or ad cadence changed.

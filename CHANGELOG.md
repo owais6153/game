@@ -727,3 +727,4 @@
 - Replaced the 432x432 Android system-splash icon input with a dedicated 1152x1152 runtime derivative while keeping the approved blue background and single native splash.
 - Audited and documented the unchanged target-only coin table and per-level target composition.
 - Added Back/idle/ad-shutdown/privacy/vibration/splash/reward regressions and reran the broader gameplay/layout/art suites.
+- Exported and audited `build/android/majestic-gems-back-idle-settings-splash-repair.apk`; package, SDK, v2 signature, dual ARM ABIs, and packaged splash resource pass. No AAB or device test is claimed.

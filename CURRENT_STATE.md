@@ -458,3 +458,5 @@ Android Back is now owned by the authoritative app-flow state: Home Settings clo
 Privacy Policy is explicitly centered across the full viewport at the safe-area-aware bottom edge. Unsupported Vibration switches are removed from Home and Pause Settings and haptics remain disabled. The blue Android system splash is retained but now uses the dedicated 1152x1152 `majestic_gems_system_splash_1152_v2.png` derivative instead of the 432x432 adaptive launcher foreground.
 
 Coin rewards remain unchanged and explicit: target result tiers L2-L8 award `10/25/60/150/350/800/1800`; ordinary merges award zero. Level 1 base reward is 150, Level 2 is 500, and later deterministic totals depend on their seeded two- or three-target L5-L8 set. See `reports/ANDROID_BACK_IDLE_SETTINGS_SPLASH_REPAIR.md`.
+
+Fresh TEST APK: `build/android/majestic-gems-back-idle-settings-splash-repair.apk` (82,149,382 bytes; SHA-256 `F60C5A6DBB9A17F37C3CC4C37E198DE23D33A338EA2B213FF10025297C79ED9B`). Package/SDK, v2 debug signature, dual ARM ABIs, and the new splash resource pass inspection. No device was connected.
