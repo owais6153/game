@@ -27,8 +27,8 @@ func _run() -> void:
 
 func _test_timing_and_mix_contracts() -> void:
 	_assert(is_equal_approx(GameConfig.COLLISION_VISUAL_DURATION, 0.11), "Collision response must restore the tester-approved 110 ms")
-	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.54), "Merge feedback must restore the post-checkmark-removal 540 ms cadence")
-	_assert(is_equal_approx(GameConfig.MERGE_REVEAL_START, 0.20) and is_equal_approx(GameConfig.MERGE_REVEAL_SOUND_AT, 0.20), "Result reveal and merge chime must align at 200 ms")
+	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.27) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_DURATION, 0.06), "Merge feedback and push animation must restore the approved fast cadence")
+	_assert(is_equal_approx(GameConfig.MERGE_REVEAL_START, 0.0) and is_equal_approx(GameConfig.MERGE_REVEAL_SOUND_AT, 0.0), "Fast merge result reveal and chime must remain immediate")
 	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_DURATION, 0.70), "Target reward must restore the post-checkmark-removal 700 ms cadence")
 	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_CONFIRM_DURATION, 0.10) and is_equal_approx(GameConfig.TARGET_COLLECTION_TRAVEL_DURATION, 0.52), "Target reward must retain its 100 ms confirmation and 520 ms travel")
 	_assert(is_equal_approx(GameConfig.TARGET_PANEL_PULSE_DURATION, 0.22), "Target pulse must restore the post-checkmark-removal 220 ms cadence")
@@ -50,9 +50,9 @@ func _test_timing_and_mix_contracts() -> void:
 	) + GameConfig.WIN_PRESENTATION_HOLD
 	_assert(is_equal_approx(final_sequence, 1.66), "Final-target-to-result presentation must restore the previous 1.66 second bound")
 	_assert(is_equal_approx(GameConfig.WIN_PRESENTATION_HOLD, 0.42), "Level-complete hold must restore 420 ms")
-	_assert(is_equal_approx(GameConfig.CONTACT_SOUND_COOLDOWN, 0.0925) and is_equal_approx(GameConfig.PER_CONTACT_SOUND_COOLDOWN, 0.12), "Contact cooldowns must use the old/current midpoint")
-	_assert(float(GameConfig.AUDIO_TONES.gem_contact.volume) < float(GameConfig.AUDIO_TONES.normal_merge.volume), "Gem collision must sit below merge")
-	_assert(float(GameConfig.AUDIO_TONES.wall_contact.volume) < float(GameConfig.AUDIO_TONES.normal_merge.volume), "Rail collision must sit below merge")
+	_assert(is_equal_approx(GameConfig.CONTACT_SOUND_COOLDOWN, 0.065) and is_equal_approx(GameConfig.AUDIO_COOLDOWN_BY_EVENT.wall_contact, 0.09), "Contact cooldowns must use the original mapping")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.34), "Gem collision must restore the original volume")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.39), "Rail collision must restore the original volume")
 	_assert(float(GameConfig.AUDIO_TONES.target_collect.volume) > float(GameConfig.AUDIO_TONES.normal_merge.volume), "Target arrival must sit above normal merge")
 	_assert(float(GameConfig.AUDIO_TONES.win.volume) > float(GameConfig.AUDIO_TONES.target_collect.volume), "Level complete must remain the strongest short cue")
 	_assert(ProjectSettings.get_setting("application/config/quit_on_go_back", true) == false, "Godot Android auto-quit must be disabled so app state owns Back")

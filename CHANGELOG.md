@@ -1,3 +1,15 @@
+# 2026-08-18 - Original collision sound, fast merge/push, and visible-touch merge repair
+
+- Restored gem-to-gem and gem-to-rail contacts to their original supplied streams, gains (`0.34` / `0.39`), thresholds (`170` / `220 px/s`), cooldowns, pitch ranges, and impact gain scaling.
+- Restored the approved fast 270 ms merge and 60 ms source-pull/push animation. The current 700 ms target collection, Next-target transition, and deliberately slower four-coin cadence remain unchanged.
+- Expanded only the centralized calibrated visible-touch contact band from 0.20 to 2.0 design pixels, so equal gems that visibly touch will resolve as a contact merge. Collider radii, rails, solver, target/reward rules, and momentum settings are unchanged.
+
+# 2026-08-18 - Original collision sound, fast merge/push, and visible-touch merge repair
+
+- Restored gem-to-gem and gem-to-rail contacts to their original supplied streams, gains (`0.34` / `0.39`), thresholds (`170` / `220 px/s`), cooldowns, pitch ranges, and impact gain scaling.
+- Restored the approved fast 270 ms merge and 60 ms source-pull/push animation. The current 700 ms target collection, Next-target transition, and deliberately slower four-coin cadence remain unchanged.
+- Expanded only the centralized calibrated visible-touch contact band from 0.20 to 2.0 design pixels, so equal gems that visibly touch will resolve as a contact merge. Collider radii, rails, solver, target/reward rules, and momentum settings are unchanged.
+
 # 2026-08-18 - Reward, coin, and merge cadence restoration release
 
 - Restored the readable post-checkmark-removal presentation from `acb28a5`: 540 ms merge with reveal/chime at 200 ms, 700 ms target collection, 220 ms target pulse, four coins over about 980 ms, and a 420 ms result hold.

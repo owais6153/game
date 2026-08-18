@@ -36,16 +36,16 @@ func _test_audio_service() -> void:
 	_assert(sfx_bus >= 0 and AudioServer.get_bus_effect_count(sfx_bus) == 1 and AudioServer.get_bus_effect(sfx_bus, 0) is AudioEffectLimiter, "SFX bus must own the clipping limiter")
 	_assert(service._music_player.bus == "Music" and service._players.all(func(player: AudioStreamPlayer) -> bool: return player.bus == "SFX"), "Music and one-shots must route to their dedicated buses")
 	_assert(is_equal_approx(service.music_volume_linear(), 0.06), "Background music must use the documented corrective gain")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.23), "Gem contact must use the old/current midpoint gain 0.23")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.24), "Rail contact must use the old/current midpoint gain 0.24")
-	_assert(is_equal_approx(GameConfig.GEM_CONTACT_SOUND_THRESHOLD, 182.5) and is_equal_approx(GameConfig.WALL_CONTACT_SOUND_THRESHOLD, 235.0), "Contact thresholds must use the measured midpoint tuning")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.34), "Gem contact must restore the original gain 0.34")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.39), "Rail contact must restore the original gain 0.39")
+	_assert(is_equal_approx(GameConfig.GEM_CONTACT_SOUND_THRESHOLD, 170.0) and is_equal_approx(GameConfig.WALL_CONTACT_SOUND_THRESHOLD, 220.0), "Contact thresholds must restore the original tuning")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.normal_merge.volume), 0.70), "Ordinary merge must clearly exceed collision gain")
 	_assert(float(GameConfig.AUDIO_TONES.target_collect.volume) > float(GameConfig.AUDIO_TONES.normal_merge.volume), "Target arrival must be more rewarding than an ordinary merge")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.button.volume), 0.32), "UI-tap replacement gain must be lowered to 0.32")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.win.volume), 0.92), "Final success must remain the strongest short supplied cue")
 	var expected_paths := {
-		"gem_contact": "res://assets/runtime/audio/gem_collision_medium_v2.ogg",
-		"wall_contact": "res://assets/runtime/audio/rail_collision_medium_v2.ogg",
+		"gem_contact": "res://assets/runtime/audio/gems-colide.mp3",
+		"wall_contact": "res://assets/runtime/audio/gems-rail-colide.mp3",
 		"normal_merge": "res://assets/runtime/audio/merge-target-immediate.ogg",
 		"coin_reward": "res://assets/runtime/audio/supplied_coin_reward_v4.ogg",
 		"target_complete": "res://assets/runtime/audio/target_complete_soft_v1.ogg",
@@ -70,7 +70,7 @@ func _test_audio_service() -> void:
 	for player in service._players:
 		if int(player.get_meta("play_serial", 0)) > int(newest_player.get_meta("play_serial", 0)):
 			newest_player = player
-	_assert(newest_player.pitch_scale >= 0.95 and newest_player.pitch_scale <= 1.02, "Gem-contact pitch variation must stay inside the midpoint 0.95x..1.02x range")
+	_assert(newest_player.pitch_scale >= 0.96 and newest_player.pitch_scale <= 1.04, "Gem-contact pitch variation must restore the original 0.96x..1.04x range")
 	for event_name in ["win", "merge_8", "chain", "normal_merge", "coin_reward"]:
 		_assert(service._play_event(event_name, 1.0), "%s must fill one bounded priority voice" % event_name)
 	_assert(not service._play_event("button", 1.0), "A quiet UI tap must not steal a fully occupied higher-priority voice pool")

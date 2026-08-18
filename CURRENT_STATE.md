@@ -1,3 +1,19 @@
+# Current State Addendum - Original collision sound, fast merge/push, and visible-touch merge repair
+
+Gem-to-gem and gem-to-rail impacts again use the original supplied sound files at their original gains (`0.34` / `0.39`), thresholds (`170` / `220 px/s`), global cooldowns (65 / 90 ms), pitch ranges, and impact scaling. Exact confirmed merge-pair suppression and the bounded priority voice pool remain in place; contact telemetry remains presentation-only.
+
+The merge and source-pull/push presentation is again the approved fast 270 ms / 60 ms cadence with an immediate `0.64 -> 1.26 -> 1.0` pop. Target collection stays at its current 700 ms pace, the next-target transition is unchanged, and target coins retain their slower 260 ms delayed, ~980 ms visible sequence.
+
+Matching gems now merge when they fall within the calibrated 2-design-pixel visible-touch band, avoiding the observed case where equal gems look touching but fail to merge. This changes only centralized contact tolerance; collider radii, physics geometry, impulse tuning, chain eligibility, target/reward authority, and launcher behavior remain unchanged. See `reports/ORIGINAL_COLLISION_FAST_MERGE_VISIBLE_TOUCH_REPAIR.md`.
+
+# Current State Addendum - Original collision sound, fast merge/push, and visible-touch merge repair
+
+Gem-to-gem and gem-to-rail impacts again use the original supplied sound files at their original gains (`0.34` / `0.39`), thresholds (`170` / `220 px/s`), global cooldowns (65 / 90 ms), pitch ranges, and impact scaling. Exact confirmed merge-pair suppression and the bounded priority voice pool remain in place; contact telemetry remains presentation-only.
+
+The merge and source-pull/push presentation is again the approved fast 270 ms / 60 ms cadence with an immediate `0.64 -> 1.26 -> 1.0` pop. Target collection stays at its current 700 ms pace, the next-target transition is unchanged, and target coins retain their slower 260 ms delayed, ~980 ms visible sequence.
+
+Matching gems now merge when they fall within the calibrated 2-design-pixel visible-touch band, avoiding the observed case where equal gems look touching but fail to merge. This changes only centralized contact tolerance; collider radii, physics geometry, impulse tuning, chain eligibility, target/reward authority, and launcher behavior remain unchanged. See `reports/ORIGINAL_COLLISION_FAST_MERGE_VISIBLE_TOUCH_REPAIR.md`.
+
 # Current State Addendum - Readable reward, coin, and merge cadence release
 
 Tester feedback supersedes the all-fast animation revert for successful actions only. The active cadence restores the post-checkmark-removal `acb28a5` presentation: merge 540 ms, result reveal and merge chime at 200 ms, target duplicate begins at 300 ms and completes over 700 ms, target-card pulse 220 ms, four coin visuals start after 260 ms and span about 980 ms, and final result hold 420 ms. The removed tick/checkmark remains absent. Collision response remains 110 ms and Next remains 160 ms.

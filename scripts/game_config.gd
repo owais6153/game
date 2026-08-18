@@ -89,20 +89,25 @@ const BOTTOM_WALL_RESTITUTION := 0.12 # containment-only range 0.10–0.14
 const COLLISION_RESTITUTION := 0.30 # lively separating response range 0.26–0.34
 const COLLISION_TANGENTIAL_FRICTION := 0.07 # applied once per approaching impact; range 0.05–0.10
 const MAX_PIECE_SPEED := 1200.0 # containment guard; preserves natural launch/collision speed
-const CONTACT_EPSILON := 0.20
+## A visually touching trimmed gem body may be up to two design pixels beyond
+## the simple circular collider. Treat that calibrated visible-contact band as
+## a confirmed contact so matching gems cannot remain stuck while touching.
+const CONTACT_EPSILON := VISIBLE_CONTACT_TOLERANCE # calibrated range 0.20–2.0
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 const MAX_SIMULATION_SUBSTEPS := 8
 const MAX_SUBSTEP_RADIUS_FRACTION := 0.45 # swept-step guard; never changes contact distance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.54
-const MERGE_SOURCE_PULL_DURATION := 0.20
-const MERGE_REVEAL_START := 0.20
-const MERGE_RESULT_START_SCALE := 0.72
-const MERGE_RESULT_POP_SCALE := 1.18
-const MERGE_RESULT_POP_DURATION := 0.18
-const MERGE_REVEAL_SOUND_AT := 0.20
-const TARGET_COLLECTION_OVERLAP_START := 0.30
+const MERGE_PRESENTATION_DURATION := 0.27
+const MERGE_SOURCE_PULL_DURATION := 0.06
+const MERGE_REVEAL_START := 0.0
+const MERGE_RESULT_START_SCALE := 0.64
+const MERGE_RESULT_POP_SCALE := 1.26
+const MERGE_RESULT_POP_DURATION := 0.14
+const MERGE_REVEAL_SOUND_AT := 0.0
+## Keep the approved target-collection speed, but begin it when the restored
+## fast merge animation completes.
+const TARGET_COLLECTION_OVERLAP_START := 0.27
 const MERGE_PULSE_SCALE := 1.22
 const COLLISION_VISUAL_DURATION := 0.11
 const COLLISION_VISUAL_MAX_COMPRESSION := 0.055
@@ -110,7 +115,7 @@ const COLLISION_VISUAL_COOLDOWN := 0.10
 const SCORE_POPUP_DURATION := 0.46
 const SCORE_POPUP_RISE := 36.0
 const MAJOR_REWARD_TIER := 6
-const MAJOR_MERGE_EFFECT_DURATION := 0.62
+const MAJOR_MERGE_EFFECT_DURATION := 0.36
 const MAJOR_SCORE_POPUP_DURATION := 0.78
 const MAJOR_SCORE_POPUP_RISE := 58.0
 const MAJOR_MERGE_EFFECT_SCALE := 1.18
@@ -212,8 +217,8 @@ const AUDIO_SAMPLE_RATE := 22050.0
 const AUDIO_MUSIC_VOLUME := 0.06
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
-	"gem_contact": {"volume": 0.23},
-	"wall_contact": {"volume": 0.24},
+	"gem_contact": {"volume": 0.34},
+	"wall_contact": {"volume": 0.39},
 	"normal_merge": {"volume": 0.70},
 	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.56, "brightness": 0.60, "fall": 1.16},
 	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.60, "brightness": 0.68, "fall": 1.20},
@@ -230,13 +235,12 @@ const AUDIO_TONES := {
 	"win": {"volume": 0.92},
 	"button": {"volume": 0.32},
 }
-const GEM_CONTACT_SOUND_THRESHOLD := 182.5
-const WALL_CONTACT_SOUND_THRESHOLD := 235.0
-const CONTACT_SOUND_COOLDOWN := 0.0925
-const PER_CONTACT_SOUND_COOLDOWN := 0.12
+const GEM_CONTACT_SOUND_THRESHOLD := 170.0
+const WALL_CONTACT_SOUND_THRESHOLD := 220.0
+const CONTACT_SOUND_COOLDOWN := 0.065
 const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN,
-	"wall_contact": 0.115,
+	"wall_contact": 0.09,
 	"launch": 0.05,
 	"normal_merge": 0.04,
 	"merge_2": 0.04,
@@ -255,8 +259,8 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"button": 0.08,
 }
 const AUDIO_PITCH_RANGE_BY_EVENT := {
-	"gem_contact": Vector2(0.95, 1.02),
-	"wall_contact": Vector2(0.95, 1.01),
+	"gem_contact": Vector2(0.96, 1.04),
+	"wall_contact": Vector2(0.97, 1.03),
 }
 const AUDIO_PRIORITY_BY_EVENT := {
 	"button": 10,

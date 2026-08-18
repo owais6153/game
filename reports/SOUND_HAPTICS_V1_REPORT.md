@@ -1,5 +1,12 @@
 # Sound + Haptics v1 Report
 
+## Original collision mapping restoration — 2026-08-18
+
+- Gem and rail impacts again preload the original supplied `gems-colide.mp3` and `gems-rail-colide.mp3` streams. The midpoint derivative files remain preserved but are not active.
+- Central original settings are gem/rail gains `0.34` / `0.39`, thresholds `170` / `220 px/s`, global cooldowns 65 / 90 ms, pitch ranges `0.96..1.04` / `0.97..1.03`, and impact scalars `0.35..1.00` / `0.30..0.75`.
+- Contact telemetry, exact confirmed-merge suppression, bounded priority voices, buses/limiter, settings, and haptic routing remain unchanged and never affect gameplay decisions.
+- Automated `SOUND_PRIVACY_LINK_TESTS` passed. A connected-device listening pass remains required to confirm subjective speaker volume.
+
 > Current sound routing is superseded by [Supplied Sound Integration + Home Privacy Link v1](SOUND_INTEGRATION_PRIVACY_LINK_V1_REPORT.md). The dedicated feedback-service/controller boundary and existing haptic behavior remain intact; supplied SFX, priority voices, Music/SFX buses, and no-lose routing are now authoritative.
 
 > Current background-music routing is superseded by [New Background Music v1](NEW_BACKGROUND_MUSIC_V1_REPORT.md): the user-supplied v5 derivative loops continuously at `0.10`. Existing confirmed-event gem, coin, and haptic boundaries remain unchanged.

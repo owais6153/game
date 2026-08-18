@@ -12,6 +12,7 @@ func _init() -> void:
 func _run() -> void:
 	_test_visible_separation_does_not_merge()
 	_test_exact_contact_merges_once()
+	_test_visible_touch_tolerance_merges_once()
 	_test_slight_overlap_merges_once()
 	_test_different_types_collide_without_merge()
 	_test_fast_shot_contact_is_substepped()
@@ -50,6 +51,11 @@ func _test_exact_contact_merges_once() -> void:
 	var result := _resolve([_piece(1, 1, Vector2(300, 700)), _piece(2, 1, Vector2(300 + radius * 2.0, 700))])
 	_assert(result.merge_count == 1 and result.pieces.size() == 1, "Exact physical contact must merge exactly once")
 
+func _test_visible_touch_tolerance_merges_once() -> void:
+	var radius := GameConfig.gem_collision_radius(1) * GameConfig.gem_perspective_scale_at(700)
+	var result := _resolve([_piece(1, 1, Vector2(300, 700)), _piece(2, 1, Vector2(300 + radius * 2.0 + GameConfig.VISIBLE_CONTACT_TOLERANCE - 0.1, 700))])
+	_assert(result.merge_count == 1 and result.pieces.size() == 1, "Matching gems inside the calibrated visible-touch band must merge")
+
 func _test_slight_overlap_merges_once() -> void:
 	var radius := GameConfig.gem_collision_radius(1) * GameConfig.gem_perspective_scale_at(700)
 	var result := _resolve([_piece(1, 1, Vector2(300, 700)), _piece(2, 1, Vector2(300 + radius * 2.0 - 1.0, 700))])
@@ -87,12 +93,12 @@ func _test_chain_requires_each_contact() -> void:
 	_assert(no_chain.merge_count == 1, "A separated follow-up gem must not proximity-chain")
 
 func _test_feedback_contracts() -> void:
-	_assert(GameConfig.MERGE_RESULT_POP_SCALE == 1.18 and GameConfig.MERGE_PRESENTATION_DURATION == 0.54, "Merge pop must retain the restored readable cadence")
+	_assert(GameConfig.MERGE_RESULT_POP_SCALE == 1.26 and GameConfig.MERGE_PRESENTATION_DURATION == 0.27 and GameConfig.MERGE_SOURCE_PULL_DURATION == 0.06, "Merge and push animation must retain the approved fast cadence")
 	_assert(GameConfig.COIN_FLIGHT_DURATION == 0.55 and GameConfig.MAJOR_COIN_FLIGHT_DURATION == 0.62 and GameConfig.COIN_FLIGHT_STAGGER == 0.08, "Coin flights must retain the restored readable cadence")
 	_assert(GameConfig.TARGET_COLLECTION_DURATION == 0.70, "Target collection must retain the restored readable cadence")
 	var overlay_source := FileAccess.get_file_as_string("res://scripts/target_reward_overlay.gd")
 	_assert(not overlay_source.contains("check_points") and not overlay_source.contains("draw_polyline"), "Target confirmation must not render a checkmark")
-	_assert(float(GameConfig.AUDIO_TONES.normal_merge.volume) > float(GameConfig.AUDIO_TONES.gem_contact.volume) * 2.5, "Merge audio must clearly dominate normal collision")
+	_assert(float(GameConfig.AUDIO_TONES.normal_merge.volume) > float(GameConfig.AUDIO_TONES.gem_contact.volume) * 2.0, "Merge audio must clearly dominate normal collision")
 
 func _assert(condition: bool, message: String) -> void:
 	if not condition:

@@ -83,7 +83,6 @@ var presentation_event_trace: Array[Dictionary] = []
 var process_frame_index := 0
 var piece_visual_feedbacks: Dictionary = {}
 var collision_visual_last_at: Dictionary = {}
-var contact_audio_last_at: Dictionary = {}
 var collision_visual_clock := 0.0
 ## Developer-only inspection aid. F8 toggles it in editor/desktop builds; it
 ## starts disabled and has no input or gameplay authority on Android.
@@ -426,7 +425,6 @@ func restart() -> void:
 	process_frame_index = 0
 	piece_visual_feedbacks.clear()
 	collision_visual_last_at.clear()
-	contact_audio_last_at.clear()
 	collision_visual_clock = 0.0
 	chain_multiplier = 1
 	danger_timers.clear()
@@ -1286,9 +1284,7 @@ func _route_collision_feedback(impacts: Array[Dictionary], merge_events: Array[D
 		var strength := float(impact.get("strength", 0.0))
 		if kind == "wall":
 			if strength >= GameConfig.WALL_CONTACT_SOUND_THRESHOLD:
-				var wall_key := "wall:%d" % int(impact.get("piece_id", -1))
-				if _contact_sound_ready(wall_key) and audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.26, 0.67)):
-					contact_audio_last_at[wall_key] = collision_visual_clock
+				audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75))
 				_begin_collision_visual(int(impact.get("piece_id", -1)), impact.get("normal", Vector2.RIGHT), strength)
 		elif strength >= GameConfig.GEM_CONTACT_SOUND_THRESHOLD:
 			var first_id := int(impact.get("first_id", -1))
@@ -1296,16 +1292,11 @@ func _route_collision_feedback(impacts: Array[Dictionary], merge_events: Array[D
 			var pair_key := "%d:%d" % [mini(first_id, second_id), maxi(first_id, second_id)]
 			if merged_pairs.has(pair_key):
 				continue
-			var contact_key := "gem:%s" % pair_key
-			if _contact_sound_ready(contact_key) and audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.84)):
-				contact_audio_last_at[contact_key] = collision_visual_clock
+			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
 			var normal: Vector2 = impact.get("normal", Vector2.RIGHT)
 			_begin_collision_visual(first_id, -normal, strength)
 			_begin_collision_visual(second_id, normal, strength)
 
-
-func _contact_sound_ready(contact_key: String) -> bool:
-	return collision_visual_clock - float(contact_audio_last_at.get(contact_key, -100.0)) >= GameConfig.PER_CONTACT_SOUND_COOLDOWN
 
 func _begin_collision_visual(piece_id: int, normal: Vector2, strength: float) -> void:
 	if piece_id < 0 or collision_visual_clock - float(collision_visual_last_at.get(piece_id, -100.0)) < GameConfig.COLLISION_VISUAL_COOLDOWN:

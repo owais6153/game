@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Original Collision Sound, Fast Merge/Push, and Visible-Touch Merge Repair](ORIGINAL_COLLISION_FAST_MERGE_VISIBLE_TOUCH_REPAIR.md) — original gem/rail contact mapping and mix, restored fast merge/push motion, calibrated visible-touch merge coverage, and APK-only validation.
+
 - [Reward, Coin, and Merge Timing Restore Release](REWARD_COIN_MERGE_TIMING_RESTORE_RELEASE.md) — exact post-checkmark-removal timing restoration, authority/regression guardrails, and Android 1.0.3/code-5 APK+AAB delivery validation.
 
 - [Animation Revert, Collision-Audio Midpoint, and Android Exit Fix](ANIMATION_REVERT_AUDIO_MIDPOINT_ANDROID_EXIT_FIX.md) — exact tester-approved animation restoration, measured contact-audio midpoint, and Activity-owned Android exit lifecycle.
