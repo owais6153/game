@@ -126,10 +126,10 @@ func _ready() -> void:
 	_sync_gems_and_mark_visibility()
 	_refresh_hud()
 	queue_redraw()
-	if OS.has_feature("mobile"):
-		_show_home()
-	else:
-		app_flow_state = AppFlowState.PLAYING
+	# Home is the authoritative entry state on every runtime target. Depending on
+	# a platform feature flag allowed some Android/debug packaging combinations
+	# to skip the complete Home flow and enter live gameplay immediately.
+	_show_home()
 
 func _process(delta: float) -> void:
 	process_frame_index += 1
@@ -440,7 +440,7 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.settings_requested.connect(_on_settings_requested)
 	gameplay_ui.resume_requested.connect(_on_resume_requested)
 	gameplay_ui.restart_requested.connect(_on_restart_requested)
-	gameplay_ui.home_requested.connect(_show_home)
+	gameplay_ui.home_requested.connect(_on_pause_home_requested)
 	gameplay_ui.music_toggled.connect(_on_music_toggled)
 	gameplay_ui.sound_toggled.connect(_on_sound_toggled)
 	gameplay_ui.vibration_toggled.connect(_on_vibration_toggled)
@@ -463,6 +463,7 @@ func _setup_asset_presentation() -> void:
 	add_child(home_overlay)
 	home_overlay.play_requested.connect(_on_home_play_requested)
 	home_overlay.level_intro_requested.connect(_on_home_level_intro_requested)
+	home_overlay.home_requested.connect(_show_home)
 	home_overlay.music_toggled.connect(_on_music_toggled)
 	home_overlay.sound_toggled.connect(_on_sound_toggled)
 	home_overlay.vibration_toggled.connect(_on_vibration_toggled)
@@ -953,6 +954,15 @@ func _on_restart_requested() -> void:
 		get_tree().paused = false
 	restart()
 	app_flow_state = AppFlowState.PLAYING
+
+func _on_pause_home_requested() -> void:
+	# Leave the paused gameplay modal synchronously before presenting Home. Home
+	# then owns the paused tree and all input through its always-processing layer.
+	if gameplay_ui != null:
+		gameplay_ui.hide_pause(false)
+	if is_inside_tree():
+		get_tree().paused = false
+	_show_home()
 
 func _on_collect_requested() -> void:
 	if not won or completion_action_pending or completion_transition_consumed or completion_reward_resolved:

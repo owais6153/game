@@ -545,3 +545,8 @@ Large-screen containment remains configuration-driven: Godot's expanding canvas 
 - `BoardSimulation.step()` chooses 1-8 substeps from maximum frame displacement and the smallest live radius. Every substep uses the existing circle/border solver; no swept proximity query or expanded merge radius exists.
 - `ContactMergeService` consumes only pairs captured by `BoardSimulation._resolve_pair()` inside the current confirmed-contact branch. It does not invalidate a genuine early-substep contact because later substeps have already separated the bodies. Generated chain candidates still require result-to-neighbor physical contact.
 - Target completion presentation remains isolated in `TargetRewardOverlay`; it now draws only a bounded glow/ray accent. Merge and coin drawing remain bounded dictionaries in `GameplayEffectsLayer` and cannot influence simulation.
+# Home flow authority repair
+
+- `GameController._ready()` always calls `_show_home()` after loading/configuration. Platform feature flags no longer choose the initial app-flow state.
+- Pause HOME routes through `_on_pause_home_requested()`, which removes Pause ownership, briefly clears the tree pause, and delegates to `_show_home()`; Home immediately becomes the always-processing, input-owning paused layer.
+- `HomeOverlayLayer` emits `home_requested` from Level Ready Back. The controller remains the sole authority for changing `AppFlowState`.

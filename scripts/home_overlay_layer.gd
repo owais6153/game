@@ -18,6 +18,7 @@ const ICON_VIBRATION = preload("res://assets/runtime/ui/icons/vibration_navy.svg
 
 signal play_requested
 signal level_intro_requested
+signal home_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
 signal vibration_toggled(enabled: bool)
@@ -81,8 +82,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_hide_settings()
 			get_viewport().set_input_as_handled()
 		elif level_intro_blocker != null and level_intro_blocker.visible:
-			# Level Ready is an explicit gameplay-screen gate. Android Back must
-			# not reveal the Home composition underneath or begin gameplay.
+			# Level Ready never begins play from Back. It returns through the
+			# controller-owned Home transition instead of trapping the player.
+			home_requested.emit()
 			get_viewport().set_input_as_handled()
 
 func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:

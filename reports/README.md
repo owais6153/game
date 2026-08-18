@@ -38,3 +38,4 @@
 - `MAJESTIC_GEMS_BRANDING_PUSH_LINE_V1_REPORT.md` — supplied logo/icon integration, Android mask-safe derivatives, unused-asset packaging cleanup, and draggable push-line validation.
 - `HOME_SETTINGS_FAST_FEEL_MOTION_V1_REPORT.md` — Home settings alignment fix, Tween Composer/Global Tweens integration, and centralized fast-feel timing pass.
 - [Reference-Driven Game Feel v2](REFERENCE_DRIVEN_GAME_FEEL_V2.md) — video-led merge/target/reward pacing rebuild, checkmark removal, audio hierarchy, and confirmed-contact reliability.
+- [Home Startup and Return Flow Repair](HOME_STARTUP_RETURN_FLOW_REPAIR.md) — fixes direct-to-level startup, Pause/Home return, and Level Ready Back with production-controller regression coverage.

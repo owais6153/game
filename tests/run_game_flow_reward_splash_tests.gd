@@ -1,6 +1,7 @@
 extends SceneTree
 
 const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
+const GameControllerType = preload("res://scripts/game_controller.gd")
 
 var failures: Array[String] = []
 
@@ -12,6 +13,7 @@ func _init() -> void:
 func _run() -> void:
 	await _test_home_to_game_level_ready()
 	await _test_single_native_splash_to_home()
+	await _test_production_controller_home_flow()
 	_test_controller_flow_guards()
 	if failures.is_empty():
 		print("GAME_FLOW_REWARD_SPLASH_TESTS: PASS")
@@ -55,12 +57,35 @@ func _test_single_native_splash_to_home() -> void:
 	await process_frame
 
 
+func _test_production_controller_home_flow() -> void:
+	paused = false
+	var controller := GameControllerType.new()
+	root.add_child(controller)
+	await process_frame
+	_assert(controller.app_flow_state == controller.AppFlowState.HOME, "Production startup must always enter Home, independent of platform feature flags")
+	_assert(controller.home_overlay != null and controller.home_overlay.root_control.visible and controller.home_overlay.home_backdrop.visible, "Production startup must visibly present the complete Home screen")
+	controller._on_home_level_intro_requested()
+	_assert(controller.app_flow_state == controller.AppFlowState.LEVEL_READY and controller.home_overlay.level_intro_blocker.visible, "Home PLAY must enter Level Ready without starting gameplay")
+	controller._show_home()
+	_assert(controller.app_flow_state == controller.AppFlowState.HOME and controller.home_overlay.home_backdrop.visible and not controller.home_overlay.level_intro_blocker.visible, "Level Ready must return to Home")
+	controller._on_home_level_intro_requested()
+	controller._on_home_play_requested()
+	controller._on_settings_requested()
+	_assert(controller.gameplay_ui.is_pause_visible(), "Active gameplay must open Pause before testing its Home action")
+	controller.gameplay_ui.home_requested.emit()
+	_assert(controller.app_flow_state == controller.AppFlowState.HOME and controller.home_overlay.home_backdrop.visible and not controller.gameplay_ui.is_pause_visible(), "Pause HOME must synchronously return to the visible Home screen")
+	paused = false
+	controller.queue_free()
+	await process_frame
+
+
 func _test_controller_flow_guards() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
 	var home_source := FileAccess.get_file_as_string("res://scripts/home_overlay_layer.gd")
 	var export_source := FileAccess.get_file_as_string("res://export_presets.cfg")
 	_assert(not source.contains("StartupSplash") and not FileAccess.file_exists("res://scripts/startup_splash_layer.gd"), "The extra custom splash layer must remain removed")
 	_assert(not source.contains("_show_home(true)") and not home_source.contains("startup_intro") and not home_source.contains("_start_home_splash_intro"), "No hidden-controls Home intro may act as a second splash")
+	_assert(not source.contains("if OS.has_feature(\"mobile\"):\n\t\t_show_home()"), "Startup Home must not depend on a fragile platform feature flag")
 	_assert(export_source.contains("splash_screen/disable_godot_boot_splash=true"), "Godot Android boot splash must stay disabled so only the platform launch splash remains")
 	_assert(not source.contains("next_level_requested.connect"), "Controller must not wire the removed post-reward Next Level action")
 	_assert(source.contains("result_overlay.reward_animation_finished.connect(_on_reward_animation_finished)"), "Progression must wait for reward animation completion")

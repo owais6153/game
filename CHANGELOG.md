@@ -712,3 +712,9 @@
 - Preserved all supplied music/SFX identities while reducing normal-contact gains and raising merge, target-arrival, and final-success emphasis.
 - Fixed missed fast/visually touching contacts with displacement-bounded simulation substeps and same-step confirmed-contact authority. Merge distance, collider radii, progression, rewards, UI layout, ads, and saves are unchanged.
 - Added `REFERENCE_GAME_FEEL_V2_TESTS` for separation, exact contact, overlap, unlike tiers, fast shots, resting pushes, contact-only chains, feedback timing, tick removal, and sound hierarchy.
+# 2026-08-18 - Fix Home startup and return navigation
+
+- Fixed builds that opened directly into a level when the runtime did not expose Godot's `mobile` feature flag.
+- Fixed Pause HOME so it clears the paused gameplay modal and reliably presents Home.
+- Changed Level Ready Back from a no-op into a controller-owned return to Home.
+- Extended game-flow regression coverage to instantiate the production controller and exercise startup, Level Ready, active play, Pause, and Home return.

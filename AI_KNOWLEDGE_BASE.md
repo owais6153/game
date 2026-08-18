@@ -766,3 +766,8 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Substeps are bounded by `MAX_SIMULATION_SUBSTEPS=8` and `MAX_SUBSTEP_RADIUS_FRACTION=0.45`. They improve tunneling reliability without enlarging colliders or enabling distance merging.
 - Current presentation targets: merge 0.27 s / 1.26x, target flight 0.32 s, normal/major coin flight 0.54/0.60 s, target swap begins at 0.12 s. The target checkmark is intentionally absent.
 - Preserve supplied audio identities. Current hierarchy is contact 0.28/0.32 < ordinary merge 0.78 < target arrival 0.90 < final success 0.92, with music unchanged at 0.06.
+# Home flow invariants - 2026-08-18
+
+- Never gate initial Home presentation on OS/platform feature flags. All builds must enter `AppFlowState.HOME` after setup.
+- START GAME is the only Level Ready action that enters `PLAYING`. Back returns Home; it must not be consumed as a no-op.
+- Pause HOME must clear Pause before calling `_show_home()`. Test these paths with a real `GameController`, not only an isolated overlay.

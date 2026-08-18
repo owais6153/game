@@ -445,3 +445,9 @@ Final APK: `build/android/majestic-gems-animation-large-screen-polish-v2.apk`, 8
 - Four target coins travel over 0.54-0.60 s with tighter stagger; HUD arrivals retain authoritative reconciliation and use a stronger 0.18 s pulse.
 - Existing audio assets/music remain active. Normal gem/rail contacts are quieter at 0.28/0.32, ordinary merge is 0.78, target arrival is 0.90, and final success is 0.92.
 - Simulation uses up to eight bounded displacement substeps. Merge candidates captured inside confirmed physical contact are no longer discarded after a later substep separates the pair; proximity merging remains forbidden.
+# Home startup and return-flow repair - 2026-08-18
+
+- Production startup now always enters `HOME`; the former mobile-feature conditional that could fall through to `PLAYING` is removed.
+- Pause HOME uses a dedicated controller transition that clears the Pause modal before presenting Home.
+- Android Back from Level Ready returns to Home instead of being consumed with no navigation.
+- Gameplay physics, game-feel tuning, targets, rewards, progression, ads, and saves are unchanged.

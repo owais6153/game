@@ -404,3 +404,8 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Target-only coins retain four authoritative chunks and unchanged values, but travel over 0.54 s normally or 0.60 s for L6+, with 0.045 s stagger and a 0.18 s HUD pulse.
 - Existing music and sound assets remain authoritative. Normal contacts are subordinate to ordinary merge, target arrival, and final success through centralized gains.
 - Physical merging remains contact-only. The simulation may use up to eight displacement-bounded substeps, and a pair captured inside the confirmed-contact branch remains valid for that resolution batch even if later substeps separate it. No collider radius or proximity threshold is enlarged.
+# Home startup and return-flow repair - 2026-08-18
+
+- Every runtime target enters the complete Home screen after initialization; Home visibility must never depend on `OS.has_feature("mobile")`.
+- Home PLAY opens Level Ready, START GAME alone begins play, and Level Ready Back returns Home.
+- Pause HOME synchronously closes Pause and presents Home as the input-owning paused layer. It must never resume gameplay or leave the player trapped behind a hidden modal.
