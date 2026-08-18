@@ -1,5 +1,31 @@
 # Build Manifest
 
+## Original Procedural Collision Sound Restore RELEASE AAB v1.0.4 (versionCode 6)
+
+- AAB: `build/android/majestic-gems-procedural-collision-restore-v1.0.4-vc6.aab`
+- Size: 70,072,285 bytes (66.83 MiB)
+- Export timestamp: 2026-08-18T22:03:49+05:00 (Asia/Karachi)
+- SHA-256: `FF5A2EE1F2A75B093DA8BAC34780D0A42F0B56A03656604E9708EEC471982419`
+- Source commit/tag: `55f96d4` / `procedural-collision-sound-restore-v1.0.4-vc6-source`; delivery tag: `procedural-collision-sound-restore-v1.0.4-vc6-release`.
+- Version selection: versionCode 6 is strictly greater than every recorded delivered/uploaded code (maximum prior 5); versionName 1.0.4 is greater than prior 1.0.3. Both values were saved and committed before export.
+- Export: Godot 4.6.3 `--export-release`, Gradle AAB, existing configured upload signing, both `arm64-v8a` and `armeabi-v7a`.
+- Bundletool 1.18.3 validation: PASS. Embedded manifest reports versionCode `6` and versionName `1.0.4`; feature module contains three DEX files and both ARM Godot/C++ library pairs.
+- Tests: `SOUND_PRIVACY_LINK_TESTS`, `ANIMATION_AUDIO_BACK_PRIVACY_POLISH_TESTS`, and `REFERENCE_GAME_FEEL_V2_TESTS` passed.
+- Device/Play status: AAB is not directly installable; no Play upload or physical-device behavior is claimed.
+- Report: `reports/PROCEDURAL_COLLISION_SOUND_RESTORE_RELEASE.md`.
+
+## Original Procedural Collision Sound Restore TEST APK v1.0.4 (versionCode 6)
+
+- APK: `build/android/majestic-gems-procedural-collision-restore-v1.0.4-vc6.apk`
+- Size: 82,227,532 bytes (78.42 MiB)
+- Export timestamp: 2026-08-18T22:05:55+05:00 (Asia/Karachi)
+- SHA-256: `C9C3DFEF0C1E4929FC0FB1000E0066D8BE612A47B14A69B90BBE5C60D4041EEB`
+- Source commit/tag: `55f96d4` / `procedural-collision-sound-restore-v1.0.4-vc6-source`; delivery tag: `procedural-collision-sound-restore-v1.0.4-vc6-release`.
+- Export: Godot 4.6.3 `--export-debug Android`, Gradle APK with debug signing. The committed AAB path/format was restored immediately after export; no version value changed.
+- AAPT/signature validation: `com.owais.majestygems`, versionCode 6, versionName 1.0.4, min SDK 24, target/compile SDK 36; APK Signature Scheme v2 PASS with one signer; both ARM ABIs present.
+- Device status: `adb devices -l` found no attached device. Installation and subjective listening are not claimed.
+- Report: `reports/PROCEDURAL_COLLISION_SOUND_RESTORE_RELEASE.md`.
+
 ## Original Collision / Fast Merge / Visible-Touch Repair TEST APK
 
 - APK: `build/android/majestic-gems-original-contact-fast-merge-touch-fix.apk`

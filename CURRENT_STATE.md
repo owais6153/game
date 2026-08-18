@@ -2,7 +2,7 @@
 
 The supplied MP3 and derivative collision assets are no longer active for gem-to-gem or gem-to-rail impacts. The game again generates and caches its pre-supplied-audio procedural crystal contacts: gem is 1240 Hz / 55 ms at linear gain 0.46; rail is 760 Hz / 65 ms at gain 0.32. They retain their earlier 75/110 ms global cooldowns and fixed pitch. This restores the older, distinctly different contact sound requested by the player.
 
-Audio remains presentation-only: the existing confirmed-contact telemetry, exact merge-pair suppression, five-voice pool, buses/limiter, settings, haptics, and all gameplay physics/merge rules remain unchanged. Android release identity is now permanently versionCode 6 / versionName 1.0.4 for the requested AAB/APK delivery. See `reports/PROCEDURAL_COLLISION_SOUND_RESTORE_RELEASE.md`.
+Audio remains presentation-only: the existing confirmed-contact telemetry, exact merge-pair suppression, five-voice pool, buses/limiter, settings, haptics, and all gameplay physics/merge rules remain unchanged. Android release identity is permanently versionCode 6 / versionName 1.0.4. Release AAB `build/android/majestic-gems-procedural-collision-restore-v1.0.4-vc6.aab` (70,072,285 bytes; SHA-256 `FF5A2EE1F2A75B093DA8BAC34780D0A42F0B56A03656604E9708EEC471982419`) passes Bundletool with embedded code 6/name 1.0.4. Matching APK `build/android/majestic-gems-procedural-collision-restore-v1.0.4-vc6.apk` (82,227,532 bytes; SHA-256 `C9C3DFEF0C1E4929FC0FB1000E0066D8BE612A47B14A69B90BBE5C60D4041EEB`) passes AAPT, v2 signature, and dual-ABI audit. No device was connected. See `reports/PROCEDURAL_COLLISION_SOUND_RESTORE_RELEASE.md`.
 
 # Current State Addendum - Original collision sound, fast merge/push, and visible-touch merge repair
 
