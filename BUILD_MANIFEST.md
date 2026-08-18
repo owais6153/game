@@ -1,5 +1,19 @@
 # Build Manifest
 
+## Animation, Audio, Back, and Privacy Polish TEST APK
+
+- APK: `build/android/majestic-gems-animation-audio-back-privacy-polish-test.apk`
+- Size: 82,210,382 bytes (78.40 MiB)
+- Export timestamp: 2026-08-18T11:03:48.6826871+05:00 (Asia/Karachi)
+- SHA-256: `D1CF50AF7664ACFE377D26DC0342061EE33E1CA377E61099AE8B896EA81FFF21`
+- Source commit/tag: `acb28a5` / `animation-audio-back-privacy-polish-source`.
+- Export preset/method: existing `Android` preset temporarily switched from Gradle AAB to Gradle APK for Godot 4.6.3 headless `--export-debug`, then restored exactly to `build/android/majestic-gems-closed-test-v2.aab` / AAB format. Export reached `[DONE]` and exited cleanly. No AAB was generated and no version value was changed.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 4; versionName 1.0.2; min SDK 24; target/compile SDK 36; game category; portrait; debug build.
+- ABIs/native libraries: `arm64-v8a` and `armeabi-v7a`; each contains `libgodot_android.so` and `libc++_shared.so`.
+- Signing/package validation: APK Signature Scheme v2 PASS with one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. AAPT and ZIP audits PASS: 1,000 entries, five DEX files, both ARM runtimes, production AdMob App ID `ca-app-pub-4605895178658062~1516881747`, all three new filtered audio imports, existing music/coin resources, and zero report/test/source-audio entries.
+- Device status: `adb devices -l` returned no attached device and the started daemon was stopped. Installation, OEM/predictive Back delivery, lifecycle behavior, subjective speaker balance, and phone viewport review are not claimed.
+- Report: `reports/ANIMATION_AUDIO_BACK_PRIVACY_POLISH.md`.
+
 ## Immediate Merge Sound Sync RELEASE AAB v3 - corrected versionCode 3
 
 - AAB: `build/android/majestic-gems-merge-sound-sync-v3-vc3.aab`

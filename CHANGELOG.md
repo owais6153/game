@@ -6,15 +6,7 @@
 - Newly implemented proper Android Back ownership with `application/config/quit_on_go_back=false`, `NOTIFICATION_WM_GO_BACK_REQUEST`, shared Escape/debug handling, duplicate-event suppression, overlay-first dismissal, result-modal locking, gameplay Pause behavior, and a Home Cancel/Exit confirmation.
 - Fixed the visibly offset Home Privacy Policy text by removing its forced 180-pixel text box and centering its intrinsic control; real 576x1312 and 720x1600 Godot proof frames plus four-aspect geometry coverage pass.
 - Added focused animation/audio/Back/privacy regression coverage and updated existing timing, game-flow, sound/privacy, and responsive-layout sentinels. AdMob, UMP, saves, package name, and production signing are unchanged.
-
-# 2026-08-18 - Animation, audio, Back, and Privacy production polish
-
-- Re-timed presentation-only feedback from a rushed 270 ms merge/320 ms target path to a readable 540 ms merge, 700 ms target journey, 220 ms target pulse, and about 980 ms four-coin sequence while keeping gameplay/launcher state authoritative and overlapping.
-- Extended final-target presentation to about 1.66 seconds and preserved the responsive 220 ms Next transition; reward lookup values, score/economy, merge/target logic, physics, gem assets, and table geometry are unchanged.
-- Added filtered runtime derivatives for gem and rail contact, raised impact thresholds, added global/per-contact cooldown protection, aligned merge audio to the reveal, and separated target arrival, target completion, coin arrivals, and level-complete identities into a clear priority hierarchy.
-- Newly implemented proper Android Back ownership with `application/config/quit_on_go_back=false`, `NOTIFICATION_WM_GO_BACK_REQUEST`, shared Escape/debug handling, duplicate-event suppression, overlay-first dismissal, result-modal locking, gameplay Pause behavior, and a Home Cancel/Exit confirmation.
-- Fixed the visibly offset Home Privacy Policy text by removing its forced 180-pixel text box and centering its intrinsic control; real 576x1312 and 720x1600 Godot proof frames plus four-aspect geometry coverage pass.
-- Added focused animation/audio/Back/privacy regression coverage and updated existing timing, game-flow, sound/privacy, and responsive-layout sentinels. AdMob, UMP, saves, package name, and production signing are unchanged.
+- Exported and audited `build/android/majestic-gems-animation-audio-back-privacy-polish-test.apk`; package/version/SDK, v2 debug signature, both ARM ABIs, production AdMob App ID, new audio imports, and export exclusions pass. No AAB was generated and no device testing is claimed.
 
 # 2026-08-16 - Supplied sound integration and Home privacy link v1
 

@@ -100,4 +100,12 @@ Coverage includes exactly-once merge result and reward records, immediate author
 
 The real main scene also remained alive on the paused Home state for more than three minutes in a headless idle soak with no error or unexpected-transition output, then was stopped manually. This is useful local stability evidence but is not a substitute for Android lifecycle/device testing.
 
-Android APK evidence will be appended after the milestone build. AdMob, UMP, saves, package identity, production keys, gem assets, board dimensions, physics, rules, rewards, and economy were not modified.
+## Android build
+
+`build/android/majestic-gems-animation-audio-back-privacy-polish-test.apk` exported successfully from source commit/tag `acb28a5` / `animation-audio-back-privacy-polish-source` and reached a clean `[DONE]`/process exit. It is 82,210,382 bytes with SHA-256 `D1CF50AF7664ACFE377D26DC0342061EE33E1CA377E61099AE8B896EA81FFF21`.
+
+AAPT reports package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36, game category, portrait, and debug status. APK Signature Scheme v2 verifies with the established Godot RSA-2048 debug signer. ZIP audit reports 1,000 entries, five DEX files, both `arm64-v8a` and `armeabi-v7a` Godot/C++ runtime pairs, all three new filtered audio imports, existing music/coin imports, production AdMob App ID `ca-app-pub-4605895178658062~1516881747`, and zero report/test/source-audio entries. The committed AAB output/format was restored exactly after export. No AAB was created, no version value was changed, and no production key was used or generated.
+
+`adb devices -l` returned no attached device, then the daemon was stopped. Installation, OEM/predictive Back delivery, lifecycle behavior, subjective speaker mix, haptics, and physical viewport review therefore remain device acceptance items.
+
+AdMob, UMP, saves, package identity, production keys, gem assets, board dimensions, physics, rules, rewards, and economy were not modified.
