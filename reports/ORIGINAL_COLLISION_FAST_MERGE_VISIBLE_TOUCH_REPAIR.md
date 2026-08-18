@@ -24,6 +24,7 @@ The centralized `CONTACT_EPSILON` now matches the measured two-design-pixel `VIS
 - `SOUND_PRIVACY_LINK_TESTS: PASS`
 - `UI_SCALE_LAYOUT_TESTS: PASS`
 - Godot editor import/parse: PASS after the final source edit.
-- APK packaging/audit and device status are recorded with the delivered artifact in `BUILD_MANIFEST.md`.
+- APK: `build/android/majestic-gems-original-contact-fast-merge-touch-fix.apk` — 82,227,624 bytes — SHA-256 `C3EAC8417D9566F4E10E011A7838BA514D15C5FD299B3B80E2B68AF757364A8C`.
+- AAPT manifest, v2 signature, and ZIP checks for `AndroidManifest.xml`, `classes.dex`, and both ARM Godot libraries passed. No AAB was generated; `export_presets.cfg` was restored to its committed AAB configuration.
 
 No physical device was connected during development; subjective listening and on-device touch confirmation are not claimed.

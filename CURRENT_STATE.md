@@ -4,7 +4,7 @@ Gem-to-gem and gem-to-rail impacts again use the original supplied sound files a
 
 The merge and source-pull/push presentation is again the approved fast 270 ms / 60 ms cadence with an immediate `0.64 -> 1.26 -> 1.0` pop. Target collection stays at its current 700 ms pace, the next-target transition is unchanged, and target coins retain their slower 260 ms delayed, ~980 ms visible sequence.
 
-Matching gems now merge when they fall within the calibrated 2-design-pixel visible-touch band, avoiding the observed case where equal gems look touching but fail to merge. This changes only centralized contact tolerance; collider radii, physics geometry, impulse tuning, chain eligibility, target/reward authority, and launcher behavior remain unchanged. See `reports/ORIGINAL_COLLISION_FAST_MERGE_VISIBLE_TOUCH_REPAIR.md`.
+Matching gems now merge when they fall within the calibrated 2-design-pixel visible-touch band, avoiding the observed case where equal gems look touching but fail to merge. This changes only centralized contact tolerance; collider radii, physics geometry, impulse tuning, chain eligibility, target/reward authority, and launcher behavior remain unchanged. The APK-only delivery is `build/android/majestic-gems-original-contact-fast-merge-touch-fix.apk` (82,227,624 bytes; SHA-256 `C3EAC8417D9566F4E10E011A7838BA514D15C5FD299B3B80E2B68AF757364A8C`). AAPT, v2 signature, dual-ABI ZIP audit, and four focused regression suites pass; no device was connected. See `reports/ORIGINAL_COLLISION_FAST_MERGE_VISIBLE_TOUCH_REPAIR.md` and `BUILD_MANIFEST.md`.
 
 # Current State Addendum - Original collision sound, fast merge/push, and visible-touch merge repair
 

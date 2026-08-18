@@ -1,5 +1,17 @@
 # Build Manifest
 
+## Original Collision / Fast Merge / Visible-Touch Repair TEST APK
+
+- APK: `build/android/majestic-gems-original-contact-fast-merge-touch-fix.apk`
+- Size: 82,227,624 bytes (78.42 MiB)
+- Export timestamp: 2026-08-18T21:31:01+05:00 (Asia/Karachi)
+- SHA-256: `C3EAC8417D9566F4E10E011A7838BA514D15C5FD299B3B80E2B68AF757364A8C`
+- Source commit/tag: `442ad33` / `original-collision-fast-merge-visible-touch-source`; delivery tag: `original-collision-fast-merge-visible-touch-apk`.
+- Export: Godot 4.6.3 `--export-debug Android`, Gradle APK format, debug signing, both `arm64-v8a` and `armeabi-v7a`. The preset was temporarily set to APK and restored to its committed AAB path/format immediately afterward. No AAB was generated.
+- Validation: `REFERENCE_GAME_FEEL_V2_TESTS`, `ANIMATION_AUDIO_BACK_PRIVACY_POLISH_TESTS`, `SOUND_PRIVACY_LINK_TESTS`, and `UI_SCALE_LAYOUT_TESTS` passed. AAPT reports `com.owais.majestygems`, versionCode 5, versionName 1.0.3, min SDK 24, target/compile SDK 36, game category, and portrait support. APK Signature Scheme v2 passes with one signer; ZIP validation found `AndroidManifest.xml`, `classes.dex`, and Godot libraries for both ARM ABIs.
+- Device status: `adb devices -l` found no connected device. Installation, physical touch-merging, and subjective original-volume listening are not claimed.
+- Report: `reports/ORIGINAL_COLLISION_FAST_MERGE_VISIBLE_TOUCH_REPAIR.md`.
+
 ## Reward, Coin, and Merge Timing Restore RELEASE AAB v1.0.3 (versionCode 5)
 
 - AAB: `build/android/majestic-gems-reward-coin-merge-restore-v1.0.3-vc5.aab`
