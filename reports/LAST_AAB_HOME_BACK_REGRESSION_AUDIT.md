@@ -31,3 +31,11 @@ At that baseline, Android export did not exclude `tween_composer/*`. `HomeOverla
 - Added regressions for hidden gameplay on Home, export dependency retention, and duplicate Back suppression.
 
 No board, launcher, collision, merge, target, reward, progression, or ad-cadence rule changed.
+
+## Validation and APK
+
+Game-flow/Home/Back, sound/privacy, AdMob/shutdown, responsive layout, reference game-feel/contact, scene-variety, and branding/input suites all reached PASS. The Windows Godot runner retains its known post-PASS teardown access violation; no assertion failed.
+
+Fresh APK: `build/android/majestic-gems-last-aab-home-back-repair.apk`, 82,166,770 bytes, SHA-256 `B84DDD485475F5BA60ECB01ECE765E1AF39AEDB5A1691F0C0B499B8F9BFB4A8B`, exported from source commit/tag `56a27bb` / `last-aab-home-back-regression-repair-source`. Package inspection proves all four Home Tween Composer bytecode dependencies are present (`tween_composer.gdc`, `tween_sequence_resource.gdc`, `tween_step_collection_resource.gdc`, and `tween_step_item_resource.gdc`; 36,972 bytes total). AAPT reports package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36, game category, and both ARM ABIs. APK Signature Scheme v2 passes with one RSA-2048 debug signer. No AAB was created and the release AAB preset was restored.
+
+No Android device was connected. Physical startup, Home/Level Ready visibility, OEM Back delivery, installation, and prolonged idle behavior remain device acceptance items.

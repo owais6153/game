@@ -1103,3 +1103,17 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36, game category and portrait support; APK Signature Scheme v2 PASS with one RSA-2048 signer; primary DEX and both Godot ARM libraries present; packaged contents include the imported 1152x1152 system-splash derivative.
 - Tests: editor parse/import and game-flow/Back/idle, sound/privacy, AdMob/shutdown, responsive layout, reference game-feel/contact, scene assets, and branding/input suites reached PASS. The Windows runner returned its known post-sentinel teardown access violation after test quit; no assertion failed.
 - Device status: `adb devices -l` found no connected device. Installation, multi-minute physical idle, OEM Back/exit behavior, and splash sharpness are not claimed.
+
+# Last-AAB Home and Android Back Regression Repair APK - 2026-08-18
+
+- Filename: `build/android/majestic-gems-last-aab-home-back-repair.apk`
+- Size: 82,166,770 bytes
+- Timestamp: 2026-08-18 08:38:43 +05:00
+- SHA-256: `B84DDD485475F5BA60ECB01ECE765E1AF39AEDB5A1691F0C0B499B8F9BFB4A8B`
+- Export-source commit/tag: `56a27bb` / `last-aab-home-back-regression-repair-source`.
+- Baseline audited: last delivered release AAB `majestic-gems-merge-sound-sync-v3-vc3.aab`, source `aa3a1e1`, delivery `735f81a`, versionCode 3 / versionName 1.0.1.
+- Export: Godot 4.6.3 debug APK, Gradle format, both `arm64-v8a` and `armeabi-v7a`, Godot debug signing. The committed release AAB preset was restored; no AAB was generated.
+- Dependency validation: packaged Home contains `tween_composer.gdc` (23,772 bytes), `tween_sequence_resource.gdc` (1,916), `tween_step_collection_resource.gdc` (1,300), and `tween_step_item_resource.gdc` (9,984). This restores the dependency omitted by the broken post-AAB packages.
+- Package validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36 and game category; primary DEX and both Godot ARM libraries present; APK Signature Scheme v2 PASS with one RSA-2048 signer.
+- Tests: game-flow/Home/Back, sound/privacy, AdMob/shutdown, responsive layout, reference game-feel/contact, scene-variety, and branding/input suites reached PASS. The Windows runner returned its known post-sentinel teardown access violation; no assertion failed.
+- Device status: `adb devices -l` found no connected device. Installation, physical Home/Level Ready visibility, OEM Back behavior, and prolonged idle acceptance are not claimed.

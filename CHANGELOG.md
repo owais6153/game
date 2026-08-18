@@ -735,3 +735,4 @@
 - Restored Tween Composer to Android export, explicitly hid gameplay while Home owns the screen, and made Home visibility precede optional presentation work.
 - Debounced the two platform Back entry points for 350 ms so one physical press cannot execute two transitions.
 - Added source and export-contract coverage for Home dependency retention, hidden gameplay, and duplicate Back suppression.
+- Exported and audited `build/android/majestic-gems-last-aab-home-back-repair.apk`; the four required Home Tween Composer bytecode files, current project payload, both ARM ABIs, package/API metadata, and v2 signature pass inspection. No AAB or device test is claimed.

@@ -465,3 +465,5 @@ Fresh TEST APK: `build/android/majestic-gems-back-idle-settings-splash-repair.ap
 The version-code-3 AAB baseline was compared directly with current source. Production Home has always used Tween Composer for its logo loop, but post-AAB commit `9f83eb7` incorrectly excluded `tween_composer/*` from Android. Android export now retains that required runtime dependency again. Home also hides the gameplay HUD explicitly and establishes its visible input surface before optional snapshot/motion work, so a presentation failure cannot masquerade as an already-started game.
 
 Android window-Back and Escape-style Back representations share one 350 ms platform debounce before the state-aware policy. One physical press therefore cannot perform two state transitions. See `reports/LAST_AAB_HOME_BACK_REGRESSION_AUDIT.md`.
+
+Corrected TEST APK: `build/android/majestic-gems-last-aab-home-back-repair.apk` (82,166,770 bytes; SHA-256 `B84DDD485475F5BA60ECB01ECE765E1AF39AEDB5A1691F0C0B499B8F9BFB4A8B`). Package inspection confirms all four Home Tween Composer runtime bytecode files, both ARM ABIs, and v2 signing. No device was connected.
