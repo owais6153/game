@@ -36,11 +36,11 @@ func _test_audio_service() -> void:
 	_assert(sfx_bus >= 0 and AudioServer.get_bus_effect_count(sfx_bus) == 1 and AudioServer.get_bus_effect(sfx_bus, 0) is AudioEffectLimiter, "SFX bus must own the clipping limiter")
 	_assert(service._music_player.bus == "Music" and service._players.all(func(player: AudioStreamPlayer) -> bool: return player.bus == "SFX"), "Music and one-shots must route to their dedicated buses")
 	_assert(is_equal_approx(service.music_volume_linear(), 0.06), "Background music must use the documented corrective gain")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.34), "Gem-contact replacement gain must be lowered to 0.34")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.39), "Rail-contact replacement gain must be lowered to 0.39")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.normal_merge.volume), 0.70), "Ordinary-merge replacement gain must be lowered to 0.70")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.28), "Gem contact must remain subordinate at 0.28")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.32), "Rail contact must remain subordinate at 0.32")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.normal_merge.volume), 0.78), "Ordinary merge must clearly exceed collision gain")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.button.volume), 0.32), "UI-tap replacement gain must be lowered to 0.32")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.win.volume), 0.84), "Final-success replacement gain must be lowered to 0.84")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.win.volume), 0.92), "Final success must remain the strongest short supplied cue")
 	var expected_paths := {
 		"gem_contact": "res://assets/runtime/audio/gems-colide.mp3",
 		"wall_contact": "res://assets/runtime/audio/gems-rail-colide.mp3",

@@ -696,3 +696,19 @@
 - Excluded the disabled, unused `tween_composer/*` source from Android packaging after the APK audit found 38,988 uncompressed bytes still present. Global Tweens remains active and packaged.
 - Exported and audited `build/android/majestic-gems-animation-large-screen-polish-v2.apk`; it is 16,676 bytes smaller than the first polish APK and contains no Tween Composer entries.
 - Kept the APK-only release scope. No AAB was generated.
+# 2026-08-18 - Reference-driven game feel v2
+
+- Rebuilt the merge feedback cadence around a 270 ms presentation, 1.26x result pop, brighter 10/12-ray crystal burst, and faster settle.
+- Removed the target-completion checkmark and replaced it with a short artwork-preserving glow/ray confirmation.
+- Accelerated target travel from 0.40 s to 0.32 s and coin travel from 0.92/1.00 s to 0.54/0.60 s; shortened target handoff and strengthened HUD arrival response.
+- Preserved all supplied music/SFX identities while reducing normal-contact gains and raising merge, target-arrival, and final-success emphasis.
+- Fixed missed fast/visually touching contacts with displacement-bounded simulation substeps and same-step confirmed-contact authority. Merge distance, collider radii, progression, rewards, UI layout, ads, and saves are unchanged.
+- Added `REFERENCE_GAME_FEEL_V2_TESTS` for separation, exact contact, overlap, unlike tiers, fast shots, resting pushes, contact-only chains, feedback timing, tick removal, and sound hierarchy.
+# 2026-08-18 - Reference-driven game feel v2
+
+- Rebuilt the merge feedback cadence around a 270 ms presentation, 1.26x result pop, brighter 10/12-ray crystal burst, and faster settle.
+- Removed the target-completion checkmark and replaced it with a short artwork-preserving glow/ray confirmation.
+- Accelerated target travel from 0.40 s to 0.32 s and coin travel from 0.92/1.00 s to 0.54/0.60 s; shortened target handoff and strengthened HUD arrival response.
+- Preserved all supplied music/SFX identities while reducing normal-contact gains and raising merge, target-arrival, and final-success emphasis.
+- Fixed missed fast/visually touching contacts with displacement-bounded simulation substeps and same-step confirmed-contact authority. Merge distance, collider radii, progression, rewards, UI layout, ads, and saves are unchanged.
+- Added `REFERENCE_GAME_FEEL_V2_TESTS` for separation, exact contact, overlap, unlike tiers, fast shots, resting pushes, contact-only chains, feedback timing, tick removal, and sound hierarchy.

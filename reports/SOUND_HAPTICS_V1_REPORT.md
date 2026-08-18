@@ -135,3 +135,8 @@ Current active audio mappings and gains are documented in `SOUND_MAPPING_CORRECT
 # Immediate merge synchronization note - 2026-08-16
 
 The current merge-attack timing is documented in `MERGE_SOUND_SYNC_FIX_V3_REPORT.md`. The supplied source's half-second lead-in is removed only in a runtime derivative; controller routing remains confirmed-event-only and haptics are unchanged.
+# Reference-driven game feel v2 audio update - 2026-08-18
+
+- Existing supplied music and all active event assets are retained; no reference audio was copied.
+- Relative hierarchy changed only through centralized gains: gem contact `0.34 -> 0.28`, rail contact `0.39 -> 0.32`, ordinary merge `0.70 -> 0.78`, target arrival `0.82 -> 0.90`, and final success `0.84 -> 0.92`. Music remains `0.06`.
+- Immediate merge routing, contact cooldowns/pitch variation, five-voice priority pool, buses/limiter, settings, and haptics remain unchanged.

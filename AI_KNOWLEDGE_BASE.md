@@ -754,3 +754,15 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Preserve `canvas_items` + `expand`, centered `GameConfig` geometry, aspect-preserving background cover, phone portrait orientation, and Android game category. Wide screens gain scenery around the fixed-width composition; never stretch the table horizontally.
 - Global Tweens is already an autoload. Do not restore Tween Composer unless a future effect cannot be expressed cleanly through the existing controller/native tween paths and its Android package cost is revalidated.
 - Tween Composer source is intentionally preserved but disabled and excluded from Android with `tween_composer/*`. Do not remove that exclusion unless the plugin is deliberately re-enabled, used by production runtime, and its APK cost is measured again.
+# Reference-driven game feel v2 invariants
+
+- A captured merge candidate means `BoardSimulation` observed `distance <= radius sum + CONTACT_EPSILON` in that simulation substep. Do not add a later position recheck that can discard a genuine fast contact after separation.
+- Substeps are bounded by `MAX_SIMULATION_SUBSTEPS=8` and `MAX_SUBSTEP_RADIUS_FRACTION=0.45`. They improve tunneling reliability without enlarging colliders or enabling distance merging.
+- Current presentation targets: merge 0.27 s / 1.26x, target flight 0.32 s, normal/major coin flight 0.54/0.60 s, target swap begins at 0.12 s. The target checkmark is intentionally absent.
+- Preserve supplied audio identities. Current hierarchy is contact 0.28/0.32 < ordinary merge 0.78 < target arrival 0.90 < final success 0.92, with music unchanged at 0.06.
+# Reference-driven game feel v2 invariants
+
+- A captured merge candidate means `BoardSimulation` observed `distance <= radius sum + CONTACT_EPSILON` in that simulation substep. Do not add a later position recheck that can discard a genuine fast contact after separation.
+- Substeps are bounded by `MAX_SIMULATION_SUBSTEPS=8` and `MAX_SUBSTEP_RADIUS_FRACTION=0.45`. They improve tunneling reliability without enlarging colliders or enabling distance merging.
+- Current presentation targets: merge 0.27 s / 1.26x, target flight 0.32 s, normal/major coin flight 0.54/0.60 s, target swap begins at 0.12 s. The target checkmark is intentionally absent.
+- Preserve supplied audio identities. Current hierarchy is contact 0.28/0.32 < ordinary merge 0.78 < target arrival 0.90 < final success 0.92, with music unchanged at 0.06.

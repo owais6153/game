@@ -397,3 +397,10 @@ This milestone implements one complete prototype level loop. It has scoring, a D
 - Active L1-L8 base radii are `36/39/42/45/48/51/54/57 px`; alpha-trimmed sprite bodies and simple circular colliders use the same values. Visual tier growth must be clear but not exaggerated.
 - Backgrounds cover the portrait viewport without distortion. Aim/danger guides remain subtle presentation only.
 - Merge rules, launch/movement tuning, target/scoring/progression rules, rewards, ads/UMP, audio, results, and animation sequencing are frozen for this milestone.
+# Reference-driven game feel v2 - 2026-08-18
+
+- A confirmed merge presents over 0.27 s: 0.06 s source pull, result scale 0.64 -> 1.26 -> 1.0, and a bounded 10-ray crystal impact (12 rays for L6+). Presentation never feeds simulation.
+- Target collection travels over 0.32 s and confirms with a short glow/ray card reaction; no tick/checkmark success glyph is rendered. Sequential target handoff begins after 0.12 s.
+- Target-only coins retain four authoritative chunks and unchanged values, but travel over 0.54 s normally or 0.60 s for L6+, with 0.045 s stagger and a 0.18 s HUD pulse.
+- Existing music and sound assets remain authoritative. Normal contacts are subordinate to ordinary merge, target arrival, and final success through centralized gains.
+- Physical merging remains contact-only. The simulation may use up to eight displacement-bounded substeps, and a pair captured inside the confirmed-contact branch remains valid for that resolution batch even if later substeps separate it. No collider radius or proximity threshold is enlarged.

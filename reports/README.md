@@ -37,3 +37,4 @@
 - `ADMOB_INTEGRATION_V1_REPORT.md` - AdMob plugin/configuration, centralized manager lifecycle, completed-level interstitial cadence, rewarded Double Coins safeguards, validation, APK, and device limitations.
 - `MAJESTIC_GEMS_BRANDING_PUSH_LINE_V1_REPORT.md` — supplied logo/icon integration, Android mask-safe derivatives, unused-asset packaging cleanup, and draggable push-line validation.
 - `HOME_SETTINGS_FAST_FEEL_MOTION_V1_REPORT.md` — Home settings alignment fix, Tween Composer/Global Tweens integration, and centralized fast-feel timing pass.
+- [Reference-Driven Game Feel v2](REFERENCE_DRIVEN_GAME_FEEL_V2.md) — video-led merge/target/reward pacing rebuild, checkmark removal, audio hierarchy, and confirmed-contact reliability.

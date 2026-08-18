@@ -431,3 +431,17 @@ Both supplied root videos now have an end-to-end local decode, full-timeline con
 Tween Composer remains preserved but disabled and unreferenced. Android export now excludes `tween_composer/*` after the prior APK was found to contain 38,988 uncompressed bytes from that unused editor tool. Global Tweens remains the active autoload. No gameplay, UI, audio, asset, AdMob, UMP, save, version, or AAB behavior changed.
 
 Final APK: `build/android/majestic-gems-animation-large-screen-polish-v2.apk`, 81,304,035 bytes, SHA-256 `9132197FB131F8367577573F9D01716AAB95875617975C707148E33174D4A1CA`. It is 16,676 bytes smaller than the first polish APK and contains no Tween Composer entries. AAPT package/API/manifest, both ARM ABIs, and APK Signature Scheme v2 pass. No device or emulator was available, and no AAB was generated.
+# Reference-driven game feel v2 - 2026-08-18
+
+- Merge presentation is now an unmistakable 0.27 s contact/pull/pop/settle beat with a 1.26x result overshoot and 10 lightweight crystal rays (12 for L6+).
+- Target collection completes in 0.32 s, uses arrival glow/rays instead of the removed checkmark, and begins the next-target transition after 0.12 s.
+- Four target coins travel over 0.54-0.60 s with tighter stagger; HUD arrivals retain authoritative reconciliation and use a stronger 0.18 s pulse.
+- Existing audio assets/music remain active. Normal gem/rail contacts are quieter at 0.28/0.32, ordinary merge is 0.78, target arrival is 0.90, and final success is 0.92.
+- Simulation uses up to eight bounded displacement substeps. Merge candidates captured inside confirmed physical contact are no longer discarded after a later substep separates the pair; proximity merging remains forbidden.
+# Reference-driven game feel v2 - 2026-08-18
+
+- Merge presentation is now an unmistakable 0.27 s contact/pull/pop/settle beat with a 1.26x result overshoot and 10 lightweight crystal rays (12 for L6+).
+- Target collection completes in 0.32 s, uses arrival glow/rays instead of the removed checkmark, and begins the next-target transition after 0.12 s.
+- Four target coins travel over 0.54-0.60 s with tighter stagger; HUD arrivals retain authoritative reconciliation and use a stronger 0.18 s pulse.
+- Existing audio assets/music remain active. Normal gem/rail contacts are quieter at 0.28/0.32, ordinary merge is 0.78, target arrival is 0.90, and final success is 0.92.
+- Simulation uses up to eight bounded displacement substeps. Merge candidates captured inside confirmed physical contact are no longer discarded after a later substep separates the pair; proximity merging remains forbidden.

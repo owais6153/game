@@ -535,3 +535,13 @@ Large-screen containment remains configuration-driven: Godot's expanding canvas 
 ## Animation tooling packaging boundary - 2026-08-18
 
 `GlobalTweens.gd` is the only active shared tween autoload and remains available to UI presentation. Tween Composer is preserved as repository source for possible future evaluation, but it is not an enabled editor plugin, has no runtime references, and is excluded from Android export through `tween_composer/*`. Gameplay feedback continues to use controller-owned state plus built-in Godot tweens/transforms; neither animation utility may own simulation or progression state.
+# Reference-driven contact and feedback v2
+
+- `BoardSimulation.step()` chooses 1-8 substeps from maximum frame displacement and the smallest live radius. Every substep uses the existing circle/border solver; no swept proximity query or expanded merge radius exists.
+- `ContactMergeService` consumes only pairs captured by `BoardSimulation._resolve_pair()` inside the current confirmed-contact branch. It does not invalidate a genuine early-substep contact because later substeps have already separated the bodies. Generated chain candidates still require result-to-neighbor physical contact.
+- Target completion presentation remains isolated in `TargetRewardOverlay`; it now draws only a bounded glow/ray accent. Merge and coin drawing remain bounded dictionaries in `GameplayEffectsLayer` and cannot influence simulation.
+# Reference-driven contact and feedback v2
+
+- `BoardSimulation.step()` chooses 1-8 substeps from maximum frame displacement and the smallest live radius. Every substep uses the existing circle/border solver; no swept proximity query or expanded merge radius exists.
+- `ContactMergeService` consumes only pairs captured by `BoardSimulation._resolve_pair()` inside the current confirmed-contact branch. It does not invalidate a genuine early-substep contact because later substeps have already separated the bodies. Generated chain candidates still require result-to-neighbor physical contact.
+- Target completion presentation remains isolated in `TargetRewardOverlay`; it now draws only a bounded glow/ray accent. Merge and coin drawing remain bounded dictionaries in `GameplayEffectsLayer` and cannot influence simulation.

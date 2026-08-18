@@ -33,7 +33,7 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 		"elapsed": -delay,
 		"duration": GameConfig.MAJOR_MERGE_EFFECT_DURATION if major_reward else GameConfig.MERGE_PRESENTATION_DURATION,
 		"effect_scale": GameConfig.MAJOR_MERGE_EFFECT_SCALE if major_reward else 1.0,
-		"spark_count": GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 8,
+		"spark_count": GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 10,
 		"major_reward": major_reward,
 	})
 	_cap_effects()

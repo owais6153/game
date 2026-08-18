@@ -55,14 +55,13 @@ func _draw() -> void:
 	var pop := lerpf(0.72, 1.10, reveal)
 	if t > 0.18:
 		pop = lerpf(1.10, 1.0, smoothstep(0.18, 0.34, t))
-	# The reference holds one unmistakable green check over the completed
-	# target. Rings, filled discs, and spark spokes made this beat look generic
-	# and hid the target artwork instead of confirming it.
-	var check_points := PackedVector2Array([
-		_center + Vector2(-22.0, 1.0) * pop,
-		_center + Vector2(-7.0, 17.0) * pop,
-		_center + Vector2(26.0, -20.0) * pop,
-	])
-	draw_polyline(check_points, Color(0.10, 0.39, 0.08, 0.78 * reveal * fade), 16.0, true)
-	draw_polyline(check_points, Color(0.43, 0.92, 0.20, reveal * fade), 11.0, true)
-	draw_polyline(check_points, Color(0.78, 1.0, 0.58, 0.72 * reveal * fade), 4.0, true)
+	# Completion reads through arrival energy and card response, without a
+	# generic success glyph obscuring the target artwork.
+	var glow := Color(0.68, 0.95, 1.0, 0.62 * reveal * fade)
+	var radius := lerpf(24.0, 47.0, minf(t / 0.42, 1.0)) * pop
+	draw_arc(_center, radius, 0.0, TAU, 40, glow, 5.0)
+	var inner := Color(1.0, 0.96, 0.64, 0.44 * reveal * fade)
+	draw_arc(_center, radius * 0.72, 0.0, TAU, 32, inner, 3.0)
+	for index in range(8):
+		var direction := Vector2.from_angle(float(index) * TAU / 8.0)
+		draw_line(_center + direction * radius * 0.82, _center + direction * radius * 1.12, glow, 2.5)

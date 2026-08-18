@@ -6,6 +6,12 @@ var _collision_impacts: Array[Dictionary] = []
 
 func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) -> void:
 	_collision_impacts.clear()
+	var substeps := _required_substeps(pieces, delta)
+	var sub_delta := delta / float(substeps)
+	for _substep in range(substeps):
+		_step_subframe(pieces, sub_delta, merger)
+
+func _step_subframe(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) -> void:
 	for piece in pieces:
 		if piece.consumed:
 			continue
@@ -28,6 +34,19 @@ func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) ->
 		var first := pieces[first_index]
 		for second_index in range(first_index + 1, pieces.size()):
 			_resolve_pair(first, pieces[second_index], merger)
+
+func _required_substeps(pieces: Array[GemPiece], delta: float) -> int:
+	var maximum_displacement := 0.0
+	var minimum_radius := INF
+	for piece in pieces:
+		if piece.consumed:
+			continue
+		maximum_displacement = maxf(maximum_displacement, piece.velocity.length() * delta)
+		minimum_radius = minf(minimum_radius, piece.radius)
+	if minimum_radius == INF or maximum_displacement <= 0.0:
+		return 1
+	var safe_displacement := maxf(1.0, minimum_radius * GameConfig.MAX_SUBSTEP_RADIUS_FRACTION)
+	return clampi(int(ceil(maximum_displacement / safe_displacement)), 1, GameConfig.MAX_SIMULATION_SUBSTEPS)
 
 func _resolve_bounds(piece: GemPiece) -> void:
 	# This is the proven `new-table-shadow-contact-fix-v1` containment model.

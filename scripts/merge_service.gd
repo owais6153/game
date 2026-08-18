@@ -52,7 +52,9 @@ func _resolve_cycle(pieces: Array[GemPiece], candidates: Array[ContactPair], nex
 		var second: GemPiece = by_id.get(candidate.second_id)
 		if first == null or second == null or consumed.has(first.id) or consumed.has(second.id): continue
 		if first.level != second.level or first.level >= max_result_level: continue
-		if first.position.distance_to(second.position) > first.radius + second.radius + GameConfig.CONTACT_EPSILON: continue
+		# Candidates are captured only inside BoardSimulation's confirmed-contact
+		# branch. Do not re-test their later, already-separated positions here: a
+		# fast impact can be separated by a later substep before this batch resolves.
 		consumed[first.id] = true; consumed[second.id] = true
 		remove_ids[first.id] = true; remove_ids[second.id] = true
 		first.consumed = true; second.consumed = true
