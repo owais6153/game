@@ -1079,3 +1079,15 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36; APK contains `AndroidManifest.xml`, primary DEX, and both ARM library sets; tests/reports are excluded. APK Signature Scheme v2 passes with one Godot RSA-2048 signer.
 - Tests: editor parse/import, `REFERENCE_GAME_FEEL_V2_TESTS`, `UI_SCALE_LAYOUT_TESTS`, `SOUND_PRIVACY_LINK_TESTS`, `GAME_FLOW_REWARD_SPLASH_TESTS`, `SCENE_VARIETY_ASSETS_TESTS`, and `BRANDING_PUSH_LINE_TESTS` passed.
 - Device status: `adb devices -l` found no connected device. Installation, launch, post-change screen recording, physical listening/haptics, and on-device perceptual acceptance are not claimed.
+# Home Startup and Return Flow Repair APK - 2026-08-18
+
+- Filename: `build/android/majestic-gems-home-flow-repair.apk`
+- Size: 81,305,019 bytes
+- Timestamp: 2026-08-18 05:38:48 +05:00
+- SHA-256: `BC55ECBAF4D7DD3BC7D74AC847C92B65D6EF9AFA148561666FE04E77801D57EE`
+- Export-source commit/tag: `e65bc5f` / `home-startup-return-flow-repair-source`.
+- Delivery tag: `home-startup-return-flow-repair-apk` on the provenance follow-up commit.
+- Export: Godot 4.6.3 debug APK, Gradle format, both ARM ABIs, Godot debug signing. The committed release AAB preset was restored; no AAB was generated.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36; APK Signature Scheme v2 PASS with one signer.
+- Tests: editor parse/import and game-flow, game-feel/contact, UI/layout, sound/privacy, scene assets, branding/input, and AdMob suites reached PASS.
+- Device status: `adb devices -l` found no connected device. Installation and physical startup/Home-return verification are not claimed.

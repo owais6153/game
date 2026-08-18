@@ -35,4 +35,6 @@ Gameplay tuning, contact-only merging, target/reward rules, save data, UI design
 - `SCENE_VARIETY_ASSETS_TESTS`: PASS.
 - `BRANDING_PUSH_LINE_TESTS`: PASS.
 - `ADMOB_INTEGRATION_TESTS`: PASS sentinel; the existing post-test Poing mock lambda teardown warning remains unrelated.
-- Fresh debug APK audit: pending source milestone commit/export.
+- Fresh debug APK: PASS — `build/android/majestic-gems-home-flow-repair.apk`, 81,305,019 bytes, SHA-256 `BC55ECBAF4D7DD3BC7D74AC847C92B65D6EF9AFA148561666FE04E77801D57EE`.
+- Package/version/API and APK Signature Scheme v2: PASS. Both ARM ABIs remain enabled by the restored preset; no AAB was generated.
+- ADB found no connected device, so physical startup/Home-return verification remains pending.
