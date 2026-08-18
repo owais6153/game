@@ -1,5 +1,19 @@
 # Build Manifest
 
+## Animation Revert, Collision-Audio Midpoint, and Android Exit Fix TEST APK
+
+- APK: `build/android/majestic-gems-animation-revert-audio-midpoint-exit-fix.apk`
+- Size: 82,226,968 bytes (78.42 MiB)
+- Export timestamp: 2026-08-18T12:49:16+05:00 (Asia/Karachi)
+- SHA-256: `371F47693B0019696152E0C1CB0E753522160BB9B6CBD2123D4CD9237E020FE2`
+- Source commit/tag: `32794fb` / `animation-revert-audio-midpoint-android-exit-source`.
+- Export preset/method: existing `Android` preset temporarily switched from Gradle AAB to Gradle APK for Godot 4.6.3 headless `--export-debug`, then restored exactly to `build/android/majestic-gems-closed-test-v2.aab` / AAB format. Export reached `[DONE]` and exited cleanly. No AAB was generated and no version value changed.
+- Package/version: `com.owais.majestygems`; application label `Majestic Gems`; versionCode 4; versionName 1.0.2; min SDK 24; target/compile SDK 36; game category; portrait; debug build.
+- Signing/package validation: APK Signature Scheme v2 PASS with one RSA-2048 Godot debug signer; certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`. ZIP audit PASS: 1,004 entries, five DEX files, `arm64-v8a` and `armeabi-v7a` Godot/C++ pairs, both midpoint audio imports, target/coin imports, production AdMob App ID `ca-app-pub-4605895178658062~1516881747`, and zero report/test/source-audio entries.
+- Tests: Godot import/parse plus all eight repository regression sentinels PASS. The Windows test runner retains its known post-PASS teardown access violation; no assertion failed.
+- Device status: `adb devices -l` returned no attached device and the started daemon was stopped. Installation, Activity-exit/OEM dialog confirmation, and subjective collision-audio listening are not claimed.
+- Report: `reports/ANIMATION_REVERT_AUDIO_MIDPOINT_ANDROID_EXIT_FIX.md`.
+
 ## Animation, Audio, Back, and Privacy Polish TEST APK
 
 - APK: `build/android/majestic-gems-animation-audio-back-privacy-polish-test.apk`

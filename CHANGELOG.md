@@ -5,6 +5,7 @@
 - Replaced the over-softened gem/rail derivatives with brighter midpoint v2 files and midpoint gains, impact thresholds, cooldowns, pitch ranges, and impact-volume scaling.
 - Replaced synchronous Android `SceneTree.quit()` from the Exit button with callback invalidation plus UI-thread `Activity.finishAndRemoveTask()` through Godot's built-in AndroidRuntime; desktop retains a deferred quit fallback.
 - Kept the exit confirmation, state-aware Back behavior, Privacy alignment, Home startup, game rules, rewards, gems, UI design, ads/UMP, saves, package, and release version unchanged.
+- Exported and audited `build/android/majestic-gems-animation-revert-audio-midpoint-exit-fix.apk`; package/version/SDK, v2 signature, both ARM ABIs, midpoint audio imports, production AdMob App ID, and exclusions pass. No AAB was generated and physical Exit/listening acceptance remains pending.
 
 # 2026-08-18 - Animation, audio, Back, and Privacy production polish
 

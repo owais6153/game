@@ -6,6 +6,8 @@ Gem/rail contacts now use midpoint v2 derivatives rather than the harsh original
 
 Confirmed Android Exit keeps the Cancel/Exit popup but no longer synchronously kills SceneTree. It invalidates delayed ad callbacks, posts `finishAndRemoveTask()` to the current Activity through Godot AndroidRuntime on the UI thread, and leaves teardown to Android lifecycle. Desktop uses a deferred SceneTree fallback. See `reports/ANIMATION_REVERT_AUDIO_MIDPOINT_ANDROID_EXIT_FIX.md`.
 
+All eight regression sentinels pass. TEST APK: `build/android/majestic-gems-animation-revert-audio-midpoint-exit-fix.apk` (82,226,968 bytes; SHA-256 `371F47693B0019696152E0C1CB0E753522160BB9B6CBD2123D4CD9237E020FE2`). Package/version/SDK, v2 signature, both ARM ABIs, midpoint audio imports, production AdMob manifest ID, and export exclusions pass. No device was attached, so the tester must confirm Activity exit and perceived contact balance. No AAB was generated.
+
 # Current State Addendum - Animation, audio, Back, and Privacy polish
 
 The current presentation rhythm is fast input followed by readable, overlapping success feedback: collisions are 140 ms, merges are 540 ms, target UI collection is 700 ms with a 220 ms card pulse, four reward coins remain visible for about 980 ms, and final-target-to-result presentation is about 1.66 seconds. Next remains 220 ms. Confirmed controller target state and launcher readiness no longer wait for merge, collection, particle, coin, or audio completion; the HUD keeps a separate presentation snapshot and advances at collection arrival. Presentation is queued exactly once and cannot grant duplicate targets or rewards. Reward values remain 10/25/60/150/350/800/1800 for result levels 2-8.

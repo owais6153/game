@@ -83,4 +83,10 @@ Godot 4.6.3 import/parse completed successfully, including both new audio import
 
 Coverage verifies exact restored timing constants, exact-once rewards, immediate authoritative/arrival-timed displayed target state, later-merge classification, launcher independence, midpoint asset routing/gains/thresholds/cooldowns/pitch, AndroidRuntime Activity finish contract, UI-thread dispatch, ad callback invalidation, exit-confirmation priority, Home/Back state, Privacy alignment, and unchanged reward/ad contracts. The Windows 4.6.3 runner retains its known post-PASS teardown access violation; no assertion failed.
 
-A fresh Android build and physical tester confirmation will be recorded after validation. Local tests cannot prove subjective phone loudness or that the OEM exit dialog is gone.
+## Android build
+
+`build/android/majestic-gems-animation-revert-audio-midpoint-exit-fix.apk` exported cleanly from source commit/tag `32794fb` / `animation-revert-audio-midpoint-android-exit-source`. It is 82,226,968 bytes with SHA-256 `371F47693B0019696152E0C1CB0E753522160BB9B6CBD2123D4CD9237E020FE2`.
+
+AAPT reports package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36, game category, and both ARM ABIs. APK Signature Scheme v2 passes with the established RSA-2048 Godot debug signer. The 1,004-entry archive contains five DEX files, both Godot/C++ ARM pairs, both midpoint audio imports, existing target/coin imports, production AdMob App ID `ca-app-pub-4605895178658062~1516881747`, and zero report/test/source-audio entries. The committed AAB preset was restored exactly; no AAB or version change was made.
+
+`adb devices -l` returned no attached device, then the daemon was stopped. Local tests cannot prove subjective phone loudness or that the tester's OEM exit dialog is gone; installation, Exit, and listening are the explicit daily-tester acceptance items for this APK.
