@@ -550,3 +550,9 @@ Large-screen containment remains configuration-driven: Godot's expanding canvas 
 - `GameController._ready()` always calls `_show_home()` after loading/configuration. Platform feature flags no longer choose the initial app-flow state.
 - Pause HOME routes through `_on_pause_home_requested()`, which removes Pause ownership, briefly clears the tree pause, and delegates to `_show_home()`; Home immediately becomes the always-processing, input-owning paused layer.
 - `HomeOverlayLayer` emits `home_requested` from Level Ready Back. The controller remains the sole authority for changing `AppFlowState`.
+# Android Back and shutdown boundary - 2026-08-18
+
+- `GameController._handle_back_request()` is the single native Back policy and branches only on `AppFlowState`. UI layers may dismiss their own Home popup through `HomeOverlayLayer.handle_back_request()`, but they do not decide application exit or gameplay pause state.
+- A bare Home Back calls `AdManager.shutdown_for_exit()` before `SceneTree.quit()`. Shutdown is idempotent, blocks new loads/retries, invalidates timer generations, clears external completion callables, and discards cached ads.
+- Home remains the paused owner of the tree. No Back path may show Pause over Home or unpause the hidden board.
+- Vibration is not a shipped setting. `HapticsService` remains a disabled event sink so confirmed controller event routes require no gameplay rewrite.

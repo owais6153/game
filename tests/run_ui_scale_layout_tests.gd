@@ -150,7 +150,6 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 		"highest_level": 5,
 		"music_enabled": true,
 		"sound_enabled": true,
-		"vibration_enabled": true,
 	})
 	await process_frame
 	var metrics := hud.layout_metrics()

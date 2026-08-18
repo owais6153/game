@@ -14,14 +14,12 @@ const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_navy.svg")
 const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_navy.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_navy.svg")
-const ICON_VIBRATION = preload("res://assets/runtime/ui/icons/vibration_navy.svg")
 
 signal play_requested
 signal level_intro_requested
 signal home_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
-signal vibration_toggled(enabled: bool)
 signal privacy_policy_requested
 signal privacy_options_requested
 signal ui_tap_requested
@@ -45,7 +43,6 @@ var settings_blocker: Control
 var settings_panel: PanelContainer
 var settings_music_toggle: Button
 var settings_sound_toggle: Button
-var settings_vibration_toggle: Button
 var settings_privacy_options_button: Button
 
 var level_intro_blocker: Control
@@ -78,14 +75,22 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not root_control.visible:
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
-		if settings_blocker != null and settings_blocker.visible:
-			_hide_settings()
+		if handle_back_request():
 			get_viewport().set_input_as_handled()
-		elif level_intro_blocker != null and level_intro_blocker.visible:
-			# Level Ready never begins play from Back. It returns through the
-			# controller-owned Home transition instead of trapping the player.
-			home_requested.emit()
-			get_viewport().set_input_as_handled()
+
+
+func handle_back_request() -> bool:
+	if root_control == null or not root_control.visible:
+		return false
+	if settings_blocker != null and settings_blocker.visible:
+		_hide_settings()
+		return true
+	if level_intro_blocker != null and level_intro_blocker.visible:
+		# Level Ready never begins play from Back. It returns through the
+		# controller-owned Home transition instead of trapping the player.
+		home_requested.emit()
+		return true
+	return false
 
 func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	_build()
@@ -316,9 +321,14 @@ func _build_privacy_policy_link() -> void:
 	privacy_link_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root_control.add_child(privacy_link_margin)
 	privacy_link_margin.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	privacy_link_margin.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	privacy_link_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	privacy_link_margin.offset_top = -96.0
 	privacy_link_margin.offset_bottom = 0.0
 	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	privacy_link_margin.add_child(center)
 	privacy_policy_link = LinkButton.new()
@@ -373,11 +383,6 @@ func _build_settings_popup() -> void:
 	settings_sound_toggle.toggled.connect(func(enabled: bool) -> void:
 		_sync_switch_label(settings_sound_toggle)
 		sound_toggled.emit(enabled)
-	)
-	settings_vibration_toggle = _setting_switch_row(column, "VIBRATION", "HomeVibrationToggle")
-	settings_vibration_toggle.toggled.connect(func(enabled: bool) -> void:
-		_sync_switch_label(settings_vibration_toggle)
-		vibration_toggled.emit(enabled)
 	)
 	settings_privacy_options_button = _button("HomePrivacyOptions", "PRIVACY OPTIONS", Vector2(400.0, 58.0), "SecondaryButton")
 	settings_privacy_options_button.visible = false
@@ -520,17 +525,15 @@ func _setting_icon_texture(node_name: String) -> Texture2D:
 		return ICON_MUSIC
 	if node_name.contains("Sound"):
 		return ICON_SOUND
-	return ICON_VIBRATION
+	return ICON_SOUND
 
 func _sync_settings_from_snapshot() -> void:
 	if settings_music_toggle == null:
 		return
 	settings_music_toggle.set_pressed_no_signal(bool(_snapshot.get("music_enabled", true)))
 	settings_sound_toggle.set_pressed_no_signal(bool(_snapshot.get("sound_enabled", true)))
-	settings_vibration_toggle.set_pressed_no_signal(bool(_snapshot.get("vibration_enabled", true)))
 	_sync_switch_label(settings_music_toggle)
 	_sync_switch_label(settings_sound_toggle)
-	_sync_switch_label(settings_vibration_toggle)
 
 
 func set_privacy_options_available(available: bool) -> void:

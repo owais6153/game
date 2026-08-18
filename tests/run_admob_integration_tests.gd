@@ -120,6 +120,10 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	manager._finish_rewarded(active_rewarded)
 	await process_frame
 	_assert(rewarded_started and int(state.rewarded_finished) == 1 and not bool(state.rewarded_earned), "Early rewarded close/failure must grant nothing and restore the normal path")
+	manager.shutdown_for_exit()
+	_assert(manager._shutting_down and not manager._ads_requests_allowed and not manager.is_interstitial_ready() and not manager.is_rewarded_ready(), "App exit must invalidate retries and cached fullscreen ads before the SceneTree quits")
+	await create_timer(0.7, true).timeout
+	_assert(not manager.is_interstitial_ready() and not manager.is_rewarded_ready(), "Delayed loader callbacks must not repopulate ads after shutdown begins")
 	manager.queue_free()
 	await process_frame
 

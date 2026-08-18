@@ -298,3 +298,8 @@ All eight user-provided originals and byte-identical runtime copies remain prese
 | Purpose | Preserved source | Runtime derivative | Processing / verification |
 | --- | --- | --- | --- |
 | Approved v2 ordinary-merge cue with immediate attack | `assets/sound/merge-target.mp3` — 41,760 bytes — SHA-256 `B68136FA50DD04F5D82BFD8EE05F4E5EB0CE25BA4AC8406AD5639DBCD7711250` | `assets/runtime/audio/merge-target-immediate.ogg` — 14,316 bytes — SHA-256 `05E9EE864FAACBCC73BB7ECF0FE6DC7A2663EB7A82AA1F20B0E7A3A5C541D085` | FFmpeg `atrim=start=0.515,asetpts=PTS-STARTPTS`, Vorbis q5, stereo 24 kHz. Leading silence reduced from `0.523125 s` to `0.008042 s`; source hash unchanged. |
+# Android system splash derivative v2 - 2026-08-18
+
+| Purpose | Preserved source | Runtime derivative | Processing / verification |
+| --- | --- | --- | --- |
+| Android native system splash logo | `assets/logo/majestic_gems_icon_source_v1.jpeg` (1254x1254 supplied source) | `assets/runtime/ui/majestic_gems_system_splash_1152_v2.png` (1152x1152 RGBA, 1,195,693 bytes, SHA-256 `0C9B6C4FEB435E258461DA1DF07A15F555F4F6A1621F6A4BC0CE91C1C58B40A4`) | Source was Lanczos-downscaled to 784x784 and centered on a transparent 1152x1152 canvas, preserving the existing adaptive safe-zone ratio at 2.67x the prior pixel density. The blue platform splash background is unchanged. |

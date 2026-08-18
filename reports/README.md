@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Android Back, Idle Stability, Settings, and Splash Repair](ANDROID_BACK_IDLE_SETTINGS_SPLASH_REPAIR.md) — state-aware Android Back/exit handling, delayed-ad shutdown guards, centered Privacy Policy, unsupported vibration-control removal, high-resolution system splash, coin audit, and regressions.
+
 - `ANIMATION_REWARD_AUDIO_LARGE_SCREEN_POLISH.md` - full two-video frame/audio comparison, existing feedback audit, 300 ms merge and collision micro-feedback changes, Android 16/game-category analysis, wide-window regression, Tween Composer package cleanup, and APK-only delivery.
 
 - `MERGE_SOUND_SYNC_FIX_V3_REPORT.md` - measured supplied-file lead-in, non-destructive trimmed runtime derivative, same-frame pre-presentation routing, regressions, and TEST APK delivery status.

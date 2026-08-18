@@ -91,6 +91,7 @@ func _test_privacy_link_relocation() -> void:
 		var viewport_size := root.get_visible_rect().size
 		var rect := link.get_global_rect()
 		_assert(absf(rect.get_center().x - viewport_size.x * 0.5) <= 2.0, "Privacy Policy link must be horizontally centered")
+		_assert(home.privacy_link_margin.anchor_left == 0.0 and home.privacy_link_margin.anchor_right == 1.0 and home.privacy_link_margin.offset_left == 0.0 and home.privacy_link_margin.offset_right == 0.0, "Privacy Policy container must span the full screen before centering its link")
 		_assert(rect.end.y <= viewport_size.y and rect.position.y >= viewport_size.y - 90.0, "Privacy Policy link must sit inside the bottom safe area")
 		var tap_state := {"count": 0}
 		home.ui_tap_requested.connect(func() -> void: tap_state.count += 1)
@@ -101,6 +102,7 @@ func _test_privacy_link_relocation() -> void:
 	await process_frame
 	_assert(hud.root_control.find_child("PausePrivacyPolicy", true, false) == null, "Pause Settings must not retain a Privacy Policy button")
 	_assert(hud.root_control.find_child("PausePrivacyOptions", true, false) != null, "Pause Settings must retain conditional UMP Privacy Options")
+	_assert(hud.root_control.find_child("VibrationToggle", true, false) == null and home.root_control.find_child("HomeVibrationToggle", true, false) == null, "Unsupported vibration switches must be absent from both settings screens")
 	hud.queue_free()
 	home.queue_free()
 	await process_frame

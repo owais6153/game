@@ -12,8 +12,7 @@ const ICON_RESTART = preload("res://assets/runtime/ui/icons/restart_navy.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_navy.svg")
 const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_navy.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_navy.svg")
-const ICON_VIBRATION = preload("res://assets/runtime/ui/icons/vibration_navy.svg")
-const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled", "vibration_enabled"]
+const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled"]
 
 signal settings_requested
 signal resume_requested
@@ -21,7 +20,6 @@ signal restart_requested
 signal home_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
-signal vibration_toggled(enabled: bool)
 signal privacy_options_requested
 signal ui_tap_requested
 
@@ -58,7 +56,6 @@ var restart_button: Button
 var home_button: Button
 var music_toggle: Button
 var sound_toggle: Button
-var vibration_toggle: Button
 var privacy_options_button: Button
 
 var _built := false
@@ -184,8 +181,6 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		music_toggle.set_pressed_no_signal(bool(snapshot.get("music_enabled", true)))
 	if sound_toggle != null:
 		sound_toggle.set_pressed_no_signal(bool(snapshot.get("sound_enabled", true)))
-	if vibration_toggle != null:
-		vibration_toggle.set_pressed_no_signal(bool(snapshot.get("vibration_enabled", true)))
 	_sync_pause_switch_labels()
 	if restart_button != null:
 		restart_button.tooltip_text = "Restart Level %d with the same gem chain" % level_number
@@ -826,11 +821,6 @@ func _build_pause_popup() -> void:
 		_sync_switch_label(sound_toggle)
 		sound_toggled.emit(enabled)
 	)
-	vibration_toggle = _setting_toggle(column, "VIBRATION", "VibrationToggle")
-	vibration_toggle.toggled.connect(func(enabled: bool) -> void:
-		_sync_switch_label(vibration_toggle)
-		vibration_toggled.emit(enabled)
-	)
 	privacy_options_button = _button("PausePrivacyOptions", "PRIVACY OPTIONS", Vector2(424.0, 56.0), "SecondaryButton")
 	privacy_options_button.visible = false
 	privacy_options_button.pressed.connect(func() -> void: privacy_options_requested.emit())
@@ -921,7 +911,7 @@ func _setting_icon_texture(node_name: String) -> Texture2D:
 		return ICON_MUSIC
 	if node_name.contains("Sound"):
 		return ICON_SOUND
-	return ICON_VIBRATION
+	return ICON_SOUND
 
 
 func _wire_button_motion(button: BaseButton) -> void:
@@ -950,7 +940,6 @@ func _sync_switch_label(toggle: Button) -> void:
 func _sync_pause_switch_labels() -> void:
 	_sync_switch_label(music_toggle)
 	_sync_switch_label(sound_toggle)
-	_sync_switch_label(vibration_toggle)
 
 
 func set_privacy_options_available(available: bool) -> void:

@@ -718,3 +718,12 @@
 - Fixed Pause HOME so it clears the paused gameplay modal and reliably presents Home.
 - Changed Level Ready Back from a no-op into a controller-owned return to Home.
 - Extended game-flow regression coverage to instantiate the production controller and exercise startup, Level Ready, active play, Pause, and Home return.
+# 2026-08-18 - Android Back, idle stability, settings, and splash repair
+
+- Replaced the stale gameplay-only mobile Back callback with app-state-aware Home exit, Level Ready return, and Playing Pause/resume behavior.
+- Added an explicit AdManager exit shutdown gate for delayed loader callbacks, retry timers, cached ads, and completion callables.
+- Made the bottom Privacy Policy container span the viewport before centering.
+- Removed unsupported Vibration controls and snapshot/signal wiring from Home and Pause Settings; persisted default is disabled.
+- Replaced the 432x432 Android system-splash icon input with a dedicated 1152x1152 runtime derivative while keeping the approved blue background and single native splash.
+- Audited and documented the unchanged target-only coin table and per-level target composition.
+- Added Back/idle/ad-shutdown/privacy/vibration/splash/reward regressions and reran the broader gameplay/layout/art suites.

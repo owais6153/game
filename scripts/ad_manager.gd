@@ -44,6 +44,7 @@ var _fullscreen_generation := 0
 var _interstitial_retry_generation := 0
 var _rewarded_retry_generation := 0
 var _consent_can_request_ads_override_for_testing: Variant = null
+var _shutting_down := false
 
 
 func _ready() -> void:
@@ -52,6 +53,8 @@ func _ready() -> void:
 
 
 func initialize_once() -> void:
+	if _shutting_down:
+		return
 	if OS.get_name() == "Android":
 		_request_consent_information_once()
 		return
@@ -173,7 +176,7 @@ func _start_mobile_ads_once() -> void:
 
 
 func _finish_initialization(callback_received: bool) -> void:
-	if _initialized:
+	if _initialized or _shutting_down:
 		return
 	_initializing = false
 	_initialized = true
@@ -238,7 +241,7 @@ func is_fullscreen_showing() -> bool:
 
 func preload_interstitial() -> void:
 	var ad_unit_id := AdConfigType.current_interstitial_ad_unit_id()
-	if not _ads_requests_allowed or not _initialized or ad_unit_id.is_empty() or _interstitial_loading or _interstitial_ad != null or _interstitial_showing:
+	if _shutting_down or not _ads_requests_allowed or not _initialized or ad_unit_id.is_empty() or _interstitial_loading or _interstitial_ad != null or _interstitial_showing:
 		return
 	_interstitial_loading = true
 	_interstitial_loader = InterstitialAdLoader.new()
@@ -246,7 +249,7 @@ func preload_interstitial() -> void:
 	callback.on_ad_loaded = func(ad: InterstitialAd) -> void:
 		_interstitial_loading = false
 		_interstitial_retry_generation += 1
-		if not _ads_requests_allowed:
+		if _shutting_down or not _ads_requests_allowed:
 			ad.destroy()
 			interstitial_availability_changed.emit(false)
 			return
@@ -257,6 +260,8 @@ func preload_interstitial() -> void:
 		interstitial_availability_changed.emit(is_interstitial_ready())
 	callback.on_ad_failed_to_load = func(error: LoadAdError) -> void:
 		_interstitial_loading = false
+		if _shutting_down:
+			return
 		interstitial_availability_changed.emit(false)
 		_log_load_failure("interstitial", error)
 		_schedule_interstitial_retry()
@@ -265,7 +270,7 @@ func preload_interstitial() -> void:
 
 func preload_rewarded() -> void:
 	var ad_unit_id := AdConfigType.current_rewarded_ad_unit_id()
-	if not _ads_requests_allowed or not _initialized or ad_unit_id.is_empty() or _rewarded_loading or _rewarded_ad != null or _rewarded_showing:
+	if _shutting_down or not _ads_requests_allowed or not _initialized or ad_unit_id.is_empty() or _rewarded_loading or _rewarded_ad != null or _rewarded_showing:
 		return
 	_rewarded_loading = true
 	_rewarded_loader = RewardedAdLoader.new()
@@ -273,7 +278,7 @@ func preload_rewarded() -> void:
 	callback.on_ad_loaded = func(ad: RewardedAd) -> void:
 		_rewarded_loading = false
 		_rewarded_retry_generation += 1
-		if not _ads_requests_allowed:
+		if _shutting_down or not _ads_requests_allowed:
 			ad.destroy()
 			rewarded_availability_changed.emit(false)
 			return
@@ -284,6 +289,8 @@ func preload_rewarded() -> void:
 		rewarded_availability_changed.emit(is_rewarded_ready())
 	callback.on_ad_failed_to_load = func(error: LoadAdError) -> void:
 		_rewarded_loading = false
+		if _shutting_down:
+			return
 		rewarded_availability_changed.emit(false)
 		_log_load_failure("rewarded", error)
 		_schedule_rewarded_retry()
@@ -398,7 +405,7 @@ func _finish_rewarded(ad) -> void:
 func _start_fullscreen_safety_timeout(ad_format: String, ad) -> void:
 	_fullscreen_generation += 1
 	var generation := _fullscreen_generation
-	if not is_inside_tree():
+	if _shutting_down or not is_inside_tree():
 		return
 	var timer := get_tree().create_timer(FULLSCREEN_SAFETY_TIMEOUT_SECONDS, true)
 	timer.timeout.connect(func() -> void:
@@ -415,11 +422,11 @@ func _start_fullscreen_safety_timeout(ad_format: String, ad) -> void:
 func _schedule_interstitial_retry() -> void:
 	_interstitial_retry_generation += 1
 	var generation := _interstitial_retry_generation
-	if not is_inside_tree():
+	if _shutting_down or not is_inside_tree():
 		return
 	var timer := get_tree().create_timer(LOAD_RETRY_DELAY_SECONDS, true)
 	timer.timeout.connect(func() -> void:
-		if generation == _interstitial_retry_generation:
+		if not _shutting_down and generation == _interstitial_retry_generation:
 			preload_interstitial()
 	, CONNECT_ONE_SHOT)
 
@@ -427,11 +434,11 @@ func _schedule_interstitial_retry() -> void:
 func _schedule_rewarded_retry() -> void:
 	_rewarded_retry_generation += 1
 	var generation := _rewarded_retry_generation
-	if not is_inside_tree():
+	if _shutting_down or not is_inside_tree():
 		return
 	var timer := get_tree().create_timer(LOAD_RETRY_DELAY_SECONDS, true)
 	timer.timeout.connect(func() -> void:
-		if generation == _rewarded_retry_generation:
+		if not _shutting_down and generation == _rewarded_retry_generation:
 			preload_rewarded()
 	, CONNECT_ONE_SHOT)
 
@@ -478,7 +485,22 @@ func _discard_cached_ads() -> void:
 	rewarded_availability_changed.emit(false)
 
 
+func shutdown_for_exit() -> void:
+	if _shutting_down:
+		return
+	_shutting_down = true
+	_ads_requests_allowed = false
+	_interstitial_retry_generation += 1
+	_rewarded_retry_generation += 1
+	_fullscreen_generation += 1
+	_interstitial_completion = Callable()
+	_reward_completion = Callable()
+	_reward_finished = Callable()
+	_discard_cached_ads()
+
+
 func _exit_tree() -> void:
+	shutdown_for_exit()
 	if _interstitial_ad != null:
 		_interstitial_ad.destroy()
 	if _active_interstitial_ad != null:

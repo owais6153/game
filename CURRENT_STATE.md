@@ -451,3 +451,10 @@ Final APK: `build/android/majestic-gems-animation-large-screen-polish-v2.apk`, 8
 - Pause HOME uses a dedicated controller transition that clears the Pause modal before presenting Home.
 - Android Back from Level Ready returns to Home instead of being consumed with no navigation.
 - Gameplay physics, game-feel tuning, targets, rewards, progression, ads, and saves are unchanged.
+# Current State Addendum - Android Back, idle, settings, and splash repair
+
+Android Back is now owned by the authoritative app-flow state: Home Settings closes first, bare Home performs an AdManager-safe application exit, Level Ready returns Home, Playing toggles Pause, and completed/reward/ad states cannot open the gameplay Pause layer. Home remains paused during idle time, and ad loader/retry callbacks are invalidated during exit.
+
+Privacy Policy is explicitly centered across the full viewport at the safe-area-aware bottom edge. Unsupported Vibration switches are removed from Home and Pause Settings and haptics remain disabled. The blue Android system splash is retained but now uses the dedicated 1152x1152 `majestic_gems_system_splash_1152_v2.png` derivative instead of the 432x432 adaptive launcher foreground.
+
+Coin rewards remain unchanged and explicit: target result tiers L2-L8 award `10/25/60/150/350/800/1800`; ordinary merges award zero. Level 1 base reward is 150, Level 2 is 500, and later deterministic totals depend on their seeded two- or three-target L5-L8 set. See `reports/ANDROID_BACK_IDLE_SETTINGS_SPLASH_REPAIR.md`.

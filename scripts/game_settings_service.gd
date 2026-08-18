@@ -4,7 +4,7 @@ extends RefCounted
 const SAVE_PATH := "user://game_settings.cfg"
 
 static func defaults() -> Dictionary:
-	return {"music_enabled": true, "sound_enabled": true, "vibration_enabled": true}
+	return {"music_enabled": true, "sound_enabled": true, "vibration_enabled": false}
 
 static func load_settings() -> Dictionary:
 	var result := defaults()

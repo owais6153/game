@@ -120,7 +120,10 @@ func _ready() -> void:
 	haptics_feedback = HapticsServiceType.new()
 	audio_feedback.music_enabled = bool(saved_settings.music_enabled)
 	audio_feedback.sfx_enabled = bool(saved_settings.sound_enabled)
-	haptics_feedback.enabled = bool(saved_settings.vibration_enabled)
+	# Platform vibration is not part of the shipped feature set. Keep the
+	# feedback service as a no-op event sink so confirmed gameplay routing stays
+	# intact without exposing or persisting a control that has no user effect.
+	haptics_feedback.enabled = false
 	add_child(audio_feedback)
 	_advance_launcher_lifecycle()
 	_sync_gems_and_mark_visibility()
@@ -262,7 +265,6 @@ func hud_snapshot() -> Dictionary:
 		"highest_level": highest_level,
 		"music_enabled": audio_feedback.music_enabled if audio_feedback != null else true,
 		"sound_enabled": audio_feedback.sfx_enabled if audio_feedback != null else true,
-		"vibration_enabled": haptics_feedback.enabled if haptics_feedback != null else true,
 	}
 
 func _active_identity_order() -> Array[int]:
@@ -278,10 +280,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		queue_redraw()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
-		if gameplay_ui != null and gameplay_ui.is_pause_visible():
-			_on_resume_requested()
-		elif not win_presented and not failed:
-			_on_settings_requested()
+		_handle_back_request(true)
 		if get_viewport() != null:
 			get_viewport().set_input_as_handled()
 		return
@@ -298,14 +297,33 @@ func _unhandled_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	if what != NOTIFICATION_WM_GO_BACK_REQUEST or not is_inside_tree():
 		return
-	# Mobile Back is a UI-state action: dismiss Pause first, open Pause during
-	# active play, and leave completed/failed results on their explicit action.
-	if result_overlay != null and result_overlay.visible_result:
-		return
-	if gameplay_ui != null and gameplay_ui.is_pause_visible():
-		_on_resume_requested()
-	elif gameplay_ui != null and not win_presented and not failed:
-		_on_settings_requested()
+	_handle_back_request(true)
+
+
+func _handle_back_request(allow_application_exit: bool = true) -> String:
+	# The app-flow owner decides Back. The previous gameplay-only callback could
+	# open Pause over Home, unpause a hidden run, and leave mutually inconsistent
+	# UI/process state behind.
+	if home_overlay != null and home_overlay.handle_back_request():
+		return "home_overlay"
+	match app_flow_state:
+		AppFlowState.HOME:
+			if allow_application_exit:
+				if ad_manager != null and ad_manager.has_method("shutdown_for_exit"):
+					ad_manager.call("shutdown_for_exit")
+				get_tree().quit()
+			return "exit"
+		AppFlowState.LEVEL_READY:
+			_show_home()
+			return "home"
+		AppFlowState.PLAYING:
+			if gameplay_ui != null and gameplay_ui.is_pause_visible():
+				_on_resume_requested()
+				return "resume"
+			if not win_presented and not failed:
+				_on_settings_requested()
+				return "pause"
+	return "ignored"
 
 func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 	if win_presented or failed:
@@ -443,7 +461,6 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.home_requested.connect(_on_pause_home_requested)
 	gameplay_ui.music_toggled.connect(_on_music_toggled)
 	gameplay_ui.sound_toggled.connect(_on_sound_toggled)
-	gameplay_ui.vibration_toggled.connect(_on_vibration_toggled)
 	gameplay_ui.privacy_options_requested.connect(_on_privacy_options_requested)
 	gameplay_ui.ui_tap_requested.connect(_on_ui_tap_requested)
 	effects_layer = GameplayEffectsLayerType.new()
@@ -466,7 +483,6 @@ func _setup_asset_presentation() -> void:
 	home_overlay.home_requested.connect(_show_home)
 	home_overlay.music_toggled.connect(_on_music_toggled)
 	home_overlay.sound_toggled.connect(_on_sound_toggled)
-	home_overlay.vibration_toggled.connect(_on_vibration_toggled)
 	home_overlay.privacy_policy_requested.connect(_on_privacy_policy_requested)
 	home_overlay.privacy_options_requested.connect(_on_privacy_options_requested)
 	home_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
@@ -914,12 +930,6 @@ func _on_sound_toggled(value: bool) -> void:
 	_save_settings()
 	_refresh_hud()
 
-func _on_vibration_toggled(value: bool) -> void:
-	if haptics_feedback != null:
-		haptics_feedback.enabled = value
-	_save_settings()
-	_refresh_hud()
-
 func _on_ui_tap_requested() -> void:
 	if audio_feedback != null:
 		audio_feedback.emit_event("button")
@@ -944,7 +954,7 @@ func _save_settings() -> void:
 	GameSettingsServiceType.save_settings(
 		audio_feedback.music_enabled if audio_feedback != null else true,
 		audio_feedback.sfx_enabled if audio_feedback != null else true,
-		haptics_feedback.enabled if haptics_feedback != null else true
+		false
 	)
 
 func _on_restart_requested() -> void:

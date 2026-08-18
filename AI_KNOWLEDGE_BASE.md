@@ -771,3 +771,11 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Never gate initial Home presentation on OS/platform feature flags. All builds must enter `AppFlowState.HOME` after setup.
 - START GAME is the only Level Ready action that enters `PLAYING`. Back returns Home; it must not be consumed as a no-op.
 - Pause HOME must clear Pause before calling `_show_home()`. Test these paths with a real `GameController`, not only an isolated overlay.
+# 2026-08-18 - Back, exit, settings, and splash guardrails
+
+- Route Android Back only through `GameController._handle_back_request()` and `AppFlowState`; never infer the active screen from `won`, `failed`, or Pause visibility alone.
+- Bare Home Back must call `AdManager.shutdown_for_exit()` before quitting. Every delayed ad callback/retry must honor `_shutting_down`.
+- Keep Privacy Policy inside a full-width bottom container and center the link after applying bottom safe-area margin.
+- Do not expose a Vibration/Haptics switch unless platform vibration is implemented and device-validated as a supported feature. The current shipped state is disabled and UI-free.
+- Keep the Android splash blue and single-phase. `splash_screen/icon` uses the dedicated 1152x1152 system-splash derivative; the 432x432 adaptive foreground remains launcher-only.
+- Coin rewards are target-only. Preserve the L2-L8 base table `10/25/60/150/350/800/1800`, chain multiplication, and exactly-once Double Coins behavior.
