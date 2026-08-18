@@ -534,7 +534,7 @@ Large-screen containment remains configuration-driven: Godot's expanding canvas 
 
 ## Animation tooling packaging boundary - 2026-08-18
 
-`GlobalTweens.gd` is the only active shared tween autoload and remains available to UI presentation. Tween Composer is preserved as repository source for possible future evaluation, but it is not an enabled editor plugin, has no runtime references, and is excluded from Android export through `tween_composer/*`. Gameplay feedback continues to use controller-owned state plus built-in Godot tweens/transforms; neither animation utility may own simulation or progression state.
+`GlobalTweens.gd` is the active shared tween autoload. Tween Composer is also a runtime dependency of `HomeOverlayLayer` for the Home logo loop and must remain packaged on Android. Gameplay feedback continues to use controller-owned state plus built-in Godot tweens/transforms; neither animation utility may own simulation or progression state.
 # Reference-driven contact and feedback v2
 
 - `BoardSimulation.step()` chooses 1-8 substeps from maximum frame displacement and the smallest live radius. Every substep uses the existing circle/border solver; no swept proximity query or expanded merge radius exists.
@@ -556,3 +556,8 @@ Large-screen containment remains configuration-driven: Godot's expanding canvas 
 - A bare Home Back calls `AdManager.shutdown_for_exit()` before `SceneTree.quit()`. Shutdown is idempotent, blocks new loads/retries, invalidates timer generations, clears external completion callables, and discards cached ads.
 - Home remains the paused owner of the tree. No Back path may show Pause over Home or unpause the hidden board.
 - Vibration is not a shipped setting. `HapticsService` remains a disabled event sink so confirmed controller event routes require no gameplay rewrite.
+# Last-AAB Home/export boundary correction - 2026-08-18
+
+- `HomeOverlayLayer` has a real runtime dependency on `tween_composer/`; Android export must include it while those preloads and the Home logo composer remain.
+- `GameController._show_home()` owns both logical and visual state: it hides `GameplayHudLayer`, presents Home, and pauses the tree. Overlay coverage alone is not a valid state boundary.
+- Android window Back and key-style Back enter through `_dispatch_platform_back_request()`, which suppresses duplicate representations inside 350 ms before calling the state policy.

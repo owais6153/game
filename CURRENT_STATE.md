@@ -428,9 +428,9 @@ The export preset is prepared for the next release with versionCode `4` and vers
 
 Both supplied root videos now have an end-to-end local decode, full-timeline contact-sheet review, focused launch/merge/target/reward sequences, waveform review, and loudness comparison recorded in `reports/ANIMATION_REWARD_AUDIO_LARGE_SCREEN_POLISH.md`. The comparison supports retaining the current target, reward, Next, music, and SFX systems; the delivered implementation gaps remain the corrected 0.30 s merge and new collision micro-feedback.
 
-Tween Composer remains preserved but disabled and unreferenced. Android export now excludes `tween_composer/*` after the prior APK was found to contain 38,988 uncompressed bytes from that unused editor tool. Global Tweens remains the active autoload. No gameplay, UI, audio, asset, AdMob, UMP, save, version, or AAB behavior changed.
+Correction: Tween Composer is a production Home runtime dependency, not unused source. The prior `tween_composer/*` Android exclusion was invalid and is now removed. Global Tweens remains the active autoload; Tween Composer remains limited to the Home logo loop.
 
-Final APK: `build/android/majestic-gems-animation-large-screen-polish-v2.apk`, 81,304,035 bytes, SHA-256 `9132197FB131F8367577573F9D01716AAB95875617975C707148E33174D4A1CA`. It is 16,676 bytes smaller than the first polish APK and contains no Tween Composer entries. AAPT package/API/manifest, both ARM ABIs, and APK Signature Scheme v2 pass. No device or emulator was available, and no AAB was generated.
+Historical APK: `build/android/majestic-gems-animation-large-screen-polish-v2.apk`, 81,304,035 bytes, SHA-256 `9132197FB131F8367577573F9D01716AAB95875617975C707148E33174D4A1CA`. It contains no Tween Composer entries, which is now known to be a Home runtime packaging regression. Do not use it as a Home-flow baseline.
 # Reference-driven game feel v2 - 2026-08-18
 
 - Merge presentation is now an unmistakable 0.27 s contact/pull/pop/settle beat with a 1.26x result overshoot and 10 lightweight crystal rays (12 for L6+).
@@ -460,3 +460,8 @@ Privacy Policy is explicitly centered across the full viewport at the safe-area-
 Coin rewards remain unchanged and explicit: target result tiers L2-L8 award `10/25/60/150/350/800/1800`; ordinary merges award zero. Level 1 base reward is 150, Level 2 is 500, and later deterministic totals depend on their seeded two- or three-target L5-L8 set. See `reports/ANDROID_BACK_IDLE_SETTINGS_SPLASH_REPAIR.md`.
 
 Fresh TEST APK: `build/android/majestic-gems-back-idle-settings-splash-repair.apk` (82,149,382 bytes; SHA-256 `F60C5A6DBB9A17F37C3CC4C37E198DE23D33A338EA2B213FF10025297C79ED9B`). Package/SDK, v2 debug signature, dual ARM ABIs, and the new splash resource pass inspection. No device was connected.
+# Current State Addendum - Last-AAB Home dependency and Back correction
+
+The version-code-3 AAB baseline was compared directly with current source. Production Home has always used Tween Composer for its logo loop, but post-AAB commit `9f83eb7` incorrectly excluded `tween_composer/*` from Android. Android export now retains that required runtime dependency again. Home also hides the gameplay HUD explicitly and establishes its visible input surface before optional snapshot/motion work, so a presentation failure cannot masquerade as an already-started game.
+
+Android window-Back and Escape-style Back representations share one 350 ms platform debounce before the state-aware policy. One physical press therefore cannot perform two state transitions. See `reports/LAST_AAB_HOME_BACK_REGRESSION_AUDIT.md`.

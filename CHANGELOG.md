@@ -728,3 +728,10 @@
 - Audited and documented the unchanged target-only coin table and per-level target composition.
 - Added Back/idle/ad-shutdown/privacy/vibration/splash/reward regressions and reran the broader gameplay/layout/art suites.
 - Exported and audited `build/android/majestic-gems-back-idle-settings-splash-repair.apk`; package, SDK, v2 signature, dual ARM ABIs, and packaged splash resource pass. No AAB or device test is claimed.
+# 2026-08-18 - Last-AAB Home dependency and Android Back correction
+
+- Audited every change from the version-code-3 release AAB source `aa3a1e1` through current HEAD.
+- Identified post-AAB commit `9f83eb7` as the Android Home regression: it excluded `tween_composer/*` while `HomeOverlayLayer` still preloaded and instantiated that runtime package.
+- Restored Tween Composer to Android export, explicitly hid gameplay while Home owns the screen, and made Home visibility precede optional presentation work.
+- Debounced the two platform Back entry points for 350 ms so one physical press cannot execute two transitions.
+- Added source and export-contract coverage for Home dependency retention, hidden gameplay, and duplicate Back suppression.

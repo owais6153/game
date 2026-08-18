@@ -94,6 +94,14 @@ func handle_back_request() -> bool:
 
 func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	_build()
+	# Establish the visible Home surface before optional snapshot/motion work.
+	# If a presentation dependency ever fails, gameplay must not remain exposed
+	# while the controller believes Home owns navigation.
+	root_control.visible = true
+	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
+	_set_home_stage_visible(true)
+	settings_blocker.visible = false
+	level_intro_blocker.visible = false
 	_current_level = level_number
 	_current_coins = coins
 	_snapshot = snapshot.duplicate(true)
@@ -103,11 +111,6 @@ func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	play_button.tooltip_text = "Preview Level %d" % level_number
 	_sync_settings_from_snapshot()
 	_refresh_intro_content()
-	settings_blocker.visible = false
-	level_intro_blocker.visible = false
-	_set_home_stage_visible(true)
-	root_control.visible = true
-	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
 	_start_entrance()
 	if play_button.is_inside_tree():
 		play_button.grab_focus()

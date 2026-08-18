@@ -753,7 +753,7 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Suppress collision visual/audio feedback for the exact contact pair consumed by a confirmed merge; the merge cue/effect owns that contact.
 - Preserve `canvas_items` + `expand`, centered `GameConfig` geometry, aspect-preserving background cover, phone portrait orientation, and Android game category. Wide screens gain scenery around the fixed-width composition; never stretch the table horizontally.
 - Global Tweens is already an autoload. Do not restore Tween Composer unless a future effect cannot be expressed cleanly through the existing controller/native tween paths and its Android package cost is revalidated.
-- Tween Composer source is intentionally preserved but disabled and excluded from Android with `tween_composer/*`. Do not remove that exclusion unless the plugin is deliberately re-enabled, used by production runtime, and its APK cost is measured again.
+- Tween Composer is deliberately used by production Home runtime even though its editor plugin is disabled. Do not add `tween_composer/*` to Android exclusions while those Home preloads remain.
 # Reference-driven game feel v2 invariants
 
 - A captured merge candidate means `BoardSimulation` observed `distance <= radius sum + CONTACT_EPSILON` in that simulation substep. Do not add a later position recheck that can discard a genuine fast contact after separation.
@@ -779,3 +779,9 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Do not expose a Vibration/Haptics switch unless platform vibration is implemented and device-validated as a supported feature. The current shipped state is disabled and UI-free.
 - Keep the Android splash blue and single-phase. `splash_screen/icon` uses the dedicated 1152x1152 system-splash derivative; the 432x432 adaptive foreground remains launcher-only.
 - Coin rewards are target-only. Preserve the L2-L8 base table `10/25/60/150/350/800/1800`, chain multiplication, and exactly-once Double Coins behavior.
+# 2026-08-18 - Last-AAB Home/export guardrails
+
+- Never exclude a path from Android merely because its editor plugin is disabled. Search production `preload`, `load`, scene, and resource dependencies first.
+- `tween_composer/*` must remain packaged while `HomeOverlayLayer` preloads its four runtime scripts.
+- Home must explicitly hide gameplay HUD and own a visible input surface before setting/using Home navigation semantics.
+- Route every Android Back representation through the platform debounce; never call the state transition independently from both notification and key handlers.

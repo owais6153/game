@@ -29,7 +29,7 @@ Existing analyses in `REFERENCE_ANIMATION_AUDIO_POLISH_V4_REPORT.md`, `PHYSICS_R
 - Global Tweens restored: YES (already present as `GlobalTweens` autoload before this task).
 - Tween Composer restored: NO. Its source remains preserved in the repository, but the editor plugin is disabled and runtime code does not reference it. Current bounded effects are cleaner in existing controller/native tween paths.
 - Godot compatibility: existing Global Tweens parses under Godot 4.6.3. New feedback uses built-in transforms only.
-- Packaging impact: the first APK audit found that the disabled Tween Composer source was still exported (38,988 bytes uncompressed) because only `tweens/*` was excluded. The Android filter now also excludes `tween_composer/*`. Global Tweens remains packaged (52,711 bytes uncompressed including remap) because it is an active autoload. No new plugin, image, particle texture, shader, or sound asset was added.
+- Later correction: this package-size conclusion was wrong. `HomeOverlayLayer` preloads and instantiates Tween Composer for the Home logo, so excluding `tween_composer/*` removed a production Android dependency. The exclusion is removed by the last-AAB Home regression correction; this v2 APK must not be used as a valid Home-flow baseline.
 
 ## Final animation timings
 

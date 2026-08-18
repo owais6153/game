@@ -83,6 +83,8 @@ var collision_visual_clock := 0.0
 ## starts disabled and has no input or gameplay authority on Android.
 var debug_calibration_enabled := false
 var debug_contact_points: Array[Dictionary] = []
+var _last_platform_back_msec := -1000
+const PLATFORM_BACK_DEBOUNCE_MSEC := 350
 
 # A completed shot can pass through each state only once. This prevents the
 # settled-board condition from spawning a launcher again on every frame.
@@ -280,7 +282,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		queue_redraw()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
-		_handle_back_request(true)
+		_dispatch_platform_back_request()
 		if get_viewport() != null:
 			get_viewport().set_input_as_handled()
 		return
@@ -297,7 +299,15 @@ func _unhandled_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	if what != NOTIFICATION_WM_GO_BACK_REQUEST or not is_inside_tree():
 		return
-	_handle_back_request(true)
+	_dispatch_platform_back_request()
+
+
+func _dispatch_platform_back_request() -> String:
+	var now := Time.get_ticks_msec()
+	if now - _last_platform_back_msec < PLATFORM_BACK_DEBOUNCE_MSEC:
+		return "duplicate"
+	_last_platform_back_msec = now
+	return _handle_back_request(true)
 
 
 func _handle_back_request(allow_application_exit: bool = true) -> String:
@@ -1094,6 +1104,10 @@ func _show_home() -> void:
 		return
 	if gameplay_ui != null:
 		gameplay_ui.hide_pause(false)
+		# Home owns the complete screen. Keeping the gameplay HUD visible beneath
+		# it made an Android-only Home dependency failure look like auto-started
+		# gameplay and left Back operating on a state the player could not see.
+		gameplay_ui.hide()
 	if result_overlay != null:
 		result_overlay.dismiss()
 	app_flow_state = AppFlowState.HOME

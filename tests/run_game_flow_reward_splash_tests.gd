@@ -65,6 +65,7 @@ func _test_production_controller_home_flow() -> void:
 	await process_frame
 	_assert(controller.app_flow_state == controller.AppFlowState.HOME, "Production startup must always enter Home, independent of platform feature flags")
 	_assert(controller.home_overlay != null and controller.home_overlay.root_control.visible and controller.home_overlay.home_backdrop.visible, "Production startup must visibly present the complete Home screen")
+	_assert(not controller.gameplay_ui.visible, "Home must hide the gameplay HUD instead of relying on overlay coverage")
 	controller._on_home_level_intro_requested()
 	_assert(controller.app_flow_state == controller.AppFlowState.LEVEL_READY and controller.home_overlay.level_intro_blocker.visible, "Home PLAY must enter Level Ready without starting gameplay")
 	controller._show_home()
@@ -95,7 +96,9 @@ func _test_back_and_idle_state_ownership() -> void:
 	_assert(controller.app_flow_state == controller.AppFlowState.HOME and controller.home_overlay.home_backdrop.visible, "Back on Level Ready must return to Home")
 	controller._on_home_level_intro_requested()
 	controller._on_home_play_requested()
-	_assert(controller._handle_back_request(false) == "pause" and controller.gameplay_ui.is_pause_visible() and paused, "Back during active play must open Pause")
+	controller._last_platform_back_msec = -1000
+	_assert(controller._dispatch_platform_back_request() == "pause" and controller.gameplay_ui.is_pause_visible() and paused, "Back during active play must open Pause")
+	_assert(controller._dispatch_platform_back_request() == "duplicate" and controller.gameplay_ui.is_pause_visible() and paused, "One physical Back press delivered through two Android paths must not immediately undo or advance its first transition")
 	_assert(controller._handle_back_request(false) == "resume" and not paused, "Back on Pause must resume active play")
 	await create_timer(0.3, true).timeout
 	_assert(not controller.gameplay_ui.is_pause_visible(), "Resumed Pause overlay must finish its bounded exit animation")
@@ -116,6 +119,8 @@ func _test_controller_flow_guards() -> void:
 	_assert(not source.contains("_show_home(true)") and not home_source.contains("startup_intro") and not home_source.contains("_start_home_splash_intro"), "No hidden-controls Home intro may act as a second splash")
 	_assert(not source.contains("if OS.has_feature(\"mobile\"):\n\t\t_show_home()"), "Startup Home must not depend on a fragile platform feature flag")
 	_assert(export_source.contains("splash_screen/disable_godot_boot_splash=true"), "Godot Android boot splash must stay disabled so only the platform launch splash remains")
+	_assert(not export_source.contains("tween_composer/*"), "Android export must retain Tween Composer because HomeOverlayLayer preloads it")
+	_assert(home_source.contains("preload(\"res://tween_composer/tween_composer.gd\")"), "Home motion dependency must remain explicit for the export-package guard")
 	_assert(export_source.contains("splash_screen/icon=\"res://assets/runtime/ui/majestic_gems_system_splash_1152_v2.png\""), "Android launch splash must use the dedicated high-resolution derivative")
 	var splash := Image.load_from_file(ProjectSettings.globalize_path("res://assets/runtime/ui/majestic_gems_system_splash_1152_v2.png"))
 	_assert(splash != null and splash.get_width() == 1152 and splash.get_height() == 1152, "Android launch splash derivative must retain 1152x1152 source detail")
