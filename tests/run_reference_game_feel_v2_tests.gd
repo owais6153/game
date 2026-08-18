@@ -87,9 +87,9 @@ func _test_chain_requires_each_contact() -> void:
 	_assert(no_chain.merge_count == 1, "A separated follow-up gem must not proximity-chain")
 
 func _test_feedback_contracts() -> void:
-	_assert(GameConfig.MERGE_RESULT_POP_SCALE == 1.26 and GameConfig.MERGE_PRESENTATION_DURATION == 0.27, "Merge pop must be obvious and fast")
-	_assert(GameConfig.COIN_FLIGHT_DURATION == 0.54 and GameConfig.MAJOR_COIN_FLIGHT_DURATION == 0.60, "Coin flights must be fast")
-	_assert(GameConfig.TARGET_COLLECTION_DURATION == 0.32, "Target collection must be fast")
+	_assert(GameConfig.MERGE_RESULT_POP_SCALE == 1.18 and GameConfig.MERGE_PRESENTATION_DURATION == 0.54, "Merge transformation must remain readable without becoming rubbery")
+	_assert(GameConfig.COIN_FLIGHT_DURATION == 0.55 and GameConfig.MAJOR_COIN_FLIGHT_DURATION == 0.62 and GameConfig.COIN_FLIGHT_STAGGER == 0.08, "Coin flights must use the readable staggered reward cadence")
+	_assert(GameConfig.TARGET_COLLECTION_DURATION == 0.70, "Target collection must remain readable")
 	var overlay_source := FileAccess.get_file_as_string("res://scripts/target_reward_overlay.gd")
 	_assert(not overlay_source.contains("check_points") and not overlay_source.contains("draw_polyline"), "Target confirmation must not render a checkmark")
 	_assert(float(GameConfig.AUDIO_TONES.normal_merge.volume) > float(GameConfig.AUDIO_TONES.gem_contact.volume) * 2.5, "Merge audio must clearly dominate normal collision")

@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Animation, Audio, Back, and Privacy Polish](ANIMATION_AUDIO_BACK_PRIVACY_POLISH.md) — supplied-video timing comparison, overlapping readable rewards, softened contact mix, new state-aware Android Back ownership, centered Privacy link, regressions, and Android validation.
+
 - [Last-AAB Home and Android Back Regression Audit](LAST_AAB_HOME_BACK_REGRESSION_AUDIT.md) — exact version-code-3 AAB baseline, post-AAB commit audit, missing Tween Composer Android dependency, hidden-gameplay invariant, and duplicate-Back fix.
 
 - [Android Back, Idle Stability, Settings, and Splash Repair](ANDROID_BACK_IDLE_SETTINGS_SPLASH_REPAIR.md) — state-aware Android Back/exit handling, delayed-ad shutdown guards, centered Privacy Policy, unsupported vibration-control removal, high-resolution system splash, coin audit, and regressions.

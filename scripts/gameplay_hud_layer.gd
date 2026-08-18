@@ -1025,8 +1025,8 @@ func _animate_next_swap() -> void:
 		next_icon.modulate = Color.WHITE
 		return
 	_next_tween = create_tween().set_parallel(true)
-	_next_tween.tween_property(next_icon, "scale", Vector2.ONE, UiDesignSystemType.ICON_SWAP_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_next_tween.tween_property(next_icon, "modulate:a", 1.0, UiDesignSystemType.ICON_SWAP_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_next_tween.tween_property(next_icon, "scale", Vector2.ONE, GameConfig.NEXT_GEM_TRANSITION_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_next_tween.tween_property(next_icon, "modulate:a", 1.0, GameConfig.NEXT_GEM_TRANSITION_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 func _animate_target_swap(previous_texture: Texture2D, next_texture: Texture2D, next_name: String, next_header: String, next_state: String, next_maximum: int, next_value: int) -> void:

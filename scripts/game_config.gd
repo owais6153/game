@@ -95,19 +95,22 @@ const MAX_SIMULATION_SUBSTEPS := 8
 const MAX_SUBSTEP_RADIUS_FRACTION := 0.45 # swept-step guard; never changes contact distance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.27 # fast contact/pull/pop/settle beat; presentation only
-const MERGE_SOURCE_PULL_DURATION := 0.06
-const MERGE_RESULT_START_SCALE := 0.64
-const MERGE_RESULT_POP_SCALE := 1.26
-const MERGE_RESULT_POP_DURATION := 0.14
+const MERGE_PRESENTATION_DURATION := 0.54
+const MERGE_SOURCE_PULL_DURATION := 0.20
+const MERGE_REVEAL_START := 0.20
+const MERGE_RESULT_START_SCALE := 0.72
+const MERGE_RESULT_POP_SCALE := 1.18
+const MERGE_RESULT_POP_DURATION := 0.18
+const MERGE_REVEAL_SOUND_AT := 0.20
+const TARGET_COLLECTION_OVERLAP_START := 0.30
 const MERGE_PULSE_SCALE := 1.22
-const COLLISION_VISUAL_DURATION := 0.11
+const COLLISION_VISUAL_DURATION := 0.14
 const COLLISION_VISUAL_MAX_COMPRESSION := 0.055
 const COLLISION_VISUAL_COOLDOWN := 0.10
 const SCORE_POPUP_DURATION := 0.46
 const SCORE_POPUP_RISE := 36.0
 const MAJOR_REWARD_TIER := 6
-const MAJOR_MERGE_EFFECT_DURATION := 0.36
+const MAJOR_MERGE_EFFECT_DURATION := 0.62
 const MAJOR_SCORE_POPUP_DURATION := 0.78
 const MAJOR_SCORE_POPUP_RISE := 58.0
 const MAJOR_MERGE_EFFECT_SCALE := 1.18
@@ -117,20 +120,23 @@ const MAJOR_MERGE_SPARK_COUNT := 12
 const COIN_BURST_COUNT := 4
 const MAJOR_COIN_BURST_COUNT := 4
 const COIN_BURST_DURATION := 0.12
-const COIN_FLIGHT_DURATION := 0.54
-const MAJOR_COIN_FLIGHT_DURATION := 0.60
-const COIN_FLIGHT_STAGGER := 0.045
-const COIN_SPAWN_STAGGER := 0.015
+const COIN_REWARD_START_DELAY := 0.26
+const COIN_FLIGHT_DURATION := 0.55
+const MAJOR_COIN_FLIGHT_DURATION := 0.62
+const COIN_FLIGHT_STAGGER := 0.08
+const COIN_SPAWN_STAGGER := 0.08
 const COIN_BURST_RADIUS := 48.0
 const MAJOR_COIN_BURST_RADIUS := 52.0
 const COIN_DRAW_RADIUS := 17.0
 const COIN_COUNTER_PULSE_DURATION := 0.18
 const COIN_EFFECT_LIMIT := 32
 const COIN_HUD_FALLBACK_DESTINATION := Vector2(92.0, 78.0)
-const TARGET_COLLECTION_DURATION := 0.32
-const TARGET_COLLECTION_FADE_START := 0.88
+const TARGET_COLLECTION_DURATION := 0.70
+const TARGET_COLLECTION_CONFIRM_DURATION := 0.10
+const TARGET_COLLECTION_TRAVEL_DURATION := 0.52
+const TARGET_COLLECTION_FADE_START := 0.90
 const TARGET_COLLECTION_POP_SCALE := 1.24
-const TARGET_PANEL_PULSE_DURATION := 0.38
+const TARGET_PANEL_PULSE_DURATION := 0.22
 const TARGET_SWAP_START_DELAY := 0.12
 const TARGET_SWAP_OUTGOING_FADE_DURATION := 0.10
 const TARGET_SWAP_GAP_DURATION := 0.02
@@ -138,11 +144,12 @@ const TARGET_SWAP_INCOMING_FADE_DURATION := 0.12
 const TARGET_SWAP_OUTGOING_OFFSET := Vector2.ZERO
 const TARGET_SWAP_INCOMING_OFFSET := Vector2.ZERO
 const TARGET_SWAP_INCOMING_SCALE := 1.0
+const NEXT_GEM_TRANSITION_DURATION := 0.22
 const PRESENTATION_EVENT_TRACE_LIMIT := 128
 const MERGE_MOMENTUM_TRANSFER := 0.62 # bounded average of source momentum
 const MERGE_MAX_SPAWN_SPEED := 420.0 # prevents an upgrade from shooting through a cluster
 const CHAIN_PRESENTATION_STAGGER := 0.03 # faster visual cadence only; merge logic remains immediate
-const NEXT_LAUNCHER_READY_DELAY := 0.02 # faster handoff after the presentation gate
+const NEXT_LAUNCHER_READY_DELAY := 0.02
 ## A released gem gives the launcher lane time to clear, then becomes a normal
 ## simulation body even if contacts keep it moving. This bounds replacement
 ## latency on crowded boards without changing any motion or collision value.
@@ -151,7 +158,7 @@ const MERGE_CHAIN_DEPTH_CAP := 6
 const OVERLAY_BUTTON_RECT := Rect2(220.0, 770.0, 280.0, 64.0)
 const OVERLAY_FADE_DURATION := 0.14
 const RESULT_BACKDROP_OPACITY := 0.48
-const WIN_PRESENTATION_HOLD := 0.24
+const WIN_PRESENTATION_HOLD := 0.42
 ## Rendering-only layout values. These never feed simulation or collision geometry.
 ## HUD measurements are in the fixed 720-wide design space, sampled from the
 ## supplied portrait reference: large SCORE left, five-ring ladder centered,
@@ -206,9 +213,9 @@ const AUDIO_SAMPLE_RATE := 22050.0
 const AUDIO_MUSIC_VOLUME := 0.06
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
-	"gem_contact": {"volume": 0.28},
-	"wall_contact": {"volume": 0.32},
-	"normal_merge": {"volume": 0.78},
+	"gem_contact": {"volume": 0.18},
+	"wall_contact": {"volume": 0.16},
+	"normal_merge": {"volume": 0.70},
 	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.56, "brightness": 0.60, "fall": 1.16},
 	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.60, "brightness": 0.68, "fall": 1.20},
 	"merge_4": {"frequency": 1046.0, "duration": 0.16, "volume": 0.65, "brightness": 0.76, "fall": 1.24},
@@ -217,17 +224,20 @@ const AUDIO_TONES := {
 	"merge_7": {"frequency": 1661.0, "duration": 0.27, "volume": 0.80, "brightness": 0.92, "fall": 1.34},
 	"merge_8": {"frequency": 1760.0, "duration": 0.30, "volume": 0.85, "brightness": 0.94, "fall": 1.36},
 	"chain": {"frequency": 1568.0, "duration": 0.13, "volume": 0.70, "brightness": 0.92, "fall": 1.24},
-	"target_collect": {"frequency": 1760.0, "duration": 0.22, "volume": 0.90, "brightness": 0.94, "fall": 1.34},
-	"coin_reward": {"volume": 1.0},
+	"target_collect": {"frequency": 1046.0, "duration": 0.48, "volume": 0.82, "brightness": 0.46, "fall": 0.82},
+	"target_complete": {"volume": 0.78},
+	"coin_tick": {"frequency": 1244.0, "duration": 0.09, "volume": 0.38, "brightness": 0.34, "fall": 1.18},
+	"coin_reward": {"volume": 0.72},
 	"win": {"volume": 0.92},
 	"button": {"volume": 0.32},
 }
-const GEM_CONTACT_SOUND_THRESHOLD := 170.0
-const WALL_CONTACT_SOUND_THRESHOLD := 220.0
-const CONTACT_SOUND_COOLDOWN := 0.065
+const GEM_CONTACT_SOUND_THRESHOLD := 195.0
+const WALL_CONTACT_SOUND_THRESHOLD := 250.0
+const CONTACT_SOUND_COOLDOWN := 0.12
+const PER_CONTACT_SOUND_COOLDOWN := 0.14
 const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN,
-	"wall_contact": 0.09,
+	"wall_contact": 0.14,
 	"launch": 0.05,
 	"normal_merge": 0.04,
 	"merge_2": 0.04,
@@ -239,13 +249,15 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"merge_8": 0.03,
 	"chain": 0.04,
 	"target_collect": 0.16,
+	"target_complete": 0.30,
+	"coin_tick": 0.07,
 	"coin_reward": 0.20,
 	"win": 0.25,
 	"button": 0.08,
 }
 const AUDIO_PITCH_RANGE_BY_EVENT := {
-	"gem_contact": Vector2(0.96, 1.04),
-	"wall_contact": Vector2(0.97, 1.03),
+	"gem_contact": Vector2(0.94, 1.00),
+	"wall_contact": Vector2(0.92, 0.98),
 }
 const AUDIO_PRIORITY_BY_EVENT := {
 	"button": 10,
@@ -253,7 +265,9 @@ const AUDIO_PRIORITY_BY_EVENT := {
 	"gem_contact": 30,
 	"launch": 40,
 	"target_collect": 50,
+	"coin_tick": 55,
 	"coin_reward": 60,
+	"target_complete": 85,
 	"normal_merge": 70,
 	"merge_2": 70,
 	"merge_3": 71,

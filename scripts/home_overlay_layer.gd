@@ -23,6 +23,7 @@ signal sound_toggled(enabled: bool)
 signal privacy_policy_requested
 signal privacy_options_requested
 signal ui_tap_requested
+signal exit_requested
 
 var root_control: Control
 var home_backdrop: TextureRect
@@ -53,6 +54,11 @@ var intro_target_icon: TextureRect
 var intro_objective_label: Label
 var intro_start_button: Button
 
+var exit_confirm_blocker: Control
+var exit_confirm_panel: PanelContainer
+var exit_cancel_button: Button
+var exit_button: Button
+
 var _current_level := 1
 var _current_coins := 0
 var _snapshot: Dictionary = {}
@@ -82,6 +88,9 @@ func _unhandled_input(event: InputEvent) -> void:
 func handle_back_request() -> bool:
 	if root_control == null or not root_control.visible:
 		return false
+	if exit_confirm_blocker != null and exit_confirm_blocker.visible:
+		_hide_exit_confirmation()
+		return true
 	if settings_blocker != null and settings_blocker.visible:
 		_hide_settings()
 		return true
@@ -102,6 +111,7 @@ func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	_set_home_stage_visible(true)
 	settings_blocker.visible = false
 	level_intro_blocker.visible = false
+	exit_confirm_blocker.visible = false
 	_current_level = level_number
 	_current_coins = coins
 	_snapshot = snapshot.duplicate(true)
@@ -145,6 +155,7 @@ func layout_metrics() -> Dictionary:
 		"privacy_link": privacy_policy_link.get_global_rect(),
 		"settings_popup": settings_panel.get_global_rect(),
 		"level_intro": level_intro_panel.get_global_rect(),
+		"exit_confirmation": exit_confirm_panel.get_global_rect(),
 	}
 
 func _build() -> void:
@@ -279,6 +290,7 @@ func _build() -> void:
 	_build_privacy_policy_link()
 	_build_settings_popup()
 	_build_level_intro_popup()
+	_build_exit_confirmation_popup()
 
 func _build_top_settings_control() -> void:
 	top_controls_margin = MarginContainer.new()
@@ -338,7 +350,11 @@ func _build_privacy_policy_link() -> void:
 	privacy_policy_link.name = "HomePrivacyPolicyLink"
 	privacy_policy_link.text = "Privacy Policy"
 	privacy_policy_link.underline = LinkButton.UNDERLINE_MODE_ALWAYS
-	privacy_policy_link.custom_minimum_size = Vector2(180.0, 46.0)
+	# LinkButton draws its text at the start of its own box. Giving it a fixed
+	# 180px box centered the hit target but left the visible words 30px left of
+	# screen center. Let the centered parent size the link to its text instead.
+	privacy_policy_link.custom_minimum_size = Vector2(0.0, 46.0)
+	privacy_policy_link.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	privacy_policy_link.focus_mode = Control.FOCUS_ALL
 	privacy_policy_link.mouse_filter = Control.MOUSE_FILTER_STOP
 	privacy_policy_link.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -444,6 +460,45 @@ func _build_level_intro_popup() -> void:
 		play_requested.emit()
 	)
 	column.add_child(intro_start_button)
+
+
+func _build_exit_confirmation_popup() -> void:
+	exit_confirm_blocker = _popup_blocker("ExitConfirmationBlocker")
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	exit_confirm_blocker.add_child(center)
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	exit_confirm_panel = PanelContainer.new()
+	exit_confirm_panel.name = "ExitConfirmationPanel"
+	exit_confirm_panel.custom_minimum_size = Vector2(480.0, 310.0)
+	exit_confirm_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
+	exit_confirm_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	center.add_child(exit_confirm_panel)
+	var margin := _popup_margin(42, 30, 42, 32)
+	exit_confirm_panel.add_child(margin)
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 18)
+	margin.add_child(column)
+	var title := _label("EXIT GAME?", 34, UiDesignSystemType.COLOR_BLUE_DEEP)
+	title.custom_minimum_size = Vector2(0.0, 58.0)
+	column.add_child(title)
+	var message := _label("Your progress is saved.", 17, UiDesignSystemType.COLOR_TEXT_MUTED)
+	message.custom_minimum_size = Vector2(0.0, 42.0)
+	column.add_child(message)
+	var actions := HBoxContainer.new()
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.add_theme_constant_override("separation", 14)
+	column.add_child(actions)
+	exit_cancel_button = _button("ExitCancelButton", "CANCEL", Vector2(176.0, 74.0), "SecondaryButton")
+	exit_cancel_button.pressed.connect(_hide_exit_confirmation)
+	actions.add_child(exit_cancel_button)
+	exit_button = _button("ExitGameButton", "EXIT", Vector2(176.0, 74.0), "")
+	exit_button.pressed.connect(func() -> void:
+		_hide_exit_confirmation()
+		exit_requested.emit()
+	)
+	actions.add_child(exit_button)
 
 func _set_home_stage_visible(visible: bool) -> void:
 	for node in [home_backdrop, home_wash, safe_margin, top_controls_margin, privacy_link_margin]:
@@ -563,6 +618,20 @@ func _refresh_intro_content() -> void:
 func _show_settings() -> void:
 	_sync_settings_from_snapshot()
 	_show_popup(settings_blocker, settings_panel)
+
+
+func show_exit_confirmation() -> void:
+	if root_control == null or not root_control.visible:
+		return
+	_show_popup(exit_confirm_blocker, exit_confirm_panel)
+	if exit_cancel_button != null:
+		exit_cancel_button.grab_focus()
+
+
+func _hide_exit_confirmation() -> void:
+	_hide_popup(exit_confirm_blocker)
+	if play_button != null:
+		play_button.grab_focus()
 
 func _hide_settings() -> void:
 	_hide_popup(settings_blocker)

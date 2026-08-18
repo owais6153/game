@@ -1,0 +1,161 @@
+extends SceneTree
+
+const GameControllerType = preload("res://scripts/game_controller.gd")
+const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
+
+var failures: Array[String] = []
+
+
+func _init() -> void:
+	call_deferred("_run")
+
+
+func _run() -> void:
+	_test_timing_and_mix_contracts()
+	await _test_exactly_once_overlap_and_launcher_independence()
+	await _test_back_state_priority()
+	await _test_privacy_alignment_across_aspects()
+	if failures.is_empty():
+		print("ANIMATION_AUDIO_BACK_PRIVACY_POLISH_TESTS: PASS")
+		quit(0)
+		return
+	for failure in failures:
+		push_error(failure)
+	print("ANIMATION_AUDIO_BACK_PRIVACY_POLISH_TESTS: FAIL (%d)" % failures.size())
+	quit(1)
+
+
+func _test_timing_and_mix_contracts() -> void:
+	_assert(GameConfig.COLLISION_VISUAL_DURATION >= 0.10 and GameConfig.COLLISION_VISUAL_DURATION <= 0.18, "Collision response must stay inside 100-180 ms")
+	_assert(GameConfig.MERGE_PRESENTATION_DURATION >= 0.45 and GameConfig.MERGE_PRESENTATION_DURATION <= 0.60, "Merge feedback must stay inside 450-600 ms")
+	_assert(GameConfig.TARGET_COLLECTION_DURATION >= 0.60 and GameConfig.TARGET_COLLECTION_DURATION <= 0.80, "Target collection must stay inside 600-800 ms")
+	_assert(GameConfig.TARGET_PANEL_PULSE_DURATION >= 0.15 and GameConfig.TARGET_PANEL_PULSE_DURATION <= 0.25, "Target pulse must stay inside 150-250 ms")
+	_assert(GameConfig.COIN_BURST_COUNT >= 4 and GameConfig.COIN_BURST_COUNT <= 6, "Coin reward must use four to six lightweight visuals")
+	_assert(GameConfig.COIN_FLIGHT_STAGGER >= 0.07 and GameConfig.COIN_FLIGHT_STAGGER <= 0.10, "Coin stagger must stay inside 70-100 ms")
+	_assert(GameConfig.COIN_FLIGHT_DURATION >= 0.45 and GameConfig.MAJOR_COIN_FLIGHT_DURATION <= 0.65, "Individual coin travel must stay inside 450-650 ms")
+	var visible_coin_sequence := GameConfig.COIN_BURST_DURATION + float(GameConfig.MAJOR_COIN_BURST_COUNT - 1) * GameConfig.COIN_FLIGHT_STAGGER + GameConfig.MAJOR_COIN_FLIGHT_DURATION
+	_assert(visible_coin_sequence >= 0.80 and visible_coin_sequence <= 1.10, "Visible coin sequence must stay inside 800-1100 ms")
+	var final_sequence := maxf(
+		GameConfig.TARGET_COLLECTION_OVERLAP_START + GameConfig.TARGET_COLLECTION_DURATION,
+		GameConfig.COIN_REWARD_START_DELAY + visible_coin_sequence
+	) + GameConfig.WIN_PRESENTATION_HOLD
+	_assert(final_sequence >= 1.50 and final_sequence <= 2.0, "Final-target-to-result presentation must stay inside 1.5-2.0 seconds")
+	_assert(GameConfig.TARGET_COLLECTION_OVERLAP_START < GameConfig.MERGE_PRESENTATION_DURATION and GameConfig.COIN_REWARD_START_DELAY < GameConfig.MERGE_PRESENTATION_DURATION, "Target and coin presentation must overlap merge settle")
+	_assert(GameConfig.NEXT_GEM_TRANSITION_DURATION >= 0.18 and GameConfig.NEXT_GEM_TRANSITION_DURATION <= 0.28, "Next gem transition must stay inside 180-280 ms")
+	_assert(GameConfig.CONTACT_SOUND_COOLDOWN >= 0.10 and GameConfig.CONTACT_SOUND_COOLDOWN <= 0.16 and GameConfig.PER_CONTACT_SOUND_COOLDOWN >= 0.10 and GameConfig.PER_CONTACT_SOUND_COOLDOWN <= 0.16, "Contact cooldowns must suppress 100-160 ms chatter")
+	_assert(float(GameConfig.AUDIO_TONES.gem_contact.volume) < float(GameConfig.AUDIO_TONES.normal_merge.volume), "Gem collision must sit below merge")
+	_assert(float(GameConfig.AUDIO_TONES.wall_contact.volume) < float(GameConfig.AUDIO_TONES.normal_merge.volume), "Rail collision must sit below merge")
+	_assert(float(GameConfig.AUDIO_TONES.target_collect.volume) > float(GameConfig.AUDIO_TONES.normal_merge.volume), "Target arrival must sit above normal merge")
+	_assert(float(GameConfig.AUDIO_TONES.win.volume) > float(GameConfig.AUDIO_TONES.target_collect.volume), "Level complete must remain the strongest short cue")
+	_assert(ProjectSettings.get_setting("application/config/quit_on_go_back", true) == false, "Godot Android auto-quit must be disabled so app state owns Back")
+
+
+func _test_exactly_once_overlap_and_launcher_independence() -> void:
+	paused = false
+	var controller := GameControllerType.new()
+	root.add_child(controller)
+	await process_frame
+	controller._on_home_level_intro_requested()
+	controller._on_home_play_requested()
+	var result_level := controller.active_target_tier()
+	var result_id := 9001
+	var event := {
+		"result_id": result_id,
+		"source_ids": [8001, 8002],
+		"level": result_level,
+		"first_position": Vector2(320.0, 720.0),
+		"second_position": Vector2(400.0, 720.0),
+		"midpoint": Vector2(360.0, 720.0),
+		"depth": 0,
+	}
+	var before_coins := controller.coins
+	var before_target_index := controller.target_index
+	var before_target_progress := controller.target_progress
+	var before_presented_index := controller.presented_target_index
+	var before_presented_progress := controller.presented_target_progress
+	var required_quantity := controller.active_target_quantity()
+	controller._apply_confirmed_merge_events([event])
+	controller._apply_confirmed_merge_events([event])
+	var expected_reward := GameConfig.target_coin_reward_for_result_level(result_level)
+	_assert(controller.merge_presentations.size() == 1, "Repeated confirmed result ID must create one merge presentation")
+	_assert(controller.coins == before_coins + expected_reward, "Repeated confirmed result ID must award target coins exactly once")
+	_assert(controller.effects_layer.active_coin_count() == GameConfig.COIN_BURST_COUNT, "Target reward must create one bounded coin group")
+	if before_target_progress + 1 >= required_quantity:
+		_assert(controller.target_index == before_target_index + 1 and controller.target_progress == 0, "Confirmed target result must advance authoritative target state immediately")
+	else:
+		_assert(controller.target_index == before_target_index and controller.target_progress == before_target_progress + 1, "Confirmed target result must advance authoritative quantity immediately")
+	_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress, "HUD target state must wait for collection arrival")
+	controller._update_merge_presentations(GameConfig.TARGET_COLLECTION_OVERLAP_START + 0.01)
+	_assert(controller.collection_in_progress and controller.target_collection_queue.is_empty(), "Target travel must begin once during merge settle")
+	_assert(not controller.merge_presentations.is_empty(), "Target travel must overlap the unfinished merge presentation")
+	_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress, "Target HUD state must remain unchanged during travel")
+	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION + 0.01)
+	if before_target_progress + 1 >= required_quantity:
+		_assert(controller.presented_target_index == before_presented_index + 1 and controller.presented_target_progress == 0, "Completed target HUD must advance at collection arrival")
+	else:
+		_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress + 1, "Target HUD quantity must advance at collection arrival")
+	var expected_display_complete := controller.presented_target_index >= controller.target_sequence().size()
+	_assert(bool(controller.hud_snapshot().target_completed) == expected_display_complete, "HUD completion flag must follow presented target state")
+	controller.launcher_state = controller.LauncherState.RESOLVING
+	for piece in controller.pieces:
+		piece.is_active_launcher = false
+	controller.active_piece_id = -1
+	controller._advance_launcher_lifecycle(GameConfig.NEXT_LAUNCHER_READY_DELAY + 0.01)
+	controller._advance_launcher_lifecycle(0.0)
+	_assert(controller.get_active_piece() != null and controller.launcher_state == controller.LauncherState.READY_TO_AIM, "Next launcher must become ready while presentation remains active")
+	var late_same_target := event.duplicate(true)
+	late_same_target.result_id = result_id + 1
+	var coins_after_target := controller.coins
+	controller._apply_confirmed_merge_events([late_same_target])
+	_assert(controller.coins == coins_after_target and not controller.pending_target_presentations.has(result_id + 1), "A later merge must use authoritative advanced target state, not the delayed HUD state")
+	paused = false
+	controller.queue_free()
+	await process_frame
+
+
+func _test_back_state_priority() -> void:
+	paused = false
+	var controller := GameControllerType.new()
+	root.add_child(controller)
+	await process_frame
+	controller.home_overlay._show_settings()
+	_assert(controller._handle_back_request(false) == "home_overlay" and not controller.home_overlay.settings_blocker.visible, "Back must close Home Settings first")
+	_assert(controller._handle_back_request(false) == "exit_confirmation" and controller.home_overlay.exit_confirm_blocker.visible, "Bare Home Back must show exit confirmation")
+	_assert(controller._handle_back_request(false) == "home_overlay" and not controller.home_overlay.exit_confirm_blocker.visible, "Back must close exit confirmation without exiting")
+	controller._on_home_level_intro_requested()
+	_assert(controller._handle_back_request(false) == "home_overlay" and controller.app_flow_state == controller.AppFlowState.HOME, "Back must return Level Ready to Home")
+	controller._on_home_level_intro_requested()
+	controller._on_home_play_requested()
+	_assert(controller._handle_back_request(false) == "pause" and controller.gameplay_ui.is_pause_visible(), "Gameplay Back must open Pause")
+	_assert(controller._handle_back_request(false) == "resume", "Back on Pause must resume")
+	controller.result_overlay.present(false, controller.coins, controller.level_number, controller.active_target_tier())
+	controller.app_flow_state = controller.AppFlowState.LEVEL_COMPLETE
+	_assert(controller._handle_back_request(false) == "result_locked" and controller.result_overlay.visible_result, "Back must not bypass result/progression actions")
+	paused = false
+	controller.queue_free()
+	await process_frame
+
+
+func _test_privacy_alignment_across_aspects() -> void:
+	for viewport_size in [Vector2i(576, 1312), Vector2i(720, 1280), Vector2i(720, 1600), Vector2i(1080, 2400)]:
+		var viewport := SubViewport.new()
+		viewport.size = viewport_size
+		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		root.add_child(viewport)
+		var home := HomeOverlayType.new()
+		viewport.add_child(home)
+		await process_frame
+		home.set_safe_insets_for_testing(Vector4(0.0, 36.0, 0.0, 48.0))
+		home.present(8, 11900, {})
+		await process_frame
+		var rect := home.privacy_policy_link.get_global_rect()
+		_assert(absf(rect.get_center().x - float(viewport_size.x) * 0.5) <= 2.0, "%s Privacy Policy text box must be horizontally centered" % viewport_size)
+		_assert(rect.size.x < 150.0, "%s Privacy Policy text must not retain the visually offset 180px box" % viewport_size)
+		_assert(rect.position.y >= 0.0 and rect.end.y <= float(viewport_size.y), "%s Privacy Policy link must remain inside the safe viewport" % viewport_size)
+		viewport.queue_free()
+		await process_frame
+
+
+func _assert(condition: bool, message: String) -> void:
+	if not condition:
+		failures.append(message)

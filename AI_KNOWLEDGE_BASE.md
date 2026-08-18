@@ -1,3 +1,21 @@
+# 2026-08-18 - Animation/audio/Back/privacy guardrails
+
+- These settings supersede older fast-feedback guidance: collision `0.14 s`, merge `0.54 s`, reveal/audio at `0.20 s`, target collection `0.70 s`, target pulse `0.22 s`, four coin visuals with `0.08 s` stagger and about `0.98 s` visible sequence, result hold `0.42 s`, and Next `0.22 s`.
+- Presentation may overlap but never owns truth. Preserve immediate confirmed-event progression, exactly-once target/reward records, the target presentation queue, and launcher readiness during active effects. Do not serialize merge, target, coins, and UI with long awaits.
+- Active contact assets are the softened `gem_collision_soft_v1.ogg` and `rail_collision_soft_v1.ogg`; keep gains at `0.18/0.16`, thresholds at `195/250`, global cooldowns at `0.12/0.14 s`, per-contact cooldown at `0.14 s`, and pitch at `0.94-1.00/0.92-0.98` unless a documented phone listening pass supersedes them.
+- Normal merge sounds at result reveal. `target_collect` belongs only at target-card arrival, `target_complete` only after the full objective quantity, intermediate `coin_tick` events only at coin arrivals, `coin_reward` on the final arrival, and `win` only after accepted result presentation.
+- Proper Android Back requires `application/config/quit_on_go_back=false`. Preserve the shared Android-notification/Escape dispatcher, debounce, overlay-first behavior, result lock, gameplay Pause behavior, and explicit Home exit confirmation. Never call quit directly from a nested screen.
+- Keep the Privacy link intrinsic-width and centered. Do not restore the forced 180-pixel minimum width that visually left-biased its label. The action must remain the existing external AdManager URL and UMP must remain unchanged.
+
+# 2026-08-18 - Animation/audio/Back/privacy guardrails
+
+- These settings supersede older fast-feedback guidance: collision `0.14 s`, merge `0.54 s`, reveal/audio at `0.20 s`, target collection `0.70 s`, target pulse `0.22 s`, four coin visuals with `0.08 s` stagger and about `0.98 s` visible sequence, result hold `0.42 s`, and Next `0.22 s`.
+- Presentation may overlap but never owns truth. Preserve immediate confirmed-event progression, exactly-once target/reward records, the target presentation queue, and launcher readiness during active effects. Do not serialize merge, target, coins, and UI with long awaits.
+- Active contact assets are the softened `gem_collision_soft_v1.ogg` and `rail_collision_soft_v1.ogg`; keep gains at `0.18/0.16`, thresholds at `195/250`, global cooldowns at `0.12/0.14 s`, per-contact cooldown at `0.14 s`, and pitch at `0.94-1.00/0.92-0.98` unless a documented phone listening pass supersedes them.
+- Normal merge sounds at result reveal. `target_collect` belongs only at target-card arrival, `target_complete` only after the full objective quantity, intermediate `coin_tick` events only at coin arrivals, `coin_reward` on the final arrival, and `win` only after accepted result presentation.
+- Proper Android Back requires `application/config/quit_on_go_back=false`. Preserve the shared Android-notification/Escape dispatcher, debounce, overlay-first behavior, result lock, gameplay Pause behavior, and explicit Home exit confirmation. Never call quit directly from a nested screen.
+- Keep the Privacy link intrinsic-width and centered. Do not restore the forced 180-pixel minimum width that visually left-biased its label. The action must remain the existing external AdManager URL and UMP must remain unchanged.
+
 # 2026-08-16 - Supplied sound and Home privacy-link guardrails
 
 - Preserve `AudioFeedbackService` as the single runtime audio owner and the Music/SFX bus split. Do not add per-screen or per-gem audio players.

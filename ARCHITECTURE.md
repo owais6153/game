@@ -1,3 +1,19 @@
+# Animation/audio/Back/privacy boundary - 2026-08-18
+
+- `GameController` remains the authoritative simulation/progression owner. Confirmed results enqueue presentation records; `merge_presentations`, `target_collection_queue`, and `GameplayEffectsLayer` may overlap, while launcher readiness and target/reward accounting do not depend on presentation completion.
+- The real target physics piece is retired at confirmed collection. A presentation-only duplicate travels to `GameplayHudLayer`, which pulses the card and counter without writing progression state.
+- `AudioFeedbackService` remains the single audio owner with cached streams, five priority-aware SFX voices, Music/SFX buses, and a limiter. Contact telemetry remains read-only and is filtered by type-specific impact thresholds, global cooldowns, a per-contact key cooldown, and exact merge-pair suppression.
+- App navigation is controller-owned. `project.godot` disables Android auto-quit; `NOTIFICATION_WM_GO_BACK_REQUEST` and desktop Escape enter one debounced state dispatcher. `HomeOverlayLayer` resolves its topmost popup first, results cannot be bypassed, gameplay uses the existing Pause overlay, and Home owns an explicit exit confirmation.
+- The Privacy Policy remains a Home presentation link to the existing `AdManager` URL path. Its intrinsic centered size and safe-area placement are layout-only and do not alter UMP or ad authority.
+
+# Animation/audio/Back/privacy boundary - 2026-08-18
+
+- `GameController` remains the authoritative simulation/progression owner. Confirmed results enqueue presentation records; `merge_presentations`, `target_collection_queue`, and `GameplayEffectsLayer` may overlap, while launcher readiness and target/reward accounting do not depend on presentation completion.
+- The real target physics piece is retired at confirmed collection. A presentation-only duplicate travels to `GameplayHudLayer`, which pulses the card and counter without writing progression state.
+- `AudioFeedbackService` remains the single audio owner with cached streams, five priority-aware SFX voices, Music/SFX buses, and a limiter. Contact telemetry remains read-only and is filtered by type-specific impact thresholds, global cooldowns, a per-contact key cooldown, and exact merge-pair suppression.
+- App navigation is controller-owned. `project.godot` disables Android auto-quit; `NOTIFICATION_WM_GO_BACK_REQUEST` and desktop Escape enter one debounced state dispatcher. `HomeOverlayLayer` resolves its topmost popup first, results cannot be bypassed, gameplay uses the existing Pause overlay, and Home owns an explicit exit confirmation.
+- The Privacy Policy remains a Home presentation link to the existing `AdManager` URL path. Its intrinsic centered size and safe-area placement are layout-only and do not alter UMP or ad authority.
+
 # Supplied sound and Home privacy-link boundary - 2026-08-16
 
 - `AudioFeedbackService` remains the only audio runtime owner. It preloads the eight supplied SFX, preserves the existing music/launch/coin streams, creates five reusable priority-aware one-shot players, and never allocates or loads during gameplay events.

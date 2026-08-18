@@ -29,23 +29,25 @@ func _test_audio_service() -> void:
 	var service := AudioFeedbackServiceType.new()
 	root.add_child(service)
 	await process_frame
-	_assert(service.cached_stream_count() == 16, "Audio service must cache the five supplied replacements and restored original event streams")
+	_assert(service.cached_stream_count() == 18, "Audio service must cache the bounded contact, merge, target, coin, result, and UI identities")
 	_assert(service._players.size() == GameConfig.AUDIO_MAX_CONCURRENT_PLAYERS, "Audio service must use the bounded shared voice pool")
 	_assert(AudioServer.get_bus_index("Music") >= 0 and AudioServer.get_bus_index("SFX") >= 0, "Dedicated Music and SFX buses must load")
 	var sfx_bus := AudioServer.get_bus_index("SFX")
 	_assert(sfx_bus >= 0 and AudioServer.get_bus_effect_count(sfx_bus) == 1 and AudioServer.get_bus_effect(sfx_bus, 0) is AudioEffectLimiter, "SFX bus must own the clipping limiter")
 	_assert(service._music_player.bus == "Music" and service._players.all(func(player: AudioStreamPlayer) -> bool: return player.bus == "SFX"), "Music and one-shots must route to their dedicated buses")
 	_assert(is_equal_approx(service.music_volume_linear(), 0.06), "Background music must use the documented corrective gain")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.28), "Gem contact must remain subordinate at 0.28")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.32), "Rail contact must remain subordinate at 0.32")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.normal_merge.volume), 0.78), "Ordinary merge must clearly exceed collision gain")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.18), "Gem contact must remain subtle at 0.18")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.16), "Rail contact must remain subtle at 0.16")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.normal_merge.volume), 0.70), "Ordinary merge must clearly exceed collision gain")
+	_assert(float(GameConfig.AUDIO_TONES.target_collect.volume) > float(GameConfig.AUDIO_TONES.normal_merge.volume), "Target arrival must be more rewarding than an ordinary merge")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.button.volume), 0.32), "UI-tap replacement gain must be lowered to 0.32")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.win.volume), 0.92), "Final success must remain the strongest short supplied cue")
 	var expected_paths := {
-		"gem_contact": "res://assets/runtime/audio/gems-colide.mp3",
-		"wall_contact": "res://assets/runtime/audio/gems-rail-colide.mp3",
+		"gem_contact": "res://assets/runtime/audio/gem_collision_soft_v1.ogg",
+		"wall_contact": "res://assets/runtime/audio/rail_collision_soft_v1.ogg",
 		"normal_merge": "res://assets/runtime/audio/merge-target-immediate.ogg",
 		"coin_reward": "res://assets/runtime/audio/supplied_coin_reward_v4.ogg",
+		"target_complete": "res://assets/runtime/audio/target_complete_soft_v1.ogg",
 		"win": "res://assets/runtime/audio/merge-basic.mp3",
 		"button": "res://assets/runtime/audio/mixkit-on-or-off-light-switch-tap-2585.wav",
 	}
@@ -54,9 +56,9 @@ func _test_audio_service() -> void:
 		_assert(stream != null and stream.resource_path == String(expected_paths[event_name]), "%s must resolve to its approved supplied stream" % event_name)
 		_assert(stream != null and stream.get_length() > 0.0, "%s supplied stream must have playable duration" % event_name)
 	_assert(service.stream_for_event("normal_merge").get_length() < 1.60, "Normal-merge runtime derivative must remove the supplied MP3's half-second leading silence")
-	for event_name in ["launch", "merge_2", "merge_8", "chain", "target_collect"]:
+	for event_name in ["launch", "merge_2", "merge_8", "chain", "target_collect", "coin_tick"]:
 		_assert(service.stream_for_event(event_name) is AudioStreamWAV, "%s must retain its original procedural identity" % event_name)
-	_assert(service.stream_for_event("target_complete") == null and service.stream_for_event("target_merge") == null, "Reverted supplied target-only cues must not remain routed")
+	_assert(service.stream_for_event("target_complete") != null and service.stream_for_event("target_merge") == null, "Target completion must own one distinct richer cue")
 	service.clear_trace()
 	service._clock = 1.0
 	_assert(service.emit_event("gem_contact"), "First confirmed gem contact must play")
@@ -67,7 +69,7 @@ func _test_audio_service() -> void:
 	for player in service._players:
 		if int(player.get_meta("play_serial", 0)) > int(newest_player.get_meta("play_serial", 0)):
 			newest_player = player
-	_assert(newest_player.pitch_scale >= 0.96 and newest_player.pitch_scale <= 1.04, "Gem-contact pitch variation must stay inside 0.96x..1.04x")
+	_assert(newest_player.pitch_scale >= 0.94 and newest_player.pitch_scale <= 1.00, "Gem-contact pitch variation must stay inside the softened 0.94x..1.00x range")
 	for event_name in ["win", "merge_8", "chain", "normal_merge", "coin_reward"]:
 		_assert(service._play_event(event_name, 1.0), "%s must fill one bounded priority voice" % event_name)
 	_assert(not service._play_event("button", 1.0), "A quiet UI tap must not steal a fully occupied higher-priority voice pool")
@@ -91,6 +93,7 @@ func _test_privacy_link_relocation() -> void:
 		var viewport_size := root.get_visible_rect().size
 		var rect := link.get_global_rect()
 		_assert(absf(rect.get_center().x - viewport_size.x * 0.5) <= 2.0, "Privacy Policy link must be horizontally centered")
+		_assert(rect.size.x < 150.0, "Privacy Policy visible text must not sit left-aligned inside the old oversized 180px box")
 		_assert(home.privacy_link_margin.anchor_left == 0.0 and home.privacy_link_margin.anchor_right == 1.0 and home.privacy_link_margin.offset_left == 0.0 and home.privacy_link_margin.offset_right == 0.0, "Privacy Policy container must span the full screen before centering its link")
 		_assert(rect.end.y <= viewport_size.y and rect.position.y >= viewport_size.y - 90.0, "Privacy Policy link must sit inside the bottom safe area")
 		var tap_state := {"count": 0}
@@ -110,14 +113,15 @@ func _test_privacy_link_relocation() -> void:
 
 func _test_confirmed_event_routing_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
-	_assert(source.contains("audio_feedback.emit_event(\"merge_%d\" % result_level if completes_active_target else \"normal_merge\")"), "Normal merges must use the requested replacement while target-producing merges retain tier audio")
+	_assert(source.contains("merge_event.merge_sound_event = \"merge_%d\" % result_level if completes_active_target else \"normal_merge\""), "Confirmed merges must retain their distinct sound identities")
 	var merge_classified := source.find("var completes_active_target := result_level == active_target_tier()")
-	var merge_cue := source.find("audio_feedback.emit_event(\"merge_%d\" % result_level if completes_active_target else \"normal_merge\")", merge_classified)
+	var merge_cue := source.find("merge_event.merge_sound_event =", merge_classified)
 	var presentation_setup := source.find("merge_event.source_texture =", merge_classified)
-	_assert(merge_classified >= 0 and merge_cue > merge_classified and presentation_setup > merge_cue, "Merge audio must route immediately after confirmation and before result presentation setup")
+	_assert(merge_classified >= 0 and merge_cue > merge_classified and presentation_setup > merge_cue, "Merge sound identity must be stored at confirmation before result presentation setup")
+	_assert(source.contains("GameConfig.MERGE_REVEAL_SOUND_AT") and source.contains("audio_feedback.emit_event(String(presentation.get(\"merge_sound_event\""), "Merge sound must play once at the visual reveal instead of the contact frame")
 	_assert(source.contains("audio_feedback.emit_event(\"chain\")"), "Original chain feedback must be restored")
 	_assert(source.contains("audio_feedback.emit_event(\"target_collect\")"), "Target arrival must retain its original cue")
-	_assert(not source.contains("audio_feedback.emit_event(\"target_complete\")"), "The supplied objective-completion cue must be reverted")
+	_assert(source.contains("audio_feedback.emit_event(\"target_complete\")"), "Final target completion must own a richer cue")
 	_assert(source.contains("audio_feedback.emit_event(\"win\")"), "Level success must remain tied to final result presentation")
 	_assert(not source.contains("audio_feedback.emit_event(\"fail\")"), "No lose/game-over sound may be routed")
 	_assert(source.contains("merged_pairs.has(pair_key)"), "Collision audio must be suppressed for the exact contact pair that merges")

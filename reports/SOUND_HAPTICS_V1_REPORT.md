@@ -140,3 +140,7 @@ The current merge-attack timing is documented in `MERGE_SOUND_SYNC_FIX_V3_REPORT
 - Existing supplied music and all active event assets are retained; no reference audio was copied.
 - Relative hierarchy changed only through centralized gains: gem contact `0.34 -> 0.28`, rail contact `0.39 -> 0.32`, ordinary merge `0.70 -> 0.78`, target arrival `0.82 -> 0.90`, and final success `0.84 -> 0.92`. Music remains `0.06`.
 - Immediate merge routing, contact cooldowns/pitch variation, five-voice priority pool, buses/limiter, settings, and haptics remain unchanged.
+
+# Animation/audio production-polish superseding note - 2026-08-18
+
+`ANIMATION_AUDIO_BACK_PRIVACY_POLISH.md` now supersedes the contact/target timing and mix values above. Gem/rail contacts use softened runtime derivatives at gains `0.18/0.16`, thresholds `195/250`, global cooldowns `120/140 ms`, and a `140 ms` per-contact cooldown. Normal merge audio now aligns to the 200 ms result reveal; target arrival uses a distinct soft crystal chime; completed target quantity uses the trimmed sparkle cue; coins tick per staggered arrival with the full cue on the final arrival. Haptic ownership and values are unchanged. A manual Android speaker listening pass remains required.

@@ -303,3 +303,23 @@ All eight user-provided originals and byte-identical runtime copies remain prese
 | Purpose | Preserved source | Runtime derivative | Processing / verification |
 | --- | --- | --- | --- |
 | Android native system splash logo | `assets/logo/majestic_gems_icon_source_v1.jpeg` (1254x1254 supplied source) | `assets/runtime/ui/majestic_gems_system_splash_1152_v2.png` (1152x1152 RGBA, 1,195,693 bytes, SHA-256 `0C9B6C4FEB435E258461DA1DF07A15F555F4F6A1621F6A4BC0CE91C1C58B40A4`) | Source was Lanczos-downscaled to 784x784 and centered on a transparent 1152x1152 canvas, preserving the existing adaptive safe-zone ratio at 2.67x the prior pixel density. The blue platform splash background is unchanged. |
+
+# Soft contact and target-completion derivatives v1 - 2026-08-18
+
+| Purpose | Preserved source | Runtime derivative | Processing / verification |
+| --- | --- | --- | --- |
+| Soft gem contact | `assets/sound/gems-colide.mp3` | `assets/runtime/audio/gem_collision_soft_v1.ogg` — 8,851 bytes — SHA-256 `0671D9648211C0012E3BAB613D55ABB63734D451D000FE401AB4E3EF0B781871` | 280 ms trim; 180 Hz high-pass, 5.2 kHz low-pass, -4 dB at 2.8 kHz, 12 ms fade-in, 80 ms fade-out; stereo 48 kHz Vorbis. |
+| Soft rail contact | `assets/sound/gems-rail-colide.mp3` | `assets/runtime/audio/rail_collision_soft_v1.ogg` — 8,705 bytes — SHA-256 `91857B7CC4EF0294A60CDD50158602771847F71E839BF1E501000BEFBE942850` | 300 ms trim; 160 Hz high-pass, 4.2 kHz low-pass, -5 dB at 2.3 kHz, 16 ms fade-in, 90 ms fade-out; stereo 48 kHz Vorbis. |
+| Full-target sparkle | `assets/sound/mixkit-fairy-arcade-sparkle-866.wav` | `assets/runtime/audio/target_complete_soft_v1.ogg` — 21,931 bytes — SHA-256 `2B0A07FAB59A84F4050148A449D7E9B6B85B4E0990114DEA9EB344048499171E` | 720 ms trim with 10 ms fade-in and 150 ms fade-out; stereo 44.1 kHz Vorbis. |
+
+All originals remain preserved. These files are presentation-only and never define contact, merge, target, reward, or physics behavior.
+
+# Soft contact and target-completion derivatives v1 - 2026-08-18
+
+| Purpose | Preserved source | Runtime derivative | Processing / verification |
+| --- | --- | --- | --- |
+| Soft gem contact | `assets/sound/gems-colide.mp3` | `assets/runtime/audio/gem_collision_soft_v1.ogg` — 8,851 bytes — SHA-256 `0671D9648211C0012E3BAB613D55ABB63734D451D000FE401AB4E3EF0B781871` | 280 ms trim; 180 Hz high-pass, 5.2 kHz low-pass, -4 dB at 2.8 kHz, 12 ms fade-in, 80 ms fade-out; stereo 48 kHz Vorbis. |
+| Soft rail contact | `assets/sound/gems-rail-colide.mp3` | `assets/runtime/audio/rail_collision_soft_v1.ogg` — 8,705 bytes — SHA-256 `91857B7CC4EF0294A60CDD50158602771847F71E839BF1E501000BEFBE942850` | 300 ms trim; 160 Hz high-pass, 4.2 kHz low-pass, -5 dB at 2.3 kHz, 16 ms fade-in, 90 ms fade-out; stereo 48 kHz Vorbis. |
+| Full-target sparkle | `assets/sound/mixkit-fairy-arcade-sparkle-866.wav` | `assets/runtime/audio/target_complete_soft_v1.ogg` — 21,931 bytes — SHA-256 `2B0A07FAB59A84F4050148A449D7E9B6B85B4E0990114DEA9EB344048499171E` | 720 ms trim with 10 ms fade-in and 150 ms fade-out; stereo 44.1 kHz Vorbis. |
+
+All originals remain preserved. These files are presentation-only and never define contact, merge, target, reward, or physics behavior.
