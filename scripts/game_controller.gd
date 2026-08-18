@@ -562,9 +562,10 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		var completes_active_target := result_level == active_target_tier()
 		merge_event.target_objective_completed = false
 		merge_event.final_target_completed = false
-		# Restore the tester-approved immediate cue: the confirmed merge and audible
-		# attack share one frame while presentation remains downstream of resolution.
-		audio_feedback.emit_event("merge_%d" % result_level if completes_active_target else "normal_merge")
+		# Keep gameplay authority immediate while aligning the audible reward with
+		# the restored resulting-gem reveal.
+		merge_event.merge_sound_event = "merge_%d" % result_level if completes_active_target else "normal_merge"
+		merge_event.reveal_sound_played = false
 		# Cache all presentation resources at confirmation time. The draw path
 		# never loads textures or performs catalog analysis/lookups per frame.
 		merge_event.source_texture = AssetCatalogType.gem_texture(maxi(1, result_level - 1))
@@ -696,6 +697,14 @@ func _update_merge_presentations(delta: float) -> void:
 	for presentation in merge_presentations:
 		presentation.elapsed += delta
 		var result_id := int(presentation.get("result_id", -1))
+		if float(presentation.elapsed) >= GameConfig.MERGE_REVEAL_SOUND_AT and not bool(presentation.get("reveal_sound_played", false)):
+			presentation.reveal_sound_played = true
+			if audio_feedback != null:
+				audio_feedback.emit_event(String(presentation.get("merge_sound_event", "normal_merge")))
+			_trace_presentation_event("merge_reveal_sound", result_id)
+		if float(presentation.elapsed) >= GameConfig.TARGET_COLLECTION_OVERLAP_START and pending_target_presentations.has(result_id):
+			pending_target_presentations.erase(result_id)
+			_queue_target_collection(result_id, presentation)
 		if float(presentation.elapsed) >= 0.0 and result_id >= 0 and gem_sprite_layer != null:
 			var result_transform := _merge_result_visual_transform(float(presentation.elapsed), result_id)
 			gem_sprite_layer.set_presentation_transform(result_id, result_transform.scale, result_transform.rotation, result_transform.offset, true)
@@ -711,8 +720,8 @@ func _update_merge_presentations(delta: float) -> void:
 		if gem_sprite_layer != null and result_id >= 0:
 			gem_sprite_layer.clear_presentation_scale(result_id)
 		_trace_presentation_event("merge_presentation_completed", result_id)
-		# Restore the tester-approved sequence: target travel starts as soon as the
-		# short merge presentation completes. State authority is still immediate.
+		# The target duplicate normally starts during merge settle above. This is
+		# the exactly-once fallback for a legacy or zero-duration presentation.
 		if pending_target_presentations.has(result_id):
 			pending_target_presentations.erase(result_id)
 			_queue_target_collection(result_id, presentation)
@@ -796,18 +805,18 @@ func _update_target_collection(delta: float) -> void:
 	var elapsed := float(target_collection.get("elapsed", 0.0)) + delta
 	target_collection.elapsed = elapsed
 	var t := clampf(elapsed / GameConfig.TARGET_COLLECTION_DURATION, 0.0, 1.0)
-	var eased := smoothstep(0.0, 1.0, t)
+	var confirm_t := clampf(elapsed / GameConfig.TARGET_COLLECTION_CONFIRM_DURATION, 0.0, 1.0)
+	var travel_t := clampf((elapsed - GameConfig.TARGET_COLLECTION_CONFIRM_DURATION) / GameConfig.TARGET_COLLECTION_TRAVEL_DURATION, 0.0, 1.0)
+	var eased := smoothstep(0.0, 1.0, travel_t)
 	var start: Vector2 = target_collection.start
 	var destination := gameplay_ui.target_collection_destination() if gameplay_ui != null else GameConfig.TARGET_COLLECTION_DESTINATION
 	target_collection.destination = destination
 	var control := Vector2(lerpf(start.x, destination.x, 0.48), minf(start.y, destination.y) - 82.0)
 	var inverse := 1.0 - eased
 	sprite.position = start * inverse * inverse + control * 2.0 * inverse * eased + destination * eased * eased
-	var pop := 1.0
-	if t <= 0.32:
-		pop = 1.0 + sin(t / 0.32 * PI) * (GameConfig.TARGET_COLLECTION_POP_SCALE - 1.0)
-	else:
-		pop = lerpf(1.0, 0.88, smoothstep(0.32, 1.0, t))
+	var pop := 1.0 + sin(confirm_t * PI) * (GameConfig.TARGET_COLLECTION_POP_SCALE - 1.0)
+	if elapsed >= GameConfig.TARGET_COLLECTION_CONFIRM_DURATION:
+		pop = lerpf(1.0, 0.86, eased)
 	var base_scale: Vector2 = target_collection.get("base_scale", Vector2.ONE)
 	sprite.scale = base_scale * pop
 	var opacity := 1.0
@@ -906,15 +915,16 @@ func _merge_result_visual_scale(elapsed: float) -> float:
 
 func _merge_result_visual_transform(elapsed: float, result_id: int) -> Dictionary:
 	var uniform_scale := 1.0
-	if elapsed <= 0.0:
-		uniform_scale = GameConfig.MERGE_RESULT_START_SCALE
-	elif elapsed <= GameConfig.MERGE_RESULT_POP_DURATION:
-		var pop_t := clampf(elapsed / GameConfig.MERGE_RESULT_POP_DURATION, 0.0, 1.0)
+	if elapsed < GameConfig.MERGE_REVEAL_START:
+		uniform_scale = 0.0
+	elif elapsed <= GameConfig.MERGE_REVEAL_START + GameConfig.MERGE_RESULT_POP_DURATION:
+		var pop_t := clampf((elapsed - GameConfig.MERGE_REVEAL_START) / GameConfig.MERGE_RESULT_POP_DURATION, 0.0, 1.0)
 		var pop_eased := 1.0 - pow(1.0 - pop_t, 3.0)
 		uniform_scale = lerpf(GameConfig.MERGE_RESULT_START_SCALE, GameConfig.MERGE_RESULT_POP_SCALE, pop_eased)
 	else:
-		var settle_duration := maxf(0.001, GameConfig.MERGE_PRESENTATION_DURATION - GameConfig.MERGE_RESULT_POP_DURATION)
-		var settle_t := clampf((elapsed - GameConfig.MERGE_RESULT_POP_DURATION) / settle_duration, 0.0, 1.0)
+		var settle_start := GameConfig.MERGE_REVEAL_START + GameConfig.MERGE_RESULT_POP_DURATION
+		var settle_duration := maxf(0.001, GameConfig.MERGE_PRESENTATION_DURATION - settle_start)
+		var settle_t := clampf((elapsed - settle_start) / settle_duration, 0.0, 1.0)
 		# A short damped uniform settle keeps the result readable without feeding
 		# presentation scale into the simulation.
 		uniform_scale = 1.0 + (GameConfig.MERGE_RESULT_POP_SCALE - 1.0) * exp(-4.2 * settle_t) * cos(settle_t * PI * 1.65)

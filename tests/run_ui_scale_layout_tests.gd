@@ -57,11 +57,11 @@ func _test_tier_radius_progression() -> void:
 
 
 func _test_feedback_polish_contract() -> void:
-	_assert(GameConfig.MERGE_PRESENTATION_DURATION >= 0.25 and GameConfig.MERGE_PRESENTATION_DURATION <= 0.32, "Merge presentation must complete inside the restored fast window")
-	_assert(GameConfig.MERGE_SOURCE_PULL_DURATION <= 0.07, "Merge source impact/pull must remain brief")
-	_assert(GameConfig.MERGE_RESULT_POP_SCALE >= 1.22 and GameConfig.MERGE_RESULT_POP_SCALE <= 1.30, "Merge result overshoot must be clearly visible and controlled")
+	_assert(GameConfig.MERGE_PRESENTATION_DURATION >= 0.50 and GameConfig.MERGE_PRESENTATION_DURATION <= 0.58, "Merge presentation must retain the restored readable window")
+	_assert(GameConfig.MERGE_SOURCE_PULL_DURATION >= 0.18 and GameConfig.MERGE_SOURCE_PULL_DURATION <= 0.22, "Merge source impact/pull must retain its readable combination phase")
+	_assert(GameConfig.MERGE_RESULT_POP_SCALE >= 1.12 and GameConfig.MERGE_RESULT_POP_SCALE <= 1.20, "Merge result overshoot must remain readable and controlled")
 	_assert(GameConfig.COIN_FLIGHT_DURATION >= 0.45 and GameConfig.MAJOR_COIN_FLIGHT_DURATION <= 0.70, "Coin reward flights must preserve the fast reference rhythm")
-	_assert(GameConfig.TARGET_COLLECTION_DURATION >= 0.28 and GameConfig.TARGET_COLLECTION_DURATION <= 0.40, "Target collection must remain quick")
+	_assert(GameConfig.TARGET_COLLECTION_DURATION >= 0.60 and GameConfig.TARGET_COLLECTION_DURATION <= 0.80, "Target collection must retain the restored readable duration")
 	_assert(GameConfig.COLLISION_VISUAL_DURATION <= 0.15, "Collision micro-feedback must remain short")
 	_assert(GameConfig.COLLISION_VISUAL_MAX_COMPRESSION <= 0.06, "Collision deformation must remain subtle")
 	_assert(GameConfig.COLLISION_VISUAL_COOLDOWN >= 0.08 and GameConfig.COLLISION_VISUAL_COOLDOWN <= 0.15, "Collision visual cooldown must prevent chatter")

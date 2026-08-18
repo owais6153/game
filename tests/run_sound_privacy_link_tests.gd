@@ -114,11 +114,12 @@ func _test_privacy_link_relocation() -> void:
 
 func _test_confirmed_event_routing_contract() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
-	_assert(source.contains("audio_feedback.emit_event(\"merge_%d\" % result_level if completes_active_target else \"normal_merge\")"), "Confirmed merges must retain their immediate distinct sound identities")
+	_assert(source.contains("merge_event.merge_sound_event = \"merge_%d\" % result_level if completes_active_target else \"normal_merge\""), "Confirmed merges must retain their distinct sound identities")
 	var merge_classified := source.find("var completes_active_target := result_level == active_target_tier()")
-	var merge_cue := source.find("audio_feedback.emit_event(\"merge_%d\"", merge_classified)
-	var presentation_setup := source.find("merge_event.source_texture =", merge_classified)
-	_assert(merge_classified >= 0 and merge_cue > merge_classified and presentation_setup > merge_cue, "Merge sound must restore the tester-approved confirmed-frame timing")
+	var merge_identity := source.find("merge_event.merge_sound_event =", merge_classified)
+	var reveal_guard := source.find("GameConfig.MERGE_REVEAL_SOUND_AT", merge_identity)
+	var merge_cue := source.find("audio_feedback.emit_event(String(presentation.get(\"merge_sound_event\"", reveal_guard)
+	_assert(merge_classified >= 0 and merge_identity > merge_classified and reveal_guard > merge_identity and merge_cue > reveal_guard, "Merge sound must align once with the restored 200 ms result reveal")
 	_assert(source.contains("audio_feedback.emit_event(\"chain\")"), "Original chain feedback must be restored")
 	_assert(source.contains("audio_feedback.emit_event(\"target_collect\")"), "Target arrival must retain its original cue")
 	_assert(source.contains("audio_feedback.emit_event(\"target_complete\")"), "Final target completion must own a richer cue")

@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Reward, Coin, and Merge Timing Restore Release](REWARD_COIN_MERGE_TIMING_RESTORE_RELEASE.md) — exact post-checkmark-removal timing restoration, authority/regression guardrails, and Android 1.0.3/code-5 APK+AAB delivery validation.
+
 - [Animation Revert, Collision-Audio Midpoint, and Android Exit Fix](ANIMATION_REVERT_AUDIO_MIDPOINT_ANDROID_EXIT_FIX.md) — exact tester-approved animation restoration, measured contact-audio midpoint, and Activity-owned Android exit lifecycle.
 
 - [Animation, Audio, Back, and Privacy Polish](ANIMATION_AUDIO_BACK_PRIVACY_POLISH.md) — supplied-video timing comparison, overlapping readable rewards, softened contact mix, new state-aware Android Back ownership, centered Privacy link, regressions, and Android validation.

@@ -1,3 +1,11 @@
+# 2026-08-18 - Active reward/coin/merge timing guardrails
+
+- Tester feedback supersedes the all-fast cadence for successful actions. Preserve merge `0.54 s`, source pull/reveal `0.20 s`, reveal audio at `0.20 s`, target overlap start `0.30 s`, target collection `0.70 s` (`0.10 s` confirmation + `0.52 s` travel), target pulse `0.22 s`, coin start delay `0.26 s`, coin flights `0.55/0.62 s`, flight/spawn stagger `0.08/0.08 s`, and result hold `0.42 s`.
+- Keep the target checkmark absent. The restored reward is the glow/ray-based post-removal presentation, not the older green-tick sequence.
+- Preserve collision visual `0.11 s`, Next transition `0.16 s`, midpoint v2 contact audio, Activity-owned Android Exit, and all Back/Privacy fixes.
+- Presentation is never authoritative: controller target and currency update exactly once on confirmation, the HUD advances at collection arrival, target begins during merge settle, and launcher readiness remains independent.
+- Android version code 5 / name 1.0.3 is committed for this APK/AAB pair. Never reuse code 4 or any lower code for a future artifact.
+
 # 2026-08-18 - Tester-approved cadence, contact midpoint, and Android exit guardrails
 
 - This section supersedes the slow animation values below. Preserve the exact restored cadence unless new tester feedback explicitly changes it: collision `0.11 s`, merge `0.27 s`, source pull `0.06 s`, result `0.64 -> 1.26 -> 1.0` over a `0.14 s` pop, major effect `0.36 s`, target collection `0.32 s`, target pulse `0.38 s`, coin flights `0.54/0.60 s` with `0.045/0.015 s` flight/spawn stagger, Next `0.16 s`, result hold `0.24 s`.

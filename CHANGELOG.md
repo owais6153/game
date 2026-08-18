@@ -1,3 +1,10 @@
+# 2026-08-18 - Reward, coin, and merge cadence restoration release
+
+- Restored the readable post-checkmark-removal presentation from `acb28a5`: 540 ms merge with reveal/chime at 200 ms, 700 ms target collection, 220 ms target pulse, four coins over about 980 ms, and a 420 ms result hold.
+- Kept presentation overlapping and non-authoritative: target travel starts 300 ms into merge settle, rewards remain exactly once, controller target truth remains immediate, and launcher readiness does not wait on visual completion.
+- Preserved the current 110 ms collision response, 160 ms Next transition, midpoint gem/rail audio, Android Activity-owned Exit, state-aware Back, centered Privacy link, Home flow, gameplay rules, reward values, ads/UMP, saves, gems, and UI design.
+- Prepared Android version code 5 / version name 1.0.3 for a new release AAB and matching tester APK. Google Play's current uploaded version code was confirmed by the user as 3; local code 4 had already been used by tester APKs, so it was not reused.
+
 # 2026-08-18 - Tester animation revert, collision midpoint, and Android exit correction
 
 - Restored every animation value changed by the rejected slow pass to the `5528ff6` tester-approved cadence: 270 ms merge, 320 ms target travel, prior pop/effect/coin/Next/result timings, and immediate merge audio.

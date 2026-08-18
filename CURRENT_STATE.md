@@ -1,3 +1,11 @@
+# Current State Addendum - Readable reward, coin, and merge cadence release
+
+Tester feedback supersedes the all-fast animation revert for successful actions only. The active cadence restores the post-checkmark-removal `acb28a5` presentation: merge 540 ms, result reveal and merge chime at 200 ms, target duplicate begins at 300 ms and completes over 700 ms, target-card pulse 220 ms, four coin visuals start after 260 ms and span about 980 ms, and final result hold 420 ms. The removed tick/checkmark remains absent. Collision response remains 110 ms and Next remains 160 ms.
+
+These longer success visuals do not change authority. Confirmed target progression and coin values commit once immediately, the HUD target advances once at collection arrival, target/merge/coin effects overlap, and the next launcher remains independent. Current midpoint collision audio, Back/Exit behavior, Privacy alignment, Home flow, ads/UMP, saves, package name, table/gameplay geometry, and gem assets remain unchanged.
+
+Android release identity is now permanently prepared as version code 5 / version name 1.0.3. The user confirmed Play's current uploaded version code is 3; code 4 had already identified local tester APKs and was intentionally not reused. APK/AAB delivery evidence is recorded after export in `BUILD_MANIFEST.md` and `reports/REWARD_COIN_MERGE_TIMING_RESTORE_RELEASE.md`.
+
 # Current State Addendum - Tester animation revert, contact midpoint, and Android lifecycle exit
 
 The rejected slow animation pass is superseded. Presentation is restored exactly to the pre-pass `5528ff6` cadence: collision 110 ms, merge 270 ms with a 60 ms pull and immediate `0.64 -> 1.26 -> 1.0` result pop, major effect 360 ms, target collection 320 ms, target pulse 380 ms, four coins over an 855 ms bound, Next 160 ms, and result hold 240 ms. Immediate confirmed merge audio is restored. Controller target truth remains immediate and separate from arrival-timed HUD presentation, preserving exactly-once rewards and correct rapid follow-up classification.
