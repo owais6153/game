@@ -217,8 +217,8 @@ const AUDIO_SAMPLE_RATE := 22050.0
 const AUDIO_MUSIC_VOLUME := 0.06
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
-	"gem_contact": {"volume": 0.34},
-	"wall_contact": {"volume": 0.39},
+	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.46, "brightness": 0.82, "fall": 0.64},
+	"wall_contact": {"frequency": 760.0, "duration": 0.065, "volume": 0.32, "brightness": 0.34, "fall": 0.58},
 	"normal_merge": {"volume": 0.70},
 	"merge_2": {"frequency": 740.0, "duration": 0.14, "volume": 0.56, "brightness": 0.60, "fall": 1.16},
 	"merge_3": {"frequency": 880.0, "duration": 0.15, "volume": 0.60, "brightness": 0.68, "fall": 1.20},
@@ -237,10 +237,10 @@ const AUDIO_TONES := {
 }
 const GEM_CONTACT_SOUND_THRESHOLD := 170.0
 const WALL_CONTACT_SOUND_THRESHOLD := 220.0
-const CONTACT_SOUND_COOLDOWN := 0.065
+const CONTACT_SOUND_COOLDOWN := 0.075
 const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN,
-	"wall_contact": 0.09,
+	"wall_contact": 0.11,
 	"launch": 0.05,
 	"normal_merge": 0.04,
 	"merge_2": 0.04,
@@ -259,8 +259,6 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"button": 0.08,
 }
 const AUDIO_PITCH_RANGE_BY_EVENT := {
-	"gem_contact": Vector2(0.96, 1.04),
-	"wall_contact": Vector2(0.97, 1.03),
 }
 const AUDIO_PRIORITY_BY_EVENT := {
 	"button": 10,

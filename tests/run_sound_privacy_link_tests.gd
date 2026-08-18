@@ -36,16 +36,14 @@ func _test_audio_service() -> void:
 	_assert(sfx_bus >= 0 and AudioServer.get_bus_effect_count(sfx_bus) == 1 and AudioServer.get_bus_effect(sfx_bus, 0) is AudioEffectLimiter, "SFX bus must own the clipping limiter")
 	_assert(service._music_player.bus == "Music" and service._players.all(func(player: AudioStreamPlayer) -> bool: return player.bus == "SFX"), "Music and one-shots must route to their dedicated buses")
 	_assert(is_equal_approx(service.music_volume_linear(), 0.06), "Background music must use the documented corrective gain")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.34), "Gem contact must restore the original gain 0.34")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.39), "Rail contact must restore the original gain 0.39")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.46) and is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.frequency), 1240.0), "Gem contact must restore the original procedural crystal identity and gain")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.32) and is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.frequency), 760.0), "Rail contact must restore the original procedural crystal identity and gain")
 	_assert(is_equal_approx(GameConfig.GEM_CONTACT_SOUND_THRESHOLD, 170.0) and is_equal_approx(GameConfig.WALL_CONTACT_SOUND_THRESHOLD, 220.0), "Contact thresholds must restore the original tuning")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.normal_merge.volume), 0.70), "Ordinary merge must clearly exceed collision gain")
 	_assert(float(GameConfig.AUDIO_TONES.target_collect.volume) > float(GameConfig.AUDIO_TONES.normal_merge.volume), "Target arrival must be more rewarding than an ordinary merge")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.button.volume), 0.32), "UI-tap replacement gain must be lowered to 0.32")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.win.volume), 0.92), "Final success must remain the strongest short supplied cue")
 	var expected_paths := {
-		"gem_contact": "res://assets/runtime/audio/gems-colide.mp3",
-		"wall_contact": "res://assets/runtime/audio/gems-rail-colide.mp3",
 		"normal_merge": "res://assets/runtime/audio/merge-target-immediate.ogg",
 		"coin_reward": "res://assets/runtime/audio/supplied_coin_reward_v4.ogg",
 		"target_complete": "res://assets/runtime/audio/target_complete_soft_v1.ogg",
@@ -56,6 +54,9 @@ func _test_audio_service() -> void:
 		var stream: AudioStream = service.stream_for_event(event_name)
 		_assert(stream != null and stream.resource_path == String(expected_paths[event_name]), "%s must resolve to its approved supplied stream" % event_name)
 		_assert(stream != null and stream.get_length() > 0.0, "%s supplied stream must have playable duration" % event_name)
+	for event_name in ["gem_contact", "wall_contact"]:
+		var stream: AudioStream = service.stream_for_event(event_name)
+		_assert(stream is AudioStreamWAV and stream.resource_path.is_empty(), "%s must restore its original generated crystal stream rather than a later supplied file" % event_name)
 	_assert(service.stream_for_event("normal_merge").get_length() < 1.60, "Normal-merge runtime derivative must remove the supplied MP3's half-second leading silence")
 	for event_name in ["launch", "merge_2", "merge_8", "chain", "target_collect", "coin_tick"]:
 		_assert(service.stream_for_event(event_name) is AudioStreamWAV, "%s must retain its original procedural identity" % event_name)
@@ -70,7 +71,7 @@ func _test_audio_service() -> void:
 	for player in service._players:
 		if int(player.get_meta("play_serial", 0)) > int(newest_player.get_meta("play_serial", 0)):
 			newest_player = player
-	_assert(newest_player.pitch_scale >= 0.96 and newest_player.pitch_scale <= 1.04, "Gem-contact pitch variation must restore the original 0.96x..1.04x range")
+	_assert(is_equal_approx(newest_player.pitch_scale, 1.0), "Original procedural gem contact must keep its fixed pitch")
 	for event_name in ["win", "merge_8", "chain", "normal_merge", "coin_reward"]:
 		_assert(service._play_event(event_name, 1.0), "%s must fill one bounded priority voice" % event_name)
 	_assert(not service._play_event("button", 1.0), "A quiet UI tap must not steal a fully occupied higher-priority voice pool")

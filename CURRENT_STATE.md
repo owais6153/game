@@ -1,3 +1,9 @@
+# Current State Addendum - Original procedural gem and rail collision restoration
+
+The supplied MP3 and derivative collision assets are no longer active for gem-to-gem or gem-to-rail impacts. The game again generates and caches its pre-supplied-audio procedural crystal contacts: gem is 1240 Hz / 55 ms at linear gain 0.46; rail is 760 Hz / 65 ms at gain 0.32. They retain their earlier 75/110 ms global cooldowns and fixed pitch. This restores the older, distinctly different contact sound requested by the player.
+
+Audio remains presentation-only: the existing confirmed-contact telemetry, exact merge-pair suppression, five-voice pool, buses/limiter, settings, haptics, and all gameplay physics/merge rules remain unchanged. Android release identity is now permanently versionCode 6 / versionName 1.0.4 for the requested AAB/APK delivery. See `reports/PROCEDURAL_COLLISION_SOUND_RESTORE_RELEASE.md`.
+
 # Current State Addendum - Original collision sound, fast merge/push, and visible-touch merge repair
 
 Gem-to-gem and gem-to-rail impacts again use the original supplied sound files at their original gains (`0.34` / `0.39`), thresholds (`170` / `220 px/s`), global cooldowns (65 / 90 ms), pitch ranges, and impact scaling. Exact confirmed merge-pair suppression and the bounded priority voice pool remain in place; contact telemetry remains presentation-only.

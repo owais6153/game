@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Original Procedural Gem/Rail Collision Sound Restore](PROCEDURAL_COLLISION_SOUND_RESTORE_RELEASE.md) — restoration of the pre-supplied-audio contact identities, original mix/gates, release version 1.0.4/code 6, and AAB/APK validation.
+
 - [Original Collision Sound, Fast Merge/Push, and Visible-Touch Merge Repair](ORIGINAL_COLLISION_FAST_MERGE_VISIBLE_TOUCH_REPAIR.md) — original gem/rail contact mapping and mix, restored fast merge/push motion, calibrated visible-touch merge coverage, and APK-only validation.
 
 - [Reward, Coin, and Merge Timing Restore Release](REWARD_COIN_MERGE_TIMING_RESTORE_RELEASE.md) — exact post-checkmark-removal timing restoration, authority/regression guardrails, and Android 1.0.3/code-5 APK+AAB delivery validation.

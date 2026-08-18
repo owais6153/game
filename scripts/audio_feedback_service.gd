@@ -5,8 +5,6 @@ const SuppliedBackgroundMusic: AudioStream = preload("res://assets/runtime/audio
 const SuppliedCoinReward: AudioStream = preload("res://assets/runtime/audio/supplied_coin_reward_v4.ogg")
 ## Tester-directed midpoint derivatives: less harsh than the preserved supplied
 ## originals, but brighter and more present than the rejected soft-v1 pass.
-const SuppliedGemCollision: AudioStream = preload("res://assets/runtime/audio/gems-colide.mp3")
-const SuppliedRailCollision: AudioStream = preload("res://assets/runtime/audio/gems-rail-colide.mp3")
 const SuppliedBasicMerge: AudioStream = preload("res://assets/runtime/audio/merge-basic.mp3")
 ## Runtime-only derivative of the preserved supplied MP3. Its measured 0.523 s
 ## leading silence is trimmed to 0.008 s so the audible attack matches the
@@ -136,8 +134,10 @@ func _build_stream_cache() -> void:
 		return
 	_stream_cache = {
 		"launch": _build_crystal_stream(GameConfig.AUDIO_TONES.launch, 1),
-		"gem_contact": SuppliedGemCollision,
-		"wall_contact": SuppliedRailCollision,
+		# Restore the pre-supplied-audio original procedural crystal contacts.
+		# Seeds 2/3 reproduce the historical cached gem/rail identities exactly.
+		"gem_contact": _build_crystal_stream(GameConfig.AUDIO_TONES.gem_contact, 2),
+		"wall_contact": _build_crystal_stream(GameConfig.AUDIO_TONES.wall_contact, 3),
 		"normal_merge": SuppliedTargetMerge,
 		"merge_2": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_2, 2),
 		"merge_3": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_3, 3),

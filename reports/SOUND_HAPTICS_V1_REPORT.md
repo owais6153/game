@@ -1,5 +1,11 @@
 # Sound + Haptics v1 Report
 
+## Original procedural collision restoration — 2026-08-18
+
+- The MP3/derivative gem and rail contacts are not the requested original identity and are no longer loaded for collision events.
+- `AudioFeedbackService` now caches the historical procedural crystal streams using the original settings: gem `1240 Hz`, 55 ms, 0.46 gain, brightness 0.82/fall 0.64 (seed 2); rail `760 Hz`, 65 ms, 0.32 gain, brightness 0.34/fall 0.58 (seed 3).
+- Original cooldowns are 75 ms (gem) and 110 ms (rail), with fixed 1.0 pitch. Confirmed-contact-only routing, merge-pair suppression, voice priority, buses/limiter, settings, and haptics remain unchanged.
+
 ## Original collision mapping restoration — 2026-08-18
 
 - Gem and rail impacts again preload the original supplied `gems-colide.mp3` and `gems-rail-colide.mp3` streams. The midpoint derivative files remain preserved but are not active.

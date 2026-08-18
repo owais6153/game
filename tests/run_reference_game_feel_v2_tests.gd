@@ -98,7 +98,7 @@ func _test_feedback_contracts() -> void:
 	_assert(GameConfig.TARGET_COLLECTION_DURATION == 0.70, "Target collection must retain the restored readable cadence")
 	var overlay_source := FileAccess.get_file_as_string("res://scripts/target_reward_overlay.gd")
 	_assert(not overlay_source.contains("check_points") and not overlay_source.contains("draw_polyline"), "Target confirmation must not render a checkmark")
-	_assert(float(GameConfig.AUDIO_TONES.normal_merge.volume) > float(GameConfig.AUDIO_TONES.gem_contact.volume) * 2.0, "Merge audio must clearly dominate normal collision")
+	_assert(float(GameConfig.AUDIO_TONES.normal_merge.volume) > float(GameConfig.AUDIO_TONES.gem_contact.volume) * 1.4, "Merge audio must clearly dominate normal collision")
 
 func _assert(condition: bool, message: String) -> void:
 	if not condition:

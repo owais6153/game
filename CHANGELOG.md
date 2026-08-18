@@ -1,3 +1,15 @@
+# 2026-08-18 - Restore original procedural gem and rail collision sounds
+
+- Replaced the still-newer supplied MP3 gem/rail collision sounds with the historically original cached procedural crystal cues: gem contact is 1240 Hz at 0.46 gain and rail contact is 760 Hz at 0.32 gain.
+- Restored their original 75/110 ms event cooldowns and fixed-pitch behavior. Collision routing, exact merge-pair suppression, voice limits, buses, haptics, physics, and merge rules remain unchanged.
+- Advanced Android release identity to versionCode 6 / versionName 1.0.4 for the requested AAB and APK export.
+
+# 2026-08-18 - Restore original procedural gem and rail collision sounds
+
+- Replaced the still-newer supplied MP3 gem/rail collision sounds with the historically original cached procedural crystal cues: gem contact is 1240 Hz at 0.46 gain and rail contact is 760 Hz at 0.32 gain.
+- Restored their original 75/110 ms event cooldowns and fixed-pitch behavior. Collision routing, exact merge-pair suppression, voice limits, buses, haptics, physics, and merge rules remain unchanged.
+- Advanced Android release identity to versionCode 6 / versionName 1.0.4 for the requested AAB and APK export.
+
 # 2026-08-18 - Original collision sound, fast merge/push, and visible-touch merge repair
 
 - Restored gem-to-gem and gem-to-rail contacts to their original supplied streams, gains (`0.34` / `0.39`), thresholds (`170` / `220 px/s`), cooldowns, pitch ranges, and impact gain scaling.

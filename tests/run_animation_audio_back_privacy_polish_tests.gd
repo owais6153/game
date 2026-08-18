@@ -50,9 +50,9 @@ func _test_timing_and_mix_contracts() -> void:
 	) + GameConfig.WIN_PRESENTATION_HOLD
 	_assert(is_equal_approx(final_sequence, 1.66), "Final-target-to-result presentation must restore the previous 1.66 second bound")
 	_assert(is_equal_approx(GameConfig.WIN_PRESENTATION_HOLD, 0.42), "Level-complete hold must restore 420 ms")
-	_assert(is_equal_approx(GameConfig.CONTACT_SOUND_COOLDOWN, 0.065) and is_equal_approx(GameConfig.AUDIO_COOLDOWN_BY_EVENT.wall_contact, 0.09), "Contact cooldowns must use the original mapping")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.34), "Gem collision must restore the original volume")
-	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.39), "Rail collision must restore the original volume")
+	_assert(is_equal_approx(GameConfig.CONTACT_SOUND_COOLDOWN, 0.075) and is_equal_approx(GameConfig.AUDIO_COOLDOWN_BY_EVENT.wall_contact, 0.11), "Contact cooldowns must use the original procedural mapping")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.46), "Gem collision must restore the original procedural volume")
+	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.32), "Rail collision must restore the original procedural volume")
 	_assert(float(GameConfig.AUDIO_TONES.target_collect.volume) > float(GameConfig.AUDIO_TONES.normal_merge.volume), "Target arrival must sit above normal merge")
 	_assert(float(GameConfig.AUDIO_TONES.win.volume) > float(GameConfig.AUDIO_TONES.target_collect.volume), "Level complete must remain the strongest short cue")
 	_assert(ProjectSettings.get_setting("application/config/quit_on_go_back", true) == false, "Godot Android auto-quit must be disabled so app state owns Back")
