@@ -27,11 +27,11 @@ func _run() -> void:
 
 func _test_timing_and_mix_contracts() -> void:
 	_assert(is_equal_approx(GameConfig.COLLISION_VISUAL_DURATION, 0.11), "Collision response must restore the tester-approved 110 ms")
-	# Reward feedback v3 cadence: 40 ms hit-stop, 40-110 ms source pull, reveal and
-	# chime at 110 ms, pop/settle/secondary keys, finished at 420 ms.
-	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.42) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_DURATION, 0.07), "Merge feedback and push animation must use the approved v3 cadence")
-	_assert(is_equal_approx(GameConfig.MERGE_REVEAL_START, 0.11) and is_equal_approx(GameConfig.MERGE_REVEAL_SOUND_AT, 0.11), "Merge result reveal and chime must land together at 110 ms")
-	_assert(is_equal_approx(GameConfig.MERGE_HITSTOP_DURATION, 0.04) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_START, 0.04), "Merge hit-stop must own the first 40 ms and gate the source pull")
+	# Real-reward cadence: 30 ms hit-stop, 35-120 ms snap, synchronized impact,
+	# then a bounded pop/recoil/settle finished at 420 ms.
+	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.42) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_DURATION, 0.080), "Merge feedback and push animation must use the approved readable reward cadence")
+	_assert(is_equal_approx(GameConfig.MERGE_REVEAL_START, 0.12) and is_equal_approx(GameConfig.MERGE_REVEAL_SOUND_AT, 0.12), "Merge result reveal and chime must land together at the readable 120 ms impact frame")
+	_assert(is_equal_approx(GameConfig.MERGE_HITSTOP_DURATION, 0.03) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_START, 0.035), "Normal merge hit-stop and source snap must stay inside the approved 25-35 ms contact window")
 	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_DURATION, 0.70), "Target reward must restore the post-checkmark-removal 700 ms cadence")
 	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_CONFIRM_DURATION, 0.10) and is_equal_approx(GameConfig.TARGET_COLLECTION_TRAVEL_DURATION, 0.52), "Target reward must retain its 100 ms confirmation and 520 ms travel")
 	_assert(is_equal_approx(GameConfig.TARGET_PANEL_PULSE_DURATION, 0.22), "Target pulse must restore the post-checkmark-removal 220 ms cadence")
@@ -45,14 +45,14 @@ func _test_timing_and_mix_contracts() -> void:
 	_assert(coin_delay > coin_function and not merge_function_source.contains("GameConfig.COIN_REWARD_START_DELAY"), "Coin delay must apply only to target coins, never to the merge impact")
 	_assert(is_equal_approx(GameConfig.COIN_FLIGHT_STAGGER, 0.08) and is_equal_approx(GameConfig.COIN_SPAWN_STAGGER, 0.08), "Coin stagger must restore the post-checkmark-removal cadence")
 	_assert(is_equal_approx(GameConfig.COIN_FLIGHT_DURATION, 0.55) and is_equal_approx(GameConfig.MAJOR_COIN_FLIGHT_DURATION, 0.62), "Coin travel must restore the post-checkmark-removal cadence")
-	var visible_coin_sequence := GameConfig.COIN_BURST_DURATION + float(GameConfig.MAJOR_COIN_BURST_COUNT - 1) * GameConfig.COIN_FLIGHT_STAGGER + GameConfig.MAJOR_COIN_FLIGHT_DURATION
-	_assert(is_equal_approx(visible_coin_sequence, 0.98), "Visible coin sequence must restore the previous 980 ms total")
+	var visible_coin_sequence := GameConfig.target_coin_flight_start(GameConfig.MAJOR_COIN_BURST_COUNT - 1, GameConfig.MAJOR_COIN_BURST_COUNT) + GameConfig.MAJOR_COIN_FLIGHT_DURATION
+	_assert(visible_coin_sequence >= 1.40 and visible_coin_sequence <= 1.55, "Every target coin must land, hold together, then complete the readable flight")
 	# The non-final target keeps the previous compact reward bound.
 	var standard_target_sequence := maxf(
 		GameConfig.MERGE_PRESENTATION_DURATION + GameConfig.TARGET_COLLECTION_DURATION,
 		GameConfig.COIN_REWARD_START_DELAY + visible_coin_sequence
 	)
-	_assert(standard_target_sequence <= 1.30, "Non-final target reward must stay compact")
+	_assert(standard_target_sequence <= 1.85, "Non-final target reward must stay readable without becoming sluggish")
 	# The final target owns the staged hero celebration instead.
 	var final_sequence := GameConfig.final_celebration_duration()
 	_assert(final_sequence >= 2.6 and final_sequence <= 3.1, "Final-target celebration must land inside the approved staged budget")

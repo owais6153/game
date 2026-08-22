@@ -20,16 +20,15 @@ var score_popups: Array[Dictionary] = []
 var merge_impacts: Array[Dictionary] = []
 var coin_rewards: Array[Dictionary] = []
 var launch_impacts: Array[Dictionary] = []
-## Cosmetic-only reward records. None of these participate in the simulation,
-## contact capture, merge eligibility, target detection, or coin economy.
-var mini_gems: Array[Dictionary] = []
 var combo_labels: Array[Dictionary] = []
 var panel_sparkles: Array[Dictionary] = []
+var reward_amounts: Array[Dictionary] = []
 var level_reward_coins: Array[Dictionary] = []
 var hero_effect: Dictionary = {}
 var _level_reward_total := 0
 var _level_reward_elapsed := 0.0
 var _level_reward_waves_launched := 0
+var _level_reward_wave_times: Array[float] = []
 var _level_reward_active := false
 var _coin_flights_started: Dictionary = {}
 var _font: Font
@@ -61,7 +60,6 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 		"spark_count": GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 6,
 		"major_reward": major_reward or final_target,
 	})
-	_spawn_mini_gems(merge_event, timeline, delay)
 	if depth > 0 and not final_target:
 		# Clear the result gem's own overshoot so the label never sits on the art.
 		var label_lift := minf(GameConfig.COMBO_LABEL_OFFSET_Y, -(GameConfig.gem_collision_radius(result_level) * 1.45 + 20.0))
@@ -73,40 +71,6 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 		})
 	_cap_effects()
 	queue_redraw()
-
-
-## Purely decorative fragments that shoot from behind the newly created gem.
-## They are drawn records with no body, collider, or merge participation.
-func _spawn_mini_gems(merge_event: Dictionary, timeline: Dictionary, delay: float) -> void:
-	var count := int(timeline.get("mini_gems", 3))
-	if count <= 0:
-		return
-	var midpoint: Vector2 = merge_event.get("midpoint", Vector2.ZERO)
-	var result_level := int(merge_event.get("level", 1))
-	var texture := merge_event.get("source_texture") as Texture2D
-	if texture == null:
-		texture = AssetCatalogType.gem_texture(maxi(1, result_level - 1))
-	if texture == null:
-		return
-	var result_id := int(merge_event.get("result_id", -1))
-	var gem_radius := GameConfig.gem_collision_radius(result_level)
-	for index in range(count):
-		var angle := float(GameConfig.MERGE_MINI_GEM_ANGLES[index % GameConfig.MERGE_MINI_GEM_ANGLES.size()])
-		var distance := float(GameConfig.MERGE_MINI_GEM_DISTANCES[index % GameConfig.MERGE_MINI_GEM_DISTANCES.size()])
-		# Deterministic per-result jitter keeps repeated merges from looking stamped
-		# without introducing frame-order-dependent randomness.
-		var jitter := float(absi(result_id * 17 + index * 43) % 9 - 4)
-		mini_gems.append({
-			"position": midpoint,
-			"texture": texture,
-			"direction": Vector2.from_angle(deg_to_rad(angle + jitter)),
-			# They start tucked behind the new gem's body and travel the approved
-			# distance outward, so they always clear even the largest tier.
-			"offset": gem_radius * 0.62,
-			"distance": distance + jitter * 0.6,
-			"base_size": gem_radius * 2.0,
-			"elapsed": -delay,
-		})
 
 ## Coin flights are a target-completion reward, never ordinary merge feedback.
 ## Keeping this as a separate API prevents future merge presentation changes
@@ -169,7 +133,7 @@ func begin_hero_hold(center: Vector2, level: int) -> void:
 		"position": center,
 		"level": level,
 		"elapsed": 0.0,
-		"duration": GameConfig.HERO_HOLD_DURATION + GameConfig.HERO_FLIGHT_DURATION,
+		"duration": GameConfig.HERO_HOLD_DURATION + GameConfig.HERO_LAUNCH_ANTICIPATION_DURATION + GameConfig.HERO_FLIGHT_DURATION,
 		"label_at": GameConfig.HERO_LABEL_AT,
 		"label_shown": false,
 	}
@@ -200,6 +164,20 @@ func burst_target_panel_sparkles(center: Vector2) -> void:
 	queue_redraw()
 
 
+func show_reward_amount(center: Vector2, amount: int) -> void:
+	if amount <= 0:
+		return
+	reward_amounts.append({
+		"position": center,
+		"text": "+%s" % ScoreFormatterType.format(amount),
+		"elapsed": 0.0,
+		"duration": GameConfig.REWARD_AMOUNT_DURATION,
+	})
+	while reward_amounts.size() > 2:
+		reward_amounts.pop_front()
+	queue_redraw()
+
+
 ## Level-complete coin reward. `awarded_coins` is only split for HUD counting;
 ## the authoritative economy value stays with the controller.
 func begin_level_reward_coins(board_center: Vector2, awarded_coins: int, destination: Vector2) -> void:
@@ -209,13 +187,17 @@ func begin_level_reward_coins(board_center: Vector2, awarded_coins: int, destina
 	var remainder := awarded_coins % count
 	var half_width := GameConfig.table_playable_width_at(board_center.y) * 0.5 * GameConfig.LEVEL_REWARD_COIN_SCATTER_HALF_WIDTH
 	var half_height := GameConfig.LEVEL_REWARD_COIN_SCATTER_HALF_HEIGHT
-	var collect_start := GameConfig.level_reward_collect_start()
 	var scatter := _scatter_points(count, half_width, half_height)
+	var collect_plan := GameConfig.level_reward_collect_plan(count)
+	_level_reward_wave_times.clear()
 	for index in range(count):
 		var wave := int(index / GameConfig.LEVEL_REWARD_COIN_WAVE_SIZE)
 		var spawn_at := float(wave) * GameConfig.LEVEL_REWARD_COIN_WAVE_STAGGER
-		var collect_wave := int(index / GameConfig.LEVEL_REWARD_COIN_COLLECT_WAVE_SIZE)
-		var collect_at := collect_start + float(collect_wave) * GameConfig.LEVEL_REWARD_COIN_COLLECT_STAGGER
+		var plan: Dictionary = collect_plan[index]
+		var collect_wave := int(plan.wave)
+		var collect_at := float(plan.at)
+		while _level_reward_wave_times.size() <= collect_wave:
+			_level_reward_wave_times.append(collect_at)
 		var rest: Vector2 = board_center + scatter[index]
 		var lift := 46.0 + float(index % 5) * 7.0
 		level_reward_coins.append({
@@ -237,6 +219,7 @@ func begin_level_reward_coins(board_center: Vector2, awarded_coins: int, destina
 	_level_reward_total = count
 	_level_reward_elapsed = 0.0
 	_level_reward_waves_launched = 0
+	_level_reward_wave_times.clear()
 	_level_reward_active = true
 	queue_redraw()
 
@@ -298,12 +281,10 @@ func _update_level_reward_coins(delta: float) -> void:
 		return
 	_level_reward_elapsed += delta
 	var expected_waves := 0
-	var collect_start := GameConfig.level_reward_collect_start()
-	if _level_reward_elapsed >= collect_start:
-		expected_waves = mini(
-			GameConfig.level_reward_wave_count(),
-			int((_level_reward_elapsed - collect_start) / GameConfig.LEVEL_REWARD_COIN_COLLECT_STAGGER) + 1
-		)
+	for wave_at in _level_reward_wave_times:
+		if _level_reward_elapsed < wave_at:
+			break
+		expected_waves += 1
 	while _level_reward_waves_launched < expected_waves:
 		level_reward_wave_launched.emit(_level_reward_waves_launched)
 		_level_reward_waves_launched += 1
@@ -334,9 +315,9 @@ func update_effects(delta: float) -> void:
 		impact.elapsed = float(impact.get("elapsed", 0.0)) + delta
 	for coin in coin_rewards:
 		coin.elapsed = float(coin.get("elapsed", 0.0)) + delta
-		var flight_start := GameConfig.COIN_BURST_DURATION + float(coin.flight_rank) * GameConfig.COIN_FLIGHT_STAGGER
+		var flight_start := GameConfig.target_coin_flight_start(int(coin.flight_rank), int(coin.count))
 		var result_id := int(coin.result_id)
-		if float(coin.elapsed) >= GameConfig.COIN_BURST_DURATION and not _coin_flights_started.has(result_id):
+		if float(coin.elapsed) >= flight_start and not _coin_flights_started.has(result_id):
 			_coin_flights_started[result_id] = true
 			coin_flight_started.emit(result_id)
 		if not bool(coin.arrived) and float(coin.elapsed) >= flight_start + float(coin.flight_duration):
@@ -347,12 +328,12 @@ func update_effects(delta: float) -> void:
 				_coin_flights_started.erase(result_id)
 	for launch in launch_impacts:
 		launch.elapsed = float(launch.get("elapsed", 0.0)) + delta
-	for mini in mini_gems:
-		mini.elapsed = float(mini.get("elapsed", 0.0)) + delta
 	for label in combo_labels:
 		label.elapsed = float(label.get("elapsed", 0.0)) + delta
 	for sparkle in panel_sparkles:
 		sparkle.elapsed = float(sparkle.get("elapsed", 0.0)) + delta
+	for amount in reward_amounts:
+		amount.elapsed = float(amount.get("elapsed", 0.0)) + delta
 	if not hero_effect.is_empty():
 		hero_effect.elapsed = float(hero_effect.get("elapsed", 0.0)) + delta
 	_update_level_reward_coins(delta)
@@ -360,9 +341,9 @@ func update_effects(delta: float) -> void:
 	merge_impacts = merge_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.MERGE_PRESENTATION_DURATION)))
 	coin_rewards = coin_rewards.filter(func(item: Dictionary) -> bool: return not bool(item.get("arrived", false)))
 	launch_impacts = launch_impacts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < 0.16)
-	mini_gems = mini_gems.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < _mini_gem_lifetime())
 	combo_labels = combo_labels.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.COMBO_LABEL_DURATION)))
 	panel_sparkles = panel_sparkles.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.HERO_PANEL_SPARKLE_DURATION)))
+	reward_amounts = reward_amounts.filter(func(item: Dictionary) -> bool: return float(item.elapsed) < float(item.get("duration", GameConfig.REWARD_AMOUNT_DURATION)))
 	queue_redraw()
 
 func clear() -> void:
@@ -370,20 +351,13 @@ func clear() -> void:
 	merge_impacts.clear()
 	coin_rewards.clear()
 	launch_impacts.clear()
-	mini_gems.clear()
 	combo_labels.clear()
 	panel_sparkles.clear()
+	reward_amounts.clear()
 	hero_effect.clear()
 	cancel_level_reward_coins()
 	_coin_flights_started.clear()
 	queue_redraw()
-
-
-static func _mini_gem_lifetime() -> float:
-	return GameConfig.MERGE_MINI_GEM_START \
-		+ GameConfig.MERGE_MINI_GEM_RISE_DURATION \
-		+ GameConfig.MERGE_MINI_GEM_PEAK_DURATION \
-		+ GameConfig.MERGE_MINI_GEM_FALL_DURATION
 
 func shift_world_y(delta_y: float) -> void:
 	shift_world(Vector2(0.0, delta_y))
@@ -404,12 +378,12 @@ func shift_world(delta: Vector2) -> void:
 		coin.destination += Vector2(delta.x, 0.0)
 	for launch in launch_impacts:
 		launch.position += delta
-	for mini in mini_gems:
-		mini.position += delta
 	for label in combo_labels:
 		label.position += delta
 	for sparkle in panel_sparkles:
 		sparkle.position += Vector2(delta.x, 0.0)
+	for amount in reward_amounts:
+		amount.position += Vector2(delta.x, 0.0)
 	if not hero_effect.is_empty():
 		hero_effect.position += delta
 	for coin in level_reward_coins:
@@ -420,13 +394,13 @@ func shift_world(delta: Vector2) -> void:
 	queue_redraw()
 
 func active_effect_count() -> int:
-	return score_popups.size() + merge_impacts.size() + coin_rewards.size() + launch_impacts.size()
+	return score_popups.size() + merge_impacts.size() + coin_rewards.size() + launch_impacts.size() + reward_amounts.size()
 
 func active_coin_count() -> int:
 	return coin_rewards.size()
 
 func active_mini_gem_count() -> int:
-	return mini_gems.size()
+	return 0
 
 func active_combo_label_count() -> int:
 	return combo_labels.size()
@@ -441,8 +415,6 @@ func _draw() -> void:
 	if _font == null:
 		return
 	_draw_hero_effect()
-	for mini in mini_gems:
-		_draw_mini_gem(mini)
 	for impact in merge_impacts:
 		_draw_merge_impact(impact)
 	for coin in level_reward_coins:
@@ -451,6 +423,8 @@ func _draw() -> void:
 		_draw_coin_reward(coin)
 	for sparkle in panel_sparkles:
 		_draw_panel_sparkle(sparkle)
+	for amount in reward_amounts:
+		_draw_reward_amount(amount)
 	for popup in score_popups:
 		_draw_score_popup(popup)
 	for label in combo_labels:
@@ -496,42 +470,6 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 		var sparkle := Color("fff2a8") if index % 2 == 0 else color
 		sparkle.a = spark_fade * 0.80
 		draw_line(inner, outer, sparkle, 3.0 if major_reward else 2.0)
-
-
-func _draw_mini_gem(effect: Dictionary) -> void:
-	var elapsed := float(effect.get("elapsed", -1.0))
-	if elapsed < GameConfig.MERGE_MINI_GEM_START:
-		return
-	var texture := effect.get("texture") as Texture2D
-	if texture == null:
-		return
-	var local := elapsed - GameConfig.MERGE_MINI_GEM_START
-	var rise := GameConfig.MERGE_MINI_GEM_RISE_DURATION
-	var peak := GameConfig.MERGE_MINI_GEM_PEAK_DURATION
-	var fall := GameConfig.MERGE_MINI_GEM_FALL_DURATION
-	var direction: Vector2 = effect.direction
-	var distance := float(effect.distance)
-	var scale := GameConfig.MERGE_MINI_GEM_START_SCALE
-	var travel := 0.0
-	var drop := 0.0
-	var alpha := 1.0
-	if local <= rise:
-		var rise_t := clampf(local / rise, 0.0, 1.0)
-		travel = 1.0 - pow(1.0 - rise_t, 2.6)
-		scale = lerpf(GameConfig.MERGE_MINI_GEM_START_SCALE, 0.34, rise_t)
-	elif local <= rise + peak:
-		var peak_t := clampf((local - rise) / peak, 0.0, 1.0)
-		travel = 1.0 + peak_t * 0.10
-		scale = lerpf(0.34, GameConfig.MERGE_MINI_GEM_PEAK_SCALE, peak_t)
-	else:
-		var fall_t := clampf((local - rise - peak) / fall, 0.0, 1.0)
-		travel = 1.10 + fall_t * 0.06
-		drop = fall_t * fall_t * 34.0
-		scale = lerpf(GameConfig.MERGE_MINI_GEM_PEAK_SCALE, 0.14, fall_t)
-		alpha = 1.0 - fall_t
-	var position: Vector2 = effect.position + direction * (float(effect.get("offset", 0.0)) + distance * travel) + Vector2(0.0, drop)
-	var size := Vector2.ONE * float(effect.get("base_size", 60.0)) * scale
-	draw_texture_rect(texture, Rect2(position - size * 0.5, size), false, Color(1.0, 1.0, 1.0, alpha))
 
 
 func _draw_combo_label(effect: Dictionary) -> void:
@@ -601,6 +539,26 @@ func _draw_panel_sparkle(effect: Dictionary) -> void:
 	draw_line(center + direction * reach * 0.78, center + direction * reach, color, 2.4)
 
 
+func _draw_reward_amount(effect: Dictionary) -> void:
+	var elapsed := float(effect.get("elapsed", 0.0))
+	var duration := float(effect.get("duration", GameConfig.REWARD_AMOUNT_DURATION))
+	var t := clampf(elapsed / duration, 0.0, 1.0)
+	var scale := 1.0
+	if t < 0.20:
+		scale = lerpf(GameConfig.REWARD_AMOUNT_START_SCALE, GameConfig.REWARD_AMOUNT_PEAK_SCALE, 1.0 - pow(1.0 - t / 0.20, 3.0))
+	elif t < 0.38:
+		scale = lerpf(GameConfig.REWARD_AMOUNT_PEAK_SCALE, 0.95, smoothstep(0.20, 0.38, t))
+	elif t < 0.52:
+		scale = lerpf(0.95, 1.0, smoothstep(0.38, 0.52, t))
+	var alpha := 1.0 if t < 0.72 else 1.0 - smoothstep(0.72, 1.0, t)
+	var center: Vector2 = effect.position
+	var width := 260.0
+	var font_size := int(round(38.0 * scale))
+	var origin := center + Vector2(-width * 0.5, 0.0)
+	draw_string(_font, origin + Vector2(3.0, 4.0), String(effect.text), HORIZONTAL_ALIGNMENT_CENTER, width, font_size, Color(0.18, 0.08, 0.02, alpha * 0.82))
+	draw_string(_font, origin, String(effect.text), HORIZONTAL_ALIGNMENT_CENTER, width, font_size, Color(1.0, 0.87, 0.25, alpha))
+
+
 ## Reward coins land on a controlled central band of the board, wobble in place
 ## through the deliberate hold, then leave in staggered curved waves.
 func _draw_level_reward_coin(effect: Dictionary) -> void:
@@ -612,6 +570,8 @@ func _draw_level_reward_coin(effect: Dictionary) -> void:
 	var position := rest
 	var scale := 1.0
 	var rotation := float(effect.spin)
+	var shadow_alpha := 0.0
+	var shadow_scale := 1.0
 	var land_at := float(effect.land_at)
 	var collect_at := float(effect.collect_at)
 	if elapsed < land_at:
@@ -624,10 +584,13 @@ func _draw_level_reward_coin(effect: Dictionary) -> void:
 			position.y -= sin((land_t - 0.86) / 0.14 * PI) * 7.0
 		scale = lerpf(0.62, 1.0, eased)
 		rotation = float(effect.spin) * (1.0 - land_t) * 6.0
+		shadow_alpha = GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY * eased
+		shadow_scale = lerpf(0.72, 1.0, eased)
 	elif elapsed < collect_at:
 		var idle := (elapsed - land_at) * TAU * 0.9 + float(effect.index)
 		position = rest + Vector2(sin(idle) * GameConfig.LEVEL_REWARD_COIN_IDLE_WOBBLE * 0.5, -absf(sin(idle * 0.5)) * GameConfig.LEVEL_REWARD_COIN_IDLE_WOBBLE)
 		rotation = float(effect.spin) * sin(idle * 0.5) * 0.6
+		shadow_alpha = GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY
 	else:
 		var flight_t := clampf((elapsed - collect_at) / GameConfig.LEVEL_REWARD_COIN_FLIGHT_DURATION, 0.0, 1.0)
 		var eased_flight := smoothstep(0.0, 1.0, flight_t)
@@ -637,6 +600,8 @@ func _draw_level_reward_coin(effect: Dictionary) -> void:
 		position = rest * inverse * inverse + control * 2.0 * inverse * eased_flight + destination * eased_flight * eased_flight
 		scale = lerpf(1.0, 0.62, eased_flight)
 		rotation = float(effect.spin) * eased_flight * 2.4
+		shadow_alpha = GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY * (1.0 - smoothstep(0.0, 0.28, flight_t))
+	CoinVisualsType.draw_table_shadow(self, rest + GameConfig.LEVEL_REWARD_COIN_SHADOW_OFFSET, GameConfig.LEVEL_REWARD_COIN_DRAW_RADIUS, shadow_alpha, shadow_scale)
 	CoinVisualsType.draw_coin(self, position, GameConfig.LEVEL_REWARD_COIN_DRAW_RADIUS * scale, 1.0, 0.0, rotation)
 
 func _draw_score_popup(effect: Dictionary) -> void:
@@ -662,7 +627,7 @@ func _draw_coin_reward(effect: Dictionary) -> void:
 		return
 	var index := int(effect.index)
 	var burst_t := clampf((elapsed - spawn_delay) / maxf(0.001, GameConfig.COIN_BURST_DURATION - spawn_delay), 0.0, 1.0)
-	var flight_start := GameConfig.COIN_BURST_DURATION + float(effect.flight_rank) * GameConfig.COIN_FLIGHT_STAGGER
+	var flight_start := GameConfig.target_coin_flight_start(int(effect.flight_rank), int(effect.count))
 	var position: Vector2
 	var scale := float(effect.get("base_scale", 1.0))
 	var start: Vector2 = effect.start
@@ -688,6 +653,8 @@ func _draw_coin_reward(effect: Dictionary) -> void:
 		scale *= lerpf(1.0, 0.78, eased)
 	var spin := 0.0
 	var rotation := 0.0
+	var target_shadow_alpha := GameConfig.TARGET_COIN_SHADOW_OPACITY if elapsed < flight_start else GameConfig.TARGET_COIN_SHADOW_OPACITY * (1.0 - smoothstep(0.0, 0.30, clampf((elapsed - flight_start) / float(effect.flight_duration), 0.0, 1.0)))
+	CoinVisualsType.draw_table_shadow(self, scatter + GameConfig.TARGET_COIN_SHADOW_OFFSET, GameConfig.COIN_DRAW_RADIUS, target_shadow_alpha)
 	CoinVisualsType.draw_coin(self, position, GameConfig.COIN_DRAW_RADIUS * scale, 1.0, spin, rotation)
 
 func _draw_launch_impact(effect: Dictionary) -> void:
@@ -705,8 +672,6 @@ func _cap_effects() -> void:
 		score_popups.pop_front()
 	while merge_impacts.size() > 12:
 		merge_impacts.pop_front()
-	while mini_gems.size() > 24:
-		mini_gems.pop_front()
 	while combo_labels.size() > 4:
 		combo_labels.pop_front()
 	while panel_sparkles.size() > 12:

@@ -2,6 +2,24 @@ class_name GemSpriteLayer
 extends Node2D
 
 const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
+const RADIAL_POOL_SIZE := 8
+const RADIAL_SHADER_CODE := """
+shader_type canvas_item;
+render_mode unshaded, blend_add;
+uniform vec4 tint : source_color = vec4(0.5, 0.9, 1.0, 1.0);
+uniform float progress : hint_range(0.0, 1.0) = 0.0;
+uniform float intensity : hint_range(0.0, 1.0) = 0.35;
+void fragment() {
+	vec2 p = UV * 2.0 - vec2(1.0);
+	float d = length(p);
+	float expanding_edge = mix(0.18, 0.92, progress);
+	float ring = smoothstep(expanding_edge + 0.14, expanding_edge, d) * smoothstep(expanding_edge - 0.18, expanding_edge, d);
+	float core = smoothstep(0.82, 0.0, d) * (1.0 - progress);
+	float fade = 1.0 - smoothstep(0.0, 1.0, progress);
+	float alpha = (ring * 0.78 + core * 0.42) * fade * intensity;
+	COLOR = vec4(tint.rgb, alpha * tint.a);
+}
+"""
 
 var _sprites: Dictionary = {}
 var _shadows: Dictionary = {}
@@ -23,6 +41,92 @@ var _impact_offsets: Dictionary = {}
 ## Last synchronized tier for each live piece. Appearance work is done once on
 ## creation/merge-tier change; the frame path only moves existing sprites.
 var _appearance_levels: Dictionary = {}
+var _radial_bursts: Array[Dictionary] = []
+var _radial_pool: Array[Sprite2D] = []
+
+
+func _ready() -> void:
+	_build_radial_pool()
+
+
+func _build_radial_pool() -> void:
+	if not _radial_pool.is_empty():
+		return
+	var image := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	image.fill(Color.WHITE)
+	var texture := ImageTexture.create_from_image(image)
+	var shader := Shader.new()
+	shader.code = RADIAL_SHADER_CODE
+	for index in range(RADIAL_POOL_SIZE):
+		var sprite := Sprite2D.new()
+		sprite.name = "MergeRadialBurst_%d" % index
+		sprite.texture = texture
+		sprite.centered = true
+		sprite.z_index = -4096
+		sprite.visible = false
+		var material := ShaderMaterial.new()
+		material.shader = shader
+		sprite.material = material
+		add_child(sprite)
+		_radial_pool.append(sprite)
+
+
+func begin_merge_radial(position: Vector2, level: int, intensity: float, delay: float = 0.0) -> void:
+	_build_radial_pool()
+	var slot := -1
+	var used: Dictionary = {}
+	for burst in _radial_bursts:
+		used[int(burst.slot)] = true
+	for index in range(_radial_pool.size()):
+		if not used.has(index):
+			slot = index
+			break
+	if slot < 0:
+		var oldest: Dictionary = _radial_bursts.pop_front()
+		slot = int(oldest.slot)
+	var node := _radial_pool[slot]
+	node.visible = false
+	_radial_bursts.append({
+		"slot": slot,
+		"position": position,
+		"level": level,
+		"intensity": clampf(intensity, 0.0, 1.0),
+		"elapsed": -delay,
+	})
+
+
+func update_reward_effects(delta: float) -> void:
+	if _radial_bursts.is_empty():
+		return
+	var active: Array[Dictionary] = []
+	for burst in _radial_bursts:
+		burst.elapsed = float(burst.elapsed) + delta
+		var node := _radial_pool[int(burst.slot)]
+		if float(burst.elapsed) < 0.0:
+			node.visible = false
+			active.append(burst)
+			continue
+		var t := clampf(float(burst.elapsed) / GameConfig.MERGE_RADIAL_DURATION, 0.0, 1.0)
+		if t >= 1.0:
+			node.visible = false
+			continue
+		var eased := 1.0 - pow(1.0 - t, 2.4)
+		var radial_scale := lerpf(GameConfig.MERGE_RADIAL_START_SCALE, GameConfig.MERGE_RADIAL_END_SCALE, eased)
+		var gem_radius := GameConfig.gem_collision_radius(int(burst.level))
+		node.position = burst.position
+		node.scale = Vector2.ONE * gem_radius * 2.0 * radial_scale
+		node.visible = true
+		var material := node.material as ShaderMaterial
+		material.set_shader_parameter("progress", t)
+		material.set_shader_parameter("intensity", float(burst.intensity))
+		material.set_shader_parameter("tint", GameConfig.gem_color(int(burst.level)).lightened(0.22))
+		active.append(burst)
+	_radial_bursts = active
+
+
+func shift_reward_effects(delta: Vector2) -> void:
+	for burst in _radial_bursts:
+		burst.position += delta
 
 ## Synchronizes presentation-only Sprite2D nodes to simulation entities. The
 ## sprites never write positions, radii, IDs, velocities, or merge candidates.
@@ -149,6 +253,15 @@ func set_presentation_transform(piece_id: int, scale: Vector2, rotation: float, 
 	_presentation_offsets[piece_id] = offset.limit_length(24.0)
 	_presentation_elevated[piece_id] = elevated
 
+## A newly rewarded gameplay piece is already at a collision-safe simulation
+## position. This visual-only offset initially draws it at the confirmed merge
+## center, then the controller eases it onto that authoritative position.
+func set_bonus_spawn_transform(piece_id: int, multiplier: float, offset: Vector2) -> void:
+	_presentation_scales[piece_id] = Vector2.ONE * clampf(multiplier, PRESENTATION_SCALE_MIN, PRESENTATION_SCALE_MAX)
+	_presentation_rotations[piece_id] = 0.0
+	_presentation_offsets[piece_id] = offset.limit_length(180.0)
+	_presentation_elevated[piece_id] = false
+
 func clear_presentation_scale(piece_id: int) -> void:
 	_presentation_scales.erase(piece_id)
 	_presentation_offsets.erase(piece_id)
@@ -204,6 +317,9 @@ func clear() -> void:
 	_impact_scales.clear()
 	_impact_angles.clear()
 	_impact_offsets.clear()
+	_radial_bursts.clear()
+	for sprite in _radial_pool:
+		sprite.visible = false
 
 func _vector_scale(value: Variant) -> Vector2:
 	if value is Vector2:

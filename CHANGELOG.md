@@ -1,3 +1,16 @@
+# 2026-08-22 - Reward feedback real gameplay gems v4
+
+- Replaced the fading cosmetic mini-gem reward with persistent lower-tier `GemPiece` rewards from confirmed merges; centralized the 1/1/2/2/3 requested-count ladder, 50/30/20 tier weights, safe fan placement, 200 ms spawn delay, and 180 ms post-activation sibling grace.
+- Added a hard three-bonus-per-shot budget, a COMBO 2 reward-generation ceiling, and a 24-piece live-plus-pending board cap, preventing generated pieces from sustaining unattended crowded-board cascades while preserving ordinary merges.
+- Added a 340 ms activation gate: each bonus scales `0.28 -> 1.18 -> 1.00` at the merge center, settles outward, and only then releases its stored 165 px/s impulse into normal physics/contact processing.
+- Retuned normal merge to a more readable synchronized 120 ms impact and 420 ms total with contact compression, visible snap, and `0.65 -> 1.24 -> 0.93 -> 1.05 -> 1.0`; added distinct COMBO 4+ timing/intensity.
+- Added one reusable pooled radial merge shader behind live gem art, with centralized tier intensity and no full-screen pass, bloom, distortion, particles, or camera system.
+- Added a readable 180 ms-per-depth chain presentation stagger, immediate target-panel/icon acknowledgement, animated target progress numerals, final-target anticipation/arc/panel recoil, a prominent exact reward amount, and a compact 16-coin 4+4+4+4 jackpot with larger coins and final-four HUD impact.
+- Made every non-final target's four-coin group finish landing and hold together on the table for at least 260 ms before the first HUD flight.
+- Added subtle presentation-only soft shadows beneath gems and landed reward coins without changing colliders, contact telemetry, or merge eligibility.
+- Expanded reward regressions to prove persistence, marker expiry, same-event grace, immediate existing-piece eligibility, and later confirmed merging. Updated superseded cadence assertions without weakening contact-only tests.
+- Captured and muted-first reviewed `reports/reward-feedback-real-gems-v4/reward-feedback-real-gems-v4.avi` plus stage screenshots using production controller paths under GL Compatibility/ANGLE.
+
 # 2026-08-22 - Reward feedback v3: HUD coin-counter continuity fix
 
 - Fixed a pre-existing regression exposed by the new final-target coin celebration: the top-left HUD coin counter visibly dropped back to the pre-level balance the instant Level Complete opened, then re-climbed on `COLLECT`. Root cause was `GameplayHudLayer.prepare_completion_reward_display` unconditionally overwriting the already-correct live-delivered display value with the pre-level total.

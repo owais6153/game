@@ -6,12 +6,13 @@ extends SceneTree
 
 const GameScene = preload("res://scenes/Game.tscn")
 const PieceType = preload("res://scripts/gem_piece.gd")
-const OUTPUT_DIR := "res://reports/reward-feedback-v3/screenshots/"
+const OUTPUT_DIR := "res://reports/reward-feedback-real-gems-v4/screenshots/"
 const RESOLUTION := Vector2i(720, 1280)
 const STEP := 1.0 / 60.0
 
 var _viewport: SubViewport
 var _controller: Node2D
+var _display: TextureRect
 var _next_id := 9000
 
 
@@ -26,7 +27,10 @@ func _run() -> void:
 	await _capture_merge_stages("combo1", 1)
 	await _capture_merge_stages("combo2", 2)
 	await _capture_merge_stages("combo3", 3)
+	await _capture_real_bonus_merge()
+	await _capture_non_final_target_coin_hold()
 	await _capture_final_target()
+	_display.queue_free()
 	_viewport.queue_free()
 	await process_frame
 	print("REWARD_FEEDBACK_V3_CAPTURE: PASS")
@@ -40,6 +44,14 @@ func _build() -> void:
 	_viewport.disable_3d = true
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	root.add_child(_viewport)
+	_display = TextureRect.new()
+	_display.name = "RewardFeedbackMovieDisplay"
+	_display.texture = _viewport.get_texture()
+	_display.position = Vector2.ZERO
+	_display.size = Vector2(RESOLUTION)
+	_display.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_display.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	root.add_child(_display)
 	_controller = GameScene.instantiate()
 	_viewport.add_child(_controller)
 	await process_frame
@@ -87,15 +99,21 @@ func _shoot(name: String) -> void:
 
 func _capture_merge_stages(label: String, depth: int) -> void:
 	var position := Vector2(GameConfig.table_center_x(), GameConfig.board_top() + 220.0)
+	# Each hierarchy sample represents a fresh player shot. Production resets this
+	# budget in launch_active_piece(); the capture has no launcher gesture.
+	_controller.bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 	_merge(4, depth, position)
 	await _advance(0.05)
 	await _shoot("%s-050ms-hitstop-pull" % label)
-	await _advance(0.09)
-	await _shoot("%s-140ms-reveal-pop" % label)
-	await _advance(0.06)
-	await _shoot("%s-200ms-ring-and-mini-gems" % label)
-	await _advance(0.13)
-	await _shoot("%s-330ms-settle" % label)
+	await _advance(0.10)
+	await _shoot("%s-150ms-reveal-pop" % label)
+	var bonus_checkpoint := 0.20 + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
+	await _advance(bonus_checkpoint - 0.15)
+	var reward_stage := "ring-bonus-limit" if depth > GameConfig.BONUS_REWARD_MAX_CHAIN_DEPTH else "ring-and-merge-center-bonus-pop"
+	await _shoot("%s-%03dms-%s" % [label, int(round(bonus_checkpoint * 1000.0)), reward_stage])
+	var settle_checkpoint := GameConfig.MERGE_PRESENTATION_DURATION + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
+	await _advance(maxf(0.0, settle_checkpoint - bonus_checkpoint))
+	await _shoot("%s-%03dms-settle" % [label, int(round(settle_checkpoint * 1000.0))])
 	await _advance(0.30)
 	# Clear the board between samples so each stage reads on its own.
 	_controller.pieces.clear()
@@ -103,7 +121,69 @@ func _capture_merge_stages(label: String, depth: int) -> void:
 	await _advance(0.05)
 
 
+func _capture_real_bonus_merge() -> void:
+	_controller.pieces.clear()
+	_controller.pending_bonus_spawns.clear()
+	_controller.bonus_spawn_history.clear()
+	_controller.bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
+	var position := Vector2(GameConfig.table_center_x(), GameConfig.board_top() + 310.0)
+	_merge(4, 0, position)
+	await _advance(GameConfig.BONUS_SPAWN_DELAY + 0.03)
+	var history: Dictionary = _controller.bonus_spawn_history.back()
+	var bonus_id := int((history.piece_ids as Array)[0])
+	var bonus: GemPiece = _controller._live_piece(bonus_id)
+	await _advance(0.65)
+	await _shoot("bonus-real-gem-still-on-board")
+	# Isolate the persistent reward, place a normal equal-tier board gem at
+	# confirmed physical contact, and resolve through the production services.
+	_controller.pieces.clear()
+	_controller.pieces.append(bonus)
+	bonus.velocity = Vector2.ZERO
+	bonus.bonus_event_id = -1
+	bonus.bonus_merge_grace_remaining = 0.0
+	bonus.position = Vector2(GameConfig.table_center_x() - bonus.radius, GameConfig.board_top() + 360.0)
+	var other := PieceType.new(_controller.next_piece_id, bonus.level, bonus.position + Vector2(bonus.radius * 2.0 - 0.5, 0.0), GameConfig.gem_collision_radius(bonus.level))
+	_controller.next_piece_id += 1
+	other.velocity = Vector2(-40.0, 0.0)
+	_controller.pieces.append(other)
+	_controller.simulation.step(_controller.pieces, STEP, _controller.merge_service)
+	var resolved: Dictionary = _controller.merge_service.resolve(_controller.pieces, _controller.next_piece_id)
+	_controller.pieces = resolved.pieces
+	_controller.next_piece_id = resolved.next_id
+	_controller._apply_confirmed_merge_events(resolved.presentation_events)
+	await _advance(0.14)
+	await _shoot("bonus-real-gem-participates-in-merge")
+	await _advance(0.35)
+	_controller.pieces.clear()
+	_controller.pending_bonus_spawns.clear()
+	await _advance(0.05)
+
+
+func _capture_non_final_target_coin_hold() -> void:
+	_controller.pieces.clear()
+	_controller.pending_bonus_spawns.clear()
+	_controller.effects_layer.clear()
+	_controller.bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
+	_controller.target_index = 0
+	_controller.presented_target_index = 0
+	_controller.target_progress = _controller.active_target_quantity() - 1
+	_controller.presented_target_progress = _controller.target_progress
+	var position := Vector2(GameConfig.table_center_x(), GameConfig.board_top() + 280.0)
+	_merge(_controller.active_target_tier(), 0, position)
+	var hold_capture_at := GameConfig.COIN_REWARD_START_DELAY \
+		+ GameConfig.target_coin_flight_start(0, GameConfig.COIN_BURST_COUNT) \
+		- GameConfig.TARGET_COIN_TABLE_HOLD * 0.5
+	await _advance(hold_capture_at)
+	await _shoot("target-all-coins-table-hold")
+	await _advance(GameConfig.TARGET_COIN_TABLE_HOLD + GameConfig.MAJOR_COIN_FLIGHT_DURATION)
+	_controller.pieces.clear()
+	_controller.pending_bonus_spawns.clear()
+	_controller.effects_layer.clear()
+	await _advance(0.05)
+
+
 func _capture_final_target() -> void:
+	_controller.bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 	var sequence: Array = _controller.target_sequence()
 	_controller.target_index = sequence.size() - 1
 	_controller.presented_target_index = _controller.target_index

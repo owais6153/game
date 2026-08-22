@@ -1,3 +1,15 @@
+# Reward Feedback Real Gems V4 - 2026-08-22
+
+- Confirmed merges request persistent gameplay bonus gems at the normal/COMBO 1/COMBO 2/COMBO 3/COMBO 4+ ladder of 1/1/2/2/3 pieces. A shot may create at most three bonus pieces, COMBO 3+ creates no further reward tier, and delayed rewards may not raise the live population above 24.
+- Bonus gems are lower local tiers selected from 1 through result tier N-2 using centralized 50/30/20 low/middle/high weights and safe early fallback. They use the generated progression mapping, never hardcoded gem identities.
+- Bonus gems begin 200 ms after confirmation at the merge center, scale `0.28 -> 1.18 -> 1.00`, and fan toward collision-safe positions over 340 ms. Their physics and stored 165 px/s impulse activate only after that pop finishes; afterward they use ordinary rails, danger, settlement, contact capture, and future merge rules.
+- Same-event bonus pairs suppress only mutual merge candidates for 180 ms after activation; physical collision then continues and either piece can merge with an existing board gem. The marker is cleared when grace expires.
+- Normal merge is 420 ms with 35 ms contact compression, a 35-120 ms snap, synchronized 120 ms impact, and `0.65 -> 1.24 -> 0.93 -> 1.05 -> 1.0` result pop. Combo scale/ring/pitch/hit-stop and requested real-piece count escalate from existing resolver depth.
+- Chain presentation is spaced by 180 ms per depth so each result can be understood before the next tier appears. One pooled 180 ms radial canvas shader serves all merge tiers at centralized intensity; it is bounded behind the result gem and never samples or distorts the board.
+- Relevant target merges immediately pulse/highlight the target HUD; displayed progress animates on arrival. Final target uses the hero-center/anticipation/curved-HUD sequence, presents the exact reward amount, then releases 16 larger visual coins before Level Complete.
+- Every non-final target's four coins finish landing and remain together on the table for at least 260 ms before the first HUD flight. The final 16 coins spawn 4+4+4+4 in a compact center pile, retain a 380 ms readable hold, then vacuum in accelerating groups with the strongest HUD response reserved for the final four. Gems and landed coins use slight presentation-only table shadows.
+- Gameplay geometry, collider radii, contact-only eligibility, score/coin authority, target generation, launcher rules, level structure, art direction, ads, persistence, and result actions remain otherwise unchanged.
+
 # Responsive scene variety and HUD hierarchy v1 - 2026-08-16
 
 - Each generated level deterministically selects one of 19 supplied portrait backgrounds and one of 10 supplied transparent table presentations. Retrying the same level/seed must retain both selections.

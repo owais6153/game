@@ -60,6 +60,11 @@ var final_target_result_id := -1
 ## Presentation-only hit-stop. It freezes the confirmed merge result for a few
 ## frames; every other body keeps stepping and no rule reads this state.
 var merge_hitstops: Dictionary = {}
+## Delayed real-piece rewards. They enter `pieces` 80 ms after the result reveal
+## and are simulation-owned from that frame onward.
+var pending_bonus_spawns: Array[Dictionary] = []
+var bonus_spawn_history: Array[Dictionary] = []
+var bonus_spawn_budget_remaining := GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 ## Explicit celebration state for the final-target hero moment. While it is
 ## active, pointer input, shot spawning, and the Level Complete modal are locked
 ## so the authoritative reward can only resolve once.
@@ -164,12 +169,15 @@ func _process(delta: float) -> void:
 	debug_contact_points = debug_contact_points.filter(func(marker: Dictionary) -> bool: return float(marker.get("age", 0.0)) < 0.45)
 	if effects_layer != null:
 		effects_layer.update_effects(delta)
+	if gem_sprite_layer != null:
+		gem_sprite_layer.update_reward_effects(delta)
 	_update_piece_visual_feedbacks(delta)
 	if failed:
 		_sync_gems_and_mark_visibility()
 		_refresh_hud()
 		queue_redraw()
 		return
+	_update_pending_bonus_spawns(delta)
 	_update_final_celebration(delta)
 	if win_qualified:
 		_update_merge_hitstops(delta)
@@ -389,6 +397,7 @@ func move_active_to(x_position: float) -> void:
 func launch_active_piece() -> void:
 	var active := get_active_piece()
 	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
+		bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 		active.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 		audio_feedback.emit_event("launch")
 		haptics_feedback.emit_event("launch")
@@ -444,6 +453,9 @@ func restart() -> void:
 	presentation_event_trace.clear()
 	process_frame_index = 0
 	merge_hitstops.clear()
+	pending_bonus_spawns.clear()
+	bonus_spawn_history.clear()
+	bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 	_cancel_final_celebration()
 	piece_visual_feedbacks.clear()
 	collision_visual_last_at.clear()
@@ -565,6 +577,8 @@ func _refresh_background_fill() -> void:
 			marker.position += offset_delta
 		if effects_layer != null:
 			effects_layer.shift_world(offset_delta)
+		if gem_sprite_layer != null:
+			gem_sprite_layer.shift_reward_effects(offset_delta)
 		applied_table_offset_x = new_offset.x
 		applied_table_offset_y = new_offset.y
 	if table_sprite != null:
@@ -632,6 +646,16 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			if awarded_coins > 0 and not final_target:
 				var coin_destination := gameplay_ui.coin_collection_destination() if gameplay_ui != null else GameConfig.COIN_HUD_FALLBACK_DESTINATION
 				effects_layer.begin_target_coin_reward(merge_event, awarded_coins, coin_destination)
+		if gem_sprite_layer != null:
+			gem_sprite_layer.begin_merge_radial(
+				Vector2(merge_event.get("midpoint", Vector2.ZERO)),
+				result_level,
+				float(timeline.get("radial_intensity", GameConfig.MERGE_RADIAL_INTENSITY_NORMAL)),
+				float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
+			)
+		_schedule_bonus_gems(merge_event)
+		if completes_active_target and not final_target and gameplay_ui != null:
+			gameplay_ui.acknowledge_target_progress()
 		if final_target:
 			_begin_final_celebration(awarded_coins)
 		if depth > 0:
@@ -642,6 +666,144 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if completes_active_target and result_id >= 0 and not counted_target_result_ids.has(result_id):
 			pending_target_presentations[result_id] = merge_event
 		resolution_multiplier += 1
+
+
+func _schedule_bonus_gems(merge_event: Dictionary) -> void:
+	var depth := int(merge_event.get("depth", 0))
+	if depth > GameConfig.BONUS_REWARD_MAX_CHAIN_DEPTH:
+		_trace_presentation_event("bonus_gems_limited", int(merge_event.get("result_id", -1)))
+		return
+	var live_count := 0
+	for piece in pieces:
+		if not piece.consumed:
+			live_count += 1
+	var reserved_count := 0
+	for pending in pending_bonus_spawns:
+		reserved_count += (pending.get("levels", []) as Array).size()
+	var population_capacity := maxi(0, GameConfig.BONUS_BOARD_PIECE_CAP - live_count - reserved_count)
+	var count := mini(GameConfig.bonus_gem_count(depth), mini(bonus_spawn_budget_remaining, population_capacity))
+	if count <= 0:
+		_trace_presentation_event("bonus_gems_limited", int(merge_event.get("result_id", -1)))
+		return
+	bonus_spawn_budget_remaining -= count
+	var result_id := int(merge_event.get("result_id", -1))
+	var result_level := int(merge_event.get("level", 2))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = absi(level_seed * 1103515245 + result_id * 12345 + depth * 97)
+	var levels: Array[int] = []
+	for _index in range(count):
+		levels.append(_choose_bonus_level(result_level, rng))
+	pending_bonus_spawns.append({
+		"event_id": result_id,
+		"result_id": result_id,
+		"result_level": result_level,
+		"origin": Vector2(merge_event.get("midpoint", Vector2.ZERO)),
+		"levels": levels,
+		"remaining": GameConfig.BONUS_SPAWN_DELAY + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER,
+		"seed": rng.seed,
+	})
+	_trace_presentation_event("bonus_gems_scheduled", result_id)
+
+
+func _choose_bonus_level(result_level: int, rng: RandomNumberGenerator) -> int:
+	var highest_eligible := maxi(1, result_level - 2)
+	if highest_eligible <= 1:
+		return 1
+	var low_end := maxi(1, int(ceil(float(highest_eligible) / 3.0)))
+	var middle_end := maxi(low_end + 1, int(ceil(float(highest_eligible) * 2.0 / 3.0)))
+	middle_end = mini(middle_end, highest_eligible)
+	var roll := rng.randf()
+	if roll < float(GameConfig.BONUS_TIER_WEIGHTS[0]):
+		return rng.randi_range(1, low_end)
+	if roll < float(GameConfig.BONUS_TIER_WEIGHTS[0]) + float(GameConfig.BONUS_TIER_WEIGHTS[1]):
+		return rng.randi_range(mini(low_end + 1, highest_eligible), middle_end)
+	return rng.randi_range(mini(middle_end + 1, highest_eligible), highest_eligible)
+
+
+func _update_pending_bonus_spawns(delta: float) -> void:
+	if pending_bonus_spawns.is_empty():
+		return
+	var waiting: Array[Dictionary] = []
+	for reward in pending_bonus_spawns:
+		reward.remaining = float(reward.get("remaining", 0.0)) - delta
+		if float(reward.remaining) > 0.0:
+			waiting.append(reward)
+			continue
+		_spawn_bonus_reward(reward)
+	pending_bonus_spawns = waiting
+
+
+func _spawn_bonus_reward(reward: Dictionary) -> void:
+	var event_id := int(reward.get("event_id", -1))
+	var result_id := int(reward.get("result_id", -1))
+	var result_level := int(reward.get("result_level", 2))
+	var origin: Vector2 = reward.get("origin", Vector2.ZERO)
+	var result_piece := _live_piece(result_id)
+	if result_piece != null:
+		origin = result_piece.position
+	var levels: Array = reward.get("levels", []) as Array
+	var directions := GameConfig.bonus_spawn_directions(levels.size())
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(reward.get("seed", event_id))
+	var reserved: Array[Dictionary] = []
+	var spawned_ids: Array[int] = []
+	for index in range(levels.size()):
+		var level := int(levels[index])
+		var radius := GameConfig.gem_collision_radius(level) * GameConfig.gem_perspective_scale_at(origin.y)
+		var angle := float(directions[index % directions.size()])
+		angle += rng.randf_range(-9.0, 9.0) if levels.size() == 1 else rng.randf_range(-3.0, 3.0)
+		var direction := Vector2.from_angle(deg_to_rad(angle))
+		var result_radius := GameConfig.gem_collision_radius(result_level) * GameConfig.gem_perspective_scale_at(origin.y)
+		var position := _find_bonus_spawn_position(origin, direction, radius, result_radius, reserved)
+		var piece := GemPiece.new(next_piece_id, level, position, GameConfig.gem_collision_radius(level))
+		next_piece_id += 1
+		piece.velocity = Vector2.ZERO
+		piece.bonus_pending_velocity = direction * GameConfig.BONUS_SPAWN_IMPULSE
+		piece.bonus_activation_delay_remaining = GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY
+		piece.bonus_event_id = event_id
+		piece.bonus_merge_grace_remaining = float(GameConfig.BONUS_MERGE_GRACE_MS) / 1000.0
+		pieces.append(piece)
+		reserved.append({"position": position, "radius": piece.radius})
+		spawned_ids.append(piece.id)
+		var origin_offset := origin - position
+		piece_visual_feedbacks[piece.id] = {
+			"kind": "bonus_spawn",
+			"elapsed": 0.0,
+			"duration": GameConfig.BONUS_VISUAL_BURST_DURATION,
+			"origin_offset": origin_offset,
+		}
+		if gem_sprite_layer != null:
+			gem_sprite_layer.set_bonus_spawn_transform(piece.id, GameConfig.BONUS_VISUAL_START_SCALE, origin_offset)
+	bonus_spawn_history.append({"event_id": event_id, "result_id": result_id, "piece_ids": spawned_ids, "levels": levels.duplicate(), "origin": origin})
+	while bonus_spawn_history.size() > 128:
+		bonus_spawn_history.pop_front()
+	_trace_presentation_event("bonus_gems_spawned", result_id)
+
+
+func _find_bonus_spawn_position(origin: Vector2, direction: Vector2, radius: float, result_radius: float, reserved: Array[Dictionary]) -> Vector2:
+	var best := origin
+	var best_clearance := -INF
+	var base_distance := result_radius + radius + GameConfig.BONUS_SPAWN_CLEARANCE
+	var angle_offsets := [0.0, -12.0, 12.0, -24.0, 24.0, -38.0, 38.0]
+	for distance_scale in [1.0, 1.22, 1.45]:
+		for angle_offset in angle_offsets:
+			var candidate_direction := direction.rotated(deg_to_rad(float(angle_offset)))
+			var candidate := origin + candidate_direction * base_distance * float(distance_scale)
+			candidate.y = clampf(candidate.y, GameConfig.board_top() + radius, GameConfig.board_bottom() - radius)
+			candidate.x = clampf(candidate.x, GameConfig.table_left_at(candidate.y) + radius, GameConfig.table_right_at(candidate.y) - radius)
+			var clearance := INF
+			for piece in pieces:
+				if piece.consumed:
+					continue
+				clearance = minf(clearance, candidate.distance_to(piece.position) - radius - piece.radius)
+			for placed in reserved:
+				clearance = minf(clearance, candidate.distance_to(Vector2(placed.position)) - radius - float(placed.radius))
+			if clearance > best_clearance:
+				best_clearance = clearance
+				best = candidate
+			if clearance >= GameConfig.BONUS_SPAWN_CLEARANCE:
+				return candidate
+	return best
 
 
 ## Freezes only the confirmed merge result. Its momentum is restored exactly, so
@@ -738,6 +900,8 @@ func _on_level_reward_coin_arrived(value: int, final_coin: bool) -> void:
 		# The counter interpolates upward per arrival; the wave punch is separate so
 		# twenty coins never produce twenty container punches.
 		gameplay_ui.collect_coin_chunk(value, final_coin, false)
+		if final_coin:
+			gameplay_ui.final_coin_counter_impact()
 	if audio_feedback != null:
 		audio_feedback.emit_event("coin_reward" if final_coin else "coin_tick")
 	if final_coin and haptics_feedback != null:
@@ -827,6 +991,7 @@ func _trigger_failure() -> void:
 	merge_presentations.clear()
 	piece_visual_feedbacks.clear()
 	merge_hitstops.clear()
+	pending_bonus_spawns.clear()
 	_cancel_final_celebration()
 	collection_in_progress = false
 	_cancel_target_collection()
@@ -996,7 +1161,8 @@ func _update_hero_target_collection(delta: float, sprite: Sprite2D) -> void:
 	target_collection.elapsed = elapsed
 	var travel_end := GameConfig.HERO_TRAVEL_DURATION
 	var hold_end := travel_end + GameConfig.HERO_HOLD_DURATION
-	var flight_end := hold_end + GameConfig.HERO_FLIGHT_DURATION
+	var anticipation_end := hold_end + GameConfig.HERO_LAUNCH_ANTICIPATION_DURATION
+	var flight_end := anticipation_end + GameConfig.HERO_FLIGHT_DURATION
 	var base_scale: Vector2 = target_collection.get("base_scale", Vector2.ONE)
 	var start: Vector2 = target_collection.start
 	var board_center: Vector2 = target_collection.board_center
@@ -1028,14 +1194,26 @@ func _update_hero_target_collection(delta: float, sprite: Sprite2D) -> void:
 		else:
 			var breath := (sin(hold_elapsed * TAU * GameConfig.HERO_HOLD_BREATH_HZ) + 1.0) * 0.5
 			emphasis = lerpf(GameConfig.HERO_HOLD_SCALE, GameConfig.HERO_HOLD_BREATH_SCALE, breath)
+	elif elapsed < anticipation_end:
+		var anticipation_t := clampf((elapsed - hold_end) / GameConfig.HERO_LAUNCH_ANTICIPATION_DURATION, 0.0, 1.0)
+		var opposite := (board_center - destination).normalized()
+		position = board_center + opposite * GameConfig.HERO_LAUNCH_ANTICIPATION_DISTANCE * smoothstep(0.0, 1.0, anticipation_t)
+		emphasis = lerpf(GameConfig.HERO_HOLD_SCALE, GameConfig.HERO_LAUNCH_ANTICIPATION_SCALE, smoothstep(0.0, 1.0, anticipation_t))
+		if effects_layer != null:
+			effects_layer.move_hero_hold(position)
+		if not bool(target_collection.get("panel_anticipated", false)) and elapsed >= anticipation_end - GameConfig.HERO_PANEL_ANTICIPATION_LEAD:
+			target_collection.panel_anticipated = true
+			if gameplay_ui != null:
+				gameplay_ui.anticipate_target_panel()
 	else:
 		# Phase D — curved flight into the HUD target panel.
-		var flight_t := clampf((elapsed - hold_end) / GameConfig.HERO_FLIGHT_DURATION, 0.0, 1.0)
+		var flight_t := clampf((elapsed - anticipation_end) / GameConfig.HERO_FLIGHT_DURATION, 0.0, 1.0)
 		var eased_flight := 1.0 - pow(1.0 - flight_t, 3.0)
-		var control := Vector2(lerpf(board_center.x, destination.x, 0.42), minf(board_center.y, destination.y) - 96.0)
+		var flight_start := board_center + (board_center - destination).normalized() * GameConfig.HERO_LAUNCH_ANTICIPATION_DISTANCE
+		var control := Vector2(lerpf(flight_start.x, destination.x, 0.42), minf(flight_start.y, destination.y) - 96.0)
 		var inverse := 1.0 - eased_flight
-		position = board_center * inverse * inverse + control * 2.0 * inverse * eased_flight + destination * eased_flight * eased_flight
-		emphasis = lerpf(GameConfig.HERO_HOLD_SCALE, GameConfig.HERO_FLIGHT_END_SCALE, eased_flight)
+		position = flight_start * inverse * inverse + control * 2.0 * inverse * eased_flight + destination * eased_flight * eased_flight
+		emphasis = lerpf(GameConfig.HERO_LAUNCH_ANTICIPATION_SCALE, GameConfig.HERO_FLIGHT_END_SCALE, eased_flight)
 		# A small controlled tilt out and back; never a coin-style spin.
 		rotation = deg_to_rad(GameConfig.HERO_FLIGHT_TILT_DEGREES) * sin(flight_t * PI)
 		if effects_layer != null:
@@ -1069,6 +1247,7 @@ func _finish_target_collection() -> void:
 	if effects_layer != null and hero:
 		effects_layer.end_hero_hold()
 		effects_layer.burst_target_panel_sparkles(panel_destination)
+		effects_layer.show_reward_amount(Vector2(GameConfig.table_center_x(), GameConfig.board_top() + 54.0), final_celebration_coins)
 	if gameplay_ui != null:
 		if hero:
 			gameplay_ui.impact_target_panel()
@@ -1210,7 +1389,21 @@ func _update_piece_visual_feedbacks(delta: float) -> void:
 				piece_visual_feedbacks.erase(piece_id)
 			continue
 		var scale := 1.0
-		if kind == "spawn":
+		if kind == "bonus_spawn":
+			var origin_offset: Vector2 = feedback.get("origin_offset", Vector2.ZERO)
+			if t <= 0.55:
+				var bonus_rise := 1.0 - pow(1.0 - t / 0.55, 3.0)
+				scale = lerpf(GameConfig.BONUS_VISUAL_START_SCALE, GameConfig.BONUS_VISUAL_PEAK_SCALE, bonus_rise)
+			else:
+				scale = lerpf(GameConfig.BONUS_VISUAL_PEAK_SCALE, 1.0, smoothstep(0.55, 1.0, t))
+			if t >= 1.0:
+				gem_sprite_layer.clear_presentation_scale(int(piece_id))
+				piece_visual_feedbacks.erase(piece_id)
+			else:
+				var emerge_t := 0.0 if t <= 0.55 else smoothstep(0.55, 1.0, t)
+				gem_sprite_layer.set_bonus_spawn_transform(int(piece_id), scale, origin_offset * (1.0 - emerge_t))
+			continue
+		elif kind == "spawn":
 			if t <= 0.68:
 				var rise := 1.0 - pow(1.0 - t / 0.68, 3.0)
 				scale = lerpf(0.84, 1.06, rise)
@@ -1688,14 +1881,16 @@ func _draw_merge_presentation(presentation: Dictionary) -> void:
 	# The hit-stop window holds the source pair exactly where contact confirmed;
 	# the pull only starts afterwards and the pair is hidden at the reveal.
 	var pull_t: float = clampf((elapsed - pull_start) / pull_duration, 0.0, 1.0)
-	var source_scale := lerpf(1.0, GameConfig.MERGE_SOURCE_END_SCALE, pull_t)
+	var compression_t := clampf(elapsed / GameConfig.MERGE_CONTACT_COMPRESSION_DURATION, 0.0, 1.0)
+	var compressed_scale := Vector2.ONE.lerp(GameConfig.MERGE_CONTACT_COMPRESSION_SCALE, smoothstep(0.0, 1.0, compression_t))
+	var source_axis_scale := compressed_scale.lerp(Vector2.ONE * GameConfig.MERGE_SOURCE_END_SCALE, pull_t)
 	var source_alpha := 1.0 - smoothstep(reveal - 0.02, reveal, elapsed)
 	if source_alpha > 0.0:
 		for source_position in [presentation.first_position, presentation.second_position]:
 			var position: Vector2 = source_position.lerp(midpoint, pull_t * 0.86)
 			var source_diameter := GameConfig.gem_collision_radius(source_level) * GameConfig.gem_perspective_scale_at(source_position.y) * 2.0
-			var texture_scale := source_diameter / maxf(source_texture.get_size().x, source_texture.get_size().y) * source_scale
-			var source_size := source_texture.get_size() * texture_scale
+			var texture_scale := source_diameter / maxf(source_texture.get_size().x, source_texture.get_size().y)
+			var source_size := source_texture.get_size() * texture_scale * source_axis_scale
 			draw_texture_rect(source_texture, Rect2(position - source_size * 0.5, source_size), false, Color(1.0, 1.0, 1.0, source_alpha))
 	var glow := GameConfig.gem_color(result_level)
 	glow.a = (1.0 - t) * 0.20

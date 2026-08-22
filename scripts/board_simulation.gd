@@ -1,11 +1,29 @@
 class_name BoardSimulation
 extends RefCounted
 
-## Presentation feedback only. Simulation never uses this data to decide rules.
+## Contact telemetry is presentation-only. Bonus activation holds are explicit
+## controller-authored gameplay pacing and never change radii or eligibility.
 var _collision_impacts: Array[Dictionary] = []
+var _activation_holds: Dictionary = {}
 
 func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) -> void:
 	_collision_impacts.clear()
+	_activation_holds.clear()
+	for piece in pieces:
+		if piece.bonus_activation_delay_remaining > 0.0:
+			_activation_holds[piece.id] = true
+			piece.bonus_activation_delay_remaining = maxf(0.0, piece.bonus_activation_delay_remaining - delta)
+			if piece.bonus_activation_delay_remaining <= 0.0:
+				piece.velocity = piece.bonus_pending_velocity
+				piece.bonus_pending_velocity = Vector2.ZERO
+			# Physics begins on the next simulation step, after one complete visual
+			# pop. The sibling grace also does not burn down while this body is held.
+			continue
+		if piece.bonus_merge_grace_remaining <= 0.0:
+			continue
+		piece.bonus_merge_grace_remaining = maxf(0.0, piece.bonus_merge_grace_remaining - delta)
+		if piece.bonus_merge_grace_remaining <= 0.0:
+			piece.bonus_event_id = -1
 	var substeps := _required_substeps(pieces, delta)
 	var sub_delta := delta / float(substeps)
 	for _substep in range(substeps):
@@ -14,6 +32,10 @@ func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) ->
 func _step_subframe(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) -> void:
 	for piece in pieces:
 		if piece.consumed:
+			continue
+		if _activation_holds.has(piece.id):
+			piece.apply_perspective_scale(GameConfig.gem_perspective_scale_at(piece.position.y))
+			_resolve_bounds(piece)
 			continue
 		if not piece.is_moving():
 			piece.velocity = Vector2.ZERO
@@ -27,7 +49,7 @@ func _step_subframe(pieces: Array[GemPiece], delta: float, merger: ContactMergeS
 		if piece.velocity.length() < GameConfig.SLEEP_SPEED:
 			piece.velocity = Vector2.ZERO
 	for piece in pieces:
-		if not piece.consumed:
+		if not piece.consumed and not _activation_holds.has(piece.id):
 			piece.apply_perspective_scale(GameConfig.gem_perspective_scale_at(piece.position.y))
 			_resolve_bounds(piece)
 	for first_index in range(pieces.size()):
@@ -39,7 +61,7 @@ func _required_substeps(pieces: Array[GemPiece], delta: float) -> int:
 	var maximum_displacement := 0.0
 	var minimum_radius := INF
 	for piece in pieces:
-		if piece.consumed:
+		if piece.consumed or _activation_holds.has(piece.id):
 			continue
 		maximum_displacement = maxf(maximum_displacement, piece.velocity.length() * delta)
 		minimum_radius = minf(minimum_radius, piece.radius)
@@ -74,13 +96,21 @@ func _resolve_bounds(piece: GemPiece) -> void:
 		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION
 
 func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeService) -> void:
+	if _activation_holds.has(first.id) or _activation_holds.has(second.id):
+		return
 	var offset := second.position - first.position
 	var distance := offset.length()
 	var minimum_distance := first.radius + second.radius
 	if distance > minimum_distance + GameConfig.CONTACT_EPSILON:
 		return
-	# Capture physical contact before changing positions.
-	merger.capture_contact(first, second)
+	# Capture physical contact before changing positions. Once their visual pop
+	# has activated physics, sibling bonus pieces collide and move during grace;
+	# only their mutual merge candidate is briefly suppressed.
+	var same_bonus_event_grace := first.bonus_event_id >= 0 \
+		and first.bonus_event_id == second.bonus_event_id \
+		and (first.bonus_merge_grace_remaining > 0.0 or second.bonus_merge_grace_remaining > 0.0)
+	if not same_bonus_event_grace:
+		merger.capture_contact(first, second)
 	var normal := offset / distance if distance > 0.001 else Vector2.RIGHT
 	var overlap := maxf(0.0, minimum_distance - distance)
 	if overlap > 0.0:

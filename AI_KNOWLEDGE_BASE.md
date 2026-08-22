@@ -1,3 +1,28 @@
+# Knowledge Base Addendum - Reward Feedback Real Gems V4
+
+## Do not turn bonus gems back into VFX
+
+Every successful merge may request `GameConfig.bonus_gem_count(depth)` persistent gameplay pieces, subject to the three-piece budget for the current player shot, the COMBO 2 generation ceiling, and the 24-piece live-plus-pending board cap. Never draw substitutes in `GameplayEffectsLayer`, fade real rewards, absorb them, or queue-free them after a reward animation. A spawned bonus piece must remain in `GameController.pieces` until ordinary gameplay or reset removes it.
+
+Eligible bonus tiers are local progression tiers 1 through N-2. Keep the lower-tier weighted bands and early fallback in `_choose_bonus_level`; never hardcode catalog names/identities. Placement must use the centralized table boundaries and clearance checks. Do not alter collider radii to make the reward fit.
+
+The temporary grace is deliberately narrow: only two pieces with the same nonnegative `bonus_event_id` and positive grace suppress their mutual merge candidate. They must still collide, move, hit rails, and merge with existing pieces. `BoardSimulation.step()` must clear the event ID at expiry so no permanent special state survives.
+
+Do not reset the reward budget on individual merges or launcher-ready transitions; reset it only when `launch_active_piece()` confirms a new player shot. Count pending rewards against board capacity. Keep bonus bodies out of integration and pair contact for the complete 340 ms center-pop/settle, then release `bonus_pending_velocity`; do not burn sibling grace while activation is held. The visual offset must converge to the safe simulation position without moving the `GemPiece`.
+
+## Active reward presentation contract
+
+- Normal merge: 35 ms compression, 120 ms synchronized impact, 420 ms total, 1.24 peak.
+- Chain readability: 180 ms presentation spacing per depth; COMBO 3+ may still present but cannot generate more bonus bodies.
+- Combo peaks: 1.27 / 1.30 / 1.34 / 1.38; counts: 1 / 2 / 2 / 3 after COMBO 1.
+- Radial shader: one implementation, eight pooled slots, 180 ms, intensity 0.35 through 1.00.
+- Final target: 1.40 creation peak, 420 ms center hold, 70 ms anticipation, 310 ms arc, count update on panel impact only.
+- Jackpot: 16 visuals at 19 px radius, compact spawn 4+4+4+4, 380 ms table hold, accelerating collection, final four reserved for the strongest HUD impact.
+- Every non-final target: four tokens finish landing, share at least 260 ms on the table, then fly to the HUD.
+- Shadows: visible soft presentation-only gem opacity 0.34 and coin opacity 0.32 with a 5x9 px contact offset; never use any shadow silhouette for collision calibration.
+
+`tests/run_reward_feedback_v3_tests.gd` now treats real-piece persistence, marker expiry, existing-piece merge eligibility, and later bonus participation as the contract. The visual proof lives under `reports/reward-feedback-real-gems-v4/`; run the capture with a real GL Compatibility display, because Godot's dummy headless renderer cannot sample the SubViewport for movie output.
+
 # Knowledge Base Addendum - Reward feedback v3
 
 ## Where reward timing lives

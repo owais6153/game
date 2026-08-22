@@ -1,3 +1,25 @@
+# Architecture Addendum - Reward Feedback Real Gems V4
+
+## Real merge rewards remain inside existing simulation ownership
+
+`GameController._apply_confirmed_merge_events()` schedules one bounded reward record per confirmed result. `_update_pending_bonus_spawns()` later creates ordinary `GemPiece` objects and appends them to the same `pieces` array used by launchers and merge results. No visual service owns, deletes, absorbs, or awards those pieces.
+
+Scheduling is bounded three ways before a record is created. `bonus_spawn_budget_remaining` resets only when the player launches a new piece and permits three generated reward bodies across that shot's entire chain. Depths above COMBO 2 do not generate another reward tier. `BONUS_BOARD_PIECE_CAP` counts live plus already-pending bodies and refuses rewards above 24. Exhausting a bound changes no existing body and blocks no ordinary merge; it only omits additional generated rewards.
+
+`GamePiece` carries only temporary `bonus_event_id` and `bonus_merge_grace_remaining` fields. `BoardSimulation.step()` expires them. `_resolve_pair()` still performs its normal physical collision, but skips `ContactMergeService.capture_contact()` only when both pieces share an active event grace. Contact with pre-existing pieces is unchanged. This is the sole simulation-path change.
+
+Spawn selection consumes `GameConfig` and authoritative table interpolation for bounds/clearance. It does not consult textures, gem names, HUD state, target state, score, or physics eligibility. IDs come from the controller's existing monotonic `next_piece_id` source.
+
+## Radial merge shader stays in the rendering helper
+
+`GemSpriteLayer` owns eight preallocated Sprite2D slots and one canvas-item shader source. Each slot has only its own uniforms so simultaneous chain bursts can vary intensity without compiling separate shaders. The pool is rendered behind live gem sprites and is updated/cleared through presentation methods; simulation never reads it.
+
+Reward pieces are created at collision-safe simulation positions, but `set_bonus_spawn_transform()` initially offsets their visual children back to the merge midpoint. For 340 ms the visual scales up at that center and settles outward while `bonus_activation_delay_remaining` excludes the body from integration, bounds contacts, pair contacts, and merge capture. The stored impulse is released on the following simulation step; the 180 ms sibling grace then begins counting down. This is a deliberate gameplay-pacing gate, while the offset/scale and all gem/coin shadows remain presentation-only.
+
+Non-final target coins share `GameConfig.target_coin_flight_start()`. It accounts for the final token's spawn stagger and a common 260 ms table hold before adding per-coin flight stagger, so no first coin can leave while later members of the same target reward are still arriving.
+
+`GameplayEffectsLayer` retains rings, combo labels, hero effects, reward amount, and visual coins. The removed mini-gem array/API is retained only as a zero-count compatibility query for older tools. HUD target reactions continue to consume controller snapshots and explicit confirmed-presentation callbacks; they do not duplicate target rules.
+
 # Architecture Addendum - Reward feedback v3
 
 ## Reward timelines are data, not code paths

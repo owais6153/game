@@ -60,9 +60,9 @@ const GEM_VISUAL_BODY_SCALE := {1: 1.008, 2: 1.008, 3: 1.008, 4: 1.008, 5: 1.008
 ## Presentation-only lower shadows. All 18 tiers use the same calibrated
 ## placement so a shadow cannot be mistaken for a physical body or contact.
 const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 19.0), 4: Vector2(5.0, 23.0), 5: Vector2(5.0, 23.0), 6: Vector2(5.0, 23.0), 7: Vector2(5.0, 23.0), 8: Vector2(4.0, 18.0), 9: Vector2(5.0, 23.0), 10: Vector2(5.0, 23.0), 11: Vector2(5.0, 23.0), 12: Vector2(5.0, 23.0), 13: Vector2(5.0, 23.0), 14: Vector2(5.0, 23.0), 15: Vector2(5.0, 23.0), 16: Vector2(5.0, 23.0), 17: Vector2(5.0, 23.0), 18: Vector2(5.0, 23.0)}
-const GEM_SHADOW_OPACITY := {1: 0.32, 2: 0.32, 3: 0.32, 4: 0.32, 5: 0.32, 6: 0.32, 7: 0.32, 8: 0.32, 9: 0.32, 10: 0.32, 11: 0.32, 12: 0.32, 13: 0.32, 14: 0.32, 15: 0.32, 16: 0.32, 17: 0.32, 18: 0.32}
+const GEM_SHADOW_OPACITY := {1: 0.34, 2: 0.34, 3: 0.34, 4: 0.34, 5: 0.34, 6: 0.34, 7: 0.34, 8: 0.34, 9: 0.34, 10: 0.34, 11: 0.34, 12: 0.34, 13: 0.34, 14: 0.34, 15: 0.34, 16: 0.34, 17: 0.34, 18: 0.34}
 const GEM_SHADOW_WIDTH_MULTIPLIER := 0.92
-const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.38
+const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.36
 const VISIBLE_CONTACT_TOLERANCE := 2.0
 ## One conservative table-depth scale is shared by every gem's visual root and
 ## simulation radius. It keeps rendered contact, rail containment, and merge
@@ -102,19 +102,33 @@ const MAX_SUBSTEP_RADIUS_FRACTION := 0.45 # swept-step guard; never changes cont
 ## collision < normal merge < combo merge < final target < level complete.
 ## Every value below is a visual timeline key expressed in seconds.
 const MERGE_PRESENTATION_DURATION := 0.42
-const MERGE_SOURCE_PULL_START := 0.04
-const MERGE_SOURCE_PULL_DURATION := 0.07
-const MERGE_SOURCE_END_SCALE := 0.82
-const MERGE_REVEAL_START := 0.11
+const MERGE_CONTACT_COMPRESSION_DURATION := 0.035
+const MERGE_CONTACT_COMPRESSION_SCALE := Vector2(1.04, 0.92)
+const MERGE_SOURCE_PULL_START := 0.035
+const MERGE_SOURCE_PULL_DURATION := 0.080
+const MERGE_SOURCE_END_SCALE := 0.80
+const MERGE_REVEAL_START := 0.12
 const MERGE_RESULT_START_SCALE := 0.65
-const MERGE_RESULT_POP_SCALE := 1.18
-const MERGE_RESULT_POP_DURATION := 0.08
-const MERGE_REVEAL_SOUND_AT := 0.11
+const MERGE_RESULT_POP_SCALE := 1.24
+const MERGE_RESULT_POP_DURATION := 0.09
+const MERGE_REVEAL_SOUND_AT := 0.12
 ## Hit-stop freezes only the pieces of the confirmed merge. The rest of the
 ## board keeps stepping, so this is a bounded per-body pause, not a game freeze.
-const MERGE_HITSTOP_DURATION := 0.04
-const COMBO_HITSTOP_DURATION := 0.045
+const MERGE_HITSTOP_DURATION := 0.03
+const COMBO_1_HITSTOP_DURATION := 0.035
+const COMBO_2_HITSTOP_DURATION := 0.04
+const COMBO_3_HITSTOP_DURATION := 0.045
+const COMBO_4_HITSTOP_DURATION := 0.05
 const TARGET_HITSTOP_DURATION := 0.05
+const MERGE_RADIAL_DURATION := 0.18
+const MERGE_RADIAL_START_SCALE := 0.30
+const MERGE_RADIAL_END_SCALE := 1.30
+const MERGE_RADIAL_INTENSITY_NORMAL := 0.35
+const MERGE_RADIAL_INTENSITY_COMBO_1 := 0.45
+const MERGE_RADIAL_INTENSITY_COMBO_2 := 0.60
+const MERGE_RADIAL_INTENSITY_COMBO_3 := 0.80
+const MERGE_RADIAL_INTENSITY_COMBO_4 := 0.92
+const MERGE_RADIAL_INTENSITY_FINAL_TARGET := 1.00
 ## Result-scale keyframes are `[time_from_merge, uniform_scale]` pairs applied
 ## after `reveal`. They are presentation-only and never touch collision radius.
 const MERGE_TIMELINE_NORMAL := {
@@ -124,54 +138,68 @@ const MERGE_TIMELINE_NORMAL := {
 	"reveal": MERGE_REVEAL_START,
 	"duration": MERGE_PRESENTATION_DURATION,
 	"sound_at": MERGE_REVEAL_SOUND_AT,
-	"ring_at": 0.15,
+	"ring_at": 0.12,
 	"ring_scale": 1.0,
+	"radial_intensity": MERGE_RADIAL_INTENSITY_NORMAL,
 	"start_scale": MERGE_RESULT_START_SCALE,
-	"scale_keys": [[0.19, 1.18], [0.30, 0.96], [0.345, 1.02], [0.39, 1.0]],
-	"mini_gems": 3,
+	"scale_keys": [[0.21, 1.24], [0.29, 0.93], [0.365, 1.05], [0.42, 1.0]],
 	"pitch": 1.0,
 }
 const MERGE_TIMELINE_COMBO_1 := {
-	"hitstop": MERGE_HITSTOP_DURATION,
+	"hitstop": COMBO_1_HITSTOP_DURATION,
 	"pull_start": MERGE_SOURCE_PULL_START,
 	"pull_duration": MERGE_SOURCE_PULL_DURATION,
 	"reveal": MERGE_REVEAL_START,
 	"duration": MERGE_PRESENTATION_DURATION,
 	"sound_at": MERGE_REVEAL_SOUND_AT,
-	"ring_at": 0.15,
+	"ring_at": 0.12,
 	"ring_scale": 1.14,
+	"radial_intensity": MERGE_RADIAL_INTENSITY_COMBO_1,
 	"start_scale": 0.65,
-	"scale_keys": [[0.19, 1.18], [0.30, 0.96], [0.345, 1.02], [0.39, 1.0]],
-	"mini_gems": 3,
+	"scale_keys": [[0.21, 1.27], [0.29, 0.93], [0.365, 1.05], [0.42, 1.0]],
 	"pitch": 1.06,
 }
 const MERGE_TIMELINE_COMBO_2 := {
-	"hitstop": MERGE_HITSTOP_DURATION,
+	"hitstop": COMBO_2_HITSTOP_DURATION,
 	"pull_start": MERGE_SOURCE_PULL_START,
 	"pull_duration": MERGE_SOURCE_PULL_DURATION,
 	"reveal": MERGE_REVEAL_START,
 	"duration": MERGE_PRESENTATION_DURATION,
 	"sound_at": MERGE_REVEAL_SOUND_AT,
-	"ring_at": 0.15,
+	"ring_at": 0.12,
 	"ring_scale": 1.22,
-	"start_scale": 0.60,
-	"scale_keys": [[0.19, 1.23], [0.30, 0.94], [0.39, 1.0]],
-	"mini_gems": 5,
+	"radial_intensity": MERGE_RADIAL_INTENSITY_COMBO_2,
+	"start_scale": 0.64,
+	"scale_keys": [[0.21, 1.30], [0.29, 0.93], [0.365, 1.05], [0.42, 1.0]],
 	"pitch": 1.12,
 }
 const MERGE_TIMELINE_COMBO_3 := {
-	"hitstop": COMBO_HITSTOP_DURATION,
+	"hitstop": COMBO_3_HITSTOP_DURATION,
 	"pull_start": MERGE_SOURCE_PULL_START,
 	"pull_duration": MERGE_SOURCE_PULL_DURATION,
 	"reveal": MERGE_REVEAL_START,
 	"duration": MERGE_PRESENTATION_DURATION,
 	"sound_at": MERGE_REVEAL_SOUND_AT,
-	"ring_at": 0.15,
+	"ring_at": 0.12,
 	"ring_scale": 1.34,
-	"start_scale": 0.55,
-	"scale_keys": [[0.19, 1.30], [0.30, 0.93], [0.345, 1.04], [0.39, 1.0]],
-	"mini_gems": 5,
+	"radial_intensity": MERGE_RADIAL_INTENSITY_COMBO_3,
+	"start_scale": 0.62,
+	"scale_keys": [[0.21, 1.34], [0.29, 0.92], [0.365, 1.06], [0.42, 1.0]],
 	"pitch": 1.18,
+}
+const MERGE_TIMELINE_COMBO_4 := {
+	"hitstop": COMBO_4_HITSTOP_DURATION,
+	"pull_start": MERGE_SOURCE_PULL_START,
+	"pull_duration": MERGE_SOURCE_PULL_DURATION,
+	"reveal": MERGE_REVEAL_START,
+	"duration": MERGE_PRESENTATION_DURATION,
+	"sound_at": MERGE_REVEAL_SOUND_AT,
+	"ring_at": 0.12,
+	"ring_scale": 1.46,
+	"radial_intensity": MERGE_RADIAL_INTENSITY_COMBO_4,
+	"start_scale": 0.60,
+	"scale_keys": [[0.21, 1.38], [0.29, 0.91], [0.365, 1.07], [0.42, 1.0]],
+	"pitch": 1.24,
 }
 ## Phase A of the final-target hero moment. It intentionally ends early so the
 ## hero travel/hold sequence owns the gem from 180 ms onward.
@@ -179,26 +207,41 @@ const MERGE_TIMELINE_FINAL_TARGET := {
 	"hitstop": TARGET_HITSTOP_DURATION,
 	"pull_start": 0.05,
 	"pull_duration": 0.07,
-	"reveal": 0.12,
+	"reveal": 0.10,
 	"duration": 0.18,
-	"sound_at": 0.12,
-	"ring_at": 0.14,
-	"ring_scale": 1.30,
-	"start_scale": 0.65,
-	"scale_keys": [[0.18, 1.25]],
-	"mini_gems": 3,
-	"pitch": 1.0,
+	"sound_at": 0.10,
+	"ring_at": 0.10,
+	"ring_scale": 1.58,
+	"radial_intensity": MERGE_RADIAL_INTENSITY_FINAL_TARGET,
+	"start_scale": 0.60,
+	"scale_keys": [[0.15, 1.40], [0.18, 1.18]],
+	"pitch": 1.28,
 }
-## Cosmetic mini gems that pop from behind a newly created gem. They are drawn
-## records only: no body, no collider, no merge or contact participation.
-const MERGE_MINI_GEM_START := 0.14
-const MERGE_MINI_GEM_RISE_DURATION := 0.08
-const MERGE_MINI_GEM_PEAK_DURATION := 0.09
-const MERGE_MINI_GEM_FALL_DURATION := 0.12
-const MERGE_MINI_GEM_START_SCALE := 0.25
-const MERGE_MINI_GEM_PEAK_SCALE := 0.38
-const MERGE_MINI_GEM_ANGLES := [-55.0, -90.0, -125.0, -32.0, -148.0]
-const MERGE_MINI_GEM_DISTANCES := [40.0, 48.0, 40.0, 36.0, 36.0]
+## Every successful merge produces persistent gameplay pieces. The controller
+## schedules them after the reveal; BoardSimulation owns them from then on.
+const BONUS_GEMS_NORMAL := 1
+const BONUS_GEMS_COMBO_1 := 1
+const BONUS_GEMS_COMBO_2 := 2
+const BONUS_GEMS_COMBO_3 := 2
+const BONUS_GEMS_COMBO_4_PLUS := 3
+const BONUS_TIER_WEIGHTS := [0.50, 0.30, 0.20]
+const BONUS_SPAWN_DELAY := 0.20
+const BONUS_SPAWN_IMPULSE := 165.0
+const BONUS_SPAWN_CLEARANCE := 3.0
+const BONUS_MERGE_GRACE_MS := 180
+## A shot can mint at most four real reward pieces, and delayed rewards never
+## raise the live population beyond this cap. These bounds terminate unattended
+## reward cascades without changing ordinary merge eligibility.
+const BONUS_GEM_BUDGET_PER_SHOT := 3
+const BONUS_BOARD_PIECE_CAP := 24
+const BONUS_REWARD_MAX_CHAIN_DEPTH := 2
+const BONUS_VISUAL_BURST_DURATION := 0.34
+const BONUS_PHYSICS_ACTIVATION_DELAY := BONUS_VISUAL_BURST_DURATION
+const BONUS_VISUAL_START_SCALE := 0.28
+const BONUS_VISUAL_PEAK_SCALE := 1.18
+const BONUS_SPAWN_DIRECTIONS_1 := [-90.0]
+const BONUS_SPAWN_DIRECTIONS_2 := [-128.0, -52.0]
+const BONUS_SPAWN_DIRECTIONS_3 := [-138.0, -90.0, -42.0]
 ## Combo labels for chain merges produced by one shot.
 const COMBO_LABEL_POP_DURATION := 0.06
 const COMBO_LABEL_SETTLE_DURATION := 0.10
@@ -227,6 +270,7 @@ const COIN_BURST_COUNT := 4
 const MAJOR_COIN_BURST_COUNT := 4
 const COIN_BURST_DURATION := 0.12
 const COIN_REWARD_START_DELAY := 0.26
+const TARGET_COIN_TABLE_HOLD := 0.26
 const COIN_FLIGHT_DURATION := 0.55
 const MAJOR_COIN_FLIGHT_DURATION := 0.62
 const COIN_FLIGHT_STAGGER := 0.08
@@ -234,6 +278,8 @@ const COIN_SPAWN_STAGGER := 0.08
 const COIN_BURST_RADIUS := 48.0
 const MAJOR_COIN_BURST_RADIUS := 52.0
 const COIN_DRAW_RADIUS := 17.0
+const TARGET_COIN_SHADOW_OPACITY := 0.32
+const TARGET_COIN_SHADOW_OFFSET := Vector2(5.0, 9.0)
 const COIN_COUNTER_PULSE_DURATION := 0.18
 const COIN_EFFECT_LIMIT := 32
 const COIN_HUD_FALLBACK_DESTINATION := Vector2(92.0, 78.0)
@@ -247,13 +293,13 @@ const TARGET_PANEL_PULSE_DURATION := 0.22
 ## which is `FINAL_TARGET_COLLECTION_OVERLAP_START` (180 ms) after the merge.
 ## Phase B travel -> Phase C hold -> Phase D flight -> Phase E panel impact.
 const HERO_TRAVEL_DURATION := 0.25
-const HERO_TRAVEL_START_SCALE := 1.25
-const HERO_TRAVEL_END_SCALE := 1.15
-const HERO_HOLD_DURATION := 0.50
+const HERO_TRAVEL_START_SCALE := 1.18
+const HERO_TRAVEL_END_SCALE := 1.18
+const HERO_HOLD_DURATION := 0.42
 const HERO_HOLD_RISE_DURATION := 0.12
-const HERO_HOLD_PEAK_SCALE := 1.38
+const HERO_HOLD_PEAK_SCALE := 1.45
 const HERO_HOLD_SETTLE_DURATION := 0.08
-const HERO_HOLD_SCALE := 1.27
+const HERO_HOLD_SCALE := 1.28
 const HERO_HOLD_BREATH_SCALE := 1.31
 const HERO_HOLD_BREATH_HZ := 1.15
 ## Measured from the start of the hero hold (T + 430 ms), so the caption lands
@@ -261,46 +307,101 @@ const HERO_HOLD_BREATH_HZ := 1.15
 const HERO_LABEL_AT := 0.10
 const HERO_LABEL_DURATION := 0.62
 const HERO_LABEL_TEXT := "TARGET COMPLETE!"
-const HERO_FLIGHT_DURATION := 0.35
+const HERO_LAUNCH_ANTICIPATION_DURATION := 0.07
+const HERO_LAUNCH_ANTICIPATION_DISTANCE := 8.0
+const HERO_LAUNCH_ANTICIPATION_SCALE := 1.35
+const HERO_FLIGHT_DURATION := 0.31
 const HERO_FLIGHT_END_SCALE := 0.35
 const HERO_FLIGHT_TILT_DEGREES := 10.0
 const HERO_PANEL_ANTICIPATION_LEAD := 0.08
-const HERO_PANEL_ANTICIPATION_SCALE := 0.95
-const HERO_PANEL_IMPACT_SCALE := 1.12
+const HERO_PANEL_ANTICIPATION_SCALE := 0.92
+const HERO_PANEL_IMPACT_SCALE := 1.16
+const HERO_PANEL_RECOIL_SCALE := 0.97
 const HERO_PANEL_IMPACT_RISE := 0.09
-const HERO_PANEL_IMPACT_SETTLE := 0.13
+const HERO_PANEL_IMPACT_RECOIL := 0.07
+const HERO_PANEL_IMPACT_SETTLE := 0.08
 const HERO_PANEL_SPARKLE_COUNT := 6
 const HERO_PANEL_SPARKLE_DURATION := 0.27
+const REWARD_AMOUNT_DURATION := 0.72
+const REWARD_AMOUNT_START_SCALE := 0.55
+const REWARD_AMOUNT_PEAK_SCALE := 1.20
 ## Level-complete coin reward. These sprites are cosmetic reward objects: they
 ## never enter the simulation, contact capture, or merge eligibility.
-const LEVEL_REWARD_COIN_COUNT := 20
-const LEVEL_REWARD_COIN_WAVE_SIZE := 5
+const LEVEL_REWARD_COIN_COUNT := 16
+const LEVEL_REWARD_COIN_WAVE_SIZE := 4
 const LEVEL_REWARD_COIN_WAVE_STAGGER := 0.035
 const LEVEL_REWARD_COIN_SPAWN_AT := 1.50
 const LEVEL_REWARD_COIN_LAND_DURATION := 0.22
 const LEVEL_REWARD_COIN_TABLE_HOLD := 0.38
-const LEVEL_REWARD_COIN_COLLECT_WAVE_SIZE := 3
-const LEVEL_REWARD_COIN_COLLECT_STAGGER := 0.045
+const LEVEL_REWARD_COIN_COLLECT_WAVE_SIZES := [2, 2, 3, 3, 2]
+const LEVEL_REWARD_COIN_COLLECT_WAVE_DELAYS := [0.09, 0.075, 0.06, 0.05, 0.04, 0.03, 0.025]
 const LEVEL_REWARD_COIN_FLIGHT_DURATION := 0.30
-const LEVEL_REWARD_COIN_SCATTER_HALF_WIDTH := 0.62
-const LEVEL_REWARD_COIN_SCATTER_HALF_HEIGHT := 134.0
+const LEVEL_REWARD_COIN_SCATTER_HALF_WIDTH := 0.38
+const LEVEL_REWARD_COIN_SCATTER_HALF_HEIGHT := 82.0
 const LEVEL_REWARD_COIN_IDLE_WOBBLE := 2.4
-const LEVEL_REWARD_COIN_DRAW_RADIUS := 15.0
+const LEVEL_REWARD_COIN_DRAW_RADIUS := 19.0
+const LEVEL_REWARD_COIN_SHADOW_OPACITY := 0.32
+const LEVEL_REWARD_COIN_SHADOW_OFFSET := Vector2(5.0, 9.0)
 const COIN_COUNTER_WAVE_PUNCH_SCALE := 1.06
+const COIN_COUNTER_FINAL_PUNCH_SCALE := 1.14
+const COIN_COUNTER_FINAL_RECOIL_SCALE := 0.96
 ## Coins begin collecting exactly one landing plus one deliberate table hold
 ## after the first wave lands, so the player registers the whole pile first.
 static func level_reward_collect_start() -> float:
-	return LEVEL_REWARD_COIN_LAND_DURATION + LEVEL_REWARD_COIN_TABLE_HOLD
+	return LEVEL_REWARD_COIN_LAND_DURATION \
+		+ float(level_reward_spawn_wave_count() - 1) * LEVEL_REWARD_COIN_WAVE_STAGGER \
+		+ LEVEL_REWARD_COIN_TABLE_HOLD
+
+
+static func target_coin_flight_start(flight_rank: int, coin_count: int) -> float:
+	# Wait until the final staggered token has landed, then hold the whole target
+	# reward group on the table before any member begins its HUD flight.
+	return COIN_BURST_DURATION \
+		+ float(maxi(0, coin_count - 1)) * COIN_SPAWN_STAGGER \
+		+ TARGET_COIN_TABLE_HOLD \
+		+ float(flight_rank) * COIN_FLIGHT_STAGGER
+
+
+static func level_reward_spawn_wave_count() -> int:
+	return int(ceil(float(LEVEL_REWARD_COIN_COUNT) / float(LEVEL_REWARD_COIN_WAVE_SIZE)))
+
+
+static func level_reward_collect_plan(count: int = LEVEL_REWARD_COIN_COUNT) -> Array[Dictionary]:
+	var sizes: Array[int] = []
+	var allocated := 0
+	for configured_size in LEVEL_REWARD_COIN_COLLECT_WAVE_SIZES:
+		if allocated >= count:
+			break
+		var size := mini(int(configured_size), count - allocated)
+		sizes.append(size)
+		allocated += size
+	var remaining := count - allocated
+	if remaining > 5:
+		sizes.append(remaining - 5)
+		sizes.append(5)
+	elif remaining > 0:
+		sizes.append(remaining)
+	var plan: Array[Dictionary] = []
+	var index := 0
+	var at := level_reward_collect_start()
+	for wave in range(sizes.size()):
+		for _slot in range(sizes[wave]):
+			plan.append({"index": index, "wave": wave, "at": at})
+			index += 1
+		if wave < sizes.size() - 1:
+			at += float(LEVEL_REWARD_COIN_COLLECT_WAVE_DELAYS[mini(wave, LEVEL_REWARD_COIN_COLLECT_WAVE_DELAYS.size() - 1)])
+	return plan
 
 
 static func level_reward_wave_count() -> int:
-	return int(ceil(float(LEVEL_REWARD_COIN_COUNT) / float(LEVEL_REWARD_COIN_COLLECT_WAVE_SIZE)))
+	var plan := level_reward_collect_plan()
+	return 0 if plan.is_empty() else int(plan.back().wave) + 1
 
 
 static func level_reward_total_duration() -> float:
-	return level_reward_collect_start() \
-		+ float(level_reward_wave_count() - 1) * LEVEL_REWARD_COIN_COLLECT_STAGGER \
-		+ LEVEL_REWARD_COIN_FLIGHT_DURATION
+	var plan := level_reward_collect_plan()
+	var last_collect_at := level_reward_collect_start() if plan.is_empty() else float(plan.back().at)
+	return last_collect_at + LEVEL_REWARD_COIN_FLIGHT_DURATION
 
 
 ## Total hero-to-settled celebration budget, used by tests and the task report.
@@ -317,7 +418,29 @@ static func merge_timeline(depth: int, final_target: bool) -> Dictionary:
 		return MERGE_TIMELINE_COMBO_1
 	if depth == 2:
 		return MERGE_TIMELINE_COMBO_2
-	return MERGE_TIMELINE_COMBO_3
+	if depth == 3:
+		return MERGE_TIMELINE_COMBO_3
+	return MERGE_TIMELINE_COMBO_4
+
+
+static func bonus_gem_count(depth: int) -> int:
+	if depth <= 0:
+		return BONUS_GEMS_NORMAL
+	if depth == 1:
+		return BONUS_GEMS_COMBO_1
+	if depth == 2:
+		return BONUS_GEMS_COMBO_2
+	if depth == 3:
+		return BONUS_GEMS_COMBO_3
+	return BONUS_GEMS_COMBO_4_PLUS
+
+
+static func bonus_spawn_directions(count: int) -> Array:
+	if count <= 1:
+		return BONUS_SPAWN_DIRECTIONS_1
+	if count == 2:
+		return BONUS_SPAWN_DIRECTIONS_2
+	return BONUS_SPAWN_DIRECTIONS_3
 
 
 ## Chain labels stay proportional to the achievement. Low chains never borrow
@@ -342,7 +465,7 @@ const TARGET_SWAP_INCOMING_SCALE := 1.0
 const PRESENTATION_EVENT_TRACE_LIMIT := 128
 const MERGE_MOMENTUM_TRANSFER := 0.62 # bounded average of source momentum
 const MERGE_MAX_SPAWN_SPEED := 420.0 # prevents an upgrade from shooting through a cluster
-const CHAIN_PRESENTATION_STAGGER := 0.03 # faster visual cadence only; merge logic remains immediate
+const CHAIN_PRESENTATION_STAGGER := 0.18 # readable visual cadence only; merge logic remains immediate
 const NEXT_LAUNCHER_READY_DELAY := 0.02
 ## A released gem gives the launcher lane time to clear, then becomes a normal
 ## simulation body even if contacts keep it moving. This bounds replacement

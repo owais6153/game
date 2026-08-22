@@ -69,11 +69,15 @@ var _next_tween: Tween
 var _target_swap_tween: Tween
 var _target_pulse_tween: Tween
 var _target_progress_tween: Tween
+var _target_icon_tween: Tween
+var _target_number_tween: Tween
 var _settings_tween: Tween
 var _pause_tween: Tween
 var _authoritative_coins := 0
 var _displayed_coins := 0
 var _queued_coin_rewards := 0
+var _displayed_target_progress := 0
+var _displayed_target_maximum := 1
 
 
 func _ready() -> void:
@@ -159,9 +163,9 @@ func update_snapshot(snapshot: Dictionary) -> void:
 	var target_header := "TARGET  %d / %d" % [mini(target_index + 1, target_total), target_total]
 	var target_state := "%d / %d" % [mini(target_progress, target_quantity), target_quantity]
 	if bool(snapshot.get("target_collecting", false)):
-		target_state = "ARRIVING  •  %s" % target_state
+		target_state = "ARRIVING  %s" % target_state
 	elif bool(snapshot.get("target_completed", false)):
-		target_state = "COMPLETE  •  %d / %d" % [target_quantity, target_quantity]
+		target_state = "COMPLETE  %d / %d" % [target_quantity, target_quantity]
 	var target_bar_value := target_quantity if bool(snapshot.get("target_completed", false)) else target_progress
 	var target_level := int(snapshot.get("target_level", 1))
 	if int(_snapshot.get("target_level", -1)) != target_level:
@@ -255,6 +259,27 @@ func pulse_target() -> void:
 	_target_pulse_tween.tween_property(target_panel, "scale", Vector2.ONE, UiDesignSystemType.TARGET_PULSE_DURATION * 0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+func acknowledge_target_progress() -> void:
+	pulse_target()
+	if target_icon == null:
+		return
+	_kill_tween(_target_icon_tween)
+	target_icon.pivot_offset = _node_center(target_icon)
+	if not is_inside_tree():
+		target_icon.scale = Vector2.ONE
+		target_icon.modulate = Color.WHITE
+		return
+	target_icon.scale = Vector2.ONE
+	target_icon.modulate = Color.WHITE
+	_target_icon_tween = create_tween().set_parallel(true)
+	_target_icon_tween.set_pause_mode(Tween.TWEEN_PAUSE_STOP)
+	_target_icon_tween.tween_property(target_icon, "scale", Vector2.ONE * 1.10, UiDesignSystemType.TARGET_PULSE_DURATION * 0.42).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_target_icon_tween.tween_property(target_icon, "modulate", Color(1.18, 1.12, 0.72, 1.0), UiDesignSystemType.TARGET_PULSE_DURATION * 0.42).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_target_icon_tween.chain().set_parallel(true)
+	_target_icon_tween.tween_property(target_icon, "scale", Vector2.ONE, UiDesignSystemType.TARGET_PULSE_DURATION * 0.58).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_target_icon_tween.tween_property(target_icon, "modulate", Color.WHITE, UiDesignSystemType.TARGET_PULSE_DURATION * 0.58).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
 ## The panel compresses just before the hero target gem reaches it, so the
 ## impact reads as an arrival instead of an unmotivated pulse.
 func anticipate_target_panel() -> void:
@@ -282,6 +307,7 @@ func impact_target_panel() -> void:
 	_target_pulse_tween = create_tween()
 	_target_pulse_tween.set_pause_mode(Tween.TWEEN_PAUSE_STOP)
 	_target_pulse_tween.tween_property(target_panel, "scale", Vector2.ONE * GameConfig.HERO_PANEL_IMPACT_SCALE, GameConfig.HERO_PANEL_IMPACT_RISE).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_target_pulse_tween.tween_property(target_panel, "scale", Vector2.ONE * GameConfig.HERO_PANEL_RECOIL_SCALE, GameConfig.HERO_PANEL_IMPACT_RECOIL).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	_target_pulse_tween.tween_property(target_panel, "scale", Vector2.ONE, GameConfig.HERO_PANEL_IMPACT_SETTLE).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
@@ -300,6 +326,28 @@ func punch_coin_counter() -> void:
 	_coin_icon_tween = create_tween().set_parallel(true)
 	_coin_icon_tween.tween_property(coin_icon, "scale", Vector2.ONE, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_coin_icon_tween.tween_property(score_label, "scale", Vector2.ONE, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func final_coin_counter_impact() -> void:
+	_build_once()
+	_kill_tween(_coin_icon_tween)
+	coin_icon.pivot_offset = _node_center(coin_icon)
+	score_label.pivot_offset = _node_center(score_label)
+	if not is_inside_tree():
+		coin_icon.scale = Vector2.ONE
+		score_label.scale = Vector2.ONE
+		return
+	coin_icon.scale = Vector2.ONE
+	score_label.scale = Vector2.ONE
+	_coin_icon_tween = create_tween().set_parallel(true)
+	_coin_icon_tween.tween_property(coin_icon, "scale", Vector2.ONE * GameConfig.COIN_COUNTER_FINAL_PUNCH_SCALE, 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_coin_icon_tween.tween_property(score_label, "scale", Vector2.ONE * GameConfig.COIN_COUNTER_FINAL_PUNCH_SCALE, 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_coin_icon_tween.chain().set_parallel(true)
+	_coin_icon_tween.tween_property(coin_icon, "scale", Vector2.ONE * GameConfig.COIN_COUNTER_FINAL_RECOIL_SCALE, 0.04).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	_coin_icon_tween.tween_property(score_label, "scale", Vector2.ONE * GameConfig.COIN_COUNTER_FINAL_RECOIL_SCALE, 0.04).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	_coin_icon_tween.chain().set_parallel(true)
+	_coin_icon_tween.tween_property(coin_icon, "scale", Vector2.ONE, 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_coin_icon_tween.tween_property(score_label, "scale", Vector2.ONE, 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func target_collection_destination() -> Vector2:
@@ -400,7 +448,7 @@ func animate_completion_reward(final_total: int, duration: float = 0.72) -> void
 
 func reset_presentation() -> void:
 	hide_pause(false)
-	for tween in [_score_tween, _coin_icon_tween, _completion_coin_tween, _next_tween, _target_swap_tween, _target_pulse_tween, _target_progress_tween, _settings_tween]:
+	for tween in [_score_tween, _coin_icon_tween, _completion_coin_tween, _next_tween, _target_swap_tween, _target_pulse_tween, _target_progress_tween, _target_icon_tween, _target_number_tween, _settings_tween]:
 		_kill_tween(tween)
 	if score_label != null:
 		score_label.scale = Vector2.ONE
@@ -413,6 +461,8 @@ func reset_presentation() -> void:
 	if target_icon != null:
 		target_icon.scale = Vector2.ONE
 		target_icon.modulate = Color.WHITE
+	_displayed_target_progress = 0
+	_displayed_target_maximum = 1
 	if target_swap_outgoing != null:
 		target_swap_outgoing.visible = false
 	if target_swap_incoming != null:
@@ -1126,19 +1176,52 @@ func _animate_target_swap(previous_texture: Texture2D, next_texture: Texture2D, 
 func _apply_target_state(target_name: String, header: String, state: String, maximum: int, value: int) -> void:
 	target_name_label.text = target_name
 	target_header_label.text = header
-	target_status_label.text = state
-	_set_target_progress(maximum, value)
+	_set_target_progress(maximum, value, state)
 
 
-func _set_target_progress(maximum: int, value: int) -> void:
+func _set_target_progress(maximum: int, value: int, state: String) -> void:
 	_kill_tween(_target_progress_tween)
+	_kill_tween(_target_number_tween)
 	target_progress_bar.max_value = maximum
 	var clamped_value := clampi(value, 0, maximum)
-	if _snapshot.is_empty() or not is_inside_tree() or is_equal_approx(target_progress_bar.value, float(clamped_value)):
+	var animate_up := not _snapshot.is_empty() \
+		and is_inside_tree() \
+		and maximum == _displayed_target_maximum \
+		and clamped_value > _displayed_target_progress
+	if not animate_up:
 		target_progress_bar.value = clamped_value
+		_displayed_target_progress = clamped_value
+		_displayed_target_maximum = maximum
+		target_status_label.text = _target_status_text_clean(state, clamped_value, maximum)
+		target_status_label.scale = Vector2.ONE
 		return
 	_target_progress_tween = create_tween()
 	_target_progress_tween.tween_property(target_progress_bar, "value", float(clamped_value), UiDesignSystemType.VALUE_CHANGE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	var start_value := _displayed_target_progress
+	_displayed_target_maximum = maximum
+	target_status_label.scale = Vector2.ONE * 0.90
+	_target_number_tween = create_tween().set_parallel(true)
+	_target_number_tween.tween_method(func(progress: float) -> void:
+		_displayed_target_progress = clampi(int(round(progress)), 0, maximum)
+		target_status_label.text = _target_status_text_clean(state, _displayed_target_progress, maximum)
+	, float(start_value), float(clamped_value), UiDesignSystemType.VALUE_CHANGE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_target_number_tween.tween_property(target_status_label, "scale", Vector2.ONE, UiDesignSystemType.VALUE_CHANGE_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _target_status_text(state: String, value: int, maximum: int) -> String:
+	if state.begins_with("COMPLETE"):
+		return "COMPLETE  â€¢  %d / %d" % [value, maximum]
+	if state.begins_with("ARRIVING"):
+		return "ARRIVING  â€¢  %d / %d" % [value, maximum]
+	return "%d / %d" % [value, maximum]
+
+
+func _target_status_text_clean(state: String, value: int, maximum: int) -> String:
+	if state.begins_with("COMPLETE"):
+		return "COMPLETE  %d / %d" % [value, maximum]
+	if state.begins_with("ARRIVING"):
+		return "ARRIVING  %d / %d" % [value, maximum]
+	return "%d / %d" % [value, maximum]
 
 
 func _prepare_target_ghost(sprite: Sprite2D, texture: Texture2D, center: Vector2, fitted_size: Vector2, scale_multiplier: float) -> void:
