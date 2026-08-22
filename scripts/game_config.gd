@@ -98,16 +98,117 @@ const MAX_SIMULATION_SUBSTEPS := 8
 const MAX_SUBSTEP_RADIUS_FRACTION := 0.45 # swept-step guard; never changes contact distance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
 ## momentum, score values, and launcher handoff are intentionally unaffected.
-const MERGE_PRESENTATION_DURATION := 0.27
-const MERGE_SOURCE_PULL_DURATION := 0.06
-const MERGE_REVEAL_START := 0.0
-const MERGE_RESULT_START_SCALE := 0.64
-const MERGE_RESULT_POP_SCALE := 1.26
-const MERGE_RESULT_POP_DURATION := 0.14
-const MERGE_REVEAL_SOUND_AT := 0.0
+## Reward feedback v3 keeps one authoritative reward hierarchy:
+## collision < normal merge < combo merge < final target < level complete.
+## Every value below is a visual timeline key expressed in seconds.
+const MERGE_PRESENTATION_DURATION := 0.42
+const MERGE_SOURCE_PULL_START := 0.04
+const MERGE_SOURCE_PULL_DURATION := 0.07
+const MERGE_SOURCE_END_SCALE := 0.82
+const MERGE_REVEAL_START := 0.11
+const MERGE_RESULT_START_SCALE := 0.65
+const MERGE_RESULT_POP_SCALE := 1.18
+const MERGE_RESULT_POP_DURATION := 0.08
+const MERGE_REVEAL_SOUND_AT := 0.11
+## Hit-stop freezes only the pieces of the confirmed merge. The rest of the
+## board keeps stepping, so this is a bounded per-body pause, not a game freeze.
+const MERGE_HITSTOP_DURATION := 0.04
+const COMBO_HITSTOP_DURATION := 0.045
+const TARGET_HITSTOP_DURATION := 0.05
+## Result-scale keyframes are `[time_from_merge, uniform_scale]` pairs applied
+## after `reveal`. They are presentation-only and never touch collision radius.
+const MERGE_TIMELINE_NORMAL := {
+	"hitstop": MERGE_HITSTOP_DURATION,
+	"pull_start": MERGE_SOURCE_PULL_START,
+	"pull_duration": MERGE_SOURCE_PULL_DURATION,
+	"reveal": MERGE_REVEAL_START,
+	"duration": MERGE_PRESENTATION_DURATION,
+	"sound_at": MERGE_REVEAL_SOUND_AT,
+	"ring_at": 0.15,
+	"ring_scale": 1.0,
+	"start_scale": MERGE_RESULT_START_SCALE,
+	"scale_keys": [[0.19, 1.18], [0.30, 0.96], [0.345, 1.02], [0.39, 1.0]],
+	"mini_gems": 3,
+	"pitch": 1.0,
+}
+const MERGE_TIMELINE_COMBO_1 := {
+	"hitstop": MERGE_HITSTOP_DURATION,
+	"pull_start": MERGE_SOURCE_PULL_START,
+	"pull_duration": MERGE_SOURCE_PULL_DURATION,
+	"reveal": MERGE_REVEAL_START,
+	"duration": MERGE_PRESENTATION_DURATION,
+	"sound_at": MERGE_REVEAL_SOUND_AT,
+	"ring_at": 0.15,
+	"ring_scale": 1.14,
+	"start_scale": 0.65,
+	"scale_keys": [[0.19, 1.18], [0.30, 0.96], [0.345, 1.02], [0.39, 1.0]],
+	"mini_gems": 3,
+	"pitch": 1.06,
+}
+const MERGE_TIMELINE_COMBO_2 := {
+	"hitstop": MERGE_HITSTOP_DURATION,
+	"pull_start": MERGE_SOURCE_PULL_START,
+	"pull_duration": MERGE_SOURCE_PULL_DURATION,
+	"reveal": MERGE_REVEAL_START,
+	"duration": MERGE_PRESENTATION_DURATION,
+	"sound_at": MERGE_REVEAL_SOUND_AT,
+	"ring_at": 0.15,
+	"ring_scale": 1.22,
+	"start_scale": 0.60,
+	"scale_keys": [[0.19, 1.23], [0.30, 0.94], [0.39, 1.0]],
+	"mini_gems": 5,
+	"pitch": 1.12,
+}
+const MERGE_TIMELINE_COMBO_3 := {
+	"hitstop": COMBO_HITSTOP_DURATION,
+	"pull_start": MERGE_SOURCE_PULL_START,
+	"pull_duration": MERGE_SOURCE_PULL_DURATION,
+	"reveal": MERGE_REVEAL_START,
+	"duration": MERGE_PRESENTATION_DURATION,
+	"sound_at": MERGE_REVEAL_SOUND_AT,
+	"ring_at": 0.15,
+	"ring_scale": 1.34,
+	"start_scale": 0.55,
+	"scale_keys": [[0.19, 1.30], [0.30, 0.93], [0.345, 1.04], [0.39, 1.0]],
+	"mini_gems": 5,
+	"pitch": 1.18,
+}
+## Phase A of the final-target hero moment. It intentionally ends early so the
+## hero travel/hold sequence owns the gem from 180 ms onward.
+const MERGE_TIMELINE_FINAL_TARGET := {
+	"hitstop": TARGET_HITSTOP_DURATION,
+	"pull_start": 0.05,
+	"pull_duration": 0.07,
+	"reveal": 0.12,
+	"duration": 0.18,
+	"sound_at": 0.12,
+	"ring_at": 0.14,
+	"ring_scale": 1.30,
+	"start_scale": 0.65,
+	"scale_keys": [[0.18, 1.25]],
+	"mini_gems": 3,
+	"pitch": 1.0,
+}
+## Cosmetic mini gems that pop from behind a newly created gem. They are drawn
+## records only: no body, no collider, no merge or contact participation.
+const MERGE_MINI_GEM_START := 0.14
+const MERGE_MINI_GEM_RISE_DURATION := 0.08
+const MERGE_MINI_GEM_PEAK_DURATION := 0.09
+const MERGE_MINI_GEM_FALL_DURATION := 0.12
+const MERGE_MINI_GEM_START_SCALE := 0.25
+const MERGE_MINI_GEM_PEAK_SCALE := 0.38
+const MERGE_MINI_GEM_ANGLES := [-55.0, -90.0, -125.0, -32.0, -148.0]
+const MERGE_MINI_GEM_DISTANCES := [40.0, 48.0, 40.0, 36.0, 36.0]
+## Combo labels for chain merges produced by one shot.
+const COMBO_LABEL_POP_DURATION := 0.06
+const COMBO_LABEL_SETTLE_DURATION := 0.10
+const COMBO_LABEL_DURATION := 0.48
+const COMBO_LABEL_RISE := 20.0
+const COMBO_LABEL_OFFSET_Y := -58.0
 ## Keep the approved target-collection speed, but begin it when the restored
-## fast merge animation completes.
-const TARGET_COLLECTION_OVERLAP_START := 0.27
+## merge animation completes. The final target uses its own hero start.
+const TARGET_COLLECTION_OVERLAP_START := 0.42
+const FINAL_TARGET_COLLECTION_OVERLAP_START := 0.18
 const MERGE_PULSE_SCALE := 1.22
 const COLLISION_VISUAL_DURATION := 0.11
 const COLLISION_VISUAL_MAX_COMPRESSION := 0.055
@@ -142,6 +243,95 @@ const TARGET_COLLECTION_TRAVEL_DURATION := 0.52
 const TARGET_COLLECTION_FADE_START := 0.90
 const TARGET_COLLECTION_POP_SCALE := 1.24
 const TARGET_PANEL_PULSE_DURATION := 0.22
+## Final-target hero sequence. Every value is measured from the hero start,
+## which is `FINAL_TARGET_COLLECTION_OVERLAP_START` (180 ms) after the merge.
+## Phase B travel -> Phase C hold -> Phase D flight -> Phase E panel impact.
+const HERO_TRAVEL_DURATION := 0.25
+const HERO_TRAVEL_START_SCALE := 1.25
+const HERO_TRAVEL_END_SCALE := 1.15
+const HERO_HOLD_DURATION := 0.50
+const HERO_HOLD_RISE_DURATION := 0.12
+const HERO_HOLD_PEAK_SCALE := 1.38
+const HERO_HOLD_SETTLE_DURATION := 0.08
+const HERO_HOLD_SCALE := 1.27
+const HERO_HOLD_BREATH_SCALE := 1.31
+const HERO_HOLD_BREATH_HZ := 1.15
+## Measured from the start of the hero hold (T + 430 ms), so the caption lands
+## about 530 ms after the merge completed.
+const HERO_LABEL_AT := 0.10
+const HERO_LABEL_DURATION := 0.62
+const HERO_LABEL_TEXT := "TARGET COMPLETE!"
+const HERO_FLIGHT_DURATION := 0.35
+const HERO_FLIGHT_END_SCALE := 0.35
+const HERO_FLIGHT_TILT_DEGREES := 10.0
+const HERO_PANEL_ANTICIPATION_LEAD := 0.08
+const HERO_PANEL_ANTICIPATION_SCALE := 0.95
+const HERO_PANEL_IMPACT_SCALE := 1.12
+const HERO_PANEL_IMPACT_RISE := 0.09
+const HERO_PANEL_IMPACT_SETTLE := 0.13
+const HERO_PANEL_SPARKLE_COUNT := 6
+const HERO_PANEL_SPARKLE_DURATION := 0.27
+## Level-complete coin reward. These sprites are cosmetic reward objects: they
+## never enter the simulation, contact capture, or merge eligibility.
+const LEVEL_REWARD_COIN_COUNT := 20
+const LEVEL_REWARD_COIN_WAVE_SIZE := 5
+const LEVEL_REWARD_COIN_WAVE_STAGGER := 0.035
+const LEVEL_REWARD_COIN_SPAWN_AT := 1.50
+const LEVEL_REWARD_COIN_LAND_DURATION := 0.22
+const LEVEL_REWARD_COIN_TABLE_HOLD := 0.38
+const LEVEL_REWARD_COIN_COLLECT_WAVE_SIZE := 3
+const LEVEL_REWARD_COIN_COLLECT_STAGGER := 0.045
+const LEVEL_REWARD_COIN_FLIGHT_DURATION := 0.30
+const LEVEL_REWARD_COIN_SCATTER_HALF_WIDTH := 0.62
+const LEVEL_REWARD_COIN_SCATTER_HALF_HEIGHT := 134.0
+const LEVEL_REWARD_COIN_IDLE_WOBBLE := 2.4
+const LEVEL_REWARD_COIN_DRAW_RADIUS := 15.0
+const COIN_COUNTER_WAVE_PUNCH_SCALE := 1.06
+## Coins begin collecting exactly one landing plus one deliberate table hold
+## after the first wave lands, so the player registers the whole pile first.
+static func level_reward_collect_start() -> float:
+	return LEVEL_REWARD_COIN_LAND_DURATION + LEVEL_REWARD_COIN_TABLE_HOLD
+
+
+static func level_reward_wave_count() -> int:
+	return int(ceil(float(LEVEL_REWARD_COIN_COUNT) / float(LEVEL_REWARD_COIN_COLLECT_WAVE_SIZE)))
+
+
+static func level_reward_total_duration() -> float:
+	return level_reward_collect_start() \
+		+ float(level_reward_wave_count() - 1) * LEVEL_REWARD_COIN_COLLECT_STAGGER \
+		+ LEVEL_REWARD_COIN_FLIGHT_DURATION
+
+
+## Total hero-to-settled celebration budget, used by tests and the task report.
+static func final_celebration_duration() -> float:
+	return LEVEL_REWARD_COIN_SPAWN_AT + level_reward_total_duration() + WIN_PRESENTATION_HOLD
+
+
+static func merge_timeline(depth: int, final_target: bool) -> Dictionary:
+	if final_target:
+		return MERGE_TIMELINE_FINAL_TARGET
+	if depth <= 0:
+		return MERGE_TIMELINE_NORMAL
+	if depth == 1:
+		return MERGE_TIMELINE_COMBO_1
+	if depth == 2:
+		return MERGE_TIMELINE_COMBO_2
+	return MERGE_TIMELINE_COMBO_3
+
+
+## Chain labels stay proportional to the achievement. Low chains never borrow
+## the rare wording reserved for deep chains.
+static func combo_label_text(depth: int) -> String:
+	if depth <= 0:
+		return ""
+	if depth == 4:
+		return "COMBO 4 — AMAZING!"
+	if depth >= 5:
+		return "COMBO %d — PERFECT!" % depth
+	if depth >= 3:
+		return "COMBO %d!" % depth
+	return "COMBO %d" % depth
 const TARGET_SWAP_START_DELAY := 0.12
 const TARGET_SWAP_OUTGOING_FADE_DURATION := 0.10
 const TARGET_SWAP_GAP_DURATION := 0.02
@@ -162,7 +352,8 @@ const MERGE_CHAIN_DEPTH_CAP := 6
 const OVERLAY_BUTTON_RECT := Rect2(220.0, 770.0, 280.0, 64.0)
 const OVERLAY_FADE_DURATION := 0.14
 const RESULT_BACKDROP_OPACITY := 0.48
-const WIN_PRESENTATION_HOLD := 0.42
+## Beat between the last collected reward coin and the Level Complete modal.
+const WIN_PRESENTATION_HOLD := 0.18
 ## Rendering-only layout values. These never feed simulation or collision geometry.
 ## HUD measurements are in the fixed 720-wide design space, sampled from the
 ## supplied portrait reference: large SCORE left, five-ring ladder centered,

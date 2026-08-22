@@ -93,7 +93,9 @@ func _test_chain_requires_each_contact() -> void:
 	_assert(no_chain.merge_count == 1, "A separated follow-up gem must not proximity-chain")
 
 func _test_feedback_contracts() -> void:
-	_assert(GameConfig.MERGE_RESULT_POP_SCALE == 1.26 and GameConfig.MERGE_PRESENTATION_DURATION == 0.27 and GameConfig.MERGE_SOURCE_PULL_DURATION == 0.06, "Merge and push animation must retain the approved fast cadence")
+	# Reward feedback v3 replaces the 270 ms window with the approved 420 ms merge
+	# timeline. Contact, merge eligibility, and physics values are unchanged.
+	_assert(GameConfig.MERGE_RESULT_POP_SCALE == 1.18 and GameConfig.MERGE_PRESENTATION_DURATION == 0.42 and GameConfig.MERGE_SOURCE_PULL_DURATION == 0.07, "Merge and push animation must retain the approved v3 cadence")
 	_assert(GameConfig.COIN_FLIGHT_DURATION == 0.55 and GameConfig.MAJOR_COIN_FLIGHT_DURATION == 0.62 and GameConfig.COIN_FLIGHT_STAGGER == 0.08, "Coin flights must retain the restored readable cadence")
 	_assert(GameConfig.TARGET_COLLECTION_DURATION == 0.70, "Target collection must retain the restored readable cadence")
 	var overlay_source := FileAccess.get_file_as_string("res://scripts/target_reward_overlay.gd")

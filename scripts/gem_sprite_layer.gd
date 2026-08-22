@@ -134,11 +134,16 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 			_impact_angles.erase(id)
 			_impact_offsets.erase(id)
 
+## The reward pass reveals a merge result from zero and overshoots to 1.30, so
+## the bound spans the full presentation range. It remains presentation-only.
+const PRESENTATION_SCALE_MIN := 0.0
+const PRESENTATION_SCALE_MAX := 1.45
+
 func set_presentation_scale(piece_id: int, multiplier: float) -> void:
-	_presentation_scales[piece_id] = Vector2.ONE * clampf(multiplier, 0.48, 1.32)
+	_presentation_scales[piece_id] = Vector2.ONE * clampf(multiplier, PRESENTATION_SCALE_MIN, PRESENTATION_SCALE_MAX)
 
 func set_presentation_transform(piece_id: int, scale: Vector2, rotation: float, offset: Vector2, elevated: bool = false) -> void:
-	var uniform_scale := clampf((scale.x + scale.y) * 0.5, 0.48, 1.32)
+	var uniform_scale := clampf((scale.x + scale.y) * 0.5, PRESENTATION_SCALE_MIN, PRESENTATION_SCALE_MAX)
 	_presentation_scales[piece_id] = Vector2.ONE * uniform_scale
 	_presentation_rotations[piece_id] = 0.0
 	_presentation_offsets[piece_id] = offset.limit_length(24.0)

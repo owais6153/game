@@ -1,3 +1,33 @@
+# Architecture Addendum - Reward feedback v3
+
+## Reward timelines are data, not code paths
+
+`GameConfig.merge_timeline(depth, final_target)` returns one dictionary per reward tier (`MERGE_TIMELINE_NORMAL`, `..._COMBO_1/2/3`, `..._FINAL_TARGET`). Each holds `hitstop`, `pull_start`, `pull_duration`, `reveal`, `duration`, `sound_at`, `ring_at`, `ring_scale`, `start_scale`, `scale_keys`, `mini_gems`, and `pitch`. The controller resolves the timeline once at merge-confirm time and stores it on the merge event, so the draw path, the sprite-transform path, the audio path, and the effects layer all read the same authoritative record. Retuning a reward tier is a data edit; no new branch is added per tier.
+
+`GameController._merge_result_transform_for(elapsed, timeline)` walks `scale_keys` (`[time, scale]` pairs) with an ease-out/back on the reveal segment and a cubic ease-out afterwards. It is pure and takes no controller state, which is what makes the keyframes directly testable.
+
+## Celebration state
+
+`final_celebration_active` is a controller-owned state distinct from `win_qualified` and `win_presented`. It is set when the confirmed merge event completes the final target and cleared when `GameplayEffectsLayer.level_reward_finished` fires. While set it blocks pointer input, keeps the launcher lifecycle from advancing, and prevents `_update_win_presentation` from presenting. `final_celebration_hero_done` sequences the reward coins behind the hero gem's arrival, with a 2 s safety bound so the state can never deadlock the modal.
+
+To let the presentation branch on the confirmed result, `_advance_target_state_authoritative` now runs before the reward presentation inside `_apply_confirmed_merge_events`. The authoritative ordering, values, and exactly-once guards are unchanged; only the point at which presentation reads them moved earlier.
+
+## Hit-stop
+
+`merge_hitstops` maps a confirmed result id to a remaining duration plus its stored merge velocity. `_update_merge_hitstops` runs before `simulation.step`, holds that one body at zero velocity, and restores the exact stored value on expiry. Only the merge result is affected; every other body keeps stepping, so this is a per-body pause rather than a game freeze, and the simulation resumes with the value `ContactMergeService` produced.
+
+## Cosmetic reward channel
+
+`GameplayEffectsLayer` gained five cosmetic record arrays — `mini_gems`, `combo_labels`, `panel_sparkles`, `level_reward_coins`, and the single `hero_effect` — plus a separate level-reward signal channel (`level_reward_wave_launched`, `level_reward_coin_arrived`, `level_reward_finished`). Keeping the level celebration on its own signals rather than reusing `coin_arrived` prevents the staged 20-coin sequence from being confused with the compact per-target four-coin group, and lets the HUD punch once per wave instead of once per coin.
+
+Every entry is an immediate-mode drawn record: no nodes are allocated, nothing enters `pieces`, and nothing is visible to contact capture, merge eligibility, target detection, or the coin economy. All arrays are capped and lifetime-filtered each frame and cleared by `clear()`, which `restart()` and `_trigger_failure()` already call. The reward-coin pile uses deterministic seeded best-candidate sampling so it is even, bounded to a central band of the board, and identical between runs.
+
+## Presentation-only bounds widened
+
+`GemSpriteLayer` presentation scale is now bounded by `PRESENTATION_SCALE_MIN` (0.0) and `PRESENTATION_SCALE_MAX` (1.45) so a merge result can be revealed from zero and overshoot to 1.30. This bound applies only to the visual child; the authoritative root scale, `GemPiece` radius, rail contact, and merge eligibility still never read it.
+
+`AudioFeedbackService.emit_event` accepts an optional bounded `pitch_scale` (0.80-1.40) used by the combo hierarchy. It changes neither which event fires nor what an event means, and it composes with the existing per-event pitch ranges.
+
 # Tester animation/audio revert and Android exit boundary - 2026-08-18
 
 - `GameConfig` again owns the exact `5528ff6` fast presentation values. The later authoritative/display target split and exactly-once queue remain; restoring animation timing must never roll back those state-safety boundaries.

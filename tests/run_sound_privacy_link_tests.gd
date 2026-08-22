@@ -121,7 +121,9 @@ func _test_confirmed_event_routing_contract() -> void:
 	var reveal_guard := source.find("GameConfig.MERGE_REVEAL_SOUND_AT", merge_identity)
 	var merge_cue := source.find("audio_feedback.emit_event(String(presentation.get(\"merge_sound_event\"", reveal_guard)
 	_assert(merge_classified >= 0 and merge_identity > merge_classified and reveal_guard > merge_identity and merge_cue > reveal_guard, "Merge sound must align once with the restored 200 ms result reveal")
-	_assert(source.contains("audio_feedback.emit_event(\"chain\")"), "Original chain feedback must be restored")
+	# Reward feedback v3 keeps the same confirmed chain event and adds only a
+	# bounded presentation pitch for the combo hierarchy.
+	_assert(source.contains("audio_feedback.emit_event(\"chain\", 1.0, float(timeline.get(\"pitch\", 1.0)))"), "Original chain feedback must be restored")
 	_assert(source.contains("audio_feedback.emit_event(\"target_collect\")"), "Target arrival must retain its original cue")
 	_assert(source.contains("audio_feedback.emit_event(\"target_complete\")"), "Final target completion must own a richer cue")
 	_assert(source.contains("audio_feedback.emit_event(\"win\")"), "Level success must remain tied to final result presentation")

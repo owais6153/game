@@ -255,6 +255,53 @@ func pulse_target() -> void:
 	_target_pulse_tween.tween_property(target_panel, "scale", Vector2.ONE, UiDesignSystemType.TARGET_PULSE_DURATION * 0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+## The panel compresses just before the hero target gem reaches it, so the
+## impact reads as an arrival instead of an unmotivated pulse.
+func anticipate_target_panel() -> void:
+	_build_once()
+	_kill_tween(_target_pulse_tween)
+	target_panel.pivot_offset = _node_center(target_panel)
+	if not is_inside_tree():
+		target_panel.scale = Vector2.ONE * GameConfig.HERO_PANEL_ANTICIPATION_SCALE
+		return
+	_target_pulse_tween = create_tween()
+	_target_pulse_tween.set_pause_mode(Tween.TWEEN_PAUSE_STOP)
+	_target_pulse_tween.tween_property(target_panel, "scale", Vector2.ONE * GameConfig.HERO_PANEL_ANTICIPATION_SCALE, GameConfig.HERO_PANEL_ANTICIPATION_LEAD).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func impact_target_panel() -> void:
+	_build_once()
+	if target_reward_overlay != null:
+		target_reward_overlay.play(target_collection_destination())
+	_kill_tween(_target_pulse_tween)
+	target_panel.pivot_offset = _node_center(target_panel)
+	_energy_pulse(target_panel)
+	if not is_inside_tree():
+		target_panel.scale = Vector2.ONE
+		return
+	_target_pulse_tween = create_tween()
+	_target_pulse_tween.set_pause_mode(Tween.TWEEN_PAUSE_STOP)
+	_target_pulse_tween.tween_property(target_panel, "scale", Vector2.ONE * GameConfig.HERO_PANEL_IMPACT_SCALE, GameConfig.HERO_PANEL_IMPACT_RISE).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_target_pulse_tween.tween_property(target_panel, "scale", Vector2.ONE, GameConfig.HERO_PANEL_IMPACT_SETTLE).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## Restrained container punch used once per collected coin wave.
+func punch_coin_counter() -> void:
+	_build_once()
+	_kill_tween(_coin_icon_tween)
+	coin_icon.pivot_offset = _node_center(coin_icon)
+	score_label.pivot_offset = _node_center(score_label)
+	if not is_inside_tree():
+		coin_icon.scale = Vector2.ONE
+		score_label.scale = Vector2.ONE
+		return
+	coin_icon.scale = Vector2.ONE * GameConfig.COIN_COUNTER_WAVE_PUNCH_SCALE
+	score_label.scale = Vector2.ONE * GameConfig.COIN_COUNTER_WAVE_PUNCH_SCALE
+	_coin_icon_tween = create_tween().set_parallel(true)
+	_coin_icon_tween.tween_property(coin_icon, "scale", Vector2.ONE, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_coin_icon_tween.tween_property(score_label, "scale", Vector2.ONE, GameConfig.COIN_COUNTER_PULSE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
 func target_collection_destination() -> Vector2:
 	if target_icon == null or not target_icon.is_inside_tree():
 		return GameConfig.TARGET_COLLECTION_DESTINATION
@@ -281,7 +328,9 @@ func begin_coin_reward(amount: int) -> void:
 	_authoritative_coins += amount
 
 
-func collect_coin_chunk(value: int, final_coin: bool = false) -> void:
+## `punch` is disabled for staggered level-reward waves so the container is
+## punched once per wave instead of once per coin. The value math is identical.
+func collect_coin_chunk(value: int, final_coin: bool = false, punch: bool = true) -> void:
 	if value <= 0:
 		return
 	_queued_coin_rewards = maxi(0, _queued_coin_rewards - value)
@@ -289,7 +338,8 @@ func collect_coin_chunk(value: int, final_coin: bool = false) -> void:
 	if final_coin and _queued_coin_rewards == 0:
 		_displayed_coins = _authoritative_coins
 	_set_coin_label(_displayed_coins)
-	_animate_coin_change()
+	if punch:
+		_animate_coin_change()
 
 
 func displayed_coin_value() -> int:
@@ -300,18 +350,36 @@ func pending_coin_value() -> int:
 	return _queued_coin_rewards
 
 
+## Called once as Level Complete is about to present. The reward-coin
+## celebration already delivers this level's earnings into this counter in real
+## time as each coin lands, so by the time this runs the HUD is normally already
+## at `final_total`. It must never be forced back down to `previous_total` here
+## — that produced a visible drop right as the modal opened. Only correct the
+## display forward if some coins genuinely have not landed yet (a path that
+## skipped the live celebration, e.g. a direct/debug snapshot).
 func prepare_completion_reward_display(previous_total: int, final_total: int) -> void:
 	_kill_tween(_completion_coin_tween)
 	_authoritative_coins = maxi(previous_total, final_total)
-	_displayed_coins = maxi(0, previous_total)
 	_queued_coin_rewards = 0
+	_displayed_coins = clampi(_displayed_coins, previous_total, final_total)
 	_set_coin_label(_displayed_coins)
 
 
+## Historically the moment the whole level's reward first appeared in the HUD.
+## With the reward-coin celebration, the value is usually already fully
+## delivered by the time this is called (on COLLECT, or on a rewarded double-
+## coins grant): if so, this only confirms the label — it must not re-animate
+## or otherwise imply the reward was granted a second time. It still animates
+## forward when `final_total` is genuinely higher than what has landed so far
+## (the double-coins bonus case).
 func animate_completion_reward(final_total: int, duration: float = 0.72) -> void:
 	_kill_tween(_completion_coin_tween)
 	var start := _displayed_coins
 	_authoritative_coins = maxi(_authoritative_coins, final_total)
+	if start >= final_total:
+		_displayed_coins = final_total
+		_set_coin_label(_displayed_coins)
+		return
 	if not is_inside_tree():
 		_displayed_coins = final_total
 		_set_coin_label(_displayed_coins)

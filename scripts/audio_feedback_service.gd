@@ -67,13 +67,15 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_clock += delta
 
-func emit_event(event_name: String, intensity: float = 1.0) -> bool:
+## `pitch_scale` is a bounded presentation modifier used by the combo hierarchy.
+## It never changes which event fires or what the event means.
+func emit_event(event_name: String, intensity: float = 1.0, pitch_scale: float = 1.0) -> bool:
 	if not sfx_enabled:
 		return false
 	var cooldown := float(GameConfig.AUDIO_COOLDOWN_BY_EVENT.get(event_name, 0.0))
 	if _clock - float(_last_played_at.get(event_name, -100.0)) < cooldown:
 		return false
-	if not _play_event(event_name, clampf(intensity, 0.20, 1.0)):
+	if not _play_event(event_name, clampf(intensity, 0.20, 1.0), clampf(pitch_scale, 0.80, 1.40)):
 		return false
 	_last_played_at[event_name] = _clock
 	emitted_events.append(event_name)
@@ -82,7 +84,7 @@ func emit_event(event_name: String, intensity: float = 1.0) -> bool:
 func clear_trace() -> void:
 	emitted_events.clear()
 
-func _play_event(event_name: String, intensity: float) -> bool:
+func _play_event(event_name: String, intensity: float, pitch_scale: float = 1.0) -> bool:
 	if _players.is_empty() or not _stream_cache.has(event_name):
 		return false
 	var available := _players.filter(func(candidate: AudioStreamPlayer) -> bool: return not candidate.playing)
@@ -104,10 +106,10 @@ func _play_event(event_name: String, intensity: float) -> bool:
 	player.volume_db = linear_to_db(float(tone.volume) * intensity)
 	var pitch_range: Vector2 = GameConfig.AUDIO_PITCH_RANGE_BY_EVENT.get(event_name, Vector2.ONE)
 	if pitch_range.is_equal_approx(Vector2.ONE):
-		player.pitch_scale = 1.0
+		player.pitch_scale = pitch_scale
 	else:
 		_variation_index += 1
-		player.pitch_scale = lerpf(pitch_range.x, pitch_range.y, float(_variation_index % 5) / 4.0)
+		player.pitch_scale = lerpf(pitch_range.x, pitch_range.y, float(_variation_index % 5) / 4.0) * pitch_scale
 	_play_serial += 1
 	player.set_meta("audio_priority", event_priority)
 	player.set_meta("play_serial", _play_serial)

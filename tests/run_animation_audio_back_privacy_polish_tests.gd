@@ -27,8 +27,11 @@ func _run() -> void:
 
 func _test_timing_and_mix_contracts() -> void:
 	_assert(is_equal_approx(GameConfig.COLLISION_VISUAL_DURATION, 0.11), "Collision response must restore the tester-approved 110 ms")
-	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.27) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_DURATION, 0.06), "Merge feedback and push animation must restore the approved fast cadence")
-	_assert(is_equal_approx(GameConfig.MERGE_REVEAL_START, 0.0) and is_equal_approx(GameConfig.MERGE_REVEAL_SOUND_AT, 0.0), "Fast merge result reveal and chime must remain immediate")
+	# Reward feedback v3 cadence: 40 ms hit-stop, 40-110 ms source pull, reveal and
+	# chime at 110 ms, pop/settle/secondary keys, finished at 420 ms.
+	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.42) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_DURATION, 0.07), "Merge feedback and push animation must use the approved v3 cadence")
+	_assert(is_equal_approx(GameConfig.MERGE_REVEAL_START, 0.11) and is_equal_approx(GameConfig.MERGE_REVEAL_SOUND_AT, 0.11), "Merge result reveal and chime must land together at 110 ms")
+	_assert(is_equal_approx(GameConfig.MERGE_HITSTOP_DURATION, 0.04) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_START, 0.04), "Merge hit-stop must own the first 40 ms and gate the source pull")
 	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_DURATION, 0.70), "Target reward must restore the post-checkmark-removal 700 ms cadence")
 	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_CONFIRM_DURATION, 0.10) and is_equal_approx(GameConfig.TARGET_COLLECTION_TRAVEL_DURATION, 0.52), "Target reward must retain its 100 ms confirmation and 520 ms travel")
 	_assert(is_equal_approx(GameConfig.TARGET_PANEL_PULSE_DURATION, 0.22), "Target pulse must restore the post-checkmark-removal 220 ms cadence")
@@ -44,12 +47,16 @@ func _test_timing_and_mix_contracts() -> void:
 	_assert(is_equal_approx(GameConfig.COIN_FLIGHT_DURATION, 0.55) and is_equal_approx(GameConfig.MAJOR_COIN_FLIGHT_DURATION, 0.62), "Coin travel must restore the post-checkmark-removal cadence")
 	var visible_coin_sequence := GameConfig.COIN_BURST_DURATION + float(GameConfig.MAJOR_COIN_BURST_COUNT - 1) * GameConfig.COIN_FLIGHT_STAGGER + GameConfig.MAJOR_COIN_FLIGHT_DURATION
 	_assert(is_equal_approx(visible_coin_sequence, 0.98), "Visible coin sequence must restore the previous 980 ms total")
-	var final_sequence := maxf(
+	# The non-final target keeps the previous compact reward bound.
+	var standard_target_sequence := maxf(
 		GameConfig.MERGE_PRESENTATION_DURATION + GameConfig.TARGET_COLLECTION_DURATION,
 		GameConfig.COIN_REWARD_START_DELAY + visible_coin_sequence
-	) + GameConfig.WIN_PRESENTATION_HOLD
-	_assert(is_equal_approx(final_sequence, 1.66), "Final-target-to-result presentation must restore the previous 1.66 second bound")
-	_assert(is_equal_approx(GameConfig.WIN_PRESENTATION_HOLD, 0.42), "Level-complete hold must restore 420 ms")
+	)
+	_assert(standard_target_sequence <= 1.30, "Non-final target reward must stay compact")
+	# The final target owns the staged hero celebration instead.
+	var final_sequence := GameConfig.final_celebration_duration()
+	_assert(final_sequence >= 2.6 and final_sequence <= 3.1, "Final-target celebration must land inside the approved staged budget")
+	_assert(is_equal_approx(GameConfig.WIN_PRESENTATION_HOLD, 0.18), "Level-complete beat after the last coin must be 180 ms")
 	_assert(is_equal_approx(GameConfig.CONTACT_SOUND_COOLDOWN, 0.075) and is_equal_approx(GameConfig.AUDIO_COOLDOWN_BY_EVENT.wall_contact, 0.11), "Contact cooldowns must use the original procedural mapping")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.46), "Gem collision must restore the original procedural volume")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.32), "Rail collision must restore the original procedural volume")

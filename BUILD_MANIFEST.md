@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Reward Feedback V3 — HUD Coin-Counter Continuity Fix TEST APK (versionCode 6, unreleased)
+
+- APK: `build/android/majestic-gems-reward-feedback-v3-hud-coin-fix.apk`
+- Size: 82,255,008 bytes (78.44 MiB)
+- Export timestamp: 2026-08-22 04:46:16 +05:00 (Asia/Karachi)
+- SHA-256: `C6122C59BAC86833770F4D500419C7EB2D14C336EE7B497EF42686DD00769790`
+- Source state: uncommitted working tree on top of `db11dae` (`docs: record procedural collision sound release`). This build is not tagged and not committed; it exists to validate the reward feedback v3 pass plus the HUD coin-counter continuity fix before either is committed. No version value was changed: versionCode 6 / versionName 1.0.4 match the committed preset exactly, since no AAB was generated and this is a same-identity debug verification build.
+- Export: Godot 4.6.3 `--export-debug Android`, Gradle APK format, both `arm64-v8a` and `armeabi-v7a`, Godot debug signing. `export_presets.cfg` was temporarily switched from Gradle AAB to Gradle APK, the debug APK was exported, and the preset was restored byte-for-byte to the committed AAB path/format immediately afterward (`git diff export_presets.cfg` shows no change). No AAB was generated.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 6, versionName 1.0.4, min SDK 24, target/compile SDK 36, game category, portrait/immersive display settings. APK Signature Scheme v2 PASS with one Godot RSA-2048 debug signer. ZIP audit: 1,004 entries, five DEX files, both ARM Godot/C++ library pairs, `AndroidManifest.xml` present, Tween Composer Home dependency present (`tween_composer.gdc` and its three configuration resources), zero `tests/`/`reports/` entries. Packaged `assets/scripts/game_controller.gdc`, `assets/scripts/gameplay_effects_layer.gdc`, and `assets/scripts/gameplay_hud_layer.gdc` are present; the fixed `gameplay_hud_layer.gd` source predates the export timestamp, so the build reflects the HUD coin-counter fix and not a stale cache.
+- Tests: `REWARD_FEEDBACK_V3_TESTS`, `REFERENCE_GAME_FEEL_V2_TESTS`, `ANIMATION_AUDIO_BACK_PRIVACY_POLISH_TESTS`, `UI_SCALE_LAYOUT_TESTS`, `GAME_FLOW_REWARD_SPLASH_TESTS`, `SOUND_PRIVACY_LINK_TESTS`, `BRANDING_PUSH_LINE_TESTS`, `SCENE_VARIETY_ASSETS_TESTS`, and `ADMOB_INTEGRATION_TESTS` all passed (Godot 4.6.3 headless). Each printed its PASS line before the Windows runner's known post-sentinel teardown access violation; no assertion failed.
+- Device status: no Android device was connected; installation, launch, and physical on-device verification are not claimed.
+- Report: `reports/REWARD_FEEDBACK_V3_REPORT.md` (Addendum — HUD coin-counter continuity fix).
+
 ## Original Procedural Collision Sound Restore RELEASE AAB v1.0.4 (versionCode 6)
 
 - AAB: `build/android/majestic-gems-procedural-collision-restore-v1.0.4-vc6.aab`

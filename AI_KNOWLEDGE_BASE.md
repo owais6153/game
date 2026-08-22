@@ -1,3 +1,37 @@
+# Knowledge Base Addendum - Reward feedback v3
+
+## Where reward timing lives
+
+All merge/combo/final-target/coin timing constants are in `scripts/game_config.gd`. Do not add timing literals to the controller, the effects layer, or the HUD. The per-tier timelines are `MERGE_TIMELINE_NORMAL`, `MERGE_TIMELINE_COMBO_1`, `MERGE_TIMELINE_COMBO_2`, `MERGE_TIMELINE_COMBO_3`, and `MERGE_TIMELINE_FINAL_TARGET`, selected by `GameConfig.merge_timeline(depth, final_target)`.
+
+The `scale_keys` field is named that way on purpose: a Dictionary entry called `keys` collides with `Dictionary.keys()` under GDScript property access, so `timeline.keys` would silently return the method instead of the keyframes.
+
+## Combo depth
+
+Combo level is `depth` from `ContactMergeService.resolve_with_chains`. That value already means "this merge was caused by a gem produced by a previous merge inside the same resolution", which is exactly the required combo definition. Do not add a separate combo counter, and do not count merges across separate launches: the resolver's depth resets naturally per resolution.
+
+## Reward hierarchy is a contract
+
+`run_reward_feedback_v3_tests.gd` asserts that ring strength, SFX pitch, mini-gem count, and hit-stop length increase monotonically from normal merge through COMBO 3+ to the final target. Any retune must keep that ordering. It also pins the exact normal-merge and Phase A scale keyframes, the 500 ms hero hold, and the 350-400 ms coin table hold — the two deliberate pauses must not be quietly removed.
+
+## Things that must stay true
+
+- The HUD target count may only advance when the hero gem reaches the panel (Phase D arrival), never earlier.
+- The final target must not fire `begin_target_coin_reward`; it owns the staged 20-coin celebration instead. Firing both would animate the same reward twice.
+- Level Complete must remain gated on `final_celebration_active` as well as merge presentations, target collection, and coin flights.
+- Reward coins are cosmetic. They must never be added to `pieces` or fed to contact capture.
+- Anything drawn by `GameplayEffectsLayer` must be cleared by `clear()`, or it will leak across levels.
+- The stored economy value is authoritative (`coins` is granted exactly once at the confirmed merge event, not at `COLLECT`). `COLLECT` only persists it via `ProgressionSaveServiceType.save_progress` and unblocks the level transition — it must never grant or re-grant the reward.
+- The top-left HUD coin display (`GameplayHudLayer._displayed_coins`) must only ever move toward the authoritative total, never backward. `prepare_completion_reward_display` (called as Level Complete presents) and `animate_completion_reward` (called by `COLLECT` and the rewarded double-coins bonus) must never force the display down to the pre-level total — that produced a visible drop-then-reclimb right as the modal opened. See "HUD coin-counter continuity fix" in `reports/REWARD_FEEDBACK_V3_REPORT.md` before touching either function again.
+
+## No camera shake
+
+The gameplay scene has no `Camera2D`. The COMBO 3+ camera impulse in the reward brief was intentionally skipped rather than adding a camera to a working scene. If a camera is ever introduced, that impulse should stay bounded to roughly 2-3 px over about 100 ms and be used at COMBO 3+ only.
+
+## Regenerating the visual proof
+
+`godot --path . --script tests/capture_reward_feedback_v3.gd` drives real confirmed merges through the production controller in a 720x1280 `SubViewport` and writes stage-by-stage PNGs to `reports/reward-feedback-v3/screenshots/`. It must be run with a display (not `--headless`). Note that `_apply_confirmed_merge_events` takes `Array[Dictionary]`; passing an untyped array literal fails silently at the call boundary.
+
 # 2026-08-18 - Active reward/coin/merge timing guardrails
 
 - Tester feedback supersedes the all-fast cadence for successful actions. Preserve merge `0.54 s`, source pull/reveal `0.20 s`, reveal audio at `0.20 s`, target overlap start `0.30 s`, target collection `0.70 s` (`0.10 s` confirmation + `0.52 s` travel), target pulse `0.22 s`, coin start delay `0.26 s`, coin flights `0.55/0.62 s`, flight/spawn stagger `0.08/0.08 s`, and result hold `0.42 s`.

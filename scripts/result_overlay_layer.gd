@@ -7,6 +7,14 @@ const UiDesignSystemType = preload("res://scripts/ui_design_system.gd")
 const CoinIconType = preload("res://scripts/coin_icon.gd")
 const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_navy.svg")
+## Level Complete entrance. The dim leads the panel, then the panel overshoots
+## once and settles: 0.86 -> 1.04 -> 1.0 across roughly 310 ms.
+const PANEL_DIM_DURATION := 0.14
+const PANEL_ENTER_DELAY := 0.07
+const PANEL_ENTER_START_SCALE := 0.86
+const PANEL_ENTER_OVERSHOOT_SCALE := 1.04
+const PANEL_ENTER_RISE := 0.19
+const PANEL_ENTER_SETTLE := 0.12
 
 signal retry_requested
 signal collect_requested
@@ -125,6 +133,13 @@ func dismiss() -> void:
 	if panel != null:
 		panel.scale = Vector2.ONE
 		panel.modulate = Color.WHITE
+	if reward_card != null:
+		reward_card.modulate = Color.WHITE
+	if result_icon != null:
+		result_icon.scale = Vector2.ONE
+		result_icon.modulate = Color.WHITE
+	if title_label != null:
+		title_label.scale = Vector2.ONE
 	if dimmer != null:
 		dimmer.color = UiDesignSystemType.COLOR_OVERLAY
 
@@ -492,23 +507,35 @@ func _start_entrance() -> void:
 		panel.modulate = Color.WHITE
 		dimmer.color = UiDesignSystemType.COLOR_OVERLAY
 		return
-	panel.scale = Vector2.ONE * 0.90
+	panel.scale = Vector2.ONE * PANEL_ENTER_START_SCALE
 	panel.modulate = Color(1.0, 1.0, 1.0, 0.0)
 	dimmer.color = Color(UiDesignSystemType.COLOR_OVERLAY.r, UiDesignSystemType.COLOR_OVERLAY.g, UiDesignSystemType.COLOR_OVERLAY.b, 0.0)
 	_entrance_tween = create_tween().set_parallel(true)
 	_entrance_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	_entrance_tween.tween_property(panel, "scale", Vector2.ONE, UiDesignSystemType.POPUP_ENTER_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_entrance_tween.tween_property(panel, "modulate:a", 1.0, UiDesignSystemType.POPUP_ENTER_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_entrance_tween.tween_property(dimmer, "color:a", UiDesignSystemType.COLOR_OVERLAY.a, UiDesignSystemType.POPUP_ENTER_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# The gameplay background dims first; the panel then arrives on the settled dim.
+	_entrance_tween.tween_property(dimmer, "color:a", UiDesignSystemType.COLOR_OVERLAY.a, PANEL_DIM_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_entrance_tween.tween_property(panel, "scale", Vector2.ONE * PANEL_ENTER_OVERSHOOT_SCALE, PANEL_ENTER_RISE).set_delay(PANEL_ENTER_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_entrance_tween.tween_property(panel, "scale", Vector2.ONE, PANEL_ENTER_SETTLE).set_delay(PANEL_ENTER_DELAY + PANEL_ENTER_RISE).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	_entrance_tween.tween_property(panel, "modulate:a", 1.0, PANEL_ENTER_RISE).set_delay(PANEL_ENTER_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	if result_won:
+		# Reveal hierarchy: title, then the completed target gem, then the reward
+		# card and its actions. The layout and artwork itself are unchanged.
 		title_label.pivot_offset = _node_center(title_label)
 		result_icon.pivot_offset = _node_center(result_icon)
+		reward_card.pivot_offset = _node_center(reward_card)
 		title_label.scale = Vector2.ONE * 0.82
 		result_icon.scale = Vector2.ONE * 0.72
 		result_icon.modulate = Color(1.18, 1.18, 1.18, 0.0)
-		_entrance_tween.tween_property(title_label, "scale", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		_entrance_tween.tween_property(result_icon, "scale", Vector2.ONE, 0.30).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(0.04)
-		_entrance_tween.tween_property(result_icon, "modulate", Color.WHITE, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).set_delay(0.04)
+		reward_card.modulate = Color(1.0, 1.0, 1.0, 0.0)
+		# The reveal overlaps the panel's own rise so the whole modal is settled
+		# inside the approved celebration budget.
+		var reveal_base := PANEL_ENTER_DELAY + 0.07
+		_entrance_tween.tween_property(title_label, "scale", Vector2.ONE, 0.18).set_delay(reveal_base).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_entrance_tween.tween_property(result_icon, "scale", Vector2.ONE, 0.22).set_delay(reveal_base + 0.07).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_entrance_tween.tween_property(result_icon, "modulate", Color.WHITE, 0.18).set_delay(reveal_base + 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_entrance_tween.tween_property(reward_card, "modulate:a", 1.0, 0.18).set_delay(reveal_base + 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	else:
+		reward_card.modulate = Color.WHITE
 
 
 func _refresh_safe_margins() -> void:

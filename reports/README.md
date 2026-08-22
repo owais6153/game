@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Reward Feedback V3](REWARD_FEEDBACK_V3_REPORT.md) — merge/combo/final-target reward hierarchy, 420 ms merge timeline, chain combo system, staged final-target hero moment, 20-coin level celebration, gated Level Complete, and stage-by-stage in-game screenshots.
+
 - [Original Procedural Gem/Rail Collision Sound Restore](PROCEDURAL_COLLISION_SOUND_RESTORE_RELEASE.md) — restoration of the pre-supplied-audio contact identities, original mix/gates, release version 1.0.4/code 6, and AAB/APK validation.
 
 - [Original Collision Sound, Fast Merge/Push, and Visible-Touch Merge Repair](ORIGINAL_COLLISION_FAST_MERGE_VISIBLE_TOUCH_REPAIR.md) — original gem/rail contact mapping and mix, restored fast merge/push motion, calibrated visible-touch merge coverage, and APK-only validation.
