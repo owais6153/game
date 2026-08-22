@@ -197,5 +197,7 @@ one Godot RSA-2048 debug signer; both ARM ABIs and the changed compiled gameplay
 scripts are present, with zero packaged `tests/` or `reports/` entries. The
 committed AAB preset was restored byte-for-byte and no AAB was generated. ADB
 found no connected device, so installation, touch feel, frame time, listening,
-and physical-device acceptance are not claimed. Exact source commit/tag
-provenance is recorded in `BUILD_MANIFEST.md` after the source commit.
+and physical-device acceptance are not claimed. Source commit/tag: `071d1ba` /
+`reward-feedback-real-gems-v4-source`. Delivery tag
+`reward-feedback-real-gems-v4` points to the manifest/provenance follow-up;
+full artifact provenance is recorded in `BUILD_MANIFEST.md`.

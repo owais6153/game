@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Reward Feedback Real Gameplay Gems V4 TEST APK (versionCode 6, unreleased)
+
+- APK: `build/android/majestic-gems-reward-feedback-real-gems-v4.apk`
+- Size: 82,272,500 bytes (78.46 MiB)
+- Export timestamp: 2026-08-22 08:45:44 +05:00 (Asia/Karachi)
+- SHA-256: `4CEA7BC0B5B4B616FEDFA75A5DEC0693C7DF91D87BCFE5C6C2CD68700C769233`
+- Source commit/tag: `071d1ba` / `reward-feedback-real-gems-v4-source`. Delivery tag: `reward-feedback-real-gems-v4` on the manifest/provenance follow-up commit.
+- Version/export: Godot 4.6.3 `--export-debug Android`, Gradle APK format, Godot debug signing, both `arm64-v8a` and `armeabi-v7a`. The committed preset remains versionCode 6 / versionName 1.0.4 and AAB format; only `gradle_build/export_format` was switched to APK for this debug build, then restored byte-for-byte. No AAB was generated, so no release identity was reused or changed.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 6, versionName 1.0.4, min SDK 24, target/compile SDK 36. APK Signature Scheme v2 PASS with one Godot RSA-2048 debug signer. ZIP audit: 1,004 entries, both ARM Godot libraries, all five changed compiled gameplay/rendering scripts present, and zero packaged `tests/` or `reports/` entries.
+- Tests: all nine repository suites passed. After the final post-hold coin-flight signal correction, `REWARD_FEEDBACK_V3_TESTS` and `ANIMATION_AUDIO_BACK_PRIVACY_POLISH_TESTS` were rerun and passed. GL Compatibility/ANGLE produced and reviewed 31 PNG proof frames plus a 360x640/30 FPS AVI; the PNG evidence is tracked under `reports/reward-feedback-real-gems-v4/screenshots/`.
+- Device status: `adb devices -l` found no connected device. Installation, touch feel, frame time, listening, haptics, and physical-device acceptance are not claimed.
+- Report: `reports/REWARD_FEEDBACK_REAL_GEMS_V4_REPORT.md`.
+
 ## Reward Feedback V3 — HUD Coin-Counter Continuity Fix TEST APK (versionCode 6, unreleased)
 
 - APK: `build/android/majestic-gems-reward-feedback-v3-hud-coin-fix.apk`
