@@ -1,3 +1,8 @@
+# 2026-08-23 - Release AAB v1.0.5 (versionCode 7)
+
+- Prepared the signed Play AAB for the simultaneous-reward-physics milestone at versionCode 7 / versionName 1.0.5, strictly newer than the previously recorded 6 / 1.0.4 release.
+- Verified the embedded bundle manifest with Bundletool, both ARM architectures, release JAR signature, changed compiled scripts, and exclusion of tests/reports. No gameplay behavior changed from the V6 delivery.
+
 # 2026-08-23 - Simultaneous reward reveal and immediate physics v6
 
 - Synchronized every generated reward gem with its confirmed result's reveal frame and scale timeline; multi-gem siblings are created together with identical pop phase.

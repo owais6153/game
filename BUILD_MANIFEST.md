@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Reward Gem Simultaneous Physics V6 RELEASE AAB v1.0.5 (versionCode 7)
+
+- AAB: `build/android/majestic-gems-reward-gem-simultaneous-physics-v1.0.5-vc7.aab`
+- Size: 70,113,786 bytes (66.87 MiB)
+- Export timestamp: 2026-08-23 13:47:05 +05:00 (Asia/Karachi)
+- SHA-256: `337ADB0ED1EC07B27CC8F775EC700516A88CA5A82B9A5525186713F2430EB38F`
+- Source commit/tag: `ef49309` / `reward-gem-simultaneous-physics-v1.0.5-vc7-source`. Delivery tag: `reward-gem-simultaneous-physics-v1.0.5-vc7-release` on the manifest/provenance follow-up commit.
+- Version selection: versionCode 7 is strictly greater than every recorded released/uploaded code (maximum prior 6); versionName 1.0.5 is greater than the latest prior release 1.0.4. Both values are persisted and committed in `export_presets.cfg` before export.
+- Export: Godot 4.6.3 `--export-release Android`, Gradle AAB, configured release/upload signing, both `arm64-v8a` and `armeabi-v7a`.
+- Bundletool 1.18.3: `validate` PASS. Embedded manifest reports package `com.owais.majestygems`, versionCode `7`, versionName `1.0.5`, compile/target SDK 36, and min SDK 24. The bundle has 1,015 entries, base DEX plus both ARM Godot/C++ libraries, and the install-time asset pack contains all five changed V6 gameplay/rendering scripts. Zero `tests/` or `reports/` entries are packaged.
+- Signature: `jarsigner -verify -certs` reports `jar verified`; the configured upload certificate is self-signed and has no timestamp, which is expected for this local signed release bundle.
+- Tests: all nine V6 repository suites had already printed PASS for the unchanged gameplay source; `REWARD_FEEDBACK_V3_TESTS: PASS` was rerun after the version bump. The previous standalone debug APK `build/android/majestic-gems-reward-gem-simultaneous-physics-v6.apk` still exists; no separate version-7 APK was requested or exported.
+- Device status: `adb devices -l` found no connected device. No installation, launch, touch, performance, listening, haptic, or Play Console upload is claimed.
+- Report: `reports/REWARD_GEM_SIMULTANEOUS_PHYSICS_V6_REPORT.md`.
+
 ## Reward Gem Simultaneous Physics V6 TEST APK (versionCode 6, unreleased)
 
 - APK: `build/android/majestic-gems-reward-gem-simultaneous-physics-v6.apk`

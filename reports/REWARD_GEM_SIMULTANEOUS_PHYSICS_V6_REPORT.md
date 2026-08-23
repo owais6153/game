@@ -66,3 +66,11 @@ No score, target, coin, launcher, collision geometry, radius, containment, save,
 - `adb devices -l` started the daemon and listed no device. Installation, touch feel, frame pacing, listening, haptics, and physical-device acceptance are not claimed.
 
 Source milestone: `6fcdb44` / `reward-gem-simultaneous-physics-v6-source`. Delivery provenance is committed and tagged as `reward-gem-simultaneous-physics-v6`.
+
+## Release AAB v1.0.5 / versionCode 7
+
+- A signed Play AAB was exported from `ef49309` / `reward-gem-simultaneous-physics-v1.0.5-vc7-source`: `build/android/majestic-gems-reward-gem-simultaneous-physics-v1.0.5-vc7.aab`.
+- Size: 70,113,786 bytes (66.87 MiB); timestamp: 2026-08-23 13:47:05 +05:00; SHA-256: `337ADB0ED1EC07B27CC8F775EC700516A88CA5A82B9A5525186713F2430EB38F`.
+- `export_presets.cfg` now persistently contains versionCode 7 / versionName 1.0.5 and the versioned AAB path. Both values are strictly newer than the prior release identity 6 / 1.0.4.
+- Bundletool 1.18.3 validates the bundle and confirms its embedded manifest contains versionCode 7 / versionName 1.0.5. Both ARM architectures, base DEX, the five V6 compiled scripts in the install-time asset pack, and zero packaged tests/reports were verified.
+- `jarsigner -verify -certs` reports `jar verified`; the configured local upload certificate is self-signed and untimestamped. `REWARD_FEEDBACK_V3_TESTS: PASS` was rerun after preparing the release version. No device was connected and no Play upload is claimed.
