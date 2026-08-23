@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Reward Gem Simultaneous Physics V6 TEST APK (versionCode 6, unreleased)
+
+- APK: `build/android/majestic-gems-reward-gem-simultaneous-physics-v6.apk`
+- Size: 82,273,288 bytes (78.46 MiB)
+- Export timestamp: 2026-08-23 13:23:58 +05:00 (Asia/Karachi)
+- SHA-256: `25347DE379C63F0EF3E537A8462599527365E7DF83A4A4B136C17018DDE8D82A`
+- Source commit/tag: `6fcdb44` / `reward-gem-simultaneous-physics-v6-source`. Delivery tag: `reward-gem-simultaneous-physics-v6` on the manifest/provenance follow-up commit.
+- Version/export: Godot 4.6.3 `--export-debug Android`, Gradle APK format, Godot debug signing, `arm64-v8a` and `armeabi-v7a`. The committed preset remains versionCode 6 / versionName 1.0.4 and AAB format; export path/format were changed only for this debug APK and restored byte-for-byte. No AAB was generated, so no release version was reused or changed.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 6, versionName 1.0.4, min SDK 24, target/compile SDK 36. APK Signature Scheme v2 PASS with signer SHA-256 `3b2933181e64f32dae1d52a01642be2c469b36ec05ead7313cde0d6d672ad10f`. ZIP audit: 1,004 entries, both ARM Godot libraries, all five changed compiled gameplay/rendering scripts present, and zero packaged `tests/` or `reports/` entries.
+- Tests: all nine repository suites printed PASS. GL Compatibility/ANGLE completed the production-path capture and 33 reviewed PNGs are tracked under `reports/reward-gem-simultaneous-physics-v6/screenshots/`.
+- Device status: `adb devices -l` started the daemon and found no connected device. Installation, touch feel, frame time, listening, haptics, and physical-device acceptance are not claimed.
+- Report: `reports/REWARD_GEM_SIMULTANEOUS_PHYSICS_V6_REPORT.md`.
+
 ## Reward Gem Split Readability V5 TEST APK (versionCode 6, unreleased)
 
 - APK: `build/android/majestic-gems-reward-gem-split-readability-v5.apk`

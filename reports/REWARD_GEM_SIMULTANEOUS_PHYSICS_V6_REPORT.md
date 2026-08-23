@@ -58,4 +58,11 @@ No score, target, coin, launcher, collision geometry, radius, containment, save,
 - GL Compatibility/ANGLE production-controller capture: PASS, 33 PNGs in `reports/reward-gem-simultaneous-physics-v6/screenshots/`.
 - Reviewed normal 150 ms versus 280 ms and COMBO 2 670 ms versus 800 ms: every result/reward output is visible together first, then visibly separated by real physics. No tether, behind-result travel, or visual slide remains.
 
-Full repository-suite, Android artifact, package/signature/ABI, and connected-device status are recorded after final validation below and in `BUILD_MANIFEST.md`.
+- Standalone debug APK exists: `build/android/majestic-gems-reward-gem-simultaneous-physics-v6.apk`, 82,273,288 bytes (78.46 MiB), exported 2026-08-23 13:23:58 +05:00, SHA-256 `25347DE379C63F0EF3E537A8462599527365E7DF83A4A4B136C17018DDE8D82A`.
+- AAPT: package `com.owais.majestygems`, versionCode 6, versionName 1.0.4, min SDK 24, target/compile SDK 36, portrait/game configuration.
+- APK Signature Scheme v2: PASS; one Godot RSA-2048 debug signer, certificate SHA-256 `3b2933181e64f32dae1d52a01642be2c469b36ec05ead7313cde0d6d672ad10f`.
+- ZIP audit: 1,004 entries, both `arm64-v8a` and `armeabi-v7a`, all five changed compiled gameplay/rendering scripts present, zero packaged `tests/` or `reports/` entries.
+- `export_presets.cfg` was temporarily switched to debug APK output and restored byte-for-byte to the committed AAB preset. No AAB was generated and no version value changed.
+- `adb devices -l` started the daemon and listed no device. Installation, touch feel, frame pacing, listening, haptics, and physical-device acceptance are not claimed.
+
+Source milestone: `6fcdb44` / `reward-gem-simultaneous-physics-v6-source`. Delivery provenance is committed and tagged as `reward-gem-simultaneous-physics-v6`.

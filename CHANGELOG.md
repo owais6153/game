@@ -6,6 +6,7 @@
 - Retained the 650 ms reward grace only around merge-candidate capture. Physical collision response remains immediate, and ordinary merging resumes when the grace expires.
 - Preserved distinct lower-tier sibling selection, the three-piece-per-shot budget, COMBO 2 generation ceiling, 24-piece cap, 260 ms chain spacing, shadows, coin/hero holds, scoring, target progression, audio, and haptics.
 - Replaced extraction/activation regressions and proof frames with same-frame reveal, identical sibling-pop, immediate-motion/contact, persistence, and bounded-cascade coverage.
+- Exported and audited `majestic-gems-reward-gem-simultaneous-physics-v6.apk`; AAPT, v2 signing, both ARM ABIs, changed compiled scripts, and development-file exclusion pass. No device was connected.
 
 # 2026-08-23 - Reward split readability, grounded shadows, and held target rewards v5
 
