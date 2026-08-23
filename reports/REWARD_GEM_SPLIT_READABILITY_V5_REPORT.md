@@ -71,4 +71,12 @@ The reviewed frames show the supplied gem shadow extending below gem silhouettes
 
 ## Delivery
 
-Source commit/tag, full nine-suite validation, APK filename/hash/signature/ABI checks, connected-device status, and delivery commit/tag are recorded here when the milestone is finalized.
+- Source: `f5d76b5` / `reward-gem-split-readability-v5-source`.
+- APK: `build/android/majestic-gems-reward-gem-split-readability-v5.apk`, 82,276,488 bytes, exported 2026-08-23 12:31:14 +05:00.
+- SHA-256: `8E58509640BCBD5EDF13A25B0382661DF3AF0088446808E5751149E899921644`.
+- AAPT: package `com.owais.majestygems`, versionCode 6, versionName 1.0.4, min SDK 24, target/compile SDK 36, both `arm64-v8a` and `armeabi-v7a`.
+- Signature: APK Signature Scheme v2 PASS; debug signer SHA-256 `3b2933181e64f32dae1d52a01642be2c469b36ec05ead7313cde0d6d672ad10f`.
+- ZIP audit: 1,004 entries; compiled `board_simulation`, `game_config`, `game_controller`, `gameplay_effects_layer`, and `gem_sprite_layer` scripts present; no `tests/` or `reports/` entries packaged.
+- The committed export preset remains AAB format at versionCode 6/versionName 1.0.4. Only the debug APK format was used temporarily; no AAB was generated.
+- `adb devices -l` found no connected device. Installation, physical touch/feel, performance, listening, and haptics are not claimed.
+- Delivery tag: `reward-gem-split-readability-v5` on the manifest/provenance follow-up commit.

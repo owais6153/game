@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Reward Gem Split Readability V5 TEST APK (versionCode 6, unreleased)
+
+- APK: `build/android/majestic-gems-reward-gem-split-readability-v5.apk`
+- Size: 82,276,488 bytes (78.46 MiB)
+- Export timestamp: 2026-08-23 12:31:14 +05:00 (Asia/Karachi)
+- SHA-256: `8E58509640BCBD5EDF13A25B0382661DF3AF0088446808E5751149E899921644`
+- Source commit/tag: `f5d76b5` / `reward-gem-split-readability-v5-source`. Delivery tag: `reward-gem-split-readability-v5` on the manifest/provenance follow-up commit.
+- Version/export: Godot 4.6.3 `--export-debug Android`, Gradle APK format, Godot debug signing, `arm64-v8a` and `armeabi-v7a`. The committed preset remains versionCode 6 / versionName 1.0.4 and AAB format; `gradle_build/export_format` was changed only for this debug APK and restored immediately. No AAB was generated, so no release version was reused or changed.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 6, versionName 1.0.4, min SDK 24, target/compile SDK 36. APK Signature Scheme v2 PASS with signer SHA-256 `3b2933181e64f32dae1d52a01642be2c469b36ec05ead7313cde0d6d672ad10f`. ZIP audit: 1,004 entries, both ARM Godot libraries, all five changed compiled gameplay/rendering scripts present, and zero packaged `tests/` or `reports/` entries.
+- Tests: all nine repository suites passed together. GL Compatibility/ANGLE completed the production-path capture and 33 reviewed PNGs are tracked under `reports/reward-gem-extraction-v5/screenshots/`.
+- Device status: `adb devices -l` started the daemon and found no connected device. Installation, touch feel, frame time, listening, haptics, and physical-device acceptance are not claimed.
+- Report: `reports/REWARD_GEM_SPLIT_READABILITY_V5_REPORT.md`.
+
 ## Reward Feedback Real Gameplay Gems V4 TEST APK (versionCode 6, unreleased)
 
 - APK: `build/android/majestic-gems-reward-feedback-real-gems-v4.apk`
