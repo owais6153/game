@@ -59,8 +59,8 @@ func _test_merge_timeline_hierarchy() -> void:
 	_assert(GameConfig.BONUS_GEM_BUDGET_PER_SHOT == 3, "A single shot must stop after three generated reward pieces")
 	_assert(GameConfig.BONUS_BOARD_PIECE_CAP >= 20 and GameConfig.BONUS_BOARD_PIECE_CAP <= 28, "Crowded-board reward spawning must have a hard population cap")
 	_assert(GameConfig.BONUS_REWARD_MAX_CHAIN_DEPTH == 2, "COMBO 3+ may celebrate but must not generate another reward tier")
-	_assert(GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY >= 0.70 and GameConfig.CHAIN_PRESENTATION_STAGGER >= 0.24, "Bonus extraction and chain tiers must remain slow enough to read")
-	_assert(GameConfig.BONUS_VISUAL_START_SCALE >= 0.40 and GameConfig.BONUS_EXTRACTION_MOVE_START < GameConfig.BONUS_EXTRACTION_POP_END, "A reward must begin visibly and travel while it grows")
+	_assert(is_equal_approx(GameConfig.BONUS_VISUAL_BURST_DURATION, GameConfig.MERGE_PRESENTATION_DURATION - GameConfig.MERGE_REVEAL_START), "Reward siblings must use the result's complete reveal-to-settle interval")
+	_assert(GameConfig.CHAIN_PRESENTATION_STAGGER >= 0.24, "Chain tiers must remain slow enough to read")
 	_assert(float(combo_3.hitstop) > float(normal.hitstop), "COMBO 3+ must use a longer hit-stop than a normal merge")
 	_assert(float(final_target.hitstop) > float(combo_3.hitstop), "The final target must own the strongest hit-stop")
 	_assert(float(final_target.duration) < float(normal.duration), "Final-target Phase A must hand the gem to the hero sequence early")
@@ -130,39 +130,32 @@ func _test_real_bonus_merge_rewards() -> void:
 	var pieces_before := controller.pieces.size()
 	controller._apply_confirmed_merge_events([_merge_event(controller, 7001, 4, 0)])
 	_assert(controller.pending_bonus_spawns.size() == 1, "Every ordinary merge must schedule its real bonus gameplay gem")
-	controller._update_pending_bonus_spawns(GameConfig.BONUS_SPAWN_DELAY + 0.001)
+	var timeline: Dictionary = GameConfig.MERGE_TIMELINE_NORMAL
+	var reveal := float(timeline.reveal)
+	_assert(is_equal_approx(float(controller.pending_bonus_spawns[0].remaining), reveal), "A reward must be scheduled for the result's exact reveal frame")
+	controller._update_pending_bonus_spawns(reveal + 0.001)
 	_assert(controller.pieces.size() == pieces_before + 2, "An ordinary merge must leave its result plus one real bonus piece in simulation")
 	var bonus: GemPiece = controller.pieces.back()
 	_assert((controller.bonus_spawn_history.back().piece_ids as Array).has(bonus.id) and bonus.level <= 2, "The bonus must be a lower-tier real GemPiece selected from result tier N-2 or below")
-	_assert(bonus.velocity == Vector2.ZERO and bonus.bonus_pending_velocity.length() > 0.0 and bonus.radius > 0.0, "The bonus must hold physics while retaining its pending launch impulse")
-	_assert(is_equal_approx(bonus.bonus_activation_delay_remaining, GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY), "The bonus physics gate must match the complete visual pop")
-	var initial_visual_offset: Vector2 = controller.gem_sprite_layer._presentation_offsets.get(bonus.id, Vector2.ZERO)
-	_assert(initial_visual_offset.length() > 24.0, "A bonus gem must initially render at its merge origin instead of popping into place")
-	_assert(bool(controller.gem_sprite_layer._presentation_elevated.get(bonus.id, false)), "The emerging core must render above the merge result instead of hiding behind it")
-	_assert(controller.gem_sprite_layer._bonus_extractions.has(bonus.id), "The emerging gem must retain a visible tether to its confirmed merge source")
-	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.30)
-	var emerging_visual_offset: Vector2 = controller.gem_sprite_layer._presentation_offsets.get(bonus.id, Vector2.ZERO)
-	_assert(emerging_visual_offset.length() < initial_visual_offset.length() and emerging_visual_offset.length() > initial_visual_offset.length() * 0.45, "The core must visibly travel out of the merge instead of teleporting to its destination")
-	var emerging_scale: Vector2 = controller.gem_sprite_layer._presentation_scales.get(bonus.id, Vector2.ZERO)
-	_assert(emerging_scale.x > GameConfig.BONUS_VISUAL_START_SCALE, "The extracted core must grow into the rewarded gem while it travels")
-	_assert(controller.piece_visual_feedbacks.has(7001), "The merge result must recoil while releasing its reward")
-	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.40)
-	var settling_visual_offset: Vector2 = controller.gem_sprite_layer._presentation_offsets.get(bonus.id, Vector2.ZERO)
-	_assert(settling_visual_offset.length() < emerging_visual_offset.length(), "The reward gem must keep separating before it settles")
-	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.31)
-	_assert(not controller.gem_sprite_layer._presentation_offsets.has(bonus.id), "The merge-origin offset must clear after the bonus reaches its physics position")
-	_assert(not controller.gem_sprite_layer._bonus_extractions.has(bonus.id), "The extraction tether must clear with the presentation")
+	_assert(bonus.velocity.length() > 0.0 and bonus.radius > 0.0, "A bonus must own real launch velocity on its first visible frame")
+	_assert(not controller.gem_sprite_layer._presentation_offsets.has(bonus.id), "A bonus must render at its real body instead of sliding from a fake origin")
+	_assert(not bool(controller.gem_sprite_layer._presentation_elevated.get(bonus.id, false)), "A reward sibling must use the same ordinary gem draw path as the result")
+	var initial_scale: Vector2 = controller.gem_sprite_layer._presentation_scales.get(bonus.id, Vector2.ZERO)
+	_assert(is_equal_approx(initial_scale.x, controller._bonus_result_scale_for(0.001, timeline)), "A bonus must begin at the same pop phase as the result")
+	controller._update_piece_visual_feedbacks(0.089)
+	var peak_scale: Vector2 = controller.gem_sprite_layer._presentation_scales.get(bonus.id, Vector2.ZERO)
+	_assert(is_equal_approx(peak_scale.x, controller._merge_result_transform_for(0.21, timeline).uniform_scale), "The result and reward sibling must reach the same normal-merge peak together")
+	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION)
+	_assert(not controller.gem_sprite_layer._presentation_scales.has(bonus.id), "The shared pop must clear after both gems settle")
 	_assert(controller.effects_layer.active_mini_gem_count() == 0, "No fading cosmetic mini-gem substitute may remain")
 	var merge_result: GemPiece = controller._live_piece(7001)
 	var overlap_clearance := bonus.position.distance_to(merge_result.position) - bonus.radius - merge_result.radius
 	_assert(overlap_clearance >= 0.0, "The real bonus must not spawn inside its result gem")
 	var isolated: Array[GemPiece] = [bonus]
 	var isolated_merger := ContactMergeService.new()
-	var held_position := bonus.position
-	controller.simulation.step(isolated, GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY * 0.5, isolated_merger)
-	_assert(bonus.position.is_equal_approx(held_position) and bonus.velocity == Vector2.ZERO, "Bonus physics must remain held while the visible pop is running")
-	controller.simulation.step(isolated, GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY * 0.51, isolated_merger)
-	_assert(bonus.velocity.length() > 0.0 and bonus.position.is_equal_approx(held_position), "The stored impulse must activate only after the pop, on the following physics step")
+	var visible_position := bonus.position
+	controller.simulation.step(isolated, STEP, isolated_merger)
+	_assert(not bonus.position.is_equal_approx(visible_position) and bonus.velocity.length() > 0.0, "Reward physics must move the real body during its first visible simulation step")
 	for _frame in range(180):
 		controller.simulation.step(isolated, STEP, isolated_merger)
 	_assert(controller._live_piece(bonus.id) == bonus, "A bonus gameplay gem must still exist several seconds later")
@@ -195,6 +188,18 @@ func _test_bonus_cascade_limits() -> void:
 	controller._schedule_bonus_gems({"result_id": 8999, "level": 6, "midpoint": Vector2.ZERO, "depth": 2})
 	var split_levels: Array = controller.pending_bonus_spawns[0].levels
 	_assert(split_levels.size() == 2 and split_levels[0] != split_levels[1], "A multi-gem split must use distinct visible tiers when eligible tiers allow it")
+	controller._update_pending_bonus_spawns(float(GameConfig.MERGE_TIMELINE_NORMAL.reveal) + float(GameConfig.CHAIN_PRESENTATION_STAGGER) * 2.0 + 0.001)
+	var sibling_ids: Array = controller.bonus_spawn_history.back().piece_ids as Array
+	_assert(sibling_ids.size() == 2, "A combo-2 reward must create both sibling gems in one spawn event")
+	var first_feedback: Dictionary = controller.piece_visual_feedbacks[sibling_ids[0]]
+	var second_feedback: Dictionary = controller.piece_visual_feedbacks[sibling_ids[1]]
+	_assert(is_equal_approx(float(first_feedback.elapsed), float(second_feedback.elapsed)) and is_equal_approx(float(first_feedback.duration), float(second_feedback.duration)), "All reward siblings must begin on the same frame with the same pop phase")
+	var first_sibling: GemPiece = controller._live_piece(int(sibling_ids[0]))
+	var second_sibling: GemPiece = controller._live_piece(int(sibling_ids[1]))
+	_assert(first_sibling.velocity.length() > 0.0 and second_sibling.velocity.length() > 0.0, "Every sibling must have active physics immediately")
+	controller.pieces.clear()
+	controller.piece_visual_feedbacks.clear()
+	controller.gem_sprite_layer.clear_presentation_scales()
 	controller.pending_bonus_spawns.clear()
 	controller.bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 	for depth in [0, 1, 2, 3, 4]:
@@ -238,14 +243,14 @@ func _test_bonus_release_grace() -> void:
 	first.bonus_merge_grace_remaining = float(GameConfig.BONUS_MERGE_GRACE_MS) / 1000.0
 	first.bonus_event_id = 100
 	var mixed: Array[GemPiece] = [first, existing]
-	first.bonus_activation_delay_remaining = 0.05
-	first.bonus_pending_velocity = Vector2.ZERO
+	first.velocity = Vector2(80.0, 0.0)
 	simulation.step(mixed, STEP, merger)
-	_assert(not merger.has_pending_candidates(), "A newly popped bonus gem must not contact or merge before activation")
-	simulation.step(mixed, 0.05, merger)
-	_assert(not merger.has_pending_candidates(), "The activation frame must finish before bonus physics begins")
-	simulation.step(mixed, STEP, merger)
-	_assert(not merger.has_pending_candidates(), "A released bonus must visibly collide with an existing gem before it is eligible to merge")
+	_assert(not simulation.consume_collision_impacts().is_empty(), "A newly visible bonus gem must collide physically during merge grace")
+	_assert(not merger.has_pending_candidates(), "Immediate physical contact must not bypass the short readability grace")
+	first.position = Vector2(300.0, 600.0)
+	existing.position = first.position + Vector2(first.radius * 1.8, 0.0)
+	first.velocity = Vector2.ZERO
+	existing.velocity = Vector2.ZERO
 	simulation.step(mixed, float(GameConfig.BONUS_MERGE_GRACE_MS) / 1000.0 + STEP, merger)
 	var resolved := merger.resolve(mixed, 8200)
 	_assert(int(resolved.merge_count) == 1, "A bonus gem must merge normally after its post-release readability grace")

@@ -1,3 +1,12 @@
+# 2026-08-23 - Simultaneous reward reveal and immediate physics v6
+
+- Synchronized every generated reward gem with its confirmed result's reveal frame and scale timeline; multi-gem siblings are created together with identical pop phase.
+- Removed the 280 ms delayed split, 780 ms activation hold, merge-origin visual offset, extraction tether, elevated travel, and result-release recoil that made one gem appear while another slid in from behind.
+- Assigned each reward's existing 135 px/s launch velocity before its first simulation step, so movement, containment, overlap correction, gem contact, and rail contact begin on the first visible frame.
+- Retained the 650 ms reward grace only around merge-candidate capture. Physical collision response remains immediate, and ordinary merging resumes when the grace expires.
+- Preserved distinct lower-tier sibling selection, the three-piece-per-shot budget, COMBO 2 generation ceiling, 24-piece cap, 260 ms chain spacing, shadows, coin/hero holds, scoring, target progression, audio, and haptics.
+- Replaced extraction/activation regressions and proof frames with same-frame reveal, identical sibling-pop, immediate-motion/contact, persistence, and bounded-cascade coverage.
+
 # 2026-08-23 - Reward split readability, grounded shadows, and held target rewards v5
 
 - Replaced the hidden-behind-result reward pop with a visible front-layer split from the confirmed result: 280 ms start, 780 ms extraction/settle, `0.48 -> 1.12 -> 1.00` scale, result recoil, and a short color-matched origin tether.

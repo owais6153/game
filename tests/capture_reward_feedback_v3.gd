@@ -6,7 +6,7 @@ extends SceneTree
 
 const GameScene = preload("res://scenes/Game.tscn")
 const PieceType = preload("res://scripts/gem_piece.gd")
-const OUTPUT_DIR := "res://reports/reward-gem-extraction-v5/screenshots/"
+const OUTPUT_DIR := "res://reports/reward-gem-simultaneous-physics-v6/screenshots/"
 const RESOLUTION := Vector2i(720, 1280)
 const STEP := 1.0 / 60.0
 
@@ -105,21 +105,20 @@ func _capture_merge_stages(label: String, depth: int) -> void:
 	_merge(4, depth, position)
 	await _advance(0.05)
 	await _shoot("%s-050ms-hitstop-pull" % label)
-	await _advance(0.10)
-	await _shoot("%s-150ms-reveal-pop" % label)
-	var bonus_spawn_at := GameConfig.BONUS_SPAWN_DELAY + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
-	var extraction_checkpoint := bonus_spawn_at
-	var reward_stage := "ring-bonus-limit"
-	if depth <= GameConfig.BONUS_REWARD_MAX_CHAIN_DEPTH:
-		extraction_checkpoint += GameConfig.BONUS_VISUAL_BURST_DURATION * 0.38
-		reward_stage = "gem-extracting-from-result"
-	await _advance(extraction_checkpoint - 0.15)
-	await _shoot("%s-%03dms-%s" % [label, int(round(extraction_checkpoint * 1000.0)), reward_stage])
+	var timeline: Dictionary = GameConfig.merge_timeline(depth, false)
+	var reveal_at := float(timeline.reveal) + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
+	var simultaneous_checkpoint := reveal_at + 0.03
+	await _advance(simultaneous_checkpoint - 0.05)
+	var reward_stage := "ring-bonus-limit" if depth > GameConfig.BONUS_REWARD_MAX_CHAIN_DEPTH else "result-and-rewards-pop-together"
+	await _shoot("%s-%03dms-%s" % [label, int(round(simultaneous_checkpoint * 1000.0)), reward_stage])
+	var motion_checkpoint := reveal_at + 0.16
+	await _advance(motion_checkpoint - simultaneous_checkpoint)
+	await _shoot("%s-%03dms-immediate-physics" % [label, int(round(motion_checkpoint * 1000.0))])
 	var settle_checkpoint := maxf(
 		GameConfig.MERGE_PRESENTATION_DURATION + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER,
-		bonus_spawn_at + GameConfig.BONUS_VISUAL_BURST_DURATION
+		reveal_at + GameConfig.BONUS_VISUAL_BURST_DURATION
 	)
-	await _advance(maxf(0.0, settle_checkpoint - extraction_checkpoint))
+	await _advance(maxf(0.0, settle_checkpoint - motion_checkpoint))
 	await _shoot("%s-%03dms-settle" % [label, int(round(settle_checkpoint * 1000.0))])
 	await _advance(0.30)
 	# Clear the board between samples so each stage reads on its own.
@@ -135,7 +134,7 @@ func _capture_real_bonus_merge() -> void:
 	_controller.bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 	var position := Vector2(GameConfig.table_center_x(), GameConfig.board_top() + 310.0)
 	_merge(4, 0, position)
-	await _advance(GameConfig.BONUS_SPAWN_DELAY + 0.03)
+	await _advance(float(GameConfig.MERGE_TIMELINE_NORMAL.reveal) + 0.03)
 	var history: Dictionary = _controller.bonus_spawn_history.back()
 	var bonus_id := int((history.piece_ids as Array)[0])
 	var bonus: GemPiece = _controller._live_piece(bonus_id)

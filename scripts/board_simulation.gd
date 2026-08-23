@@ -1,24 +1,13 @@
 class_name BoardSimulation
 extends RefCounted
 
-## Contact telemetry is presentation-only. Bonus activation and post-release
-## merge holds are explicit controller-authored pacing; radii stay unchanged.
+## Contact telemetry is presentation-only. Fresh rewards move and collide from
+## their first frame; their short merge grace never changes physical response.
 var _collision_impacts: Array[Dictionary] = []
-var _activation_holds: Dictionary = {}
 
 func step(pieces: Array[GemPiece], delta: float, merger: ContactMergeService) -> void:
 	_collision_impacts.clear()
-	_activation_holds.clear()
 	for piece in pieces:
-		if piece.bonus_activation_delay_remaining > 0.0:
-			_activation_holds[piece.id] = true
-			piece.bonus_activation_delay_remaining = maxf(0.0, piece.bonus_activation_delay_remaining - delta)
-			if piece.bonus_activation_delay_remaining <= 0.0:
-				piece.velocity = piece.bonus_pending_velocity
-				piece.bonus_pending_velocity = Vector2.ZERO
-			# Physics begins on the next simulation step, after one complete visual
-			# pop. The sibling grace also does not burn down while this body is held.
-			continue
 		if piece.bonus_merge_grace_remaining <= 0.0:
 			continue
 		piece.bonus_merge_grace_remaining = maxf(0.0, piece.bonus_merge_grace_remaining - delta)
@@ -33,10 +22,6 @@ func _step_subframe(pieces: Array[GemPiece], delta: float, merger: ContactMergeS
 	for piece in pieces:
 		if piece.consumed:
 			continue
-		if _activation_holds.has(piece.id):
-			piece.apply_perspective_scale(GameConfig.gem_perspective_scale_at(piece.position.y))
-			_resolve_bounds(piece)
-			continue
 		if not piece.is_moving():
 			piece.velocity = Vector2.ZERO
 			piece.apply_perspective_scale(GameConfig.gem_perspective_scale_at(piece.position.y))
@@ -49,7 +34,7 @@ func _step_subframe(pieces: Array[GemPiece], delta: float, merger: ContactMergeS
 		if piece.velocity.length() < GameConfig.SLEEP_SPEED:
 			piece.velocity = Vector2.ZERO
 	for piece in pieces:
-		if not piece.consumed and not _activation_holds.has(piece.id):
+		if not piece.consumed:
 			piece.apply_perspective_scale(GameConfig.gem_perspective_scale_at(piece.position.y))
 			_resolve_bounds(piece)
 	for first_index in range(pieces.size()):
@@ -61,7 +46,7 @@ func _required_substeps(pieces: Array[GemPiece], delta: float) -> int:
 	var maximum_displacement := 0.0
 	var minimum_radius := INF
 	for piece in pieces:
-		if piece.consumed or _activation_holds.has(piece.id):
+		if piece.consumed:
 			continue
 		maximum_displacement = maxf(maximum_displacement, piece.velocity.length() * delta)
 		minimum_radius = minf(minimum_radius, piece.radius)
@@ -96,8 +81,6 @@ func _resolve_bounds(piece: GemPiece) -> void:
 		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION
 
 func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeService) -> void:
-	if _activation_holds.has(first.id) or _activation_holds.has(second.id):
-		return
 	var offset := second.position - first.position
 	var distance := offset.length()
 	var minimum_distance := first.radius + second.radius

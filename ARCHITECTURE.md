@@ -1,3 +1,19 @@
+# Architecture Addendum - Simultaneous Reward Reveal and Immediate Physics V6
+
+## One authoritative coordinate from the first visible frame
+
+`GameController._schedule_bonus_gems()` stores the confirmed result timeline on the pending reward and schedules it for that timeline's `reveal` plus the existing depth stagger. `_update_pending_bonus_spawns()` passes frame overshoot into `_spawn_bonus_reward()`, so every sibling created by one event receives the same elapsed value. `_bonus_result_scale_for()` samples `_merge_result_transform_for()` at `reveal + elapsed`; the result and all siblings therefore use the same pop phase even when a render frame crosses the scheduled time by a fraction.
+
+Each reward is created directly at its collision-safe `GemPiece.position`. `GemSpriteLayer` owns only its temporary uniform presentation scale; the former extraction offset, elevation, tether records, and source recoil path have been removed. There is no second coordinate layer for reward appearance.
+
+## Physics is not gated by presentation
+
+`_spawn_bonus_reward()` assigns the configured 135 px/s velocity before appending the piece. Because pending rewards update before `BoardSimulation.step()` in the controller process, a reward integrates and resolves bounds/pairs in the same frame it first becomes visible. `GemPiece` no longer has activation-delay or pending-velocity state, and `BoardSimulation` no longer has activation holds.
+
+`bonus_merge_grace_remaining` remains a narrow merge-confirmation gate. `_resolve_pair()` always performs physical overlap correction and collision response, but omits `ContactMergeService.capture_contact()` while either piece is fresh. Grace expiry restores ordinary merge eligibility. It does not affect position, radius, velocity, substeps, containment, collision telemetry, sound routing, or shadows.
+
+Population and cascade ownership are unchanged: the controller still applies the three-piece shot budget, COMBO 2 generation ceiling, 24-piece live-plus-pending cap, lower-tier eligibility, and distinct-sibling fallback before creation.
+
 # Architecture Addendum - Reward Split Readability V5
 
 ## One real piece, two coordinate layers

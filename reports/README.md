@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Reward Gem Simultaneous Physics V6](REWARD_GEM_SIMULTANEOUS_PHYSICS_V6_REPORT.md) - same-frame result/sibling reveal, shared pop timing, immediate first-visible-frame physics/contact, merge-only grace, cascade preservation, and ANGLE proof frames.
+
 - [Reward Gem Split Readability V5](REWARD_GEM_SPLIT_READABILITY_V5_REPORT.md) - visible merge-origin gem splitting, slower collision-before-merge release, distinct sibling tiers, stronger table shadows, live-origin target coins, full coin holds, and readable final-target center timing.
 
 - [Reward Feedback Real Gems V4](REWARD_FEEDBACK_REAL_GEMS_V4_REPORT.md) - persistent gameplay bonus gems with post-pop physics activation and cascade caps, 180 ms chain spacing, held target-coin groups, subtle table shadows, and a compact 16-coin jackpot.

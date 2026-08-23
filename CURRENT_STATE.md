@@ -1,3 +1,11 @@
+# Current State Addendum - Simultaneous Reward Reveal and Immediate Physics V6
+
+Merge results and every generated reward sibling now appear on the same confirmed-result reveal frame. The controller stores the merge timeline with the pending reward, creates all siblings together at their real collision-safe positions, and samples the same result-pop phase for every sibling. There is no merge-origin visual offset, extraction tether, elevated behind/front travel, or separate source recoil, so one gem cannot pop while another slides into place.
+
+Reward physics is active immediately. Each new `GemPiece` receives its 135 px/s velocity before the same frame's `BoardSimulation.step()`, allowing motion, rail contact, gem contact, overlap correction, and collision response from the first visible frame. The 650 ms reward grace now delays only follow-up merge capture; it never delays motion or physical contact. The three-piece shot budget, COMBO 2 generation ceiling, 24-piece board cap, distinct sibling-tier fallback, 260 ms chain spacing, shadows, target-coin holds, final-target hold, target authority, scoring, and audio/haptics remain unchanged.
+
+All nine repository suites print PASS, including new assertions for reveal-frame scheduling, identical sibling pop phases, immediate velocity/motion/contact, merge-only grace, persistence, and cascade bounds. GL Compatibility/ANGLE capture passes with 33 production-path PNGs under `reports/reward-gem-simultaneous-physics-v6/screenshots/`; the normal 150/280 ms and COMBO 2 670/800 ms pairs show synchronized appearance followed by immediate separation. See `reports/REWARD_GEM_SIMULTANEOUS_PHYSICS_V6_REPORT.md`.
+
 # Current State Addendum - Reward Split Readability V5
 
 Merge rewards now read as a conversion from the confirmed result rather than a new object appearing elsewhere. After the result reveal, each real reward gem starts visibly at the live result position at 0.48 scale, renders above it, separates with a short color-matched tether and result recoil, grows to 1.12, settles at its collision-safe position, and only then enters physics. The split lasts 780 ms after a 280 ms delay; release impulse is 135 px/s. Multi-gem splits use distinct lower eligible tiers when possible.

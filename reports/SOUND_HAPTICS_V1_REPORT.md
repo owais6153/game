@@ -1,5 +1,10 @@
 # Sound + Haptics v1 Report
 
+## Simultaneous reward reveal and immediate physics v6 routing note - 2026-08-23
+
+- Removing reward extraction and the physics hold adds no audio or haptic event. Existing confirmed merge/chain cues still fire from the confirmed merge timeline, and first-frame physical contact continues through the existing threshold/cooldown/concurrency telemetry path.
+- Reward merge grace remains simulation-only and never emits feedback. `AudioFeedbackService`, `HapticsService`, `GameConfig.AUDIO_*`, and `HAPTICS_BY_EVENT` are unchanged.
+
 ## Reward split readability v5 routing note - 2026-08-23
 
 - The longer gem split, release grace, coin holds, and final-target center hold add no audio or haptic event. Existing confirmed merge, chain, target arrival, coin arrival, and win routing remains unchanged behind `AudioFeedbackService` and `HapticsService`.

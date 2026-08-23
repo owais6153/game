@@ -1,3 +1,13 @@
+# Knowledge Base Addendum - Simultaneous Reward Reveal and Immediate Physics V6
+
+- The V5 extraction model is superseded. Never restore reward visual offsets, tethers, elevated travel, source recoil, activation holds, or pending launch velocity.
+- Schedule rewards from the selected merge timeline's `reveal`, not a separate bonus delay. Preserve frame overshoot and give all siblings from the event the same elapsed pop phase.
+- Render a reward at its real collision-safe `GemPiece.position`. Its only spawn presentation transform is a uniform scale sampled from the confirmed result's timeline.
+- Assign real velocity before the reward enters the controller piece array. Pending reward processing must remain before `BoardSimulation.step()` so motion and physical collision start on the first visible frame.
+- The 650 ms grace suppresses only merge capture when either participant is fresh. Bounds, integration, separation, restitution, collision telemetry, and later ordinary merging must continue unchanged.
+- Preserve per-shot budget 3, generation ceiling depth 2, board cap 24, N-2 lower-tier eligibility, distinct multi-sibling tiers when possible, and 260 ms chain presentation spacing.
+- Primary visual evidence is `reports/reward-gem-simultaneous-physics-v6/screenshots/`: compare normal 150/280 ms and COMBO 2 670/800 ms to verify synchronized reveal followed by immediate physical separation.
+
 # Knowledge Base Addendum - Reward Split Readability V5
 
 - Never restore the behind-result center pop. A reward must start visibly at the live merge result, render above it, move outward during growth, and remain physics-held until the 780 ms split completes. `GemPiece.position` is already collision-safe and must not be animated.

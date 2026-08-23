@@ -218,14 +218,14 @@ const MERGE_TIMELINE_FINAL_TARGET := {
 	"pitch": 1.28,
 }
 ## Every successful merge produces persistent gameplay pieces. The controller
-## schedules them after the reveal; BoardSimulation owns them from then on.
+## creates every sibling on the result reveal frame; BoardSimulation moves and
+## collides them immediately from that same frame onward.
 const BONUS_GEMS_NORMAL := 1
 const BONUS_GEMS_COMBO_1 := 1
 const BONUS_GEMS_COMBO_2 := 2
 const BONUS_GEMS_COMBO_3 := 2
 const BONUS_GEMS_COMBO_4_PLUS := 3
 const BONUS_TIER_WEIGHTS := [0.50, 0.30, 0.20]
-const BONUS_SPAWN_DELAY := 0.28
 const BONUS_SPAWN_IMPULSE := 135.0
 const BONUS_SPAWN_CLEARANCE := 3.0
 const BONUS_MERGE_GRACE_MS := 650
@@ -235,21 +235,10 @@ const BONUS_MERGE_GRACE_MS := 650
 const BONUS_GEM_BUDGET_PER_SHOT := 3
 const BONUS_BOARD_PIECE_CAP := 24
 const BONUS_REWARD_MAX_CHAIN_DEPTH := 2
-const BONUS_VISUAL_BURST_DURATION := 0.78
-const BONUS_PHYSICS_ACTIVATION_DELAY := BONUS_VISUAL_BURST_DURATION
-const BONUS_VISUAL_START_SCALE := 0.48
-const BONUS_VISUAL_PEAK_SCALE := 1.12
-## Extraction is presentation-only: the reward begins as a visible core inside
-## the merge result, travels outward with a short tether, then settles before
-## its already-safe simulation body and stored impulse are activated.
-const BONUS_EXTRACTION_MOVE_START := 0.0
-const BONUS_EXTRACTION_MOVE_END := 0.62
-const BONUS_EXTRACTION_POP_END := 0.38
-const BONUS_SOURCE_RECOIL_DURATION := 0.34
-const BONUS_SOURCE_RECOIL_SCALE := 0.07
-const BONUS_EXTRACTION_TRAIL_WIDTH := 8.0
-const BONUS_EXTRACTION_TRAIL_ALPHA := 0.56
-const BONUS_EXTRACTION_ORIGIN_RADIUS := 13.0
+## Bonus siblings reuse the confirmed result's scale timeline. Normal and combo
+## results settle from reveal to 1.0 in exactly this interval; final-target
+## siblings use the remaining time to settle after their short shared phase.
+const BONUS_VISUAL_BURST_DURATION := MERGE_PRESENTATION_DURATION - MERGE_REVEAL_START
 const BONUS_SPAWN_DIRECTIONS_1 := [-90.0]
 const BONUS_SPAWN_DIRECTIONS_2 := [-128.0, -52.0]
 const BONUS_SPAWN_DIRECTIONS_3 := [-138.0, -90.0, -42.0]

@@ -710,7 +710,8 @@ func _schedule_bonus_gems(merge_event: Dictionary) -> void:
 		"result_level": result_level,
 		"origin": Vector2(merge_event.get("midpoint", Vector2.ZERO)),
 		"levels": levels,
-		"remaining": GameConfig.BONUS_SPAWN_DELAY + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER,
+		"timeline": merge_event.get("timeline", GameConfig.MERGE_TIMELINE_NORMAL),
+		"remaining": float((merge_event.get("timeline", GameConfig.MERGE_TIMELINE_NORMAL) as Dictionary).get("reveal", GameConfig.MERGE_REVEAL_START)) + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER,
 		"seed": rng.seed,
 	})
 	_trace_presentation_event("bonus_gems_scheduled", result_id)
@@ -757,6 +758,9 @@ func _spawn_bonus_reward(reward: Dictionary) -> void:
 	var event_id := int(reward.get("event_id", -1))
 	var result_id := int(reward.get("result_id", -1))
 	var result_level := int(reward.get("result_level", 2))
+	var timeline: Dictionary = reward.get("timeline", GameConfig.MERGE_TIMELINE_NORMAL) as Dictionary
+	var initial_elapsed := maxf(0.0, -float(reward.get("remaining", 0.0)))
+	var initial_scale := _bonus_result_scale_for(initial_elapsed, timeline)
 	var origin: Vector2 = reward.get("origin", Vector2.ZERO)
 	var result_piece := _live_piece(result_id)
 	if result_piece != null:
@@ -777,32 +781,22 @@ func _spawn_bonus_reward(reward: Dictionary) -> void:
 		var position := _find_bonus_spawn_position(origin, direction, radius, result_radius, reserved)
 		var piece := GemPiece.new(next_piece_id, level, position, GameConfig.gem_collision_radius(level))
 		next_piece_id += 1
-		piece.velocity = Vector2.ZERO
-		piece.bonus_pending_velocity = direction * GameConfig.BONUS_SPAWN_IMPULSE
-		piece.bonus_activation_delay_remaining = GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY
+		# The real body and its impulse become authoritative before this frame's
+		# simulation step. There is no presentation-only position or physics hold.
+		piece.velocity = direction * GameConfig.BONUS_SPAWN_IMPULSE
 		piece.bonus_event_id = event_id
 		piece.bonus_merge_grace_remaining = float(GameConfig.BONUS_MERGE_GRACE_MS) / 1000.0
 		pieces.append(piece)
 		reserved.append({"position": position, "radius": piece.radius})
 		spawned_ids.append(piece.id)
-		var origin_offset := origin - position
 		piece_visual_feedbacks[piece.id] = {
 			"kind": "bonus_spawn",
-			"elapsed": 0.0,
+			"elapsed": initial_elapsed,
 			"duration": GameConfig.BONUS_VISUAL_BURST_DURATION,
-			"origin_offset": origin_offset,
-			"origin": origin,
-			"physics_position": position,
-			"level": level,
+			"timeline": timeline,
 		}
 		if gem_sprite_layer != null:
-			gem_sprite_layer.set_bonus_extraction_transform(piece.id, GameConfig.BONUS_VISUAL_START_SCALE, origin_offset, origin, position, level, 0.0)
-	if result_piece != null and not spawned_ids.is_empty():
-		piece_visual_feedbacks[result_id] = {
-			"kind": "bonus_source_recoil",
-			"elapsed": 0.0,
-			"duration": GameConfig.BONUS_SOURCE_RECOIL_DURATION,
-		}
+			gem_sprite_layer.set_presentation_scale(piece.id, initial_scale)
 	bonus_spawn_history.append({"event_id": event_id, "result_id": result_id, "piece_ids": spawned_ids, "levels": levels.duplicate(), "origin": origin})
 	while bonus_spawn_history.size() > 128:
 		bonus_spawn_history.pop_front()
@@ -1399,6 +1393,21 @@ func _merge_result_transform_for(elapsed: float, timeline: Dictionary) -> Dictio
 	# response are separate presentation-only transforms.
 	return {"scale": Vector2.ONE * uniform_scale, "uniform_scale": uniform_scale, "offset": Vector2.ZERO, "rotation": 0.0}
 
+## Reward siblings share the result pop exactly while its timeline is active.
+## The final-target timeline hands its result to the hero early, so its siblings
+## ease the final shared scale back to 1.0 over the remaining burst interval.
+func _bonus_result_scale_for(elapsed: float, timeline: Dictionary) -> float:
+	var reveal := float(timeline.get("reveal", GameConfig.MERGE_REVEAL_START))
+	var timeline_duration := float(timeline.get("duration", GameConfig.MERGE_PRESENTATION_DURATION))
+	var timeline_elapsed := reveal + maxf(0.0, elapsed)
+	if timeline_elapsed <= timeline_duration:
+		return float(_merge_result_transform_for(timeline_elapsed, timeline).uniform_scale)
+	var terminal_scale := float(_merge_result_transform_for(timeline_duration, timeline).uniform_scale)
+	var shared_duration := maxf(0.001, timeline_duration - reveal)
+	var settle_duration := maxf(0.001, GameConfig.BONUS_VISUAL_BURST_DURATION - shared_duration)
+	var settle_t := clampf((elapsed - shared_duration) / settle_duration, 0.0, 1.0)
+	return lerpf(terminal_scale, 1.0, 1.0 - pow(1.0 - settle_t, 3.0))
+
 func _update_piece_visual_feedbacks(delta: float) -> void:
 	if gem_sprite_layer == null or piece_visual_feedbacks.is_empty():
 		return
@@ -1417,36 +1426,15 @@ func _update_piece_visual_feedbacks(delta: float) -> void:
 				gem_sprite_layer.clear_impact_scale(int(piece_id))
 				piece_visual_feedbacks.erase(piece_id)
 			continue
-		if kind == "bonus_source_recoil":
-			var recoil_envelope := sin(t * PI)
-			var recoil := GameConfig.BONUS_SOURCE_RECOIL_SCALE * recoil_envelope
-			gem_sprite_layer.set_impact_transform(int(piece_id), Vector2(1.0 + recoil, 1.0 - recoil * 0.64), Vector2.UP, Vector2(0.0, recoil_envelope * 2.0))
-			if t >= 1.0:
-				gem_sprite_layer.clear_impact_scale(int(piece_id))
-				piece_visual_feedbacks.erase(piece_id)
-			continue
 		var scale := 1.0
 		if kind == "bonus_spawn":
-			var origin_offset: Vector2 = feedback.get("origin_offset", Vector2.ZERO)
-			if t <= GameConfig.BONUS_EXTRACTION_POP_END:
-				var bonus_rise := 1.0 - pow(1.0 - t / GameConfig.BONUS_EXTRACTION_POP_END, 3.0)
-				scale = lerpf(GameConfig.BONUS_VISUAL_START_SCALE, GameConfig.BONUS_VISUAL_PEAK_SCALE, bonus_rise)
-			else:
-				scale = lerpf(GameConfig.BONUS_VISUAL_PEAK_SCALE, 1.0, smoothstep(GameConfig.BONUS_EXTRACTION_POP_END, 1.0, t))
+			var timeline: Dictionary = feedback.get("timeline", GameConfig.MERGE_TIMELINE_NORMAL) as Dictionary
+			scale = _bonus_result_scale_for(float(feedback.elapsed), timeline)
 			if t >= 1.0:
 				gem_sprite_layer.clear_presentation_scale(int(piece_id))
 				piece_visual_feedbacks.erase(piece_id)
 			else:
-				var emerge_t := smoothstep(GameConfig.BONUS_EXTRACTION_MOVE_START, GameConfig.BONUS_EXTRACTION_MOVE_END, t)
-				gem_sprite_layer.set_bonus_extraction_transform(
-					int(piece_id),
-					scale,
-					origin_offset * (1.0 - emerge_t),
-					feedback.get("origin", Vector2.ZERO),
-					feedback.get("physics_position", Vector2.ZERO),
-					int(feedback.get("level", 1)),
-					t
-				)
+				gem_sprite_layer.set_presentation_scale(int(piece_id), scale)
 			continue
 		elif kind == "spawn":
 			if t <= 0.68:
