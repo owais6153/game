@@ -46,16 +46,16 @@ func _test_timing_and_mix_contracts() -> void:
 	_assert(is_equal_approx(GameConfig.COIN_FLIGHT_STAGGER, 0.08) and is_equal_approx(GameConfig.COIN_SPAWN_STAGGER, 0.08), "Coin stagger must restore the post-checkmark-removal cadence")
 	_assert(is_equal_approx(GameConfig.COIN_FLIGHT_DURATION, 0.55) and is_equal_approx(GameConfig.MAJOR_COIN_FLIGHT_DURATION, 0.62), "Coin travel must restore the post-checkmark-removal cadence")
 	var visible_coin_sequence := GameConfig.target_coin_flight_start(GameConfig.MAJOR_COIN_BURST_COUNT - 1, GameConfig.MAJOR_COIN_BURST_COUNT) + GameConfig.MAJOR_COIN_FLIGHT_DURATION
-	_assert(visible_coin_sequence >= 1.40 and visible_coin_sequence <= 1.55, "Every target coin must land, hold together, then complete the readable flight")
-	# The non-final target keeps the previous compact reward bound.
+	_assert(visible_coin_sequence >= 2.35 and visible_coin_sequence <= 2.50, "Every target coin must land, hold together for the approved pause, then complete the readable flight")
+	# The non-final target includes the approved 1.20 s whole-group table hold.
 	var standard_target_sequence := maxf(
 		GameConfig.MERGE_PRESENTATION_DURATION + GameConfig.TARGET_COLLECTION_DURATION,
 		GameConfig.COIN_REWARD_START_DELAY + visible_coin_sequence
 	)
-	_assert(standard_target_sequence <= 1.85, "Non-final target reward must stay readable without becoming sluggish")
+	_assert(standard_target_sequence <= 2.80, "Non-final target reward must stay bounded after the full-group hold")
 	# The final target owns the staged hero celebration instead.
 	var final_sequence := GameConfig.final_celebration_duration()
-	_assert(final_sequence >= 2.6 and final_sequence <= 3.1, "Final-target celebration must land inside the approved staged budget")
+	_assert(final_sequence >= 3.6 and final_sequence <= 4.8, "Final-target celebration must land inside the approved longer staged budget")
 	_assert(is_equal_approx(GameConfig.WIN_PRESENTATION_HOLD, 0.18), "Level-complete beat after the last coin must be 180 ms")
 	_assert(is_equal_approx(GameConfig.CONTACT_SOUND_COOLDOWN, 0.075) and is_equal_approx(GameConfig.AUDIO_COOLDOWN_BY_EVENT.wall_contact, 0.11), "Contact cooldowns must use the original procedural mapping")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.46), "Gem collision must restore the original procedural volume")

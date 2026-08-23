@@ -1,5 +1,10 @@
 # Sound + Haptics v1 Report
 
+## Reward split readability v5 routing note - 2026-08-23
+
+- The longer gem split, release grace, coin holds, and final-target center hold add no audio or haptic event. Existing confirmed merge, chain, target arrival, coin arrival, and win routing remains unchanged behind `AudioFeedbackService` and `HapticsService`.
+- No presentation frame, shadow, coin re-anchor, or reward-grace branch emits feedback directly. Central `GameConfig.AUDIO_*` and `HAPTICS_BY_EVENT` mappings remain authoritative and unchanged.
+
 ## Original procedural collision restoration — 2026-08-18
 
 - The MP3/derivative gem and rail contacts are not the requested original identity and are no longer loaded for collision events.

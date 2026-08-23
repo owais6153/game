@@ -1,3 +1,13 @@
+# Current State Addendum - Reward Split Readability V5
+
+Merge rewards now read as a conversion from the confirmed result rather than a new object appearing elsewhere. After the result reveal, each real reward gem starts visibly at the live result position at 0.48 scale, renders above it, separates with a short color-matched tether and result recoil, grows to 1.12, settles at its collision-safe position, and only then enters physics. The split lasts 780 ms after a 280 ms delay; release impulse is 135 px/s. Multi-gem splits use distinct lower eligible tiers when possible.
+
+Fresh rewards now resolve visible physical contacts for 650 ms after release without confirming another merge. After that bounded grace they are completely ordinary merge candidates. Existing cascade bounds remain three generated pieces per shot, generation through COMBO 2 only, and a 24-piece live-plus-pending cap. Chain presentation spacing is 260 ms.
+
+Unrevealed non-final target coins re-anchor to the live result position until their first frame, so they originate at the gem instead of a stale merge midpoint. Every four-coin target group holds together for 1.20 s; the final 16-coin pile holds for 1.00 s. The final target gem holds at center for 1.05 s with a 1.30 s caption lifetime. Gem shadows are now visibly exposed below their silhouettes at 0.50 opacity, while target/final coin shadows are 0.46 and track current coin position.
+
+All nine repository suites pass, including split origin/elevation/travel, tier diversity, activation/release grace, current-position coin anchoring, complete coin holds, hero readability, reset, persistence, audio/privacy, ads, game flow, scene assets, branding, and responsive layout. GL Compatibility/ANGLE capture passes with 33 production-path screenshots under `reports/reward-gem-extraction-v5/screenshots/`. Final Android packaging is recorded in `reports/REWARD_GEM_SPLIT_READABILITY_V5_REPORT.md` and `BUILD_MANIFEST.md` when completed.
+
 # Current State Addendum - Reward Feedback Real Gems V4
 
 Reward Feedback V3 is now corrected so merge rewards are real persistent `GemPiece` objects, not fading draw records. Requested counts are 1/1/2/2/3 for normal through COMBO 4+, selected from lower local progression tiers with 50/30/20 weighting. A hard three-piece budget resets on each player launch, COMBO 3+ schedules no further reward tier, and a live-plus-pending population cap of 24 prevents crowded-board reward cascades from running indefinitely. Safe placement, delayed activation, impulse, and the 180 ms post-activation same-event grace live in `GameConfig`; the grace marker clears automatically.

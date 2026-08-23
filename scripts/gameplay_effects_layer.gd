@@ -112,7 +112,9 @@ func _spawn_coin_reward(result_id: int, midpoint: Vector2, destination: Vector2,
 			"flight_rank": index,
 			"value": base_value + (1 if index < remainder else 0),
 			"start": midpoint,
+			"scatter_offset": cluster_offsets[index] * burst_radius,
 			"scatter": scatter,
+			"arc_height": arc_height,
 			"control_a": control_a,
 			"control_b": control_b,
 			"destination": destination,
@@ -125,6 +127,32 @@ func _spawn_coin_reward(result_id: int, midpoint: Vector2, destination: Vector2,
 			"arrived": false,
 			"major_reward": major_reward,
 		})
+
+
+func pending_target_coin_result_ids() -> Array[int]:
+	var result_ids: Array[int] = []
+	for coin in coin_rewards:
+		if float(coin.get("elapsed", 0.0)) < 0.0:
+			var result_id := int(coin.get("result_id", -1))
+			if result_id >= 0 and not result_ids.has(result_id):
+				result_ids.append(result_id)
+	return result_ids
+
+
+## Keep an unrevealed reward attached to the live result gem. The anchor freezes
+## the instant the first token appears, so the whole group shares one truthful
+## source even if the result moved during the configured pre-burst delay.
+func reanchor_pending_target_coin_reward(result_id: int, position: Vector2) -> void:
+	for coin in coin_rewards:
+		if int(coin.get("result_id", -1)) != result_id or float(coin.get("elapsed", 0.0)) >= 0.0:
+			continue
+		var scatter_offset: Vector2 = coin.get("scatter_offset", Vector2.ZERO)
+		var scatter := position + scatter_offset
+		var destination: Vector2 = coin.get("destination", GameConfig.COIN_HUD_FALLBACK_DESTINATION)
+		var arc_height := float(coin.get("arc_height", 88.0))
+		coin.start = position
+		coin.scatter = scatter
+		coin.control_a = Vector2(lerpf(scatter.x, destination.x, 0.32), minf(scatter.y, destination.y) - arc_height)
 
 ## Soft expanding glow behind the held hero gem plus its single completion
 ## caption. Presentation-only: the target state is already authoritative.
@@ -654,7 +682,7 @@ func _draw_coin_reward(effect: Dictionary) -> void:
 	var spin := 0.0
 	var rotation := 0.0
 	var target_shadow_alpha := GameConfig.TARGET_COIN_SHADOW_OPACITY if elapsed < flight_start else GameConfig.TARGET_COIN_SHADOW_OPACITY * (1.0 - smoothstep(0.0, 0.30, clampf((elapsed - flight_start) / float(effect.flight_duration), 0.0, 1.0)))
-	CoinVisualsType.draw_table_shadow(self, scatter + GameConfig.TARGET_COIN_SHADOW_OFFSET, GameConfig.COIN_DRAW_RADIUS, target_shadow_alpha)
+	CoinVisualsType.draw_table_shadow(self, position + GameConfig.TARGET_COIN_SHADOW_OFFSET, GameConfig.COIN_DRAW_RADIUS, target_shadow_alpha)
 	CoinVisualsType.draw_coin(self, position, GameConfig.COIN_DRAW_RADIUS * scale, 1.0, spin, rotation)
 
 func _draw_launch_impact(effect: Dictionary) -> void:

@@ -59,10 +59,10 @@ const GEM_COLLISION_RADIUS := {1: 36.0, 2: 39.0, 3: 42.0, 4: 45.0, 5: 48.0, 6: 5
 const GEM_VISUAL_BODY_SCALE := {1: 1.008, 2: 1.008, 3: 1.008, 4: 1.008, 5: 1.008, 6: 1.008, 7: 1.008, 8: 1.008, 9: 1.008, 10: 1.008, 11: 1.008, 12: 1.008, 13: 1.008, 14: 1.008, 15: 1.008, 16: 1.008, 17: 1.008, 18: 1.008}
 ## Presentation-only lower shadows. All 18 tiers use the same calibrated
 ## placement so a shadow cannot be mistaken for a physical body or contact.
-const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 23.0), 2: Vector2(5.0, 23.0), 3: Vector2(4.0, 19.0), 4: Vector2(5.0, 23.0), 5: Vector2(5.0, 23.0), 6: Vector2(5.0, 23.0), 7: Vector2(5.0, 23.0), 8: Vector2(4.0, 18.0), 9: Vector2(5.0, 23.0), 10: Vector2(5.0, 23.0), 11: Vector2(5.0, 23.0), 12: Vector2(5.0, 23.0), 13: Vector2(5.0, 23.0), 14: Vector2(5.0, 23.0), 15: Vector2(5.0, 23.0), 16: Vector2(5.0, 23.0), 17: Vector2(5.0, 23.0), 18: Vector2(5.0, 23.0)}
-const GEM_SHADOW_OPACITY := {1: 0.34, 2: 0.34, 3: 0.34, 4: 0.34, 5: 0.34, 6: 0.34, 7: 0.34, 8: 0.34, 9: 0.34, 10: 0.34, 11: 0.34, 12: 0.34, 13: 0.34, 14: 0.34, 15: 0.34, 16: 0.34, 17: 0.34, 18: 0.34}
-const GEM_SHADOW_WIDTH_MULTIPLIER := 0.92
-const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.36
+const GEM_SHADOW_OFFSET := {1: Vector2(5.0, 30.0), 2: Vector2(5.0, 32.0), 3: Vector2(5.0, 34.0), 4: Vector2(5.0, 36.0), 5: Vector2(5.0, 38.0), 6: Vector2(5.0, 40.0), 7: Vector2(5.0, 42.0), 8: Vector2(5.0, 44.0), 9: Vector2(5.0, 34.0), 10: Vector2(5.0, 34.0), 11: Vector2(5.0, 34.0), 12: Vector2(5.0, 34.0), 13: Vector2(5.0, 34.0), 14: Vector2(5.0, 34.0), 15: Vector2(5.0, 34.0), 16: Vector2(5.0, 34.0), 17: Vector2(5.0, 34.0), 18: Vector2(5.0, 34.0)}
+const GEM_SHADOW_OPACITY := {1: 0.50, 2: 0.50, 3: 0.50, 4: 0.50, 5: 0.50, 6: 0.50, 7: 0.50, 8: 0.50, 9: 0.50, 10: 0.50, 11: 0.50, 12: 0.50, 13: 0.50, 14: 0.50, 15: 0.50, 16: 0.50, 17: 0.50, 18: 0.50}
+const GEM_SHADOW_WIDTH_MULTIPLIER := 0.98
+const GEM_SHADOW_HEIGHT_MULTIPLIER := 0.42
 const VISIBLE_CONTACT_TOLERANCE := 2.0
 ## One conservative table-depth scale is shared by every gem's visual root and
 ## simulation radius. It keeps rendered contact, rail containment, and merge
@@ -225,20 +225,31 @@ const BONUS_GEMS_COMBO_2 := 2
 const BONUS_GEMS_COMBO_3 := 2
 const BONUS_GEMS_COMBO_4_PLUS := 3
 const BONUS_TIER_WEIGHTS := [0.50, 0.30, 0.20]
-const BONUS_SPAWN_DELAY := 0.20
-const BONUS_SPAWN_IMPULSE := 165.0
+const BONUS_SPAWN_DELAY := 0.28
+const BONUS_SPAWN_IMPULSE := 135.0
 const BONUS_SPAWN_CLEARANCE := 3.0
-const BONUS_MERGE_GRACE_MS := 180
-## A shot can mint at most four real reward pieces, and delayed rewards never
+const BONUS_MERGE_GRACE_MS := 650
+## A shot can mint at most three real reward pieces, and delayed rewards never
 ## raise the live population beyond this cap. These bounds terminate unattended
 ## reward cascades without changing ordinary merge eligibility.
 const BONUS_GEM_BUDGET_PER_SHOT := 3
 const BONUS_BOARD_PIECE_CAP := 24
 const BONUS_REWARD_MAX_CHAIN_DEPTH := 2
-const BONUS_VISUAL_BURST_DURATION := 0.34
+const BONUS_VISUAL_BURST_DURATION := 0.78
 const BONUS_PHYSICS_ACTIVATION_DELAY := BONUS_VISUAL_BURST_DURATION
-const BONUS_VISUAL_START_SCALE := 0.28
-const BONUS_VISUAL_PEAK_SCALE := 1.18
+const BONUS_VISUAL_START_SCALE := 0.48
+const BONUS_VISUAL_PEAK_SCALE := 1.12
+## Extraction is presentation-only: the reward begins as a visible core inside
+## the merge result, travels outward with a short tether, then settles before
+## its already-safe simulation body and stored impulse are activated.
+const BONUS_EXTRACTION_MOVE_START := 0.0
+const BONUS_EXTRACTION_MOVE_END := 0.62
+const BONUS_EXTRACTION_POP_END := 0.38
+const BONUS_SOURCE_RECOIL_DURATION := 0.34
+const BONUS_SOURCE_RECOIL_SCALE := 0.07
+const BONUS_EXTRACTION_TRAIL_WIDTH := 8.0
+const BONUS_EXTRACTION_TRAIL_ALPHA := 0.56
+const BONUS_EXTRACTION_ORIGIN_RADIUS := 13.0
 const BONUS_SPAWN_DIRECTIONS_1 := [-90.0]
 const BONUS_SPAWN_DIRECTIONS_2 := [-128.0, -52.0]
 const BONUS_SPAWN_DIRECTIONS_3 := [-138.0, -90.0, -42.0]
@@ -270,7 +281,7 @@ const COIN_BURST_COUNT := 4
 const MAJOR_COIN_BURST_COUNT := 4
 const COIN_BURST_DURATION := 0.12
 const COIN_REWARD_START_DELAY := 0.26
-const TARGET_COIN_TABLE_HOLD := 0.26
+const TARGET_COIN_TABLE_HOLD := 1.20
 const COIN_FLIGHT_DURATION := 0.55
 const MAJOR_COIN_FLIGHT_DURATION := 0.62
 const COIN_FLIGHT_STAGGER := 0.08
@@ -278,7 +289,7 @@ const COIN_SPAWN_STAGGER := 0.08
 const COIN_BURST_RADIUS := 48.0
 const MAJOR_COIN_BURST_RADIUS := 52.0
 const COIN_DRAW_RADIUS := 17.0
-const TARGET_COIN_SHADOW_OPACITY := 0.32
+const TARGET_COIN_SHADOW_OPACITY := 0.46
 const TARGET_COIN_SHADOW_OFFSET := Vector2(5.0, 9.0)
 const COIN_COUNTER_PULSE_DURATION := 0.18
 const COIN_EFFECT_LIMIT := 32
@@ -295,7 +306,7 @@ const TARGET_PANEL_PULSE_DURATION := 0.22
 const HERO_TRAVEL_DURATION := 0.25
 const HERO_TRAVEL_START_SCALE := 1.18
 const HERO_TRAVEL_END_SCALE := 1.18
-const HERO_HOLD_DURATION := 0.42
+const HERO_HOLD_DURATION := 1.05
 const HERO_HOLD_RISE_DURATION := 0.12
 const HERO_HOLD_PEAK_SCALE := 1.45
 const HERO_HOLD_SETTLE_DURATION := 0.08
@@ -305,7 +316,7 @@ const HERO_HOLD_BREATH_HZ := 1.15
 ## Measured from the start of the hero hold (T + 430 ms), so the caption lands
 ## about 530 ms after the merge completed.
 const HERO_LABEL_AT := 0.10
-const HERO_LABEL_DURATION := 0.62
+const HERO_LABEL_DURATION := 1.30
 const HERO_LABEL_TEXT := "TARGET COMPLETE!"
 const HERO_LAUNCH_ANTICIPATION_DURATION := 0.07
 const HERO_LAUNCH_ANTICIPATION_DISTANCE := 8.0
@@ -330,9 +341,9 @@ const REWARD_AMOUNT_PEAK_SCALE := 1.20
 const LEVEL_REWARD_COIN_COUNT := 16
 const LEVEL_REWARD_COIN_WAVE_SIZE := 4
 const LEVEL_REWARD_COIN_WAVE_STAGGER := 0.035
-const LEVEL_REWARD_COIN_SPAWN_AT := 1.50
+const LEVEL_REWARD_COIN_SPAWN_AT := 1.85
 const LEVEL_REWARD_COIN_LAND_DURATION := 0.22
-const LEVEL_REWARD_COIN_TABLE_HOLD := 0.38
+const LEVEL_REWARD_COIN_TABLE_HOLD := 1.00
 const LEVEL_REWARD_COIN_COLLECT_WAVE_SIZES := [2, 2, 3, 3, 2]
 const LEVEL_REWARD_COIN_COLLECT_WAVE_DELAYS := [0.09, 0.075, 0.06, 0.05, 0.04, 0.03, 0.025]
 const LEVEL_REWARD_COIN_FLIGHT_DURATION := 0.30
@@ -340,7 +351,7 @@ const LEVEL_REWARD_COIN_SCATTER_HALF_WIDTH := 0.38
 const LEVEL_REWARD_COIN_SCATTER_HALF_HEIGHT := 82.0
 const LEVEL_REWARD_COIN_IDLE_WOBBLE := 2.4
 const LEVEL_REWARD_COIN_DRAW_RADIUS := 19.0
-const LEVEL_REWARD_COIN_SHADOW_OPACITY := 0.32
+const LEVEL_REWARD_COIN_SHADOW_OPACITY := 0.46
 const LEVEL_REWARD_COIN_SHADOW_OFFSET := Vector2(5.0, 9.0)
 const COIN_COUNTER_WAVE_PUNCH_SCALE := 1.06
 const COIN_COUNTER_FINAL_PUNCH_SCALE := 1.14
@@ -465,7 +476,7 @@ const TARGET_SWAP_INCOMING_SCALE := 1.0
 const PRESENTATION_EVENT_TRACE_LIMIT := 128
 const MERGE_MOMENTUM_TRANSFER := 0.62 # bounded average of source momentum
 const MERGE_MAX_SPAWN_SPEED := 420.0 # prevents an upgrade from shooting through a cluster
-const CHAIN_PRESENTATION_STAGGER := 0.18 # readable visual cadence only; merge logic remains immediate
+const CHAIN_PRESENTATION_STAGGER := 0.26 # readable visual cadence only; merge logic remains immediate
 const NEXT_LAUNCHER_READY_DELAY := 0.02
 ## A released gem gives the launcher lane time to clear, then becomes a normal
 ## simulation body even if contacts keep it moving. This bounds replacement

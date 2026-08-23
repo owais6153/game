@@ -10,9 +10,9 @@ var base_radius: float
 var perspective_scale: float = 1.0
 var is_active_launcher: bool = false
 var consumed: bool = false
-## Bonus pieces are ordinary gameplay pieces. Their short activation delay lets
-## the merge-origin pop finish before physics begins; the same-event grace then
-## prevents only sibling re-merges while the newly active pieces separate.
+## Bonus pieces are ordinary gameplay pieces. Their activation delay lets the
+## visible merge split finish before physics begins; release grace then allows
+## readable contact before any follow-up merge can be confirmed.
 var bonus_event_id := -1
 var bonus_merge_grace_remaining := 0.0
 var bonus_activation_delay_remaining := 0.0

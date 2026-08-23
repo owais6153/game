@@ -167,6 +167,7 @@ func _process(delta: float) -> void:
 	for marker in debug_contact_points:
 		marker.age = float(marker.get("age", 0.0)) + delta
 	debug_contact_points = debug_contact_points.filter(func(marker: Dictionary) -> bool: return float(marker.get("age", 0.0)) < 0.45)
+	_sync_pending_target_coin_origins()
 	if effects_layer != null:
 		effects_layer.update_effects(delta)
 	if gem_sprite_layer != null:
@@ -692,7 +693,17 @@ func _schedule_bonus_gems(merge_event: Dictionary) -> void:
 	rng.seed = absi(level_seed * 1103515245 + result_id * 12345 + depth * 97)
 	var levels: Array[int] = []
 	for _index in range(count):
-		levels.append(_choose_bonus_level(result_level, rng))
+		var selected := _choose_bonus_level(result_level, rng)
+		var highest_eligible := maxi(1, result_level - 2)
+		# Multi-gem splits must be visually identifiable. Prefer a different tier
+		# for every sibling whenever the result exposes enough eligible levels.
+		if highest_eligible >= count and levels.has(selected):
+			for offset in range(1, highest_eligible + 1):
+				var alternate := 1 + posmod(selected - 1 + offset + result_id, highest_eligible)
+				if not levels.has(alternate):
+					selected = alternate
+					break
+		levels.append(selected)
 	pending_bonus_spawns.append({
 		"event_id": result_id,
 		"result_id": result_id,
@@ -733,6 +744,15 @@ func _update_pending_bonus_spawns(delta: float) -> void:
 	pending_bonus_spawns = waiting
 
 
+func _sync_pending_target_coin_origins() -> void:
+	if effects_layer == null:
+		return
+	for result_id in effects_layer.pending_target_coin_result_ids():
+		var piece := _live_piece(result_id)
+		if piece != null:
+			effects_layer.reanchor_pending_target_coin_reward(result_id, piece.position)
+
+
 func _spawn_bonus_reward(reward: Dictionary) -> void:
 	var event_id := int(reward.get("event_id", -1))
 	var result_id := int(reward.get("result_id", -1))
@@ -771,9 +791,18 @@ func _spawn_bonus_reward(reward: Dictionary) -> void:
 			"elapsed": 0.0,
 			"duration": GameConfig.BONUS_VISUAL_BURST_DURATION,
 			"origin_offset": origin_offset,
+			"origin": origin,
+			"physics_position": position,
+			"level": level,
 		}
 		if gem_sprite_layer != null:
-			gem_sprite_layer.set_bonus_spawn_transform(piece.id, GameConfig.BONUS_VISUAL_START_SCALE, origin_offset)
+			gem_sprite_layer.set_bonus_extraction_transform(piece.id, GameConfig.BONUS_VISUAL_START_SCALE, origin_offset, origin, position, level, 0.0)
+	if result_piece != null and not spawned_ids.is_empty():
+		piece_visual_feedbacks[result_id] = {
+			"kind": "bonus_source_recoil",
+			"elapsed": 0.0,
+			"duration": GameConfig.BONUS_SOURCE_RECOIL_DURATION,
+		}
 	bonus_spawn_history.append({"event_id": event_id, "result_id": result_id, "piece_ids": spawned_ids, "levels": levels.duplicate(), "origin": origin})
 	while bonus_spawn_history.size() > 128:
 		bonus_spawn_history.pop_front()
@@ -1388,20 +1417,36 @@ func _update_piece_visual_feedbacks(delta: float) -> void:
 				gem_sprite_layer.clear_impact_scale(int(piece_id))
 				piece_visual_feedbacks.erase(piece_id)
 			continue
+		if kind == "bonus_source_recoil":
+			var recoil_envelope := sin(t * PI)
+			var recoil := GameConfig.BONUS_SOURCE_RECOIL_SCALE * recoil_envelope
+			gem_sprite_layer.set_impact_transform(int(piece_id), Vector2(1.0 + recoil, 1.0 - recoil * 0.64), Vector2.UP, Vector2(0.0, recoil_envelope * 2.0))
+			if t >= 1.0:
+				gem_sprite_layer.clear_impact_scale(int(piece_id))
+				piece_visual_feedbacks.erase(piece_id)
+			continue
 		var scale := 1.0
 		if kind == "bonus_spawn":
 			var origin_offset: Vector2 = feedback.get("origin_offset", Vector2.ZERO)
-			if t <= 0.55:
-				var bonus_rise := 1.0 - pow(1.0 - t / 0.55, 3.0)
+			if t <= GameConfig.BONUS_EXTRACTION_POP_END:
+				var bonus_rise := 1.0 - pow(1.0 - t / GameConfig.BONUS_EXTRACTION_POP_END, 3.0)
 				scale = lerpf(GameConfig.BONUS_VISUAL_START_SCALE, GameConfig.BONUS_VISUAL_PEAK_SCALE, bonus_rise)
 			else:
-				scale = lerpf(GameConfig.BONUS_VISUAL_PEAK_SCALE, 1.0, smoothstep(0.55, 1.0, t))
+				scale = lerpf(GameConfig.BONUS_VISUAL_PEAK_SCALE, 1.0, smoothstep(GameConfig.BONUS_EXTRACTION_POP_END, 1.0, t))
 			if t >= 1.0:
 				gem_sprite_layer.clear_presentation_scale(int(piece_id))
 				piece_visual_feedbacks.erase(piece_id)
 			else:
-				var emerge_t := 0.0 if t <= 0.55 else smoothstep(0.55, 1.0, t)
-				gem_sprite_layer.set_bonus_spawn_transform(int(piece_id), scale, origin_offset * (1.0 - emerge_t))
+				var emerge_t := smoothstep(GameConfig.BONUS_EXTRACTION_MOVE_START, GameConfig.BONUS_EXTRACTION_MOVE_END, t)
+				gem_sprite_layer.set_bonus_extraction_transform(
+					int(piece_id),
+					scale,
+					origin_offset * (1.0 - emerge_t),
+					feedback.get("origin", Vector2.ZERO),
+					feedback.get("physics_position", Vector2.ZERO),
+					int(feedback.get("level", 1)),
+					t
+				)
 			continue
 		elif kind == "spawn":
 			if t <= 0.68:

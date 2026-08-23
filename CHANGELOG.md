@@ -1,3 +1,14 @@
+# 2026-08-23 - Reward split readability, grounded shadows, and held target rewards v5
+
+- Replaced the hidden-behind-result reward pop with a visible front-layer split from the confirmed result: 280 ms start, 780 ms extraction/settle, `0.48 -> 1.12 -> 1.00` scale, result recoil, and a short color-matched origin tether.
+- Reduced reward release impulse from 165 to 135 px/s, increased chain presentation spacing from 180 to 260 ms, and changed the 650 ms post-release grace to suppress follow-up merge capture with any contacted gem while preserving physical collision response.
+- Preserved the three-piece-per-shot budget, COMBO 2 generation ceiling, 24-piece cap, persistent `GemPiece` ownership, ordinary post-grace merging, and all authoritative reward/score/target rules.
+- Made multi-gem splits select distinct eligible lower tiers when possible, preventing repeated siblings from reading as copies of the same gem.
+- Re-anchored unrevealed target coins to the live result position, fixed target-coin shadows to follow current coin position, extended every non-final target group hold from 260 ms to 1.20 s, and extended the final pile hold from 380 ms to 1.00 s.
+- Extended the final-target center hold from 420 ms to 1.05 s and the caption lifetime from 620 ms to 1.30 s.
+- Increased gem shadow opacity from 0.34 to 0.50 and moved the supplied shadow below each tier's visible silhouette; coin shadow opacity is now 0.46. Shadows remain presentation-only.
+- Expanded the reward regression and real-scene ANGLE capture to cover causal split travel, distinct output tiers, collision-before-merge grace, live coin origin, full table holds, visible shadows, and readable final-target checkpoints.
+
 # 2026-08-22 - Reward feedback real gameplay gems v4
 
 - Replaced the fading cosmetic mini-gem reward with persistent lower-tier `GemPiece` rewards from confirmed merges; centralized the 1/1/2/2/3 requested-count ladder, 50/30/20 tier weights, safe fan placement, 200 ms spawn delay, and 180 ms post-activation sibling grace.

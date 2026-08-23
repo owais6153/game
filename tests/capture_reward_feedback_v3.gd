@@ -6,7 +6,7 @@ extends SceneTree
 
 const GameScene = preload("res://scenes/Game.tscn")
 const PieceType = preload("res://scripts/gem_piece.gd")
-const OUTPUT_DIR := "res://reports/reward-feedback-real-gems-v4/screenshots/"
+const OUTPUT_DIR := "res://reports/reward-gem-extraction-v5/screenshots/"
 const RESOLUTION := Vector2i(720, 1280)
 const STEP := 1.0 / 60.0
 
@@ -107,12 +107,19 @@ func _capture_merge_stages(label: String, depth: int) -> void:
 	await _shoot("%s-050ms-hitstop-pull" % label)
 	await _advance(0.10)
 	await _shoot("%s-150ms-reveal-pop" % label)
-	var bonus_checkpoint := 0.20 + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
-	await _advance(bonus_checkpoint - 0.15)
-	var reward_stage := "ring-bonus-limit" if depth > GameConfig.BONUS_REWARD_MAX_CHAIN_DEPTH else "ring-and-merge-center-bonus-pop"
-	await _shoot("%s-%03dms-%s" % [label, int(round(bonus_checkpoint * 1000.0)), reward_stage])
-	var settle_checkpoint := GameConfig.MERGE_PRESENTATION_DURATION + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
-	await _advance(maxf(0.0, settle_checkpoint - bonus_checkpoint))
+	var bonus_spawn_at := GameConfig.BONUS_SPAWN_DELAY + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
+	var extraction_checkpoint := bonus_spawn_at
+	var reward_stage := "ring-bonus-limit"
+	if depth <= GameConfig.BONUS_REWARD_MAX_CHAIN_DEPTH:
+		extraction_checkpoint += GameConfig.BONUS_VISUAL_BURST_DURATION * 0.38
+		reward_stage = "gem-extracting-from-result"
+	await _advance(extraction_checkpoint - 0.15)
+	await _shoot("%s-%03dms-%s" % [label, int(round(extraction_checkpoint * 1000.0)), reward_stage])
+	var settle_checkpoint := maxf(
+		GameConfig.MERGE_PRESENTATION_DURATION + float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER,
+		bonus_spawn_at + GameConfig.BONUS_VISUAL_BURST_DURATION
+	)
+	await _advance(maxf(0.0, settle_checkpoint - extraction_checkpoint))
 	await _shoot("%s-%03dms-settle" % [label, int(round(settle_checkpoint * 1000.0))])
 	await _advance(0.30)
 	# Clear the board between samples so each stage reads on its own.
@@ -196,15 +203,17 @@ func _capture_final_target() -> void:
 		"final-0150ms-phaseA-reveal": 0.15,
 		"final-0300ms-phaseB-travel": 0.30,
 		"final-0500ms-phaseC-hero-peak": 0.50,
-		"final-0700ms-phaseC-label": 0.70,
-		"final-1050ms-phaseD-flight": 1.05,
-		"final-1300ms-phaseE-panel-impact": 1.30,
-		"final-1700ms-coins-landing": 1.70,
-		"final-1950ms-coin-table-hold": 1.95,
-		"final-2300ms-coin-collection": 2.30,
-		"final-2900ms-level-complete": 2.90,
-		"final-3200ms-settled": 3.20,
-		"final-3450ms-fully-settled": 3.45,
+		"final-0900ms-phaseC-readable-label": 0.90,
+		"final-1350ms-phaseC-center-hold": 1.35,
+		"final-1520ms-phaseD-anticipation": 1.52,
+		"final-1700ms-phaseD-flight": 1.70,
+		"final-1900ms-phaseE-panel-impact": 1.90,
+		"final-2200ms-coins-landed": 2.20,
+		"final-2750ms-all-coins-table-hold": 2.75,
+		"final-3350ms-all-coins-table-hold": 3.35,
+		"final-3700ms-coin-collection": 3.70,
+		"final-4300ms-level-complete": 4.30,
+		"final-4650ms-settled": 4.65,
 	}
 	var elapsed := 0.0
 	for name in checkpoints.keys():

@@ -1,3 +1,12 @@
+# Reward Split Readability V5 - 2026-08-23
+
+- A confirmed merge reveals its result first, then visibly splits real lower-tier reward gems from that exact result position. Reward visuals render above the result from their first frame, fan outward as complete supplied gem artwork, and retain a short origin tether; they may not appear at their already-safe physics destinations.
+- The split begins after 280 ms and lasts 780 ms. Reward physics remains held for the full split; the stored launch is 135 px/s. For 650 ms after release, the new gems resolve physical collisions but cannot confirm a follow-up merge, making contact readable and bounding crowded-board cascades.
+- Multi-gem output must use distinct eligible tiers whenever the result has enough lower tiers. The existing three-piece shot budget, depth-2 generation ceiling, 24-piece board cap, and 1/1/2/2/3 requested-count ladder remain authoritative.
+- Non-final target coins anchor to the live result gem until reveal, then all four remain together on the table for 1.20 s. The final 16-coin pile remains together for 1.00 s.
+- The final-target hero gem stays centered for 1.05 s and its `TARGET COMPLETE!` caption remains readable throughout the hold before anticipation and HUD flight.
+- Gem shadows use the supplied presentation-only shadow asset at a visible tier-scaled lower offset and 0.50 opacity. Target/final coin shadows use 0.46 opacity and follow the coin's current table position. No shadow changes collision, merge, containment, telemetry, or scoring.
+
 # Reward Feedback Real Gems V4 - 2026-08-22
 
 - Confirmed merges request persistent gameplay bonus gems at the normal/COMBO 1/COMBO 2/COMBO 3/COMBO 4+ ladder of 1/1/2/2/3 pieces. A shot may create at most three bonus pieces, COMBO 3+ creates no further reward tier, and delayed rewards may not raise the live population above 24.

@@ -1,3 +1,41 @@
+# Architecture Addendum - Reward Split Readability V5
+
+## One real piece, two coordinate layers
+
+The controller still creates each reward once at its collision-safe authoritative `GemPiece.position`. `GemSpriteLayer.set_bonus_extraction_transform()` applies only a visual offset back to the current confirmed-result position, elevates that visual above the result, and stores a bounded draw-only extraction record. The record supplies an origin ring/tether and current visual tip to `_draw()`; it is erased with every presentation clear, stale-piece removal, restart, failure, and viewport shift. Simulation never reads the offset, scale, elevation, tether, color, or shadow.
+
+`bonus_activation_delay_remaining` keeps the real body out of integration and pair contact for the complete 780 ms visual split. On release, `BoardSimulation._resolve_pair()` performs ordinary overlap correction and collision impulse, but omits `ContactMergeService.capture_contact()` while either participant has positive reward release grace. This 650 ms gate intentionally permits a visible collision before a possible later merge. `BoardSimulation.step()` expires the marker and returns the piece to ordinary eligibility; geometry and collision radii are unchanged.
+
+The requested-count ladder and weighted lower-tier selection remain in `GameController._schedule_bonus_gems()`. A uniqueness fallback operates only inside one multi-gem split and only when the eligible range is large enough, so siblings are visually distinct without hardcoded gem identities. The three-piece shot budget, depth ceiling, and population cap remain upstream of creation.
+
+## Live target-reward origin
+
+`GameplayEffectsLayer` stores each coin's cluster offset and arc height. While the group is still unrevealed, `GameController._sync_pending_target_coin_origins()` asks for pending result IDs and re-anchors the group to the live result piece. The anchor freezes when elapsed time reaches zero, giving every token one shared truthful source and a stable later flight. This presentation synchronization does not move a gem or alter the awarded amount.
+
+Coin shadows now draw at each token's computed current position, not its final scatter point. Gem shadows remain supplied Sprite2D artwork under the presentation root; larger lower offsets expose the ellipse below the opaque gem body. Neither shadow is an input to contact capture, merge eligibility, or containment.
+
+# Architecture Addendum - Reward Split Readability V5
+
+## One real piece, two coordinate layers
+
+The controller still creates each reward once at its collision-safe authoritative `GemPiece.position`. `GemSpriteLayer.set_bonus_extraction_transform()` applies only a visual offset back to the current confirmed-result position, elevates that visual above the result, and stores a bounded draw-only extraction record. The record supplies an origin ring/tether and current visual tip to `_draw()`; it is erased with every presentation clear, stale-piece removal, restart, failure, and viewport shift. Simulation never reads the offset, scale, elevation, tether, color, or shadow.
+
+`bonus_activation_delay_remaining` keeps the real body out of integration and pair contact for the complete 780 ms visual split. On release, `BoardSimulation._resolve_pair()` performs ordinary overlap correction and collision impulse, but omits `ContactMergeService.capture_contact()` while either participant has positive reward release grace. This 650 ms gate intentionally permits a visible collision before a possible later merge. `BoardSimulation.step()` expires the marker and returns the piece to ordinary eligibility; geometry and collision radii are unchanged.
+
+The requested-count ladder and weighted lower-tier selection remain in `GameController._schedule_bonus_gems()`. A uniqueness fallback operates only inside one multi-gem split and only when the eligible range is large enough, so siblings are visually distinct without hardcoded gem identities. The three-piece shot budget, depth ceiling, and population cap remain upstream of creation.
+
+## Live target-reward origin
+
+`GameplayEffectsLayer` stores each coin's cluster offset and arc height. While the group is still unrevealed, `GameController._sync_pending_target_coin_origins()` asks for pending result IDs and re-anchors the group to the live result piece. The anchor freezes when elapsed time reaches zero, giving every token one shared truthful source and a stable later flight. This presentation synchronization does not move a gem or alter the awarded amount.
+
+Coin shadows now draw at each token's computed current position, not its final scatter point. Gem shadows remain supplied Sprite2D artwork under the presentation root; larger lower offsets expose the ellipse below the opaque gem body. Neither shadow is an input to contact capture, merge eligibility, or containment.
+
+# Architecture Addendum - Reward Split Readability V5
+
+`GemSpriteLayer.set_bonus_extraction_transform()` visually offsets each already-safe real reward body back to its confirmed result, elevates it, and draws a bounded origin tether. Simulation never reads this transform. The 780 ms activation hold excludes the body from integration/contact; after release, `BoardSimulation` still resolves physical collisions but suppresses merge capture for 650 ms when either participant is a fresh reward. Expiry restores ordinary contact-only eligibility.
+
+`GameController._sync_pending_target_coin_origins()` re-anchors unrevealed coin groups to the live result through `GameplayEffectsLayer.reanchor_pending_target_coin_reward()`. The anchor freezes on reveal and cannot affect award authority. Coin shadows use computed current token positions; gem shadows remain supplied presentation-only sprites with lower exposed offsets. No shadow enters physics, containment, telemetry, or merge decisions.
+
 # Architecture Addendum - Reward Feedback Real Gems V4
 
 ## Real merge rewards remain inside existing simulation ownership

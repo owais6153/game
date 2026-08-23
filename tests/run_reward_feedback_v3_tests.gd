@@ -23,7 +23,7 @@ func _run() -> void:
 	_test_normal_merge_scale_timeline()
 	await _test_real_bonus_merge_rewards()
 	await _test_bonus_cascade_limits()
-	_test_same_event_bonus_grace()
+	_test_bonus_release_grace()
 	await _test_non_final_target_keeps_standard_collection()
 	await _test_final_target_celebration()
 	await _test_hud_coin_counter_continuity()
@@ -59,7 +59,8 @@ func _test_merge_timeline_hierarchy() -> void:
 	_assert(GameConfig.BONUS_GEM_BUDGET_PER_SHOT == 3, "A single shot must stop after three generated reward pieces")
 	_assert(GameConfig.BONUS_BOARD_PIECE_CAP >= 20 and GameConfig.BONUS_BOARD_PIECE_CAP <= 28, "Crowded-board reward spawning must have a hard population cap")
 	_assert(GameConfig.BONUS_REWARD_MAX_CHAIN_DEPTH == 2, "COMBO 3+ may celebrate but must not generate another reward tier")
-	_assert(GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY >= 0.30 and GameConfig.CHAIN_PRESENTATION_STAGGER >= 0.16, "Bonus activation and chain tiers must remain slow enough to read")
+	_assert(GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY >= 0.70 and GameConfig.CHAIN_PRESENTATION_STAGGER >= 0.24, "Bonus extraction and chain tiers must remain slow enough to read")
+	_assert(GameConfig.BONUS_VISUAL_START_SCALE >= 0.40 and GameConfig.BONUS_EXTRACTION_MOVE_START < GameConfig.BONUS_EXTRACTION_POP_END, "A reward must begin visibly and travel while it grows")
 	_assert(float(combo_3.hitstop) > float(normal.hitstop), "COMBO 3+ must use a longer hit-stop than a normal merge")
 	_assert(float(final_target.hitstop) > float(combo_3.hitstop), "The final target must own the strongest hit-stop")
 	_assert(float(final_target.duration) < float(normal.duration), "Final-target Phase A must hand the gem to the hero sequence early")
@@ -69,17 +70,17 @@ func _test_merge_timeline_hierarchy() -> void:
 	_assert(GameConfig.combo_label_text(3) == "COMBO 3!", "COMBO 3 must stay a plain emphatic label")
 	_assert(GameConfig.combo_label_text(4).contains("AMAZING") and GameConfig.combo_label_text(5).contains("PERFECT"), "Rare deep chains may use the escalated wording")
 	# The two deliberate pauses of the celebration must survive retuning.
-	_assert(GameConfig.HERO_HOLD_DURATION >= 0.35 and GameConfig.HERO_HOLD_DURATION <= 0.45, "The hero recognition hold must remain 350-450 ms")
-	_assert(GameConfig.LEVEL_REWARD_COIN_TABLE_HOLD >= 0.35 and GameConfig.LEVEL_REWARD_COIN_TABLE_HOLD <= 0.40, "The visible coin hold must remain 350-400 ms")
+	_assert(GameConfig.HERO_HOLD_DURATION >= 0.95 and GameConfig.HERO_LABEL_DURATION >= 0.90, "The final-target gem and caption must remain readable at center")
+	_assert(GameConfig.LEVEL_REWARD_COIN_TABLE_HOLD >= 0.95, "The full final coin pile must remain on the table for a readable hold")
 	_assert(GameConfig.LEVEL_REWARD_COIN_COUNT >= 14 and GameConfig.LEVEL_REWARD_COIN_COUNT <= 18, "The level reward must stay inside the reduced visible coin range")
 	_assert(GameConfig.LEVEL_REWARD_COIN_DRAW_RADIUS >= 18.0 and GameConfig.LEVEL_REWARD_COIN_SCATTER_HALF_WIDTH <= 0.40, "Reward coins must be larger and concentrated in a compact central pile")
 	var collect_plan := GameConfig.level_reward_collect_plan()
 	_assert(int(collect_plan[0].wave) == 0 and int(collect_plan[1].wave) == 0 and int(collect_plan[2].wave) == 1, "Coin vacuum must begin with two-coin waves")
 	_assert(float(collect_plan.back().at) - float(collect_plan[collect_plan.size() - 4].at) <= 0.001, "The final four reward coins must arrive as one fast confirmation group")
 	_assert(GameConfig.LEVEL_REWARD_COIN_FLIGHT_DURATION >= 0.30 and GameConfig.LEVEL_REWARD_COIN_FLIGHT_DURATION <= 0.42, "Each coin flight must stay inside the approved 300-420 ms window")
-	_assert(GameConfig.TARGET_COIN_TABLE_HOLD >= 0.24 and GameConfig.target_coin_flight_start(0, GameConfig.COIN_BURST_COUNT) - float(GameConfig.COIN_BURST_COUNT - 1) * GameConfig.COIN_SPAWN_STAGGER >= GameConfig.TARGET_COIN_TABLE_HOLD, "Every target coin group must finish landing and hold on the table before flight")
-	_assert(float(GameConfig.GEM_SHADOW_OPACITY[1]) >= 0.32 and float(GameConfig.GEM_SHADOW_OPACITY[1]) <= 0.36, "Gem contact shadows must be clearly visible without becoming heavy")
-	_assert(GameConfig.TARGET_COIN_SHADOW_OPACITY >= 0.30 and GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY >= 0.30, "Target and jackpot coin shadows must remain visibly grounded")
+	_assert(GameConfig.TARGET_COIN_TABLE_HOLD >= 1.0 and GameConfig.target_coin_flight_start(0, GameConfig.COIN_BURST_COUNT) - float(GameConfig.COIN_BURST_COUNT - 1) * GameConfig.COIN_SPAWN_STAGGER >= GameConfig.TARGET_COIN_TABLE_HOLD, "Every target coin group must remain together on the table for a readable hold")
+	_assert(float(GameConfig.GEM_SHADOW_OPACITY[1]) >= 0.46, "Gem contact shadows must be unmistakably visible on the table")
+	_assert(GameConfig.TARGET_COIN_SHADOW_OPACITY >= 0.42 and GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY >= 0.42, "Target and jackpot coin shadows must remain visibly grounded")
 
 
 func _test_normal_merge_scale_timeline() -> void:
@@ -137,14 +138,20 @@ func _test_real_bonus_merge_rewards() -> void:
 	_assert(is_equal_approx(bonus.bonus_activation_delay_remaining, GameConfig.BONUS_PHYSICS_ACTIVATION_DELAY), "The bonus physics gate must match the complete visual pop")
 	var initial_visual_offset: Vector2 = controller.gem_sprite_layer._presentation_offsets.get(bonus.id, Vector2.ZERO)
 	_assert(initial_visual_offset.length() > 24.0, "A bonus gem must initially render at its merge origin instead of popping into place")
-	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.5)
-	var halfway_visual_offset: Vector2 = controller.gem_sprite_layer._presentation_offsets.get(bonus.id, Vector2.ZERO)
-	_assert(halfway_visual_offset.distance_to(initial_visual_offset) <= 0.01, "The bonus gem must scale up at the merge center before moving outward")
-	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.25)
+	_assert(bool(controller.gem_sprite_layer._presentation_elevated.get(bonus.id, false)), "The emerging core must render above the merge result instead of hiding behind it")
+	_assert(controller.gem_sprite_layer._bonus_extractions.has(bonus.id), "The emerging gem must retain a visible tether to its confirmed merge source")
+	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.30)
+	var emerging_visual_offset: Vector2 = controller.gem_sprite_layer._presentation_offsets.get(bonus.id, Vector2.ZERO)
+	_assert(emerging_visual_offset.length() < initial_visual_offset.length() and emerging_visual_offset.length() > initial_visual_offset.length() * 0.45, "The core must visibly travel out of the merge instead of teleporting to its destination")
+	var emerging_scale: Vector2 = controller.gem_sprite_layer._presentation_scales.get(bonus.id, Vector2.ZERO)
+	_assert(emerging_scale.x > GameConfig.BONUS_VISUAL_START_SCALE, "The extracted core must grow into the rewarded gem while it travels")
+	_assert(controller.piece_visual_feedbacks.has(7001), "The merge result must recoil while releasing its reward")
+	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.40)
 	var settling_visual_offset: Vector2 = controller.gem_sprite_layer._presentation_offsets.get(bonus.id, Vector2.ZERO)
-	_assert(settling_visual_offset.length() < initial_visual_offset.length(), "The bonus gem must move outward only during its scale-down settle")
-	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.26)
+	_assert(settling_visual_offset.length() < emerging_visual_offset.length(), "The reward gem must keep separating before it settles")
+	controller._update_piece_visual_feedbacks(GameConfig.BONUS_VISUAL_BURST_DURATION * 0.31)
 	_assert(not controller.gem_sprite_layer._presentation_offsets.has(bonus.id), "The merge-origin offset must clear after the bonus reaches its physics position")
+	_assert(not controller.gem_sprite_layer._bonus_extractions.has(bonus.id), "The extraction tether must clear with the presentation")
 	_assert(controller.effects_layer.active_mini_gem_count() == 0, "No fading cosmetic mini-gem substitute may remain")
 	var merge_result: GemPiece = controller._live_piece(7001)
 	var overlap_clearance := bonus.position.distance_to(merge_result.position) - bonus.radius - merge_result.radius
@@ -185,6 +192,11 @@ func _test_bonus_cascade_limits() -> void:
 	await process_frame
 	controller._on_home_level_intro_requested()
 	controller._on_home_play_requested()
+	controller._schedule_bonus_gems({"result_id": 8999, "level": 6, "midpoint": Vector2.ZERO, "depth": 2})
+	var split_levels: Array = controller.pending_bonus_spawns[0].levels
+	_assert(split_levels.size() == 2 and split_levels[0] != split_levels[1], "A multi-gem split must use distinct visible tiers when eligible tiers allow it")
+	controller.pending_bonus_spawns.clear()
+	controller.bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 	for depth in [0, 1, 2, 3, 4]:
 		controller._schedule_bonus_gems({
 			"result_id": 9000 + depth,
@@ -208,7 +220,7 @@ func _test_bonus_cascade_limits() -> void:
 	await process_frame
 
 
-func _test_same_event_bonus_grace() -> void:
+func _test_bonus_release_grace() -> void:
 	var simulation := BoardSimulation.new()
 	var merger := ContactMergeService.new()
 	var first := PieceType.new(8101, 1, Vector2(300.0, 600.0), GameConfig.gem_collision_radius(1))
@@ -218,7 +230,7 @@ func _test_same_event_bonus_grace() -> void:
 		piece.bonus_merge_grace_remaining = float(GameConfig.BONUS_MERGE_GRACE_MS) / 1000.0
 	var pair: Array[GemPiece] = [first, second]
 	simulation.step(pair, STEP, merger)
-	_assert(not merger.has_pending_candidates(), "Same-event bonus pieces must collide without merging during the tiny grace window")
+	_assert(not merger.has_pending_candidates(), "Fresh bonus pieces must collide without immediately merging during release grace")
 	simulation.step(pair, float(GameConfig.BONUS_MERGE_GRACE_MS) / 1000.0 + STEP, merger)
 	_assert(merger.has_pending_candidates(), "Same-event bonus pieces must become completely normal merge candidates after grace")
 	merger.clear()
@@ -233,8 +245,10 @@ func _test_same_event_bonus_grace() -> void:
 	simulation.step(mixed, 0.05, merger)
 	_assert(not merger.has_pending_candidates(), "The activation frame must finish before bonus physics begins")
 	simulation.step(mixed, STEP, merger)
+	_assert(not merger.has_pending_candidates(), "A released bonus must visibly collide with an existing gem before it is eligible to merge")
+	simulation.step(mixed, float(GameConfig.BONUS_MERGE_GRACE_MS) / 1000.0 + STEP, merger)
 	var resolved := merger.resolve(mixed, 8200)
-	_assert(int(resolved.merge_count) == 1, "A bonus gem must merge normally with an existing board gem after its pop finishes")
+	_assert(int(resolved.merge_count) == 1, "A bonus gem must merge normally after its post-release readability grace")
 	_assert((resolved.presentation_events[0].source_ids as Array).has(first.id), "The real bonus gem must participate in the confirmed gameplay merge")
 
 
@@ -264,6 +278,12 @@ func _test_non_final_target_keeps_standard_collection() -> void:
 	controller._apply_confirmed_merge_events([_merge_event(controller, 7100, controller.active_target_tier(), 0)])
 	_assert(not controller.final_celebration_active, "A non-final target must not start the level celebration")
 	_assert(not controller.win_qualified, "A non-final target must not qualify the win")
+	var moving_result: GemPiece = controller._live_piece(7100)
+	moving_result.position += Vector2(34.0, 18.0)
+	controller._sync_pending_target_coin_origins()
+	for coin in controller.effects_layer.coin_rewards:
+		var coin_start: Vector2 = coin.start
+		_assert(coin_start.is_equal_approx(moving_result.position), "Unrevealed target coins must originate at the result gem's current position")
 	var first_coin_flight_at := GameConfig.target_coin_flight_start(0, GameConfig.COIN_BURST_COUNT)
 	controller.effects_layer.update_effects(GameConfig.COIN_REWARD_START_DELAY + first_coin_flight_at - 0.01)
 	_assert(controller.effects_layer.active_coin_count() == GameConfig.COIN_BURST_COUNT and controller.effects_layer._coin_flights_started.is_empty(), "All target coins must remain on the table together through the configured hold")
@@ -309,14 +329,14 @@ func _test_final_target_celebration() -> void:
 		+ GameConfig.HERO_HOLD_DURATION \
 		+ GameConfig.HERO_LAUNCH_ANTICIPATION_DURATION \
 		+ GameConfig.HERO_FLIGHT_DURATION
-	while elapsed < 3.4:
+	while elapsed < 5.0:
 		controller._process(STEP)
 		elapsed += STEP
 		if controller.get_active_piece() != null:
 			launcher_spawned = true
 		if elapsed < hero_arrival_at - STEP and controller.presented_target_index != presented_index_before:
 			counted_before_arrival = true
-		if elapsed >= 1.60 and elapsed <= 2.05:
+		if elapsed >= 2.25 and elapsed <= 3.10:
 			coins_visible_at_hold = maxi(coins_visible_at_hold, effects.visible_level_reward_coin_count())
 		coins_seen = maxi(coins_seen, effects.active_level_reward_coin_count())
 		if controller.win_presented and effects.has_active_coin_flights():
@@ -338,7 +358,7 @@ func _test_final_target_celebration() -> void:
 	_assert(controller.coins == coins_before + expected_reward, "The stored economy value must stay mathematically exact")
 	_assert(controller.gameplay_ui.pending_coin_value() == 0, "Every reward coin must be accounted for in the HUD counter")
 	# The whole hero-to-settled celebration must stay inside the approved budget.
-	_assert(GameConfig.final_celebration_duration() <= 3.1, "The celebration must remain responsive, not sluggish")
+	_assert(GameConfig.final_celebration_duration() <= 4.8, "The celebration must remain bounded after the longer readable holds")
 	paused = false
 	controller.queue_free()
 	await process_frame
@@ -401,7 +421,7 @@ func _test_hud_coin_counter_continuity() -> void:
 	var displayed_after_last_coin := -1
 	var displayed_at_win_presented := -1
 	var win_presented_seen := false
-	while elapsed < 3.4:
+	while elapsed < 5.0:
 		controller._process(STEP)
 		elapsed += STEP
 		if effects.has_active_coin_flights():

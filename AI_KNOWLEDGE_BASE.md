@@ -1,3 +1,33 @@
+# Knowledge Base Addendum - Reward Split Readability V5
+
+- Never restore the behind-result center pop. A reward must start visibly at the live merge result, render above it, move outward during growth, and remain physics-held until the 780 ms split completes. `GemPiece.position` is already collision-safe and must not be animated.
+- Reward release grace applies when either contacted piece is a fresh reward. Physical collision response still runs, but merge capture waits 650 ms. After expiry the marker must clear and ordinary contact-only merging resumes.
+- Multi-gem siblings should be distinct eligible tiers when possible. Keep the N-2 eligibility ceiling, weighted first choice, catalog-independent mapping, per-shot budget 3, generation ceiling depth 2, and board cap 24.
+- Before their first visible frame, target coin groups must follow the current result position through `reanchor_pending_target_coin_reward()`. Freeze the source at reveal; never attach coin authority or target state to this visual path.
+- Current readable holds are: non-final target coins 1.20 s together, final coin pile 1.00 s together, final hero center 1.05 s, and final caption 1.30 s. Chain presentation spacing is 260 ms.
+- Current shadows are deliberately visible: gem opacity 0.50 with tier-scaled lower offsets and coin opacity 0.46. They are presentation-only and may not calibrate physics.
+- Production visual evidence lives in `reports/reward-gem-extraction-v5/screenshots/`; the extraction checkpoints at 576/836/1096 ms and final center-hold checkpoints at 900/1350 ms are the primary review frames.
+
+# Knowledge Base Addendum - Reward Split Readability V5
+
+- Never restore the behind-result center pop. A reward must start visibly at the live merge result, render above it, move outward during growth, and remain physics-held until the 780 ms split completes. `GemPiece.position` is already collision-safe and must not be animated.
+- Reward release grace applies when either contacted piece is a fresh reward. Physical collision response still runs, but merge capture waits 650 ms. After expiry the marker must clear and ordinary contact-only merging resumes.
+- Multi-gem siblings should be distinct eligible tiers when possible. Keep the N-2 eligibility ceiling, weighted first choice, catalog-independent mapping, per-shot budget 3, generation ceiling depth 2, and board cap 24.
+- Before their first visible frame, target coin groups must follow the current result position through `reanchor_pending_target_coin_reward()`. Freeze the source at reveal; never attach coin authority or target state to this visual path.
+- Current readable holds are: non-final target coins 1.20 s together, final coin pile 1.00 s together, final hero center 1.05 s, and final caption 1.30 s. Chain presentation spacing is 260 ms.
+- Current shadows are deliberately visible: gem opacity 0.50 with tier-scaled lower offsets and coin opacity 0.46. They are presentation-only and may not calibrate physics.
+- Production visual evidence lives in `reports/reward-gem-extraction-v5/screenshots/`; the extraction checkpoints at 576/836/1096 ms and final center-hold checkpoints at 900/1350 ms are the primary review frames.
+
+# Knowledge Base Addendum - Reward Split Readability V5
+
+- Never restore the behind-result center pop. A reward must start visibly at the live merge result, render above it, move outward during growth, and remain physics-held until the 780 ms split completes. `GemPiece.position` is already collision-safe and must not be animated.
+- Reward release grace applies when either contacted piece is a fresh reward. Physical collision response still runs, but merge capture waits 650 ms. After expiry the marker must clear and ordinary contact-only merging resumes.
+- Multi-gem siblings should be distinct eligible tiers when possible. Keep the N-2 eligibility ceiling, weighted first choice, catalog-independent mapping, per-shot budget 3, generation ceiling depth 2, and board cap 24.
+- Before their first visible frame, target coin groups must follow the current result position through `reanchor_pending_target_coin_reward()`. Freeze the source at reveal; never attach coin authority or target state to this visual path.
+- Current readable holds are: non-final target coins 1.20 s together, final coin pile 1.00 s together, final hero center 1.05 s, and final caption 1.30 s. Chain presentation spacing is 260 ms.
+- Current shadows are deliberately visible: gem opacity 0.50 with tier-scaled lower offsets and coin opacity 0.46. They are presentation-only and may not calibrate physics.
+- Production visual evidence lives in `reports/reward-gem-extraction-v5/screenshots/`; the extraction checkpoints at 576/836/1096 ms and final center-hold checkpoints at 900/1350 ms are the primary review frames.
+
 # Knowledge Base Addendum - Reward Feedback Real Gems V4
 
 ## Do not turn bonus gems back into VFX

@@ -33,6 +33,9 @@ var _presentation_scales: Dictionary = {}
 var _presentation_offsets: Dictionary = {}
 var _presentation_rotations: Dictionary = {}
 var _presentation_elevated: Dictionary = {}
+## Short-lived causal tethers from the confirmed result to each emerging real
+## reward gem. Records are draw-only and never enter collision or simulation.
+var _bonus_extractions: Dictionary = {}
 ## Bounded, presentation-only contact response. It is applied below the
 ## simulation-mirroring root and is never read by physics or merge logic.
 var _impact_scales: Dictionary = {}
@@ -47,6 +50,24 @@ var _radial_pool: Array[Sprite2D] = []
 
 func _ready() -> void:
 	_build_radial_pool()
+
+
+func _draw() -> void:
+	for extraction in _bonus_extractions.values():
+		var origin: Vector2 = extraction.get("origin", Vector2.ZERO)
+		var tip: Vector2 = extraction.get("tip", origin)
+		var progress := clampf(float(extraction.get("progress", 0.0)), 0.0, 1.0)
+		var color: Color = extraction.get("color", Color.WHITE)
+		var fade := 1.0 - smoothstep(0.72, 1.0, progress)
+		var pulse := sin(minf(progress / GameConfig.BONUS_EXTRACTION_POP_END, 1.0) * PI)
+		var trail_alpha := GameConfig.BONUS_EXTRACTION_TRAIL_ALPHA * fade
+		if origin.distance_squared_to(tip) > 1.0:
+			draw_line(origin, tip, Color(color.r, color.g, color.b, trail_alpha * 0.62), GameConfig.BONUS_EXTRACTION_TRAIL_WIDTH, true)
+			draw_line(origin, tip, Color(1.0, 1.0, 1.0, trail_alpha * 0.72), 2.0, true)
+		var origin_radius := GameConfig.BONUS_EXTRACTION_ORIGIN_RADIUS * (0.72 + pulse * 0.28)
+		draw_circle(origin, origin_radius, Color(color.r, color.g, color.b, trail_alpha * 0.24))
+		draw_arc(origin, origin_radius, 0.0, TAU, 24, Color(1.0, 1.0, 1.0, trail_alpha * 0.80), 2.0, true)
+		draw_circle(tip, maxf(2.0, 4.5 * fade), Color(1.0, 1.0, 1.0, trail_alpha))
 
 
 func _build_radial_pool() -> void:
@@ -127,6 +148,10 @@ func update_reward_effects(delta: float) -> void:
 func shift_reward_effects(delta: Vector2) -> void:
 	for burst in _radial_bursts:
 		burst.position += delta
+	for extraction in _bonus_extractions.values():
+		extraction.origin += delta
+		extraction.tip += delta
+	queue_redraw()
 
 ## Synchronizes presentation-only Sprite2D nodes to simulation entities. The
 ## sprites never write positions, radii, IDs, velocities, or merge candidates.
@@ -234,6 +259,7 @@ func sync_gems(pieces: Array[GemPiece]) -> void:
 			_presentation_offsets.erase(id)
 			_presentation_rotations.erase(id)
 			_presentation_elevated.erase(id)
+			_bonus_extractions.erase(id)
 			_impact_scales.erase(id)
 			_impact_angles.erase(id)
 			_impact_offsets.erase(id)
@@ -254,25 +280,36 @@ func set_presentation_transform(piece_id: int, scale: Vector2, rotation: float, 
 	_presentation_elevated[piece_id] = elevated
 
 ## A newly rewarded gameplay piece is already at a collision-safe simulation
-## position. This visual-only offset initially draws it at the confirmed merge
-## center, then the controller eases it onto that authoritative position.
-func set_bonus_spawn_transform(piece_id: int, multiplier: float, offset: Vector2) -> void:
+## position. This visual-only transform exposes its complete trip out of the
+## confirmed result while a tether makes the source relationship unambiguous.
+func set_bonus_extraction_transform(piece_id: int, multiplier: float, offset: Vector2, origin: Vector2, physics_position: Vector2, level: int, progress: float) -> void:
 	_presentation_scales[piece_id] = Vector2.ONE * clampf(multiplier, PRESENTATION_SCALE_MIN, PRESENTATION_SCALE_MAX)
 	_presentation_rotations[piece_id] = 0.0
 	_presentation_offsets[piece_id] = offset.limit_length(180.0)
-	_presentation_elevated[piece_id] = false
+	_presentation_elevated[piece_id] = true
+	_bonus_extractions[piece_id] = {
+		"origin": origin,
+		"tip": physics_position + offset,
+		"progress": progress,
+		"color": GameConfig.gem_color(level).lightened(0.22),
+	}
+	queue_redraw()
 
 func clear_presentation_scale(piece_id: int) -> void:
 	_presentation_scales.erase(piece_id)
 	_presentation_offsets.erase(piece_id)
 	_presentation_rotations.erase(piece_id)
 	_presentation_elevated.erase(piece_id)
+	_bonus_extractions.erase(piece_id)
+	queue_redraw()
 
 func clear_presentation_scales() -> void:
 	_presentation_scales.clear()
 	_presentation_offsets.clear()
 	_presentation_rotations.clear()
 	_presentation_elevated.clear()
+	_bonus_extractions.clear()
+	queue_redraw()
 
 func set_impact_scale(piece_id: int, multiplier: float) -> void:
 	clear_impact_scale(piece_id)
@@ -314,12 +351,14 @@ func clear() -> void:
 	_presentation_offsets.clear()
 	_presentation_rotations.clear()
 	_presentation_elevated.clear()
+	_bonus_extractions.clear()
 	_impact_scales.clear()
 	_impact_angles.clear()
 	_impact_offsets.clear()
 	_radial_bursts.clear()
 	for sprite in _radial_pool:
 		sprite.visible = false
+	queue_redraw()
 
 func _vector_scale(value: Variant) -> Vector2:
 	if value is Vector2:

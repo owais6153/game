@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Reward Gem Split Readability V5](REWARD_GEM_SPLIT_READABILITY_V5_REPORT.md) - visible merge-origin gem splitting, slower collision-before-merge release, distinct sibling tiers, stronger table shadows, live-origin target coins, full coin holds, and readable final-target center timing.
+
 - [Reward Feedback Real Gems V4](REWARD_FEEDBACK_REAL_GEMS_V4_REPORT.md) - persistent gameplay bonus gems with post-pop physics activation and cascade caps, 180 ms chain spacing, held target-coin groups, subtle table shadows, and a compact 16-coin jackpot.
 
 - [Reward Feedback V3](REWARD_FEEDBACK_V3_REPORT.md) — merge/combo/final-target reward hierarchy, 420 ms merge timeline, chain combo system, staged final-target hero moment, 20-coin level celebration, gated Level Complete, and stage-by-stage in-game screenshots.

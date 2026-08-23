@@ -1,8 +1,8 @@
 class_name BoardSimulation
 extends RefCounted
 
-## Contact telemetry is presentation-only. Bonus activation holds are explicit
-## controller-authored gameplay pacing and never change radii or eligibility.
+## Contact telemetry is presentation-only. Bonus activation and post-release
+## merge holds are explicit controller-authored pacing; radii stay unchanged.
 var _collision_impacts: Array[Dictionary] = []
 var _activation_holds: Dictionary = {}
 
@@ -103,13 +103,12 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	var minimum_distance := first.radius + second.radius
 	if distance > minimum_distance + GameConfig.CONTACT_EPSILON:
 		return
-	# Capture physical contact before changing positions. Once their visual pop
-	# has activated physics, sibling bonus pieces collide and move during grace;
-	# only their mutual merge candidate is briefly suppressed.
-	var same_bonus_event_grace := first.bonus_event_id >= 0 \
-		and first.bonus_event_id == second.bonus_event_id \
-		and (first.bonus_merge_grace_remaining > 0.0 or second.bonus_merge_grace_remaining > 0.0)
-	if not same_bonus_event_grace:
+	# Newly split rewards are allowed to make visible physical contact before
+	# they can create another merge. This applies to any pair containing a fresh
+	# reward, sharply reducing instant unreadable cascades on crowded boards.
+	var bonus_release_grace := first.bonus_merge_grace_remaining > 0.0 \
+		or second.bonus_merge_grace_remaining > 0.0
+	if not bonus_release_grace:
 		merger.capture_contact(first, second)
 	var normal := offset / distance if distance > 0.001 else Vector2.RIGHT
 	var overlap := maxf(0.0, minimum_distance - distance)
