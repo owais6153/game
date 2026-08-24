@@ -882,3 +882,8 @@
 - Prepared and exported the signed Play-ready AAB for the already validated rail/target blast/gem-expansion milestone.
 - Advanced Android release identity from versionName `1.0.5` / versionCode `7` to `1.0.6` / `8` before export; verified the embedded AAB manifest with Bundletool.
 - Recorded dual-ARM native libraries, 34 runtime gems, packaging exclusions, focused regression result, and device status in the AAB delivery report and build manifest.
+# 2026-08-25 - Android targeting and launcher branding v1.0.7 (versionCode 9)
+
+- Added the required touchscreen feature to the persistent Godot Gradle-template manifest; phone and tablet support, portrait orientation, package/signing, game category, and AdMob settings remain unchanged.
+- Replaced launcher branding inputs with non-destructive v2 derivatives from the supplied transparent Majestic Gems logo: 192px legacy icon plus 432px adaptive foreground/background with conservative mask-safe padding.
+- Verified the final AAB merged manifest with Bundletool: touchscreen required, portrait activity, game category, no Leanback/Automotive/Wear/XR declarations, dual ARM ABIs, package/version invariants, and development-file exclusions.

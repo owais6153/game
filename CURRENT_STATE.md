@@ -1,3 +1,9 @@
+# Current State Addendum - Android Targeting and Launcher Branding v1.0.7
+
+The signed Android App Bundle `build/android/majestic-gems-android-targeting-icons-v1.0.7-vc9.aab` is ready for Play upload as versionCode 9 / versionName 1.0.7. The persistent Gradle-template manifest now requires `android.hardware.touchscreen`; the final merged AAB manifest confirms that requirement alongside unchanged package `com.owais.majestygems`, min SDK 24, target/compile SDK 36, portrait orientation, tablet support, and game category. It contains no Leanback, Automotive, Wear, or XR declarations.
+
+Launcher branding now derives from the supplied transparent `assets/logo/majestic_gems_logo_source_v2.png` (1254x1254). Godot's persistent launcher-icon preset references the generated 192px legacy icon and 432px adaptive foreground/background pair under `assets/runtime/ui/`. The foreground preserves the complete logo within a 288px mask-safe square; the adaptive background uses the existing dark-amethyst brand color. The final AAB has dual ARM libraries and no packaged tests/reports/dev scripts. Branding and responsive phone/tall-phone/tablet layout regressions pass; no Android device was connected, so installation and physical launcher-mask checks are not claimed.
+
 # Current State Addendum - Rail, Target Blast, and Gem Expansion Release v1.0.6
 
 The signed Android App Bundle `build/android/majestic-gems-rail-target-blast-v1.0.6-vc8.aab` is ready for Play upload. It is versionCode 8 / versionName 1.0.6, which advances the prior released versionCode 7 / versionName 1.0.5. Bundletool confirms package `com.owais.majestygems`, min SDK 24, target/compile SDK 36, dual `arm64-v8a` and `armeabi-v7a` native libraries, all 34 runtime gem assets including `gem_33` and `gem_34`, and no packaged tests, reports, or development scripts. Focused rail/target/gem regression passed before export; the matching standalone APK exists, and `adb devices -l` found no Android device.

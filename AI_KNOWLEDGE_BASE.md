@@ -950,3 +950,9 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - `tween_composer/*` must remain packaged while `HomeOverlayLayer` preloads its four runtime scripts.
 - Home must explicitly hide gameplay HUD and own a visible input surface before setting/using Home navigation semantics.
 - Route every Android Back representation through the platform debounce; never call the state transition independently from both notification and key handlers.
+# Android Targeting and Launcher Branding
+
+- Treat `android/build/src/main/AndroidManifest.xml` as the persistent custom Gradle-template manifest. Do not edit `android/build/build/intermediates/*` or any other merged/generated Android output.
+- Majestic Gems requires `android.hardware.touchscreen` with `android:required="true"`. Do not add a false touchscreen declaration, Leanback launcher/category, Automotive, Wear, or XR features.
+- Keep phone/tablet support and portrait behavior controlled by Godot's `project.godot` display settings and `export_presets.cfg`; do not add screen-size exclusions or change game coordinates to address large-screen recommendations.
+- Launcher assets are `assets/runtime/ui/majestic_gems_app_icon_192_v2.png`, `majestic_gems_adaptive_foreground_v2.png`, and `majestic_gems_adaptive_background_v2.png`, configured exclusively through `export_presets.cfg`. Preserve the supplied transparent source `assets/logo/majestic_gems_logo_source_v2.png`; the foreground art must remain inside the 288px safe area of its 432px canvas.

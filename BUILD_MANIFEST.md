@@ -1,5 +1,20 @@
 # Build Manifest
 
+## Android Targeting and Launcher Branding RELEASE AAB v1.0.7 (versionCode 9)
+
+- AAB: `build/android/majestic-gems-android-targeting-icons-v1.0.7-vc9.aab`
+- Size: 69,997,682 bytes (66.75 MiB)
+- Export timestamp: 2026-08-25 04:10:08 +05:00 (Asia/Karachi)
+- SHA-256: `0418F9B100A7CBCF631BC526C556556B11515A68965C1BE6F6C4D098B7C8FC46`
+- Source commit/tag: `ffd420b` / `android-targeting-launcher-v1.0.7-vc9-source`. Delivery tag: `android-targeting-launcher-v1.0.7-vc9-release` on the manifest/provenance follow-up commit.
+- Version selection: versionCode 9 is greater than all prior recorded codes (maximum 8); versionName 1.0.7 is greater than the previous release 1.0.6. Both values were committed in `export_presets.cfg` before export.
+- Export: Godot 4.6.3 `--export-release Android`, Gradle AAB, existing configured release/upload signing, `arm64-v8a` and `armeabi-v7a`.
+- Final manifest validation: Bundletool 1.18.3 `validate` passed. The embedded base manifest reports unchanged package `com.owais.majestygems`, versionCode 9, versionName 1.0.7, min SDK 24, target/compile SDK 36, `android.hardware.touchscreen` required=true, game category, portrait activity, and the existing AdMob application ID. It contains no Leanback, Automotive, Wear, or XR declarations.
+- Archive validation: 1,004 entries, both ARM library pairs, the v2 legacy/adaptive launcher resources, and zero root `tests/`, `reports/`, or `scripts/dev/` entries.
+- Tests: `BRANDING_PUSH_LINE_TESTS: PASS` after importing the v2 PNGs; `UI_SCALE_LAYOUT_TESTS: PASS` for normal phone, tall phone, and tablet portrait layouts. No gameplay code changed.
+- Device status: `adb devices -l` found no connected devices. AAB install, physical icon-mask inspection, launcher appearance, touchscreen play, and AdMob on-device behavior are not claimed.
+- Report: `reports/ANDROID_TARGETING_LAUNCHER_V1.0.7_REPORT.md`.
+
 ## Rail, Target Blast, and Gem Expansion RELEASE AAB v1.0.6 (versionCode 8)
 
 - AAB: `build/android/majestic-gems-rail-target-blast-v1.0.6-vc8.aab`

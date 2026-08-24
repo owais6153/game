@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Android Targeting and Launcher Branding v1.0.7](ANDROID_TARGETING_LAUNCHER_V1.0.7_REPORT.md) - persistent touchscreen requirement, form-factor audit, supplied-logo launcher derivatives, merged-manifest verification, responsive-layout checks, and versionCode-9 AAB delivery.
+
 - [Rail, Target Blast AAB v1.0.6](RAIL_TARGET_BLAST_AAB_V1.0.6_REPORT.md) - signed Play-ready versionCode-8 AAB delivery, Bundletool manifest/structure verification, regression evidence, and device-status limits.
 
 - [Rail, Target Blast, and Gem Expansion V1](RAIL_TARGET_BLAST_GEM_EXPANSION_V1_REPORT.md) - measured shared inner-rail recalibration, two alpha-tight supplied gems, larger target physics/art, five-ring waves, bounded target blast, music gain, tests, renders, and Android delivery evidence.
