@@ -1,3 +1,13 @@
+# Architecture Addendum - Gem Registry and Pattern Blocks V1
+
+`AssetCatalog.GEM_DEFINITIONS` is the single immutable metadata authority for all 32 visual identities. Queries filter cached dictionaries by audited shape, color family, color style, rarity, or excluded color; no runtime directory scan, filename inference, display name, or pixel analysis occurs during play. Textures remain preloaded once. Simulation sees only local L1-L8 and `GameConfig.gem_collision_radius()`.
+
+`LevelConfig.pattern_for_level()` reconstructs block history as a pure seeded function. Each deterministic 3-4-level block owns one family/dominant value, and `generated()` selects four Common identities, one support Unique, and three target Unique identities into fixed local roles. The generator returns pattern metadata for debugging/tests; the controller still consumes ordinary local tiers and target dictionaries.
+
+Target authority remains in `GameController`. Confirmed merge state advances once, while presentation reads that event: `GameplayEffectsLayer` draws bounded ring records/coins, `GemSpriteLayer` handles radial feedback, and the controller owns one collection proxy after removing the real result body. The 1.12 target scale and center/HUD path never feed simulation. Audio remains event-service-owned.
+
+`UiDesignSystem` remains the only style authority. Both StyleBoxFancy and StyleBoxFlat factories explicitly disable shadows, so HUD consumers need no per-panel overrides and layout metrics remain untouched.
+
 # Architecture Addendum - Supplied Art and Responsibility-Based Layout V1
 
 ## Script boundaries

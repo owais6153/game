@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Gem Categories, Pattern Blocks, and Target Feedback V1](GEM_PATTERN_FEEDBACK_V1_REPORT.md) - 32-gem audited registry, Common/Unique target safety, deterministic shape/color blocks, shared target cinematic, stronger waves, four-coin parity, rail verification, alpha-tight crops, HUD shadow removal, optimization, tests, renders, and Android delivery evidence.
+
 - [Supplied Art, Purple UI, and Codebase Cleanup V1](SUPPLIED_ART_PURPLE_UI_CODEBASE_CLEANUP_V1_REPORT.md) - 10/10/20 supplied-art integration, alpha-tight gems, measured table/physics calibration, no gem names, dark-amethyst UI theme, responsibility-based repository cleanup, full regressions, visual QA, and Android delivery evidence.
 
 - [Reward Gem Simultaneous Physics V6](REWARD_GEM_SIMULTANEOUS_PHYSICS_V6_REPORT.md) - same-frame result/sibling reveal, shared pop timing, immediate first-visible-frame physics/contact, merge-only grace, cascade preservation, and ANGLE proof frames.

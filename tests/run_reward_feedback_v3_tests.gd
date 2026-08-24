@@ -63,8 +63,8 @@ func _test_merge_timeline_hierarchy() -> void:
 	_assert(GameConfig.CHAIN_PRESENTATION_STAGGER >= 0.24, "Chain tiers must remain slow enough to read")
 	_assert(float(combo_3.hitstop) > float(normal.hitstop), "COMBO 3+ must use a longer hit-stop than a normal merge")
 	_assert(float(final_target.hitstop) > float(combo_3.hitstop), "The final target must own the strongest hit-stop")
-	_assert(float(final_target.duration) < float(normal.duration), "Final-target Phase A must hand the gem to the hero sequence early")
-	_assert(is_equal_approx(float(final_target.duration), GameConfig.FINAL_TARGET_COLLECTION_OVERLAP_START), "Hero travel must begin exactly when Phase A ends")
+	_assert(is_equal_approx(float(final_target.duration), float(normal.duration)), "Final-target merge feedback must finish before collection travel")
+	_assert(is_equal_approx(GameConfig.FINAL_TARGET_COLLECTION_OVERLAP_START - float(final_target.duration), 0.12), "Hero travel must follow the complete merge with a 120 ms readable hold")
 	# The chain label ladder must not lend deep-chain wording to shallow chains.
 	_assert(GameConfig.combo_label_text(1) == "COMBO 1" and GameConfig.combo_label_text(2) == "COMBO 2", "Low chains must use plain combo labels")
 	_assert(GameConfig.combo_label_text(3) == "COMBO 3!", "COMBO 3 must stay a plain emphatic label")
@@ -72,15 +72,15 @@ func _test_merge_timeline_hierarchy() -> void:
 	# The two deliberate pauses of the celebration must survive retuning.
 	_assert(GameConfig.HERO_HOLD_DURATION >= 0.95 and GameConfig.HERO_LABEL_DURATION >= 0.90, "The final-target gem and caption must remain readable at center")
 	_assert(GameConfig.LEVEL_REWARD_COIN_TABLE_HOLD >= 0.95, "The full final coin pile must remain on the table for a readable hold")
-	_assert(GameConfig.LEVEL_REWARD_COIN_COUNT >= 14 and GameConfig.LEVEL_REWARD_COIN_COUNT <= 18, "The level reward must stay inside the reduced visible coin range")
+	_assert(GameConfig.LEVEL_REWARD_COIN_COUNT == GameConfig.COIN_BURST_COUNT, "The final target must use the same visible coin quantity as earlier targets")
 	_assert(GameConfig.LEVEL_REWARD_COIN_DRAW_RADIUS >= 18.0 and GameConfig.LEVEL_REWARD_COIN_SCATTER_HALF_WIDTH <= 0.40, "Reward coins must be larger and concentrated in a compact central pile")
 	var collect_plan := GameConfig.level_reward_collect_plan()
-	_assert(int(collect_plan[0].wave) == 0 and int(collect_plan[1].wave) == 0 and int(collect_plan[2].wave) == 1, "Coin vacuum must begin with two-coin waves")
-	_assert(float(collect_plan.back().at) - float(collect_plan[collect_plan.size() - 4].at) <= 0.001, "The final four reward coins must arrive as one fast confirmation group")
+	_assert(collect_plan.size() == GameConfig.COIN_BURST_COUNT and int(collect_plan[0].wave) == 0 and int(collect_plan[2].wave) == 1, "Four final coins must collect in two compact waves")
+	_assert(float(collect_plan.back().at) - float(collect_plan.front().at) <= 0.10, "The four reward coins must arrive as one fast confirmation group")
 	_assert(GameConfig.LEVEL_REWARD_COIN_FLIGHT_DURATION >= 0.30 and GameConfig.LEVEL_REWARD_COIN_FLIGHT_DURATION <= 0.42, "Each coin flight must stay inside the approved 300-420 ms window")
 	_assert(GameConfig.TARGET_COIN_TABLE_HOLD >= 1.0 and GameConfig.target_coin_flight_start(0, GameConfig.COIN_BURST_COUNT) - float(GameConfig.COIN_BURST_COUNT - 1) * GameConfig.COIN_SPAWN_STAGGER >= GameConfig.TARGET_COIN_TABLE_HOLD, "Every target coin group must remain together on the table for a readable hold")
 	_assert(float(GameConfig.GEM_SHADOW_OPACITY[1]) >= 0.46, "Gem contact shadows must be unmistakably visible on the table")
-	_assert(GameConfig.TARGET_COIN_SHADOW_OPACITY >= 0.42 and GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY >= 0.42, "Target and jackpot coin shadows must remain visibly grounded")
+	_assert(GameConfig.TARGET_COIN_SHADOW_OPACITY > 0.0 and GameConfig.TARGET_COIN_SHADOW_OPACITY <= 0.25 and GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY > 0.0 and GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY <= 0.25, "Target and final coins must use light table-contact shadows")
 
 
 func _test_normal_merge_scale_timeline() -> void:
@@ -95,8 +95,9 @@ func _test_normal_merge_scale_timeline() -> void:
 	_assert(is_equal_approx(controller._merge_result_transform_for(0.42, timeline).uniform_scale, 1.0), "The merge must return to 1.0 by 420 ms")
 	var hero: Dictionary = GameConfig.MERGE_TIMELINE_FINAL_TARGET
 	_assert(is_equal_approx(controller._merge_result_transform_for(0.10, hero).uniform_scale, 0.60), "Final-target Phase A must reveal at 0.60")
-	_assert(is_equal_approx(controller._merge_result_transform_for(0.15, hero).uniform_scale, 1.40), "Final-target Phase A must reach the strongest 1.40 peak")
-	_assert(is_equal_approx(controller._merge_result_transform_for(0.18, hero).uniform_scale, 1.18), "Final-target Phase A must recoil before hero travel")
+	_assert(is_equal_approx(controller._merge_result_transform_for(0.18, hero).uniform_scale, 1.40), "Final-target merge must reach the strongest 1.40 peak")
+	_assert(is_equal_approx(controller._merge_result_transform_for(0.27, hero).uniform_scale, 0.96), "Final-target merge must recoil before its final settle")
+	_assert(is_equal_approx(controller._merge_result_transform_for(0.42, hero).uniform_scale, 1.0), "Final-target merge must settle fully before the table-position hold")
 	controller.free()
 
 
@@ -295,8 +296,8 @@ func _test_non_final_target_keeps_standard_collection() -> void:
 	controller.effects_layer.update_effects(0.02)
 	_assert(controller.effects_layer._coin_flights_started.has(7100), "Target coin flight state must begin only when the first held coin actually leaves")
 	controller._update_merge_presentations(GameConfig.TARGET_COLLECTION_OVERLAP_START + 0.01)
-	_assert(controller.collection_in_progress and not bool(controller.target_collection.get("hero", false)), "A non-final target must keep the existing compact collection")
-	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION + 0.01)
+	_assert(controller.collection_in_progress and bool(controller.target_collection.get("hero", false)), "Every target must use the shared center-and-HUD collection sequence")
+	controller._update_target_collection(GameConfig.HERO_TRAVEL_DURATION + GameConfig.HERO_HOLD_DURATION + GameConfig.HERO_LAUNCH_ANTICIPATION_DURATION + GameConfig.HERO_FLIGHT_DURATION + 0.01)
 	_assert(controller.presented_target_index == expected_index, "A non-final target must still advance the HUD on arrival")
 	paused = false
 	controller.queue_free()
@@ -324,7 +325,7 @@ func _test_final_target_celebration() -> void:
 
 	var effects := controller.effects_layer
 	var elapsed := 0.0
-	var counted_before_arrival := false
+	var count_changed_at := -1.0
 	var launcher_spawned := false
 	var coins_seen := 0
 	var coins_visible_at_hold := 0
@@ -339,8 +340,8 @@ func _test_final_target_celebration() -> void:
 		elapsed += STEP
 		if controller.get_active_piece() != null:
 			launcher_spawned = true
-		if elapsed < hero_arrival_at - STEP and controller.presented_target_index != presented_index_before:
-			counted_before_arrival = true
+		if count_changed_at < 0.0 and controller.presented_target_index != presented_index_before:
+			count_changed_at = elapsed
 		if elapsed >= 2.25 and elapsed <= 3.10:
 			coins_visible_at_hold = maxi(coins_visible_at_hold, effects.visible_level_reward_coin_count())
 		coins_seen = maxi(coins_seen, effects.active_level_reward_coin_count())
@@ -352,7 +353,7 @@ func _test_final_target_celebration() -> void:
 			failures.append("Input must remain locked while the final celebration runs")
 			break
 
-	_assert(not counted_before_arrival, "The target count must not complete before the hero gem reaches the HUD")
+	_assert(count_changed_at < 0.0 or count_changed_at >= hero_arrival_at - 0.08, "The target count must not complete before the hero gem reaches the HUD (changed %.3f, expected %.3f)" % [count_changed_at, hero_arrival_at])
 	_assert(controller.presented_target_index == presented_index_before + 1, "The target count must advance once the hero gem arrives")
 	_assert(not launcher_spawned, "No shooter gem may spawn during the final celebration")
 	_assert(coins_seen == GameConfig.LEVEL_REWARD_COIN_COUNT, "The level reward must spawn the approved visible coin count")

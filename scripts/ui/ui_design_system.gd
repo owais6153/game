@@ -162,20 +162,20 @@ static func _glass_highlight_texture() -> GradientTexture2D:
 	return texture
 
 
-static func _frosted_glass_style(top: Color, bottom: Color, radius: int, border_width: int = 2, strong_shadow: bool = false, gloss: bool = true) -> StyleBox:
+static func _frosted_glass_style(top: Color, bottom: Color, radius: int, border_width: int = 2, _strong_shadow: bool = false, gloss: bool = true) -> StyleBox:
 	# StyleBoxFancy cannot blur the framebuffer by itself. This uses translucent
-	# layered gradients, a bright rim and soft shadow to create a mobile-safe
-	# frosted-glass approximation without a screen-sampling shader.
+	# layered gradients and a bright rim to create a mobile-safe frosted-glass
+	# approximation without a screen-sampling shader or HUD box shadow.
 	var style := StyleBoxFancy.new()
 	style.color = Color.WHITE
 	style.texture = _glass_gradient(top, bottom)
 	style.set_corner_radius_all(radius)
 	style.set_corner_curvature_all(2.0) # Panel8 squircle curvature.
-	style.shadow_enabled = true
-	style.shadow_color = COLOR_GLASS_SHADOW if not strong_shadow else Color(0.12, 0.02, 0.22, 0.46)
-	style.shadow_blur = 9 if not strong_shadow else 13
-	style.shadow_offset = Vector2(0.0, 4.0)
-	style.shadow_spread = Vector2(1.0, 1.0)
+	style.shadow_enabled = false
+	style.shadow_color = Color.TRANSPARENT
+	style.shadow_blur = 0
+	style.shadow_offset = Vector2.ZERO
+	style.shadow_spread = Vector2.ZERO
 	style.anti_aliasing = true
 	style.anti_aliasing_size = 1.5
 	var rim := StyleBorder.new()
@@ -455,7 +455,7 @@ static func _focus_style() -> StyleBoxFlat:
 	return style
 
 
-static func _rounded_style(background: Color, border: Color, border_width: int, radius: int, shadow_size: int, shadow_color: Color) -> StyleBoxFlat:
+static func _rounded_style(background: Color, border: Color, border_width: int, radius: int, _shadow_size: int, _shadow_color: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = background
 	style.border_color = border
@@ -464,7 +464,7 @@ static func _rounded_style(background: Color, border: Color, border_width: int, 
 	style.corner_radius_top_right = radius
 	style.corner_radius_bottom_left = radius
 	style.corner_radius_bottom_right = radius
-	style.shadow_color = shadow_color
-	style.shadow_size = shadow_size
-	style.shadow_offset = Vector2(0.0, 3.0)
+	style.shadow_color = Color.TRANSPARENT
+	style.shadow_size = 0
+	style.shadow_offset = Vector2.ZERO
 	return style

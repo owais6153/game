@@ -1,3 +1,14 @@
+# Gem Categories, Pattern Blocks, and Target Feedback V1 - 2026-08-24
+
+- The presentation registry contains 32 audited identities and only the categories visible in supplied art: `circle` / `rounded_square`, practical color family, `solid` / `gradient`, and `common` / `unique`. The pool is 22 Common and 10 Unique; player-facing names remain prohibited.
+- Generated levels use deterministic 3-4-level blocks. Same Shape uses four Common plus one non-target Unique in the dominant shape and three opposite-shape Unique targets. Same Color uses at least three dominant-color Common pieces, one same-color Unique support piece, and three contrasting Unique targets. Adjacent blocks cannot repeat the exact family/dominant configuration.
+- Local L1-L4 are Common launcher/progression identities, L5 is the non-target Unique support identity, and L6-L8 are three distinct Unique targets in ascending, mechanically reachable order. Strict contact merging and unlimited L1-L4 launches remain unchanged.
+- Every target uses a presentation-only 1.12 scale, a brighter three-layer merge wave, a complete 420 ms merge, a 120 ms hold at the actual merge point, then the same center hold and curved HUD collection sequence. Physics bodies/radii do not scale.
+- Target sound order is confirmed contact/merge, target reward at collection start, then collection arrival. Every target coin group holds on the table for at least 1.0 s; the last target now uses four visible coins, matching targets 1 and 2, with light 0.24-opacity contact shadows and no vertical idle float.
+- HUD style boxes have no box shadows. Dark-amethyst fills, rims, highlights, positions, sizes, anchors, and safe-area behavior are unchanged.
+- All 32 runtime PNGs are non-destructive alpha-tight derivatives at threshold 0.01 with preserved aspect ratio and a 256 px longest edge. Transparent padding never changes the centralized local-tier collider radii.
+- All ten supplied tables retain the existing normalized shared opening and centralized `GameConfig` trapezoid. In-game rail-contact captures and all-table pixel/geometry regressions found no safe geometry retune was needed.
+
 # Supplied Art, Purple UI, and Repository Cleanup V1 - 2026-08-24
 
 - The active presentation catalog contains exactly 10 supplied portrait backgrounds, 10 supplied transparent portrait tables, and 20 supplied gem identities. Generated levels select eight identities for local L1-L8 progression while gameplay mechanics continue to use local tiers only.

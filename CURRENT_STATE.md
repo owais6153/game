@@ -1,3 +1,13 @@
+# Current State Addendum - Gem Categories, Pattern Blocks, and Target Feedback V1
+
+The active gem catalog now contains 32 alpha-tight runtime identities backed by one `AssetCatalog.GEM_DEFINITIONS` registry. Visual inspection classified only circle/rounded-square shape, practical color family, solid/gradient color style, and Common/Unique rarity: 22 Common and 10 Unique. New sources are normalized as `assets/gems/gem_21.png` through `gem_32.png`; matching runtime derivatives are 243-256 px on the short edge, exactly 256 px on the long edge, and have no transparent border pixels. Gem display names remain empty everywhere.
+
+`LevelConfig` now emits deterministic 3-4-level Same Shape / Same Color blocks. L1-L4 are Common, L5 is a pattern-supporting non-target Unique, and three distinct reachable Unique targets always occupy L6-L8. Shape targets use the opposite shape; color targets exclude the dominant color. Retry reconstructs the same mapping, and adjacent blocks do not repeat an exact configuration.
+
+All three target completions now share one reward sequence: enhanced three-layer wave, full merge feedback, 120 ms table-position hold, 1.12 presentation-only target scale, center travel/hold, and HUD collection. The target reward cue starts after the merge; collection audio remains tied to visible arrival. Final visible coins are reduced from 16 to 4, all target groups retain at least a one-second table hold, and coin idle motion/shadows are flattened to read as table contact. HUD StyleBoxFancy and StyleBoxFlat shadows are disabled globally without changing UI layout.
+
+The ten tables were re-audited through their normalized derivatives, the shared `GameConfig` transform, all-table pixel bounds, and fresh in-game rail-contact captures. Existing board/rail constants already align with the visible opening, so no speculative physics retune was made. Strict contact-only merge, movement, launcher, danger, scoring, reward authority, ads, persistence, and local-tier radii are unchanged.
+
 # Current State Addendum - Supplied Art, Purple UI, and Codebase Cleanup V1
 
 The active art set is now the newly supplied 10 backgrounds, 10 portrait tables, and 20 gems. Originals use stable names in `assets/backgrounds`, `assets/tables`, and `assets/gems`; `scripts/dev/prepare_supplied_art_refresh.gd` generates the only active mobile derivatives under `assets/runtime` and records hashes/bounds in `assets/runtime/art_refresh_manifest.json`. Every runtime gem is alpha-tight and no larger than 256 pixels on its longest edge.

@@ -46,7 +46,8 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 	var result_level := int(merge_event.get("level", 1))
 	var depth := int(merge_event.get("depth", 0))
 	var final_target := bool(merge_event.get("final_target_completed", false))
-	var timeline: Dictionary = GameConfig.merge_timeline(depth, final_target)
+	var target_merge := bool(merge_event.get("target_objective_completed", false))
+	var timeline: Dictionary = merge_event.get("timeline", GameConfig.merge_timeline(depth, final_target, target_merge))
 	var major_reward := result_level >= GameConfig.MAJOR_REWARD_TIER
 	var ring_scale := float(timeline.get("ring_scale", 1.0)) * (GameConfig.MAJOR_MERGE_EFFECT_SCALE if major_reward else 1.0)
 	merge_impacts.append({
@@ -57,7 +58,9 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 		"ring_at": float(timeline.get("ring_at", 0.15)),
 		"duration": float(timeline.get("duration", GameConfig.MERGE_PRESENTATION_DURATION)),
 		"effect_scale": ring_scale,
-		"spark_count": GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 6,
+		"spark_count": 14 if target_merge else (GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 8),
+		"ring_layers": int(timeline.get("ring_layers", 1)),
+		"target_merge": target_merge,
 		"major_reward": major_reward or final_target,
 	})
 	if depth > 0 and not final_target:
@@ -247,7 +250,6 @@ func begin_level_reward_coins(board_center: Vector2, awarded_coins: int, destina
 	_level_reward_total = count
 	_level_reward_elapsed = 0.0
 	_level_reward_waves_launched = 0
-	_level_reward_wave_times.clear()
 	_level_reward_active = true
 	queue_redraw()
 
@@ -460,8 +462,8 @@ func _draw() -> void:
 	for launch in launch_impacts:
 		_draw_launch_impact(launch)
 
-## One clean shockwave ring that starts at the timeline's `ring_at` key. Its
-## radius and stroke scale with the reward tier so the hierarchy stays readable.
+## A brighter ordinary ring and a bounded three-ring target variant share one
+## lightweight draw path. No particle nodes or simulation objects are created.
 func _draw_merge_impact(effect: Dictionary) -> void:
 	var elapsed := float(effect.get("elapsed", -1.0))
 	var ring_at := float(effect.get("ring_at", 0.15))
@@ -471,19 +473,27 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	var effect_scale := float(effect.get("effect_scale", 1.0))
 	var spark_count := int(effect.get("spark_count", 6))
 	var major_reward := bool(effect.get("major_reward", false))
+	var target_merge := bool(effect.get("target_merge", false))
+	var ring_layers := int(effect.get("ring_layers", 1))
 	var ring_span := maxf(0.12, duration - ring_at)
 	var t := clampf((elapsed - ring_at) / ring_span, 0.0, 1.0)
 	var expand := 1.0 - pow(1.0 - t, 2.4)
 	var fade := 1.0 - t
 	var center: Vector2 = effect.position
 	var color := GameConfig.gem_color(int(effect.level)).lightened(0.28)
-	color.a = fade * 0.95
+	color.a = fade
 	var gem_radius := GameConfig.gem_collision_radius(int(effect.level))
 	var ring_radius := (gem_radius * 0.62 + 46.0 * expand) * effect_scale
-	draw_arc(center, ring_radius, 0.0, TAU, 32 if major_reward else 26, color, lerpf(4.6 if major_reward else 3.2, 1.0, t))
-	if major_reward:
-		var echo_color := Color(1.0, 0.88, 0.34, fade * 0.52)
-		draw_arc(center, ring_radius * (0.62 + 0.20 * expand), 0.0, TAU, 28, echo_color, lerpf(2.6, 0.8, t))
+	var layer_scales := [1.0, 0.76 + 0.08 * expand, 1.08 + 0.08 * expand]
+	var layer_alphas := [1.0, 0.62, 0.42]
+	for layer_index in range(ring_layers):
+		var layer_color := color
+		if target_merge and layer_index > 0:
+			layer_color = Color(1.0, 0.88, 0.38, fade * float(layer_alphas[layer_index]))
+		else:
+			layer_color.a *= float(layer_alphas[layer_index])
+		var width := lerpf(4.8 if target_merge or major_reward else 3.8, 1.0, t) * (1.0 - float(layer_index) * 0.12)
+		draw_arc(center, ring_radius * float(layer_scales[layer_index]), 0.0, TAU, 36 if target_merge else 30, layer_color, width)
 	# A short, low-count spark ring keeps ordinary merges from reading as a burst.
 	var spark_fade := maxf(0.0, 1.0 - t * 2.6)
 	if spark_fade <= 0.0:
@@ -616,7 +626,7 @@ func _draw_level_reward_coin(effect: Dictionary) -> void:
 		shadow_scale = lerpf(0.72, 1.0, eased)
 	elif elapsed < collect_at:
 		var idle := (elapsed - land_at) * TAU * 0.9 + float(effect.index)
-		position = rest + Vector2(sin(idle) * GameConfig.LEVEL_REWARD_COIN_IDLE_WOBBLE * 0.5, -absf(sin(idle * 0.5)) * GameConfig.LEVEL_REWARD_COIN_IDLE_WOBBLE)
+		position = rest + Vector2(sin(idle) * GameConfig.LEVEL_REWARD_COIN_IDLE_WOBBLE, 0.0)
 		rotation = float(effect.spin) * sin(idle * 0.5) * 0.6
 		shadow_alpha = GameConfig.LEVEL_REWARD_COIN_SHADOW_OPACITY
 	else:
@@ -671,8 +681,7 @@ func _draw_coin_reward(effect: Dictionary) -> void:
 		scale *= lerpf(0.38, 1.0, 1.0 - pow(1.0 - burst_t, 3.0)) + sin(burst_t * PI) * 0.16
 	elif elapsed < flight_start:
 		var wait_t := (elapsed - GameConfig.COIN_BURST_DURATION) / maxf(0.001, flight_start - GameConfig.COIN_BURST_DURATION)
-		position = scatter + Vector2(sin(wait_t * PI * 2.0 + index) * 2.5, -sin(wait_t * PI) * 8.0)
-		scale *= 1.0 + sin(wait_t * PI) * 0.12
+		position = scatter + Vector2(sin(wait_t * PI * 2.0 + index) * 0.8, 0.0)
 	else:
 		var flight_t := clampf((elapsed - flight_start) / float(effect.flight_duration), 0.0, 1.0)
 		var eased := smoothstep(0.0, 1.0, flight_t)
@@ -681,8 +690,11 @@ func _draw_coin_reward(effect: Dictionary) -> void:
 		scale *= lerpf(1.0, 0.78, eased)
 	var spin := 0.0
 	var rotation := 0.0
-	var target_shadow_alpha := GameConfig.TARGET_COIN_SHADOW_OPACITY if elapsed < flight_start else GameConfig.TARGET_COIN_SHADOW_OPACITY * (1.0 - smoothstep(0.0, 0.30, clampf((elapsed - flight_start) / float(effect.flight_duration), 0.0, 1.0)))
-	CoinVisualsType.draw_table_shadow(self, position + GameConfig.TARGET_COIN_SHADOW_OFFSET, GameConfig.COIN_DRAW_RADIUS, target_shadow_alpha)
+	var target_shadow_alpha := GameConfig.TARGET_COIN_SHADOW_OPACITY * burst_t if elapsed < GameConfig.COIN_BURST_DURATION else GameConfig.TARGET_COIN_SHADOW_OPACITY
+	if elapsed >= flight_start:
+		target_shadow_alpha *= 1.0 - smoothstep(0.0, 0.30, clampf((elapsed - flight_start) / float(effect.flight_duration), 0.0, 1.0))
+	var shadow_position := position if elapsed < GameConfig.COIN_BURST_DURATION else scatter
+	CoinVisualsType.draw_table_shadow(self, shadow_position + GameConfig.TARGET_COIN_SHADOW_OFFSET, GameConfig.COIN_DRAW_RADIUS, target_shadow_alpha)
 	CoinVisualsType.draw_coin(self, position, GameConfig.COIN_DRAW_RADIUS * scale, 1.0, spin, rotation)
 
 func _draw_launch_impact(effect: Dictionary) -> void:

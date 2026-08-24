@@ -1,3 +1,14 @@
+# Knowledge Base Addendum - Gem Categories and Pattern Feedback V1
+
+- The current catalog is 32 identities: 22 Common and 10 Unique. Do not add shape/material categories beyond the audited circle/rounded-square and common shared gem material.
+- Keep metadata in `AssetCatalog.GEM_DEFINITIONS`; level generation must query it. Never derive categories from filenames at runtime and never add player-facing gem names.
+- Pattern blocks are a pure deterministic 3-4-level history. L1-L4 must stay Common, L5 support Unique, and L6-L8 distinct Unique targets. Shape targets oppose the dominant shape; color targets exclude the dominant color. Preserve reachability through the existing local-rank merge path.
+- Every target waits for its 420 ms merge to finish, holds at the physical merge point until 540 ms, then uses the shared hero center/HUD path. Do not let the presentation-completion fallback bypass that hold.
+- `TARGET_VISUAL_SCALE` is 1.12 and presentation-only. Do not scale a live `GemPiece`, collider, rail clamp, contact distance, merge rule, or danger calculation to make a target special.
+- Final visible coin count is four. Earlier/final groups retain 1.20/1.00 s table holds and light 0.24 contact shadows. Keep table idle movement planar; do not restore vertical floating.
+- All HUD box shadows are intentionally disabled centrally. Preserve amethyst fill/rim/highlight and all layout metrics.
+- Current table constants passed all ten normalized-art samples plus in-game rail-edge proofs. Do not retune rails without new measured evidence.
+
 # Knowledge Base Addendum - Supplied Art, Purple UI, and Cleanup V1
 
 - Keep the 10/10/20 supplied originals in their semantic `assets` folders. Do not load those 941x1672/1254x1254 source images in production; regenerate the smaller runtime set with `scripts/dev/prepare_supplied_art_refresh.gd`.

@@ -602,6 +602,246 @@
 				1254,
 				1254
 			]
+		},
+		{
+			"alpha_rect": [
+				117,
+				111,
+				1022,
+				1017
+			],
+			"runtime": "res://assets/runtime/gems/gem_21.png",
+			"runtime_sha256": "efd70c5853a5e364c7bb3e73d2e4c6c5a7870e87bd423683c2817e707e65422f",
+			"runtime_size": [
+				256,
+				255
+			],
+			"source": "res://assets/gems/gem_21.png",
+			"source_sha256": "a3898c3d548ae2d4e525abff160bf555a6d28a66c1c3fc172b55157c2346437d",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				105,
+				99,
+				1044,
+				1032
+			],
+			"runtime": "res://assets/runtime/gems/gem_22.png",
+			"runtime_sha256": "5ac277e2df319c4d68739e927b878144b7050600bf21667255da6c57740c66da",
+			"runtime_size": [
+				256,
+				253
+			],
+			"source": "res://assets/gems/gem_22.png",
+			"source_sha256": "ac92db6db827064c83c1d40eb3965affc65efe1c9f76a2b7fd1a3f2f3667adeb",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				99,
+				91,
+				1056,
+				1049
+			],
+			"runtime": "res://assets/runtime/gems/gem_23.png",
+			"runtime_sha256": "1ee8f2913d2b57f8bdd093708b10283c056373614a741a7c27618cd53f6b4829",
+			"runtime_size": [
+				256,
+				254
+			],
+			"source": "res://assets/gems/gem_23.png",
+			"source_sha256": "d63d6ce5ace5c6fd4b6a516d34c6b60b002a92a9d8875558128206550453e6fb",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				143,
+				152,
+				968,
+				946
+			],
+			"runtime": "res://assets/runtime/gems/gem_24.png",
+			"runtime_sha256": "b044537f4b218e2850bcad2e53f7f582b456fb4824a1f5cb86959530779d425f",
+			"runtime_size": [
+				256,
+				250
+			],
+			"source": "res://assets/gems/gem_24.png",
+			"source_sha256": "88e7357785a909410f7362606cbb6a3e5db82142091633a72fb838714470c444",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				129,
+				125,
+				997,
+				997
+			],
+			"runtime": "res://assets/runtime/gems/gem_25.png",
+			"runtime_sha256": "37cc9dca80fdf6c21566791fa3bf478482339a20ec0d01c1fb0886a92f893e1e",
+			"runtime_size": [
+				256,
+				256
+			],
+			"source": "res://assets/gems/gem_25.png",
+			"source_sha256": "c2307e9c176eb28ba7ba583743999447c7d3e735dbbc898348d80eefb3dfab88",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				96,
+				95,
+				1060,
+				1041
+			],
+			"runtime": "res://assets/runtime/gems/gem_26.png",
+			"runtime_sha256": "9ae5b027f3cd409313e6f3bd4fd0206935cefff55e52553b574692ec3c72731f",
+			"runtime_size": [
+				256,
+				251
+			],
+			"source": "res://assets/gems/gem_26.png",
+			"source_sha256": "5de4c90ccc12f438abe5afa492563062d8f2c2fc699626e5b081177d572ae153",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				79,
+				76,
+				1094,
+				1089
+			],
+			"runtime": "res://assets/runtime/gems/gem_27.png",
+			"runtime_sha256": "b2c39ef0065706240eb23144a3636f972bf52a0b797f7886ba49ccd91220fc22",
+			"runtime_size": [
+				256,
+				255
+			],
+			"source": "res://assets/gems/gem_27.png",
+			"source_sha256": "fab40728b793013c29f370b327f1abbce2a362ef2ececc91d30288ee3d5959c6",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				76,
+				71,
+				1102,
+				1089
+			],
+			"runtime": "res://assets/runtime/gems/gem_28.png",
+			"runtime_sha256": "ad82421b653c28d62eee88602c49146f64ab094315e631dadeff53d4f5f0ec32",
+			"runtime_size": [
+				256,
+				253
+			],
+			"source": "res://assets/gems/gem_28.png",
+			"source_sha256": "6b38c5e773ef783f95b87545171cd62d833a13e139701c61f0b2dc37413168cf",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				60,
+				58,
+				1126,
+				1108
+			],
+			"runtime": "res://assets/runtime/gems/gem_29.png",
+			"runtime_sha256": "6691e4b589618f616b17e0fc0dc968c7a179ac31e43cd32ce77829e23de77d9c",
+			"runtime_size": [
+				256,
+				252
+			],
+			"source": "res://assets/gems/gem_29.png",
+			"source_sha256": "3711df57d1b4c98b4cb11f0012cb4f0e325dc5b9a9b4ad23e8c178059059fa0e",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				76,
+				88,
+				1102,
+				1044
+			],
+			"runtime": "res://assets/runtime/gems/gem_30.png",
+			"runtime_sha256": "000628ad260c8da9031954976ecd5fc9abf08055b3e38eca189913fb041f0398",
+			"runtime_size": [
+				256,
+				243
+			],
+			"source": "res://assets/gems/gem_30.png",
+			"source_sha256": "51ad34a7e533953e5bb48e441eb3147444ccd2d2555e13c27ddbe461871643c2",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				74,
+				83,
+				1106,
+				1074
+			],
+			"runtime": "res://assets/runtime/gems/gem_31.png",
+			"runtime_sha256": "b552106373f9dbde4de553bd31582713993f5fc50e3fd641e867c62a0471fb15",
+			"runtime_size": [
+				256,
+				249
+			],
+			"source": "res://assets/gems/gem_31.png",
+			"source_sha256": "31d3a1774266d08d4808a74919853ac0951393adce0d13d435dc554fa2e26566",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				78,
+				86,
+				1100,
+				1075
+			],
+			"runtime": "res://assets/runtime/gems/gem_32.png",
+			"runtime_sha256": "6a0b02096e2b231b56226d45e96f78e065017d08fa1cf39d3e61ad0b8b7bed6b",
+			"runtime_size": [
+				256,
+				250
+			],
+			"source": "res://assets/gems/gem_32.png",
+			"source_sha256": "d433e01a819a0c796ae7efc2871a3b683bd6ccc33dd3e3fc1fa61196f3b1132f",
+			"source_size": [
+				1254,
+				1254
+			]
 		}
 	],
 	"tables": [

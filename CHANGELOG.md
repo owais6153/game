@@ -1,3 +1,14 @@
+# 2026-08-24 - Gem categories, pattern blocks, and target feedback v1
+
+- Integrated 12 newly supplied gems as normalized `gem_21`-`gem_32` sources and alpha-tight 256 px runtime derivatives, expanding the active catalog from 20 to 32.
+- Added one audited metadata registry with circle/rounded-square, color family, solid/gradient, and Common/Unique only; classified 22 Common and 10 Unique and kept all display names empty.
+- Replaced unrestricted identity shuffling with deterministic 3-4-level Same Shape / Same Color blocks. L1-L4 are Common, L5 is a supporting Unique, and L6-L8 are three distinct reachable Unique targets that oppose the shape or dominant color.
+- Gave every target the same three-ring reward wave, complete merge, 120 ms origin hold, 1.12 visual-only scale, center hold, and HUD flight. Moved target reward audio after merge feedback and kept collection audio at arrival.
+- Reduced last-target visible coins from 16 to 4, preserved readable table holds for all targets, removed vertical coin idle float, lightened contact shadows, and fixed the cached level-reward wave schedule.
+- Disabled box shadows on all centralized HUD/UI StyleBoxFancy and StyleBoxFlat surfaces while preserving dimensions, positions, fills, rims, highlights, and theme colors.
+- Re-audited every table against the centralized trapezoid and captured rail-contact proofs; the current normalized shared geometry required no retune.
+- Added focused 32-gem/pattern/target/coin/HUD regressions and nine reviewed GL Compatibility/ANGLE captures under `reports/gem-pattern-feedback-v1/`.
+
 # 2026-08-24 - Supplied Art, Purple UI, and Codebase Cleanup V1
 
 - Replaced the active scene catalog with the supplied 10 backgrounds, 10 full-portrait transparent tables, and 20 gems.

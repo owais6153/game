@@ -32,8 +32,9 @@ func _test_timing_and_mix_contracts() -> void:
 	_assert(is_equal_approx(GameConfig.MERGE_PRESENTATION_DURATION, 0.42) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_DURATION, 0.080), "Merge feedback and push animation must use the approved readable reward cadence")
 	_assert(is_equal_approx(GameConfig.MERGE_REVEAL_START, 0.12) and is_equal_approx(GameConfig.MERGE_REVEAL_SOUND_AT, 0.12), "Merge result reveal and chime must land together at the readable 120 ms impact frame")
 	_assert(is_equal_approx(GameConfig.MERGE_HITSTOP_DURATION, 0.03) and is_equal_approx(GameConfig.MERGE_SOURCE_PULL_START, 0.035), "Normal merge hit-stop and source snap must stay inside the approved 25-35 ms contact window")
-	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_DURATION, 0.70), "Target reward must restore the post-checkmark-removal 700 ms cadence")
-	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_CONFIRM_DURATION, 0.10) and is_equal_approx(GameConfig.TARGET_COLLECTION_TRAVEL_DURATION, 0.52), "Target reward must retain its 100 ms confirmation and 520 ms travel")
+	var shared_target_collection := GameConfig.HERO_TRAVEL_DURATION + GameConfig.HERO_HOLD_DURATION + GameConfig.HERO_LAUNCH_ANTICIPATION_DURATION + GameConfig.HERO_FLIGHT_DURATION
+	_assert(is_equal_approx(shared_target_collection, 1.68), "Every target must retain the shared center-hold-and-HUD collection cadence")
+	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_OVERLAP_START - float(GameConfig.MERGE_TIMELINE_TARGET.duration), 0.12), "Target travel must begin after the complete merge and 120 ms origin hold")
 	_assert(is_equal_approx(GameConfig.TARGET_PANEL_PULSE_DURATION, 0.22), "Target pulse must restore the post-checkmark-removal 220 ms cadence")
 	_assert(GameConfig.COIN_BURST_COUNT >= 4 and GameConfig.COIN_BURST_COUNT <= 6, "Coin reward must use four to six lightweight visuals")
 	_assert(is_equal_approx(GameConfig.COIN_REWARD_START_DELAY, 0.26), "Coin reward must restore its 260 ms visual start delay")
@@ -112,7 +113,7 @@ func _test_exactly_once_restored_cadence_and_launcher_independence() -> void:
 	controller._advance_launcher_lifecycle(0.0)
 	_assert(controller.get_active_piece() != null and controller.launcher_state == controller.LauncherState.READY_TO_AIM, "Next launcher must remain independent of the restored presentation")
 	_assert(controller.presented_target_index == before_presented_index and controller.presented_target_progress == before_presented_progress, "Target HUD state must remain unchanged during travel")
-	controller._update_target_collection(GameConfig.TARGET_COLLECTION_DURATION + 0.01)
+	controller._update_target_collection(GameConfig.HERO_TRAVEL_DURATION + GameConfig.HERO_HOLD_DURATION + GameConfig.HERO_LAUNCH_ANTICIPATION_DURATION + GameConfig.HERO_FLIGHT_DURATION + 0.01)
 	if before_target_progress + 1 >= required_quantity:
 		_assert(controller.presented_target_index == before_presented_index + 1 and controller.presented_target_progress == 0, "Completed target HUD must advance at collection arrival")
 	else:

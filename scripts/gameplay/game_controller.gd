@@ -610,7 +610,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		var final_target := bool(merge_event.final_target_completed)
 		# One shared timeline drives result scale, source pull, hit-stop, ring,
 		# mini gems, sound timing, and pitch for this reward tier.
-		var timeline: Dictionary = GameConfig.merge_timeline(depth, final_target)
+		var timeline: Dictionary = GameConfig.merge_timeline(depth, final_target, completes_active_target)
 		merge_event.timeline = timeline
 		# Keep gameplay authority immediate while aligning the audible reward with
 		# the resulting-gem reveal.
@@ -1046,6 +1046,11 @@ func _update_merge_presentations(delta: float) -> void:
 			var result_transform := _merge_result_transform_for(float(presentation.elapsed), timeline)
 			gem_sprite_layer.set_presentation_transform(result_id, result_transform.scale, result_transform.rotation, result_transform.offset, true)
 		var duration_complete := float(presentation.elapsed) >= timeline_duration
+		# A completed target presentation stays alive, settled at scale 1.0, for
+		# the configured post-merge micro-hold. Otherwise the legacy completion
+		# fallback below would bypass the hold and start travel at 420 ms.
+		if pending_target_presentations.has(result_id) and float(presentation.elapsed) < overlap_start:
+			duration_complete = false
 		var waits_for_visible_frame := result_id >= 0 and not bool(presentation.get("first_frame_visible", false))
 		if duration_complete and not waits_for_visible_frame:
 			completed.append(presentation)
@@ -1113,13 +1118,16 @@ func _begin_target_collection(result_id: int, presentation: Dictionary = {}) -> 
 	# changes the result silhouette. Reward emphasis then multiplies both axes
 	# uniformly and remains presentation-only.
 	var texture_longest_side := maxf(sprite.texture.get_size().x, sprite.texture.get_size().y)
-	var body_scale := Vector2.ONE * (diameter / texture_longest_side)
+	var body_scale := Vector2.ONE * (diameter / texture_longest_side) * GameConfig.TARGET_VISUAL_SCALE
 	sprite.scale = body_scale
 	# Godot canvas z is bounded; this stays above the live gem layer (10)
 	# without exceeding the engine's maximum canvas z range.
 	sprite.z_index = 2
 	(effects_layer if effects_layer != null else gem_sprite_layer).add_child(sprite)
-	var hero := bool(presentation.get("final_target_completed", false))
+	# Every completed target uses the same merge -> hold -> center -> HUD visual
+	# path. The scale emphasis is presentation-only; its physics body is already
+	# removed using the unchanged local-tier collider.
+	var hero := bool(presentation.get("target_objective_completed", false))
 	target_collection = {
 		"result_id": result_id,
 		"level": level,
@@ -1140,6 +1148,9 @@ func _begin_target_collection(result_id: int, presentation: Dictionary = {}) -> 
 		# must draw over every other reward visual while it is held.
 		sprite.z_index = 6
 		sprite.scale = body_scale * GameConfig.HERO_TRAVEL_START_SCALE
+		if audio_feedback != null:
+			audio_feedback.emit_event("target_complete")
+		_trace_presentation_event("target_reward_sound", result_id)
 	_trace_presentation_event("collection_animation_started", result_id)
 
 func _update_target_collection(delta: float) -> void:
@@ -1265,11 +1276,12 @@ func _finish_target_collection() -> void:
 		sprite.queue_free()
 	target_collection.clear()
 	collection_in_progress = false
-	if hero:
+	if final_completed:
 		final_celebration_hero_done = true
 	if effects_layer != null and hero:
 		effects_layer.end_hero_hold()
 		effects_layer.burst_target_panel_sparkles(panel_destination)
+	if effects_layer != null and final_completed:
 		effects_layer.show_reward_amount(Vector2(GameConfig.table_center_x(), GameConfig.board_top() + 54.0), final_celebration_coins)
 	if gameplay_ui != null:
 		if hero:
@@ -1283,8 +1295,6 @@ func _finish_target_collection() -> void:
 	if objective_completed:
 		presented_target_progress = 0
 		presented_target_index += 1
-		if audio_feedback != null:
-			audio_feedback.emit_event("target_complete")
 		if final_completed:
 			_trace_presentation_event("final_target_presented", result_id)
 	_try_begin_next_target_collection()

@@ -125,7 +125,10 @@ func _test_confirmed_event_routing_contract() -> void:
 	# bounded presentation pitch for the combo hierarchy.
 	_assert(source.contains("audio_feedback.emit_event(\"chain\", 1.0, float(timeline.get(\"pitch\", 1.0)))"), "Original chain feedback must be restored")
 	_assert(source.contains("audio_feedback.emit_event(\"target_collect\")"), "Target arrival must retain its original cue")
-	_assert(source.contains("audio_feedback.emit_event(\"target_complete\")"), "Final target completion must own a richer cue")
+	_assert(source.contains("audio_feedback.emit_event(\"target_complete\")"), "Every completed target must own a richer reward cue")
+	var reward_cue := source.find("audio_feedback.emit_event(\"target_complete\")")
+	var collection_cue := source.find("audio_feedback.emit_event(\"target_collect\")", reward_cue)
+	_assert(reward_cue >= 0 and collection_cue > reward_cue, "Target audio must sequence merge, then reward, then visible collection arrival")
 	_assert(source.contains("audio_feedback.emit_event(\"win\")"), "Level success must remain tied to final result presentation")
 	_assert(not source.contains("audio_feedback.emit_event(\"fail\")"), "No lose/game-over sound may be routed")
 	_assert(source.contains("merged_pairs.has(pair_key)"), "Collision audio must be suppressed for the exact contact pair that merges")
