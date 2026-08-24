@@ -6,7 +6,7 @@ Fresh image-row and centerline measurements across all ten runtime tables replac
 
 Target tiers now have larger live visual/physical bodies: L6-L8 radii are `56/61/66` while L1-L5 remain `36/39/42/45/48`; collection emphasis rises from `1.12` to `1.18`. Target waves use five 52-segment rings. Each confirmed target applies one bounded `220 px` radial nudge (maximum `78 px/s`) to nearby non-launcher gems, and background music gain rises slightly from `0.06` to `0.07`.
 
-The focused rail/target/gem suite plus the gem-pattern, UI/layout, sound/privacy, and strict-contact suites pass. Two 720x1280 production-scene ANGLE frames were reviewed under `reports/rail-target-blast-gem-expansion-v1/screenshots/`. Final all-suite/APK/device evidence is recorded in the task report and `BUILD_MANIFEST.md` when delivered.
+All eleven repository suites pass. Two 720x1280 production-scene ANGLE frames were reviewed under `reports/rail-target-blast-gem-expansion-v1/screenshots/`. Final standalone APK `build/android/majestic-gems-rail-target-blast-gem-expansion-v1.apk` is 82,310,470 bytes with SHA-256 `4FBEC0C511EABB8B838F4B8672FAEBE512736CFBE2A32D0F76AB9735424A6D33`; AAPT/version, v2 signature, dual-ARM, 34-gem, compiled-script, and exclusion audits pass. Source is `21637cb` / `rail-target-blast-gem-expansion-v1-source`; ADB found no connected device.
 
 # Current State Addendum - Gem Categories, Pattern Blocks, and Target Feedback V1
 

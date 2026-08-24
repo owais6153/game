@@ -63,4 +63,14 @@ Five ring scales and alpha values are calculated inside the existing capped imme
 - `REFERENCE_GAME_FEEL_V2_TESTS`: PASS; exact/visible-touch merges, non-match collision, fast-shot substeps, and chains remain contact-driven.
 - GL Compatibility/ANGLE production capture: PASS. Reviewed `measured-rails-and-alpha-tight-gems.png` and `enlarged-target-five-ring-wave-and-blast.png` under `reports/rail-target-blast-gem-expansion-v1/screenshots/`.
 
-All eleven repository suites print PASS: the new focused suite plus gem-pattern, reward-feedback, reference-feel, animation/audio/back/privacy, UI/layout, game-flow/reward/splash, sound/privacy, branding/push-line, scene-variety/assets, and AdMob. APK audit, commit/tag, push, and connected-device status are appended at delivery.
+All eleven repository suites print PASS: the new focused suite plus gem-pattern, reward-feedback, reference-feel, animation/audio/back/privacy, UI/layout, game-flow/reward/splash, sound/privacy, branding/push-line, scene-variety/assets, and AdMob.
+
+## Delivery
+
+- Intake: `97e3c31` / `rail-target-blast-2026-08-25-intake`.
+- Source: `21637cb` / `rail-target-blast-gem-expansion-v1-source`.
+- APK: `build/android/majestic-gems-rail-target-blast-gem-expansion-v1.apk`; 82,310,470 bytes; SHA-256 `4FBEC0C511EABB8B838F4B8672FAEBE512736CFBE2A32D0F76AB9735424A6D33`.
+- Android identity: package `com.owais.majestygems`, debug versionCode 7 / versionName 1.0.5, min SDK 24, target/compile SDK 36. No AAB was generated.
+- APK audit: v2 signature PASS, one RSA-2048 Godot debug signer, both ARM ABIs, 993 ZIP entries, all 34 runtime gems, changed compiled scripts, and zero source/test/report/dev/project-build payload.
+- Delivery tag: `rail-target-blast-gem-expansion-v1` on the manifest/provenance commit.
+- Device: ADB found no connected device. Installation, physical rail feel, touch, listening, haptics, and on-device performance are not claimed.

@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Rail, Target Blast, and Gem Expansion V1 TEST APK (versionCode 7, unreleased)
+
+- APK: `build/android/majestic-gems-rail-target-blast-gem-expansion-v1.apk`
+- Size: 82,310,470 bytes (78.50 MiB)
+- Export timestamp: 2026-08-25 00:38:01 +05:00 (Asia/Karachi)
+- SHA-256: `4FBEC0C511EABB8B838F4B8672FAEBE512736CFBE2A32D0F76AB9735424A6D33`
+- Source commit/tag: `21637cb` / `rail-target-blast-gem-expansion-v1-source`. Intake: `97e3c31` / `rail-target-blast-2026-08-25-intake`. Delivery tag: `rail-target-blast-gem-expansion-v1` on the manifest/provenance follow-up commit.
+- Version/export: Godot 4.6.3 debug APK using committed versionCode 7 / versionName 1.0.5 and Godot debug signing. The committed Gradle AAB format was switched only for this APK export and restored immediately; no AAB was generated and no release identity changed.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 7, versionName 1.0.5, min SDK 24, target/compile SDK 36. APK Signature Scheme v2 PASS with one RSA-2048 Godot signer (certificate SHA-256 `3B2933181E64F32DAE1D52A01642BE2C469B36EC05EAD7313CDE0D6D672AD10F`). ZIP audit: 993 entries, both `arm64-v8a` and `armeabi-v7a`, all 34 runtime gem imports/textures including `gem_33` and `gem_34`, and compiled catalog/config/controller/effects scripts. Zero source-art, tests, reports, project-build payload, or development-script entries are packaged.
+- Tests: all eleven repository suites printed PASS. The art preparation pass, focused crop/rail/contact/target/blast/wave/music suite, and two 720x1280 GL Compatibility/ANGLE production captures passed; both frames were manually reviewed.
+- Device status: `adb devices -l` returned an empty list. Installation, touch/rail feel, physical listening, haptics, and on-device performance are not claimed.
+- Report: `reports/RAIL_TARGET_BLAST_GEM_EXPANSION_V1_REPORT.md`.
+
 ## Gem Categories, Pattern Blocks, and Target Feedback V1 TEST APK (versionCode 7, unreleased)
 
 - APK: `build/android/majestic-gems-gem-pattern-feedback-v1.apk`
