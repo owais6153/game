@@ -60,6 +60,6 @@ Deleted tracked material remains recoverable from Git history. Local ignored his
 - All nine repository suites printed PASS: scene variety/assets, UI scale/layout, game flow/reward/splash, reward feedback V3, reference game feel V2, animation/audio/back/privacy, sound/privacy, AdMob integration, and branding/push-line.
 - Godot 4.6.3 on this Windows host exits several completed headless scripts with its known access-violation code after printing PASS; assertions completed before that native shutdown fault.
 - GL Compatibility/ANGLE capture: PASS, six reviewed gameplay PNGs at 720x1280 and 720x1600 under `reports/supplied-art-purple-ui-cleanup-v1/screenshots/` for tables 01, 05, and 10. Edge-proof gems remain contained against the calibrated rails.
-- APK and device validation: APK_VALIDATION_PLACEHOLDER
+- APK and device validation: `build/android/majestic-gems-supplied-art-purple-ui-cleanup-v1.apk`, 81,183,723 bytes, SHA-256 `855E7F27D9EF57A5E90CF77B57331FC3CEEEC105C84F9CF47C0874A2A0CC4F7B`; AAPT versionCode 7/versionName 1.0.5, v2 signature PASS, dual ARM PASS, 20 runtime gems present, source/tests/reports/retired assets absent; ADB found no connected device
 
-Source milestone: SOURCE_COMMIT_PLACEHOLDER / `supplied-art-purple-ui-cleanup-v1-source`. Final delivery tag: `supplied-art-purple-ui-cleanup-v1`.
+Source milestone: `a2d8372` / `supplied-art-purple-ui-cleanup-v1-source`. Final delivery tag: `supplied-art-purple-ui-cleanup-v1`.

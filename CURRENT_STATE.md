@@ -8,7 +8,7 @@ The HUD and all shared UI surfaces now use dark amethyst glass, violet rims, whi
 
 Active scripts are organized under `core`, `gameplay`, `presentation`, `ui`, `services`, and `dev`. Retired source/runtime pipelines, unused renderers, superseded audio copies, old backgrounds 11-19, and the vibration icon are removed. `assets/runtime` remains the deliberate package boundary between large originals and optimized shipped files.
 
-All nine regression suites print PASS. Six GL Compatibility/ANGLE gameplay captures at 720x1280 and 720x1600 were reviewed under `reports/supplied-art-purple-ui-cleanup-v1/screenshots/`; rail-edge proof gems remain contained and the visual hierarchy matches the supplied purple reference. APK/device details are recorded in `BUILD_MANIFEST.md` after export. Source: SOURCE_COMMIT_PLACEHOLDER / `supplied-art-purple-ui-cleanup-v1-source`; delivery: `supplied-art-purple-ui-cleanup-v1`.
+All nine regression suites print PASS. Six GL Compatibility/ANGLE gameplay captures at 720x1280 and 720x1600 were reviewed under `reports/supplied-art-purple-ui-cleanup-v1/screenshots/`; rail-edge proof gems remain contained and the visual hierarchy matches the supplied purple reference. Debug APK `build/android/majestic-gems-supplied-art-purple-ui-cleanup-v1.apk` passes AAPT, v2 signature, dual-ARM, compiled-script, 20-gem, and packaging-exclusion audits; ADB found no connected device. Source: `a2d8372` / `supplied-art-purple-ui-cleanup-v1-source`; delivery: `supplied-art-purple-ui-cleanup-v1`.
 
 # Current State Addendum - Simultaneous Reward Reveal and Immediate Physics V6
 

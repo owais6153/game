@@ -1,5 +1,19 @@
 # Build Manifest
 
+## Supplied Art, Purple UI, and Codebase Cleanup V1 TEST APK (versionCode 7, unreleased)
+
+- APK: `build/android/majestic-gems-supplied-art-purple-ui-cleanup-v1.apk`
+- Size: 81,183,723 bytes (77.42 MiB)
+- Export timestamp: 2026-08-24 12:58:49 +05:00 (Asia/Karachi)
+- SHA-256: `855E7F27D9EF57A5E90CF77B57331FC3CEEEC105C84F9CF47C0874A2A0CC4F7B`
+- Source commit/tag: `a2d8372` / `supplied-art-purple-ui-cleanup-v1-source`. Delivery tag: `supplied-art-purple-ui-cleanup-v1` on the manifest/provenance follow-up commit.
+- Version/export: Godot 4.6.3 debug APK using the currently committed versionCode 7 / versionName 1.0.5 and Godot debug signing. The committed preset remains AAB format; only `gradle_build/export_format` was switched for this one APK and restored to the source commit exactly. No AAB was generated and no release version was changed or reused for a new release.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 7, versionName 1.0.5, min SDK 24, target/compile SDK 36. APK Signature Scheme v2 PASS; signer SHA-256 `3b2933181e64f32dae1d52a01642be2c469b36ec05ead7313cde0d6d672ad10f`. ZIP audit: 967 entries, both `arm64-v8a` and `armeabi-v7a` Godot libraries, all five sampled reorganized compiled scripts, and all 20 runtime gem derivatives. Zero source-art, `tests/`, `reports/`, `gems18`, or backgrounds 11-19 entries are packaged.
+- Tests: all nine repository suites printed PASS. `SUPPLIED_ART_REFRESH_PREPARATION: PASS`. GL Compatibility/ANGLE produced and reviewed six gameplay captures at 720x1280 and 720x1600 under `reports/supplied-art-purple-ui-cleanup-v1/screenshots/`.
+- Device status: `adb devices -l` started the daemon and found no connected device. Installation, touch feel, performance, listening, haptics, and physical-device acceptance are not claimed.
+- Report: `reports/SUPPLIED_ART_PURPLE_UI_CODEBASE_CLEANUP_V1_REPORT.md`.
+
+
 ## Reward Gem Simultaneous Physics V6 RELEASE AAB v1.0.5 (versionCode 7)
 
 - AAB: `build/android/majestic-gems-reward-gem-simultaneous-physics-v1.0.5-vc7.aab`
