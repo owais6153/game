@@ -31,9 +31,17 @@ See `reports/SUPPLIED_ART_PURPLE_UI_CODEBASE_CLEANUP_V1_REPORT.md`, `CURRENT_STA
 
 Read `AGENTS.md` before making changes. It defines the required documentation, Git, validation, and Android artifact workflow.
 
+## Additonal Features beofre launch
+
+1. Logo
+2. Device Configrations
+3. UI
+4. Special Powers
+
 ## Additonal Features after launch
 
 1. Google Play Integration
 2. Leaderboard
 3. Special Powers
 4. Daily Missions and Streaks
+5. Ads

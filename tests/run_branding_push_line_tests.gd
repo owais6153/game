@@ -19,15 +19,15 @@ func _run() -> void:
 
 func _test_brand_assets() -> void:
 	var logo := (load("res://assets/runtime/ui/majestic_gems_logo_v1.png") as Texture2D).get_image()
-	var legacy_icon := (load("res://assets/runtime/ui/majestic_gems_app_icon_192_v1.png") as Texture2D).get_image()
-	var adaptive_foreground := (load("res://assets/runtime/ui/majestic_gems_adaptive_foreground_v1.png") as Texture2D).get_image()
-	var adaptive_background := (load("res://assets/runtime/ui/majestic_gems_adaptive_background_v1.png") as Texture2D).get_image()
+	var legacy_icon := (load("res://assets/runtime/ui/majestic_gems_app_icon_192_v2.png") as Texture2D).get_image()
+	var adaptive_foreground := (load("res://assets/runtime/ui/majestic_gems_adaptive_foreground_v2.png") as Texture2D).get_image()
+	var adaptive_background := (load("res://assets/runtime/ui/majestic_gems_adaptive_background_v2.png") as Texture2D).get_image()
 	_assert(logo.get_size() == Vector2i(1536, 1024), "Home logo must retain the complete supplied 1536x1024 canvas")
 	_assert(legacy_icon.get_size() == Vector2i(192, 192), "Legacy launcher icon must be 192x192")
 	_assert(adaptive_foreground.get_size() == Vector2i(432, 432), "Adaptive foreground must be 432x432")
 	_assert(adaptive_background.get_size() == Vector2i(432, 432), "Adaptive background must be 432x432")
 	var used := adaptive_foreground.get_used_rect()
-	_assert(used.size.x <= 300 and used.size.y <= 300, "Adaptive foreground artwork must remain inside the mask-safe padded area")
+	_assert(used.size.x <= 288 and used.size.y <= 288, "Adaptive foreground artwork must remain inside the mask-safe padded area")
 	_assert(adaptive_foreground.get_pixel(0, 0).a == 0.0 and adaptive_foreground.get_pixel(431, 431).a == 0.0, "Adaptive foreground corners must stay transparent")
 
 func _test_aim_guide_drag_path() -> void:
