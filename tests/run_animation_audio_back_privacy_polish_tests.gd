@@ -1,7 +1,7 @@
 extends SceneTree
 
-const GameControllerType = preload("res://scripts/game_controller.gd")
-const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
+const GameControllerType = preload("res://scripts/gameplay/game_controller.gd")
+const HomeOverlayType = preload("res://scripts/ui/home_overlay_layer.gd")
 
 var failures: Array[String] = []
 
@@ -37,7 +37,7 @@ func _test_timing_and_mix_contracts() -> void:
 	_assert(is_equal_approx(GameConfig.TARGET_PANEL_PULSE_DURATION, 0.22), "Target pulse must restore the post-checkmark-removal 220 ms cadence")
 	_assert(GameConfig.COIN_BURST_COUNT >= 4 and GameConfig.COIN_BURST_COUNT <= 6, "Coin reward must use four to six lightweight visuals")
 	_assert(is_equal_approx(GameConfig.COIN_REWARD_START_DELAY, 0.26), "Coin reward must restore its 260 ms visual start delay")
-	var effects_source := FileAccess.get_file_as_string("res://scripts/gameplay_effects_layer.gd")
+	var effects_source := FileAccess.get_file_as_string("res://scripts/presentation/gameplay_effects_layer.gd")
 	var coin_function := effects_source.find("func begin_target_coin_reward")
 	var coin_delay := effects_source.find("GameConfig.COIN_REWARD_START_DELAY", coin_function)
 	var merge_function := effects_source.find("func begin_merge_feedback")

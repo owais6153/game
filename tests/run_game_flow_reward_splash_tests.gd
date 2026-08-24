@@ -1,7 +1,7 @@
 extends SceneTree
 
-const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
-const GameControllerType = preload("res://scripts/game_controller.gd")
+const HomeOverlayType = preload("res://scripts/ui/home_overlay_layer.gd")
+const GameControllerType = preload("res://scripts/gameplay/game_controller.gd")
 
 var failures: Array[String] = []
 
@@ -41,6 +41,8 @@ func _test_home_to_game_level_ready() -> void:
 	home.play_button.pressed.emit()
 	_assert(int(state.ready_requests) == 1, "Home PLAY must request the Level Ready transition exactly once")
 	_assert(not home.home_backdrop.visible and not home.safe_margin.visible and home.level_intro_blocker.visible, "Level Start must replace Home visually so the gameplay screen is visible underneath")
+	_assert(home.intro_objective_label.text == "MERGE TARGET  ×  1", "Level Ready must describe the objective without exposing a gem name")
+	_assert(not home.intro_objective_label.text.contains("GEM"), "Level Ready must not show gem names or a generic gem-name label")
 	_assert(home.intro_start_button.text == "START GAME", "Level Ready must retain one explicit Start action")
 	home.queue_free()
 	await process_frame
@@ -113,8 +115,8 @@ func _test_back_and_idle_state_ownership() -> void:
 
 
 func _test_controller_flow_guards() -> void:
-	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
-	var home_source := FileAccess.get_file_as_string("res://scripts/home_overlay_layer.gd")
+	var source := FileAccess.get_file_as_string("res://scripts/gameplay/game_controller.gd")
+	var home_source := FileAccess.get_file_as_string("res://scripts/ui/home_overlay_layer.gd")
 	var export_source := FileAccess.get_file_as_string("res://export_presets.cfg")
 	_assert(not source.contains("StartupSplash") and not FileAccess.file_exists("res://scripts/startup_splash_layer.gd"), "The extra custom splash layer must remain removed")
 	_assert(not source.contains("_show_home(true)") and not home_source.contains("startup_intro") and not home_source.contains("_start_home_splash_intro"), "No hidden-controls Home intro may act as a second splash")
@@ -126,10 +128,11 @@ func _test_controller_flow_guards() -> void:
 	var project_source := FileAccess.get_file_as_string("res://project.godot")
 	_assert(project_source.contains("config/quit_on_go_back=false"), "Android must delegate Back to the controller instead of auto-quitting the Activity")
 	_assert(source.contains("Engine.has_singleton(\"AndroidRuntime\")") and source.contains("activity.finishAndRemoveTask()") and source.contains("activity.runOnUiThread"), "Confirmed Home Exit must finish the Android Activity through the supported runtime instead of synchronously killing SceneTree")
-	var ad_source := FileAccess.get_file_as_string("res://scripts/ad_manager.gd")
+	var ad_source := FileAccess.get_file_as_string("res://scripts/services/ad_manager.gd")
 	_assert(ad_source.contains("func prepare_for_exit()") and source.contains("ad_manager.call(\"prepare_for_exit\")"), "Exit must invalidate ad callbacks before Android owns lifecycle teardown")
 	var splash := Image.load_from_file(ProjectSettings.globalize_path("res://assets/runtime/ui/majestic_gems_system_splash_1152_v2.png"))
 	_assert(splash != null and splash.get_width() == 1152 and splash.get_height() == 1152, "Android launch splash derivative must retain 1152x1152 source detail")
+	_assert(not home_source.contains("AssetCatalogType.gem_name") and not home_source.contains("target_name"), "Home and Level Ready must not read or display gem names")
 	_assert(not home_source.contains("HomeVibrationToggle") and not source.contains("vibration_toggled.connect"), "Unsupported vibration controls must not be exposed or wired")
 	_assert(GameConfig.target_coin_reward_for_result_level(2) == 10 and GameConfig.target_coin_reward_for_result_level(3) == 25 and GameConfig.target_coin_reward_for_result_level(4) == 60 and GameConfig.target_coin_reward_for_result_level(5) == 150 and GameConfig.target_coin_reward_for_result_level(6) == 350 and GameConfig.target_coin_reward_for_result_level(7) == 800 and GameConfig.target_coin_reward_for_result_level(8) == 1800, "Target coin reward table must remain explicit and auditable")
 	_assert(not source.contains("next_level_requested.connect"), "Controller must not wire the removed post-reward Next Level action")

@@ -4,9 +4,9 @@ extends SceneTree
 ## (collision < normal merge < combo merge < final target < level complete),
 ## the staged final-target celebration, and the exactly-once reward contract.
 
-const GameControllerType = preload("res://scripts/game_controller.gd")
-const PieceType = preload("res://scripts/gem_piece.gd")
-const ProgressionSaveServiceType = preload("res://scripts/progression_save_service.gd")
+const GameControllerType = preload("res://scripts/gameplay/game_controller.gd")
+const PieceType = preload("res://scripts/core/gem_piece.gd")
+const ProgressionSaveServiceType = preload("res://scripts/services/progression_save_service.gd")
 const SAVE_FILE := "user://infinite_progression.cfg"
 
 const STEP := 1.0 / 60.0

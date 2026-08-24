@@ -1,3 +1,14 @@
+# Knowledge Base Addendum - Supplied Art, Purple UI, and Cleanup V1
+
+- Keep the 10/10/20 supplied originals in their semantic `assets` folders. Do not load those 941x1672/1254x1254 source images in production; regenerate the smaller runtime set with `scripts/dev/prepare_supplied_art_refresh.gd`.
+- Runtime gem PNGs must remain alpha-tight at threshold 0.01, aspect-preserving, and at most 256 pixels on the longest edge. The regression requires `get_used_rect()` to equal the entire runtime image.
+- Do not reintroduce gem display names. `AssetCatalog.gem_name()` and the `name` entry intentionally return empty strings. UI must show artwork and numeric quantity/progress only.
+- The current table geometry is calibrated to the supplied full portrait tables: outer 420-1215, board 455-1165, top rails 130/590, bottom rails 54/666, danger 1015, launcher 1095, center (360,844), scale (0.9583333,0.752). Pixels never become live physics inputs.
+- Preserve L1-L8 radii 36/39/42/45/48/51/54/57 and existing simulation/merge/queue/reward behavior unless a future task explicitly authorizes gameplay change.
+- UI colors belong in `UiDesignSystem`; current direction is dark amethyst translucent glass with violet rims and lavender/white content. Do not change anchors/sizes while doing theme-only work.
+- New code belongs in the responsibility folder that owns it. Do not restore the flat `scripts/` layout or retired `assets/source`, `gems18`, old background variants, unused renderers, or superseded audio copies.
+- `assets/runtime` is intentional, not clutter: it is the shipped derivative boundary. A runtime table should preserve the source composition while being resized/compressed; it should not be a manually different design.
+
 # Knowledge Base Addendum - Simultaneous Reward Reveal and Immediate Physics V6
 
 - The V5 extraction model is superseded. Never restore reward visual offsets, tethers, elevated travel, source recoil, activation holds, or pending launch velocity.

@@ -1,3 +1,22 @@
+# Architecture Addendum - Supplied Art and Responsibility-Based Layout V1
+
+## Script boundaries
+
+- `scripts/core`: immutable/shared data and rules (`GameConfig`, `AssetCatalog`, `LevelConfig`, pieces, contacts, score formatting).
+- `scripts/gameplay`: simulation, merge resolution, and `GameController` orchestration.
+- `scripts/presentation`: sprites and feedback that consume confirmed controller state/events.
+- `scripts/ui`: snapshot-only HUD/Home/Result presentation.
+- `scripts/services`: ads, audio, haptics, settings, and persistence boundaries.
+- `scripts/dev`: development-only reproducible asset preparation; excluded from Android export through its input/output boundaries and the export filter.
+
+## Asset boundary
+
+Preserved source art lives in semantic `assets/backgrounds`, `assets/tables`, `assets/gems`, and `assets/ui` folders. `assets/runtime` contains only optimized resources preloaded by production code. `scripts/dev/prepare_supplied_art_refresh.gd` is the authoritative source-to-runtime transform and writes `assets/runtime/art_refresh_manifest.json`. Android excludes the source folders while including runtime derivatives.
+
+`AssetCatalog` owns presentation selection and generic gem identities; simulation never reads pixels or names. `GameConfig` remains the only table geometry authority for the table sprite transform, rails, board limits, drag clamp, launcher, danger line, containment, and tests. Table pixels are measured offline to calibrate constants but never queried by gameplay.
+
+The HUD consumes controller snapshots only. Gem artwork is the visible identity; no name field or target-name node participates in the UI. Theme tokens remain centralized in `UiDesignSystem`, so the amethyst pass changes surfaces/colors without changing layout ownership.
+
 # Architecture Addendum - Simultaneous Reward Reveal and Immediate Physics V6
 
 ## One authoritative coordinate from the first visible frame

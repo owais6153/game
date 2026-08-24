@@ -1,3 +1,15 @@
+# 2026-08-24 - Supplied Art, Purple UI, and Codebase Cleanup V1
+
+- Replaced the active scene catalog with the supplied 10 backgrounds, 10 full-portrait transparent tables, and 20 gems.
+- Added a reproducible alpha-tight gem pipeline (0.01 threshold, exact crop, max 256 px), optimized scene derivatives, hash/bounds manifest, and lavender settings-icon derivative.
+- Removed all player-facing gem-name display and the unused HUD target-name node.
+- Rethemed shared HUD/Home/modal/result styles from light cyan/cream to dark amethyst glass without changing layout dimensions or anchors.
+- Recalibrated centralized table rendering/rails/board/danger/launcher geometry to measured supplied-table art while preserving L1-L8 radii and all gameplay rules.
+- Organized scripts by responsibility and updated every scene/test/autoload reference.
+- Removed unused `HudRenderer`/`GemVisuals`, the obsolete old-art preparation script, retired `assets/source`, `assets/runtime/gems18`, backgrounds 11-19, unused vibration art, and superseded runtime audio copies.
+- Added regressions for 20 alpha-tight gems, all catalog coverage, name-free UI, purple theme tokens, and all-table alpha/physics containment; all nine suites print PASS.
+- Added six reviewed GL Compatibility/ANGLE proof captures and `reports/SUPPLIED_ART_PURPLE_UI_CODEBASE_CLEANUP_V1_REPORT.md`.
+
 # 2026-08-23 - Release AAB v1.0.5 (versionCode 7)
 
 - Prepared the signed Play AAB for the simultaneous-reward-physics milestone at versionCode 7 / versionName 1.0.5, strictly newer than the previously recorded 6 / 1.0.4 release.

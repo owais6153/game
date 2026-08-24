@@ -5,7 +5,7 @@ extends SceneTree
 ## merge, the combo merges, and every stage of the final-target celebration.
 
 const GameScene = preload("res://scenes/Game.tscn")
-const PieceType = preload("res://scripts/gem_piece.gd")
+const PieceType = preload("res://scripts/core/gem_piece.gd")
 const OUTPUT_DIR := "res://reports/reward-gem-simultaneous-physics-v6/screenshots/"
 const RESOLUTION := Vector2i(720, 1280)
 const STEP := 1.0 / 60.0

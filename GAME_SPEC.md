@@ -1,3 +1,13 @@
+# Supplied Art, Purple UI, and Repository Cleanup V1 - 2026-08-24
+
+- The active presentation catalog contains exactly 10 supplied portrait backgrounds, 10 supplied transparent portrait tables, and 20 supplied gem identities. Generated levels select eight identities for local L1-L8 progression while gameplay mechanics continue to use local tiers only.
+- Gem runtime derivatives must be cropped to the alpha >= 0.01 bounds, clear sub-threshold edge alpha, preserve aspect ratio, and fit within a 256-pixel longest edge. Their complete image rectangle must equal their used-alpha rectangle.
+- Player-facing gem names are prohibited. Target, Next, progression, Level Ready, results, and settings may use gem artwork, tier-independent progress, and quantities only. Internal IDs must remain generic.
+- The supplied full-portrait table derivative uses the centralized geometry: outer 420-1215, board 455-1165, back rails 130/590, front rails 54/666, danger Y 1015, launcher Y 1095, texture center (360,844), and render scale (0.9583333,0.752). L1-L8 radii remain 36-57.
+- UI styling uses dark amethyst glass, violet borders, white/lavender text, purple controls, and lavender utility icons. This theme change must not alter existing sizes, anchors, margins, safe-area rules, touch targets, or HUD ordering.
+- Supplied originals belong in semantic `assets/<family>` folders and are excluded from export. Only optimized package-ready derivatives belong in `assets/runtime`. Scripts are grouped by responsibility under `scripts/core`, `gameplay`, `presentation`, `ui`, `services`, and `dev`.
+- This milestone does not change movement, merge/contact eligibility, scoring, target authority, queue rules, danger grace, launcher pacing, reward logic, audio/haptics routing, ads, or persistence.
+
 # Reward Split Readability V5 - 2026-08-23
 
 - A confirmed merge reveals its result first, then visibly splits real lower-tier reward gems from that exact result position. Reward visuals render above the result from their first frame, fan outward as complete supplied gem artwork, and retain a short origin tether; they may not appear at their already-safe physics destinations.

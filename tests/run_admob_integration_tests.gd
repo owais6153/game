@@ -1,10 +1,10 @@
 extends SceneTree
 
-const AdConfigType = preload("res://scripts/ad_config.gd")
-const AdManagerType = preload("res://scripts/ad_manager.gd")
-const ResultOverlayType = preload("res://scripts/result_overlay_layer.gd")
-const CoinIconType = preload("res://scripts/coin_icon.gd")
-const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
+const AdConfigType = preload("res://scripts/services/ad_config.gd")
+const AdManagerType = preload("res://scripts/services/ad_manager.gd")
+const ResultOverlayType = preload("res://scripts/ui/result_overlay_layer.gd")
+const CoinIconType = preload("res://scripts/presentation/coin_icon.gd")
+const HomeOverlayType = preload("res://scripts/ui/home_overlay_layer.gd")
 
 var failures: Array[String] = []
 
@@ -205,7 +205,7 @@ func _test_privacy_settings_actions() -> void:
 	home.queue_free()
 	await process_frame
 
-	var hud_source := FileAccess.get_file_as_string("res://scripts/gameplay_hud_layer.gd")
+	var hud_source := FileAccess.get_file_as_string("res://scripts/ui/gameplay_hud_layer.gd")
 	_assert(not hud_source.contains("PausePrivacyPolicy") and hud_source.contains("PausePrivacyOptions"), "Pause Settings must remove Privacy Policy while retaining conditional UMP Privacy Options")
 
 

@@ -1,7 +1,7 @@
 extends SceneTree
 
 const GameScene = preload("res://scenes/Game.tscn")
-const LevelConfigType = preload("res://scripts/level_config.gd")
+const LevelConfigType = preload("res://scripts/core/level_config.gd")
 const OUTPUT_DIR := "res://reports/regenerated-scene-art-integration-v1/scene-screenshots/"
 const RESOLUTIONS: Array[Vector2i] = [Vector2i(720, 1280), Vector2i(720, 1600)]
 const LEVELS: Array[int] = [1, 7, 19]

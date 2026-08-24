@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Supplied Art, Purple UI, and Codebase Cleanup V1](SUPPLIED_ART_PURPLE_UI_CODEBASE_CLEANUP_V1_REPORT.md) - 10/10/20 supplied-art integration, alpha-tight gems, measured table/physics calibration, no gem names, dark-amethyst UI theme, responsibility-based repository cleanup, full regressions, visual QA, and Android delivery evidence.
+
 - [Reward Gem Simultaneous Physics V6](REWARD_GEM_SIMULTANEOUS_PHYSICS_V6_REPORT.md) - same-frame result/sibling reveal, shared pop timing, immediate first-visible-frame physics/contact, merge-only grace, cascade preservation, and ANGLE proof frames.
 
 - [Reward Gem Split Readability V5](REWARD_GEM_SPLIT_READABILITY_V5_REPORT.md) - visible merge-origin gem splitting, slower collision-before-merge release, distinct sibling tiers, stronger table shadows, live-origin target coins, full coin holds, and readable final-target center timing.

@@ -1,3 +1,15 @@
+# Current State Addendum - Supplied Art, Purple UI, and Codebase Cleanup V1
+
+The active art set is now the newly supplied 10 backgrounds, 10 portrait tables, and 20 gems. Originals use stable names in `assets/backgrounds`, `assets/tables`, and `assets/gems`; `scripts/dev/prepare_supplied_art_refresh.gd` generates the only active mobile derivatives under `assets/runtime` and records hashes/bounds in `assets/runtime/art_refresh_manifest.json`. Every runtime gem is alpha-tight and no larger than 256 pixels on its longest edge.
+
+The full portrait table compositions are retained instead of being converted into the retired 920x810 normalized artwork. Measured alpha/rail bounds informed a small centralized `GameConfig` update: outer 420-1215, board 455-1165, back rails 130/590, front rails 54/666, danger 1015, and launcher 1095. All L1-L8 radii and gameplay behavior remain unchanged.
+
+The HUD and all shared UI surfaces now use dark amethyst glass, violet rims, white/lavender text, purple controls, and lavender icons. Existing positions and sizes are unchanged. The HUD no longer creates `TargetName`; Level Ready uses quantity-only `MERGE TARGET x N`; catalog display names are empty.
+
+Active scripts are organized under `core`, `gameplay`, `presentation`, `ui`, `services`, and `dev`. Retired source/runtime pipelines, unused renderers, superseded audio copies, old backgrounds 11-19, and the vibration icon are removed. `assets/runtime` remains the deliberate package boundary between large originals and optimized shipped files.
+
+All nine regression suites print PASS. Six GL Compatibility/ANGLE gameplay captures at 720x1280 and 720x1600 were reviewed under `reports/supplied-art-purple-ui-cleanup-v1/screenshots/`; rail-edge proof gems remain contained and the visual hierarchy matches the supplied purple reference. APK/device details are recorded in `BUILD_MANIFEST.md` after export. Source: SOURCE_COMMIT_PLACEHOLDER / `supplied-art-purple-ui-cleanup-v1-source`; delivery: `supplied-art-purple-ui-cleanup-v1`.
+
 # Current State Addendum - Simultaneous Reward Reveal and Immediate Physics V6
 
 Release delivery: signed Play AAB `build/android/majestic-gems-reward-gem-simultaneous-physics-v1.0.5-vc7.aab` is now prepared at versionCode 7 / versionName 1.0.5. Bundletool validates the bundle and its embedded manifest; both ARM architectures and all V6 gameplay scripts are present. The previous standalone V6 debug APK remains available; no device was connected. See `BUILD_MANIFEST.md` and `reports/REWARD_GEM_SIMULTANEOUS_PHYSICS_V6_REPORT.md`.

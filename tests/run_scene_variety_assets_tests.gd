@@ -1,7 +1,7 @@
 extends SceneTree
 
-const AssetCatalogType = preload("res://scripts/asset_catalog.gd")
-const LevelConfigType = preload("res://scripts/level_config.gd")
+const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
+const LevelConfigType = preload("res://scripts/core/level_config.gd")
 
 var failures: Array[String] = []
 
@@ -31,9 +31,21 @@ func _test_runtime_assets() -> void:
 		var texture := AssetCatalogType.table_texture(index)
 		_assert(texture != null, "Table %d must load" % index)
 		if texture != null:
-			_assert(texture.get_size() == Vector2(920.0, 810.0), "Table %d must use the shared 920x810 presentation canvas" % index)
+			_assert(texture.get_size() == Vector2(720.0, 1280.0), "Table %d must use the optimized full-composition 720x1280 runtime canvas" % index)
 			var table_image := texture.get_image()
 			_assert(table_image != null and table_image.get_pixel(0, 0).a <= 0.02, "Table %d must retain transparent outer corners" % index)
+	_assert(AssetCatalogType.GEM_TIER_TEXTURES.size() == AssetCatalogType.GEM_IDENTITY_COUNT, "Every supplied gem identity must have one runtime derivative")
+	AssetCatalogType.reset_active_level_mapping()
+	for identity in range(1, AssetCatalogType.GEM_IDENTITY_COUNT + 1):
+		var gem_texture := AssetCatalogType.GEM_TIER_TEXTURES.get(identity) as Texture2D
+		_assert(gem_texture != null, "Gem %d must load" % identity)
+		if gem_texture != null:
+			var gem_image := gem_texture.get_image()
+			var used_rect := gem_image.get_used_rect()
+			_assert(gem_image.get_width() <= 256 and gem_image.get_height() <= 256, "Gem %d must use a bounded mobile runtime size" % identity)
+			_assert(used_rect == Rect2i(Vector2i.ZERO, gem_image.get_size()), "Gem %d must be alpha-tight with no transparent border" % identity)
+		_assert(AssetCatalogType.gem_name(identity).is_empty(), "Gem %d must not expose a player-facing name" % identity)
+		_assert(String(AssetCatalogType.gem_entry(identity).get("name", "")).is_empty(), "Gem %d catalog entry must keep its display name empty" % identity)
 	_assert(AssetCatalogType.background_texture(-1) == AssetCatalogType.background_texture(AssetCatalogType.BACKGROUND_COUNT - 1), "Background lookup must wrap safely")
 	_assert(AssetCatalogType.table_texture(-1) == AssetCatalogType.table_texture(AssetCatalogType.TABLE_COUNT - 1), "Table lookup must wrap safely")
 
@@ -41,6 +53,7 @@ func _test_runtime_assets() -> void:
 func _test_seeded_level_selection() -> void:
 	var seen_backgrounds := {}
 	var seen_tables := {}
+	var seen_gem_identities := {}
 	for level_number in range(1, 501):
 		var seed_value := LevelConfigType.seed_for_level(level_number)
 		var first := LevelConfigType.generated(level_number, seed_value)
@@ -53,8 +66,11 @@ func _test_seeded_level_selection() -> void:
 		_assert(table_index == int(retry.get("table_index", -2)), "Level %d retry must preserve its table" % level_number)
 		seen_backgrounds[background_index] = true
 		seen_tables[table_index] = true
+		for identity in (first.get("gem_identity_by_tier", {}) as Dictionary).values():
+			seen_gem_identities[int(identity)] = true
 	_assert(seen_backgrounds.size() == AssetCatalogType.BACKGROUND_COUNT, "Generated levels must exercise every supplied background")
 	_assert(seen_tables.size() == AssetCatalogType.TABLE_COUNT, "Generated levels must exercise every supplied table")
+	_assert(seen_gem_identities.size() == AssetCatalogType.GEM_IDENTITY_COUNT, "Generated levels must exercise every supplied gem identity")
 
 
 func _assert(condition: bool, message: String) -> void:

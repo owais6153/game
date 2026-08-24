@@ -1,7 +1,7 @@
 extends SceneTree
 
-const AudioFeedbackServiceType = preload("res://scripts/audio_feedback_service.gd")
-const HomeOverlayType = preload("res://scripts/home_overlay_layer.gd")
+const AudioFeedbackServiceType = preload("res://scripts/services/audio_feedback_service.gd")
+const HomeOverlayType = preload("res://scripts/ui/home_overlay_layer.gd")
 const GameplayHudScene = preload("res://scenes/ui/GameplayHud.tscn")
 
 var failures: Array[String] = []
@@ -114,7 +114,7 @@ func _test_privacy_link_relocation() -> void:
 
 
 func _test_confirmed_event_routing_contract() -> void:
-	var source := FileAccess.get_file_as_string("res://scripts/game_controller.gd")
+	var source := FileAccess.get_file_as_string("res://scripts/gameplay/game_controller.gd")
 	_assert(source.contains("merge_event.merge_sound_event = \"merge_%d\" % result_level if completes_active_target else \"normal_merge\""), "Confirmed merges must retain their distinct sound identities")
 	var merge_classified := source.find("var completes_active_target := result_level == active_target_tier()")
 	var merge_identity := source.find("merge_event.merge_sound_event =", merge_classified)

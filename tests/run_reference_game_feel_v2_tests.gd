@@ -1,8 +1,8 @@
 extends SceneTree
 
-const SimulationType = preload("res://scripts/board_simulation.gd")
-const MergeServiceType = preload("res://scripts/merge_service.gd")
-const PieceType = preload("res://scripts/gem_piece.gd")
+const SimulationType = preload("res://scripts/gameplay/board_simulation.gd")
+const MergeServiceType = preload("res://scripts/gameplay/merge_service.gd")
+const PieceType = preload("res://scripts/core/gem_piece.gd")
 
 var failures: Array[String] = []
 
@@ -98,7 +98,7 @@ func _test_feedback_contracts() -> void:
 	_assert(GameConfig.MERGE_RESULT_POP_SCALE == 1.24 and GameConfig.MERGE_PRESENTATION_DURATION == 0.42 and GameConfig.MERGE_SOURCE_PULL_DURATION == 0.080, "Merge and push animation must retain the approved readable reward cadence")
 	_assert(GameConfig.COIN_FLIGHT_DURATION == 0.55 and GameConfig.MAJOR_COIN_FLIGHT_DURATION == 0.62 and GameConfig.COIN_FLIGHT_STAGGER == 0.08, "Coin flights must retain the restored readable cadence")
 	_assert(GameConfig.TARGET_COLLECTION_DURATION == 0.70, "Target collection must retain the restored readable cadence")
-	var overlay_source := FileAccess.get_file_as_string("res://scripts/target_reward_overlay.gd")
+	var overlay_source := FileAccess.get_file_as_string("res://scripts/presentation/target_reward_overlay.gd")
 	_assert(not overlay_source.contains("check_points") and not overlay_source.contains("draw_polyline"), "Target confirmation must not render a checkmark")
 	_assert(float(GameConfig.AUDIO_TONES.normal_merge.volume) > float(GameConfig.AUDIO_TONES.gem_contact.volume) * 1.4, "Merge audio must clearly dominate normal collision")
 
