@@ -60,6 +60,7 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 		"effect_scale": ring_scale,
 		"spark_count": 14 if target_merge else (GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 8),
 		"ring_layers": int(timeline.get("ring_layers", 1)),
+		"ring_segments": int(timeline.get("ring_segments", 30)),
 		"target_merge": target_merge,
 		"major_reward": major_reward or final_target,
 	})
@@ -462,7 +463,7 @@ func _draw() -> void:
 	for launch in launch_impacts:
 		_draw_launch_impact(launch)
 
-## A brighter ordinary ring and a bounded three-ring target variant share one
+## A brighter ordinary ring and a bounded five-ring target variant share one
 ## lightweight draw path. No particle nodes or simulation objects are created.
 func _draw_merge_impact(effect: Dictionary) -> void:
 	var elapsed := float(effect.get("elapsed", -1.0))
@@ -475,6 +476,7 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	var major_reward := bool(effect.get("major_reward", false))
 	var target_merge := bool(effect.get("target_merge", false))
 	var ring_layers := int(effect.get("ring_layers", 1))
+	var ring_segments := int(effect.get("ring_segments", 30))
 	var ring_span := maxf(0.12, duration - ring_at)
 	var t := clampf((elapsed - ring_at) / ring_span, 0.0, 1.0)
 	var expand := 1.0 - pow(1.0 - t, 2.4)
@@ -484,16 +486,17 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	color.a = fade
 	var gem_radius := GameConfig.gem_collision_radius(int(effect.level))
 	var ring_radius := (gem_radius * 0.62 + 46.0 * expand) * effect_scale
-	var layer_scales := [1.0, 0.76 + 0.08 * expand, 1.08 + 0.08 * expand]
-	var layer_alphas := [1.0, 0.62, 0.42]
 	for layer_index in range(ring_layers):
+		var layer_t := float(layer_index) / float(maxi(1, ring_layers - 1))
+		var layer_scale := 1.0 if ring_layers == 1 else lerpf(0.74, 1.18, layer_t) + (layer_t - 0.5) * 0.08 * expand
+		var layer_alpha := 1.0 if ring_layers == 1 else lerpf(0.82, 0.30, layer_t)
 		var layer_color := color
 		if target_merge and layer_index > 0:
-			layer_color = Color(1.0, 0.88, 0.38, fade * float(layer_alphas[layer_index]))
+			layer_color = Color(1.0, 0.88, 0.38, fade * layer_alpha)
 		else:
-			layer_color.a *= float(layer_alphas[layer_index])
+			layer_color.a *= layer_alpha
 		var width := lerpf(4.8 if target_merge or major_reward else 3.8, 1.0, t) * (1.0 - float(layer_index) * 0.12)
-		draw_arc(center, ring_radius * float(layer_scales[layer_index]), 0.0, TAU, 36 if target_merge else 30, layer_color, width)
+		draw_arc(center, ring_radius * layer_scale, 0.0, TAU, ring_segments, layer_color, width)
 	# A short, low-count spark ring keeps ordinary merges from reading as a burst.
 	var spark_fade := maxf(0.0, 1.0 - t * 2.6)
 	if spark_fade <= 0.0:

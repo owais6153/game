@@ -1,3 +1,13 @@
+# Architecture Addendum - Rail, Target Blast, and Gem Expansion V1
+
+`AssetCatalog` now preloads 34 alpha-tight runtime textures and immutable metadata entries. The two new identities extend only presentation selection; `LevelConfig` continues mapping selected identities into local L1-L8 roles, and no display name or source pixel enters simulation.
+
+`GameConfig` remains the single geometry and tuning authority. The measured table opening, enlarged L6-L8 radii, five-ring density, blast radius/impulse, and music gain are centralized constants. `BoardSimulation`, renderer, launcher/drag clamp, danger line, and diagnostics continue reading the same rail functions.
+
+The target blast is an exactly-once controller consequence of an already-confirmed active-target merge. `_apply_target_merge_blast()` adjusts only velocity on eligible existing board pieces; it excludes the result and active launcher, creates no bodies, captures no contacts, and never calls the merge service. The next simulation step remains responsible for ordinary damping, containment, collision, and any later confirmed merge.
+
+`GameplayEffectsLayer` reads `ring_layers` and `ring_segments` from the stored merge timeline. Five target rings are one capped immediate-mode record with computed scale/alpha; no particles, physics nodes, texture loads, or per-ring allocations are introduced.
+
 # Architecture Addendum - Gem Registry and Pattern Blocks V1
 
 `AssetCatalog.GEM_DEFINITIONS` is the single immutable metadata authority for all 32 visual identities. Queries filter cached dictionaries by audited shape, color family, color style, rarity, or excluded color; no runtime directory scan, filename inference, display name, or pixel analysis occurs during play. Textures remain preloaded once. Simulation sees only local L1-L8 and `GameConfig.gem_collision_radius()`.

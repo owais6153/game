@@ -607,6 +607,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		# branch on the confirmed final-target result instead of guessing.
 		if completes_active_target:
 			_advance_target_state_authoritative(result_id, merge_event)
+			_apply_target_merge_blast(Vector2(merge_event.get("midpoint", Vector2.ZERO)), result_id)
 		var final_target := bool(merge_event.final_target_completed)
 		# One shared timeline drives result scale, source pull, hit-stop, ring,
 		# mini gems, sound timing, and pitch for this reward tier.
@@ -667,6 +668,23 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		if completes_active_target and result_id >= 0 and not counted_target_result_ids.has(result_id):
 			pending_target_presentations[result_id] = merge_event
 		resolution_multiplier += 1
+
+
+func _apply_target_merge_blast(origin: Vector2, result_id: int) -> int:
+	var pushed := 0
+	for piece in pieces:
+		if piece.consumed or piece.id == result_id or piece.is_active_launcher:
+			continue
+		var offset := piece.position - origin
+		var distance := offset.length()
+		if distance > GameConfig.TARGET_MERGE_BLAST_RADIUS:
+			continue
+		var direction := offset / distance if distance > 0.001 else Vector2.from_angle(float(posmod(piece.id * 97, 360)) * PI / 180.0)
+		var proximity := 1.0 - clampf(distance / GameConfig.TARGET_MERGE_BLAST_RADIUS, 0.0, 1.0)
+		var strength := GameConfig.TARGET_MERGE_BLAST_IMPULSE * lerpf(GameConfig.TARGET_MERGE_BLAST_EDGE_STRENGTH, 1.0, proximity)
+		piece.velocity = (piece.velocity + direction * strength).limit_length(GameConfig.MAX_PIECE_SPEED)
+		pushed += 1
+	return pushed
 
 
 func _schedule_bonus_gems(merge_event: Dictionary) -> void:

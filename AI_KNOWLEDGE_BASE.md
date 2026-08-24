@@ -1,3 +1,13 @@
+# Knowledge Base Addendum - Rail, Target Blast, and Gem Expansion V1
+
+- Current catalog: 34 identities, 22 Common / 12 Unique. `gem_33` is pink-gradient circle; `gem_34` is pink-gradient rounded square. Keep all player-facing names empty.
+- Current shared table opening: board 454-1168, back rails 140/580, front rails 58/662. These values come from inner-lip color-edge measurements across all ten runtime tables; do not fall back to broad alpha bounds.
+- Current L1-L8 radii: 36/39/42/45/48/56/61/66. L6-L8 are intentionally larger target tiers, and live art maps to those same circles. Collection-only emphasis is 1.18.
+- A target blast is one velocity nudge at confirmed target completion: radius 220, max impulse 78, edge multiplier 0.28. Exclude result/launcher/consumed/distant pieces and never use the blast to confirm merges directly.
+- Target/final waves are five rings with 52 segments. Keep the record capped and immediate-mode; do not introduce particle nodes.
+- Music gain is 0.07. Preserve the Music/SFX bus split, limiter, settings ownership, and confirmed-event routing.
+- `scripts/dev/measure_table_inner_rails.gd` is offline measurement tooling and remains Android-export excluded.
+
 # Knowledge Base Addendum - Gem Categories and Pattern Feedback V1
 
 - The current catalog is 32 identities: 22 Common and 10 Unique. Do not add shape/material categories beyond the audited circle/rounded-square and common shared gem material.

@@ -1,3 +1,13 @@
+# Current State Addendum - Rail, Target Blast, and Gem Expansion V1
+
+The active catalog contains 34 supplied gems. The two Aug-24 additions are preserved byte-for-byte as stable `gem_33` and `gem_34` sources and classified from visual inspection as pink gradient Unique artwork (circle and rounded square). Runtime derivatives are exactly alpha-tight at `256x253` and `256x254`; the catalog remains name-free and now totals 22 Common / 12 Unique.
+
+Fresh image-row and centerline measurements across all ten runtime tables replace the previous permissive alpha-only rail assumption. The one shared `GameConfig` opening is now board `454..1168`, back rails `140..580`, and front rails `58..662`. Table drawing, L8 containment, launcher/drag clamps, danger geometry, rail telemetry, and F8 diagnostics still consume that same trapezoid.
+
+Target tiers now have larger live visual/physical bodies: L6-L8 radii are `56/61/66` while L1-L5 remain `36/39/42/45/48`; collection emphasis rises from `1.12` to `1.18`. Target waves use five 52-segment rings. Each confirmed target applies one bounded `220 px` radial nudge (maximum `78 px/s`) to nearby non-launcher gems, and background music gain rises slightly from `0.06` to `0.07`.
+
+The focused rail/target/gem suite plus the gem-pattern, UI/layout, sound/privacy, and strict-contact suites pass. Two 720x1280 production-scene ANGLE frames were reviewed under `reports/rail-target-blast-gem-expansion-v1/screenshots/`. Final all-suite/APK/device evidence is recorded in the task report and `BUILD_MANIFEST.md` when delivered.
+
 # Current State Addendum - Gem Categories, Pattern Blocks, and Target Feedback V1
 
 The active gem catalog now contains 32 alpha-tight runtime identities backed by one `AssetCatalog.GEM_DEFINITIONS` registry. Visual inspection classified only circle/rounded-square shape, practical color family, solid/gradient color style, and Common/Unique rarity: 22 Common and 10 Unique. New sources are normalized as `assets/gems/gem_21.png` through `gem_32.png`; matching runtime derivatives are 243-256 px on the short edge, exactly 256 px on the long edge, and have no transparent border pixels. Gem display names remain empty everywhere.

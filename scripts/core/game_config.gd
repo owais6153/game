@@ -16,12 +16,12 @@ const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.9583333, 0.752)
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
 const TABLE_BOTTOM_ALIGNMENT_DELTA_Y := 0.0
-const BOARD_TOP := 455.0
-const BOARD_BOTTOM := 1165.0
-const TABLE_INNER_LEFT_TOP := 130.0
-const TABLE_INNER_LEFT_BOTTOM := 54.0
-const TABLE_INNER_RIGHT_TOP := 590.0
-const TABLE_INNER_RIGHT_BOTTOM := 666.0
+const BOARD_TOP := 454.0
+const BOARD_BOTTOM := 1168.0
+const TABLE_INNER_LEFT_TOP := 140.0
+const TABLE_INNER_LEFT_BOTTOM := 58.0
+const TABLE_INNER_RIGHT_TOP := 580.0
+const TABLE_INNER_RIGHT_BOTTOM := 662.0
 const DANGER_LINE_Y := 1015.0
 const DANGER_LINE_COLOR := Color("e85f52")
 ## Presentation-only guide/warning values. They never enter input, collision,
@@ -41,14 +41,14 @@ const TABLE_TALL_SCALE_REFERENCE_EXTRA := 320.0
 static var portrait_bottom_offset_y := 0.0
 static var viewport_center_offset_x := 0.0
 static var table_vertical_scale_y := 1.0
-## Largest active gameplay radius. L1-L8 keep a controlled three-pixel step,
-## with a larger readable L1 baseline and a bounded 1.583x L8/L1 endpoint.
-const PIECE_RADIUS := 57.0
+## Largest active gameplay radius. The L6-L8 objective sequence uses a larger
+## physical/readable step while L1-L5 retain the established launch ladder.
+const PIECE_RADIUS := 66.0
 ## One authoritative radius drives both the alpha-trimmed visual body and its
 ## simple circle collider. Gold rims, glows, shadows and transparent texture
 ## padding never add collision size. L9-L18 remain outside the current level
 ## and retain their earlier 42px fallback. Values stay fixed for a lifetime.
-const GEM_COLLISION_RADIUS := {1: 36.0, 2: 39.0, 3: 42.0, 4: 45.0, 5: 48.0, 6: 51.0, 7: 54.0, 8: 57.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0, 19: 42.0, 20: 42.0}
+const GEM_COLLISION_RADIUS := {1: 36.0, 2: 39.0, 3: 42.0, 4: 45.0, 5: 48.0, 6: 56.0, 7: 61.0, 8: 66.0, 9: 42.0, 10: 42.0, 11: 42.0, 12: 42.0, 13: 42.0, 14: 42.0, 15: 42.0, 16: 42.0, 17: 42.0, 18: 42.0, 19: 42.0, 20: 42.0}
 ## Runtime visual-body expansion maps the opaque gem body to the stable
 ## simple collider; it is a visual calibration only.
 ## Body-only textures are trimmed independently from their former baked
@@ -211,7 +211,8 @@ const MERGE_TIMELINE_TARGET := {
 	"sound_at": 0.10,
 	"ring_at": 0.10,
 	"ring_scale": 1.38,
-	"ring_layers": 3,
+	"ring_layers": 5,
+	"ring_segments": 52,
 	"radial_intensity": MERGE_RADIAL_INTENSITY_TARGET,
 	"start_scale": 0.62,
 	"scale_keys": [[0.18, 1.32], [0.27, 0.96], [0.35, 1.08], [0.42, 1.0]],
@@ -228,7 +229,8 @@ const MERGE_TIMELINE_FINAL_TARGET := {
 	"sound_at": 0.10,
 	"ring_at": 0.10,
 	"ring_scale": 1.58,
-	"ring_layers": 3,
+	"ring_layers": 5,
+	"ring_segments": 52,
 	"radial_intensity": MERGE_RADIAL_INTENSITY_FINAL_TARGET,
 	"start_scale": 0.60,
 	"scale_keys": [[0.18, 1.40], [0.27, 0.96], [0.35, 1.10], [0.42, 1.0]],
@@ -269,7 +271,12 @@ const COMBO_LABEL_OFFSET_Y := -58.0
 ## 120 ms table-position hold. All three targets share this exact cadence.
 const TARGET_COLLECTION_OVERLAP_START := 0.54
 const FINAL_TARGET_COLLECTION_OVERLAP_START := TARGET_COLLECTION_OVERLAP_START
-const TARGET_VISUAL_SCALE := 1.12
+const TARGET_VISUAL_SCALE := 1.18
+## A confirmed objective merge applies this single, deterministic radial nudge
+## to other settled/live board gems. It never changes contact or merge rules.
+const TARGET_MERGE_BLAST_RADIUS := 220.0 # safe readable range 180-240
+const TARGET_MERGE_BLAST_IMPULSE := 78.0 # slight nudge range 60-90
+const TARGET_MERGE_BLAST_EDGE_STRENGTH := 0.28
 const MERGE_PULSE_SCALE := 1.22
 const COLLISION_VISUAL_DURATION := 0.11
 const COLLISION_VISUAL_MAX_COMPRESSION := 0.055
@@ -546,9 +553,9 @@ const MERGE_SCORE_BY_RESULT_LEVEL := TARGET_COIN_REWARD_BY_RESULT_LEVEL
 ## identities retain the established procedural or approved supplied cues.
 const AUDIO_MAX_CONCURRENT_PLAYERS := 5
 const AUDIO_SAMPLE_RATE := 22050.0
-## Corrective mix v2: raised moderately from 0.035 while remaining below the
-## original 0.10 service gain and below gameplay feedback.
-const AUDIO_MUSIC_VOLUME := 0.06
+## Slightly raised from 0.06 while remaining below the original 0.10 service
+## gain and clearly below gameplay feedback.
+const AUDIO_MUSIC_VOLUME := 0.07
 const AUDIO_TONES := {
 	"launch": {"frequency": 640.0, "duration": 0.075, "volume": 0.48, "brightness": 0.38, "fall": 0.78},
 	"gem_contact": {"frequency": 1240.0, "duration": 0.055, "volume": 0.46, "brightness": 0.82, "fall": 0.64},

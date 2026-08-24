@@ -2,7 +2,7 @@ extends SceneTree
 
 const BACKGROUND_COUNT := 10
 const TABLE_COUNT := 10
-const GEM_COUNT := 32
+const GEM_COUNT := 34
 const SCENE_RUNTIME_SIZE := Vector2i(720, 1280)
 const GEM_MAX_EDGE := 256
 const ALPHA_THRESHOLD := 0.01

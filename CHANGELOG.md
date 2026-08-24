@@ -1,3 +1,13 @@
+# 2026-08-25 - Rail, target blast, and gem expansion v1
+
+- Added supplied `gem_33` and `gem_34` as alpha-tight 256 px runtime derivatives and audited pink-gradient Unique metadata; expanded the registry to 34 identities without adding display names.
+- Re-measured all ten table derivatives at the visible inner lip and recalibrated the centralized opening from board 455-1165/back 130-590/front 54-666 to board 454-1168/back 140-580/front 58-662.
+- Enlarged target-tier physical/visual radii from 51/54/57 to 56/61/66 and raised detached target emphasis from 1.12 to 1.18.
+- Replaced three target rings with five denser 52-segment rings.
+- Added a deterministic one-shot target blast that nudges nearby board gems while excluding the result, active launcher, consumed pieces, and out-of-range pieces.
+- Raised music linear gain slightly from 0.06 to 0.07 without changing SFX or routing.
+- Added focused crop/rail/contact/target/blast/wave/music regressions and two reviewed production-scene ANGLE captures.
+
 # 2026-08-24 - Gem categories, pattern blocks, and target feedback v1
 
 - Integrated 12 newly supplied gems as normalized `gem_21`-`gem_32` sources and alpha-tight 256 px runtime derivatives, expanding the active catalog from 20 to 32.

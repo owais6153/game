@@ -35,7 +35,7 @@ func _test_audio_service() -> void:
 	var sfx_bus := AudioServer.get_bus_index("SFX")
 	_assert(sfx_bus >= 0 and AudioServer.get_bus_effect_count(sfx_bus) == 1 and AudioServer.get_bus_effect(sfx_bus, 0) is AudioEffectLimiter, "SFX bus must own the clipping limiter")
 	_assert(service._music_player.bus == "Music" and service._players.all(func(player: AudioStreamPlayer) -> bool: return player.bus == "SFX"), "Music and one-shots must route to their dedicated buses")
-	_assert(is_equal_approx(service.music_volume_linear(), 0.06), "Background music must use the documented corrective gain")
+	_assert(is_equal_approx(service.music_volume_linear(), 0.07), "Background music must use the slightly raised documented gain")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.volume), 0.46) and is_equal_approx(float(GameConfig.AUDIO_TONES.gem_contact.frequency), 1240.0), "Gem contact must restore the original procedural crystal identity and gain")
 	_assert(is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.volume), 0.32) and is_equal_approx(float(GameConfig.AUDIO_TONES.wall_contact.frequency), 760.0), "Rail contact must restore the original procedural crystal identity and gain")
 	_assert(is_equal_approx(GameConfig.GEM_CONTACT_SOUND_THRESHOLD, 170.0) and is_equal_approx(GameConfig.WALL_CONTACT_SOUND_THRESHOLD, 220.0), "Contact thresholds must restore the original tuning")

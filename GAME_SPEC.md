@@ -1,3 +1,13 @@
+# Rail, Target Blast, and Gem Expansion V1 - 2026-08-25
+
+- The active presentation registry contains 34 supplied identities: 22 Common and 12 Unique. `gem_33` is a pink gradient circle and `gem_34` a pink gradient rounded square. Names remain prohibited in player-facing data/UI.
+- All 34 runtime gems are alpha-tight at threshold 0.01, aspect-preserving, and normalized to a 256 px longest edge. Source pixels and filenames never define physics.
+- The authoritative supplied-table opening is outer 420-1215, board 454-1168, back inner rails 140/580, front inner rails 58/662, danger Y 1015, launcher Y 1095, texture center (360,844), and scale (0.9583333,0.752). Rendering, containment, drag clamp, launcher, danger, and diagnostics consume this one model.
+- L1-L5 retain radii 36/39/42/45/48. The reachable L6-L8 target ladder is physically and visually larger at 56/61/66; the detached target collection proxy uses 1.18 emphasis.
+- A confirmed target completion applies one 220 px bounded radial nudge with a maximum 78 px/s impulse to other nearby board gems. It excludes the result, active launcher, consumed pieces, and distant gems; it does not alter contact or merge eligibility.
+- Target and final-target waves use five 52-segment concentric rings. The existing 420 ms merge, 120 ms origin hold, collection authority, score/reward values, and exactly-once guards remain unchanged.
+- Background music linear gain is 0.07, up slightly from 0.06. Event routing, buses, limiter, toggles, SFX gains, and gameplay authority are unchanged.
+
 # Gem Categories, Pattern Blocks, and Target Feedback V1 - 2026-08-24
 
 - The presentation registry contains 32 audited identities and only the categories visible in supplied art: `circle` / `rounded_square`, practical color family, `solid` / `gradient`, and `common` / `unique`. The pool is 22 Common and 10 Unique; player-facing names remain prohibited.

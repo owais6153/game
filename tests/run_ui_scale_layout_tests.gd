@@ -2,7 +2,7 @@ extends SceneTree
 
 const GameplayHudType = preload("res://scripts/ui/gameplay_hud_layer.gd")
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
-const EXPECTED_RADII := [36.0, 39.0, 42.0, 45.0, 48.0, 51.0, 54.0, 57.0]
+const EXPECTED_RADII := [36.0, 39.0, 42.0, 45.0, 48.0, 56.0, 61.0, 66.0]
 const VIEWPORTS := [
 	Vector2i(576, 1312),
 	Vector2i(720, 1280),
@@ -46,8 +46,8 @@ func _test_tier_radius_progression() -> void:
 		_assert(is_equal_approx(radius, EXPECTED_RADII[tier - 1]), "Tier %d radius must be %.1f" % [tier, EXPECTED_RADII[tier - 1]])
 		_assert(radius > previous, "Tier %d must be larger than Tier %d" % [tier, tier - 1])
 		previous = radius
-	_assert(is_equal_approx(GameConfig.gem_collision_radius(8) / GameConfig.gem_collision_radius(1), 57.0 / 36.0), "L8/L1 endpoint scale must remain the bounded 1.583x ladder")
-	_assert(GameConfig.PIECE_RADIUS == 57.0, "PIECE_RADIUS fallback must match the largest active tier")
+	_assert(is_equal_approx(GameConfig.gem_collision_radius(8) / GameConfig.gem_collision_radius(1), 66.0 / 36.0), "L8/L1 endpoint scale must include the larger objective tier ladder")
+	_assert(GameConfig.PIECE_RADIUS == 66.0, "PIECE_RADIUS fallback must match the largest active tier")
 
 
 func _test_feedback_polish_contract() -> void:
@@ -64,10 +64,10 @@ func _test_feedback_polish_contract() -> void:
 func _test_fixed_table_geometry() -> void:
 	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_TOP, 420.0), "Table top must match the supplied portrait composition")
 	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_BOTTOM, 1215.0), "Table bottom must match the supplied portrait composition")
-	_assert(is_equal_approx(GameConfig.BOARD_TOP, 455.0), "Board top must remain inset from the visible back rail")
-	_assert(is_equal_approx(GameConfig.BOARD_BOTTOM, 1165.0), "Board bottom must remain inset from the visible front rail")
-	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_TOP, 130.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_TOP, 590.0), "Back physics rails must follow the measured supplied-table opening")
-	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_BOTTOM, 54.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_BOTTOM, 666.0), "Front physics rails must follow the measured supplied-table opening")
+	_assert(is_equal_approx(GameConfig.BOARD_TOP, 454.0), "Board top must follow the measured inner back lip")
+	_assert(is_equal_approx(GameConfig.BOARD_BOTTOM, 1168.0), "Board bottom must follow the earliest shared inner front lip")
+	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_TOP, 140.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_TOP, 580.0), "Back physics rails must follow the measured supplied-table opening")
+	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_BOTTOM, 58.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_BOTTOM, 662.0), "Front physics rails must follow the measured supplied-table opening")
 	_assert(is_equal_approx(GameConfig.DANGER_LINE_Y, 1015.0), "Danger line must remain inside the recalibrated playfield")
 	_assert(is_equal_approx(GameConfig.LAUNCH_Y, 1095.0), "Launcher must remain inside the recalibrated playfield")
 	_assert(GameConfig.TABLE_TEXTURE_SIZE == Vector2(720.0, 1280.0), "Supplied table derivatives must preserve the full portrait composition")

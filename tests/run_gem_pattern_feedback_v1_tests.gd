@@ -23,7 +23,7 @@ func _init() -> void:
 
 
 func _test_registry_and_runtime_crops() -> void:
-	_assert(AssetCatalogType.GEM_IDENTITY_COUNT == 32, "All 32 supplied gems must be registered")
+	_assert(AssetCatalogType.GEM_IDENTITY_COUNT == 34, "All 34 supplied gems must be registered")
 	var common_count := 0
 	var unique_count := 0
 	for identity in range(1, AssetCatalogType.GEM_IDENTITY_COUNT + 1):
@@ -46,9 +46,9 @@ func _test_registry_and_runtime_crops() -> void:
 		var used := image.get_used_rect()
 		_assert(used.position == Vector2i.ZERO and used.size == image.get_size(), "Gem %d runtime PNG must be alpha-tight" % identity)
 		_assert(maxi(image.get_width(), image.get_height()) == 256, "Gem %d longest runtime edge must be normalized to 256 px" % identity)
-	_assert(common_count == 22 and unique_count == 10, "The audited pool must remain 22 Common / 10 Unique")
+	_assert(common_count == 22 and unique_count == 12, "The audited pool must remain 22 Common / 12 Unique")
 	_assert(unique_count < common_count, "Unique gems must remain a limited minority")
-	for identity in range(21, 33):
+	for identity in range(21, 35):
 		_assert(AssetCatalogType.GEM_TIER_TEXTURES.has(identity), "New gem %d must participate in runtime selection" % identity)
 	_assert(AssetCatalogType.gem_name(1).is_empty() and String(AssetCatalogType.gem_entry(1).get("name", "x")).is_empty(), "Player-facing gem names must remain absent")
 
@@ -73,7 +73,7 @@ func _test_pattern_blocks_and_target_safety() -> void:
 		var seen := {}
 		for tier in range(1, 9):
 			var identity := int(mapping.get(tier, -1))
-			_assert(identity >= 1 and identity <= 32 and not seen.has(identity), "Level %d tier %d must map one distinct valid identity" % [level_number, tier])
+			_assert(identity >= 1 and identity <= 34 and not seen.has(identity), "Level %d tier %d must map one distinct valid identity" % [level_number, tier])
 			seen[identity] = true
 			var rarity := String(AssetCatalogType.gem_definition(identity).get("rarity", ""))
 			_assert(rarity == ("common" if tier <= 4 else "unique"), "Level %d tier %d must respect the Common/Unique progression split" % [level_number, tier])
@@ -112,9 +112,10 @@ func _test_pattern_blocks_and_target_safety() -> void:
 
 
 func _test_feedback_tuning() -> void:
-	_assert(GameConfig.TARGET_VISUAL_SCALE >= 1.08 and GameConfig.TARGET_VISUAL_SCALE <= 1.15, "Target visual scale must remain inside the approved presentation-only range")
+	_assert(GameConfig.TARGET_VISUAL_SCALE >= 1.16 and GameConfig.TARGET_VISUAL_SCALE <= 1.20, "Target collection scale must use the enlarged approved range")
 	_assert(is_equal_approx(GameConfig.TARGET_COLLECTION_OVERLAP_START - float(GameConfig.MERGE_TIMELINE_TARGET.duration), 0.12), "Every target must hold at its merge position for 120 ms after merge feedback")
-	_assert(GameConfig.MERGE_TIMELINE_TARGET.ring_layers == 3 and GameConfig.MERGE_TIMELINE_FINAL_TARGET.ring_layers == 3, "Target merges must use three layered rings")
+	_assert(GameConfig.MERGE_TIMELINE_TARGET.ring_layers == 5 and GameConfig.MERGE_TIMELINE_FINAL_TARGET.ring_layers == 5, "Target merges must use five dense layered rings")
+	_assert(GameConfig.MERGE_TIMELINE_TARGET.ring_segments >= 48 and GameConfig.MERGE_TIMELINE_FINAL_TARGET.ring_segments >= 48, "Target rings must use dense circular tessellation")
 	_assert(float(GameConfig.MERGE_TIMELINE_TARGET.ring_scale) > float(GameConfig.MERGE_TIMELINE_NORMAL.ring_scale), "Target wave must exceed the normal merge wave")
 	_assert(GameConfig.LEVEL_REWARD_COIN_COUNT == GameConfig.COIN_BURST_COUNT, "Last-target visible coin quantity must match earlier target completions")
 	_assert(GameConfig.TARGET_COIN_TABLE_HOLD >= 1.0 and GameConfig.LEVEL_REWARD_COIN_TABLE_HOLD >= 1.0, "All target coin groups must retain a readable table hold")

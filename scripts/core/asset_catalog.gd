@@ -28,7 +28,7 @@ const LEVEL_TABLES: Array[Texture2D] = [
 ]
 const BACKGROUND_COUNT := 10
 const TABLE_COUNT := 10
-const GEM_IDENTITY_COUNT := 32
+const GEM_IDENTITY_COUNT := 34
 const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_soft_shadow.png")
 ## Cropped mobile derivative of the supplied glossy coin artwork. The original
 ## remains untouched under assets/buttons and this texture is presentation-only.
@@ -81,6 +81,8 @@ const GEM_TIER_TEXTURES := {
 	30: preload("res://assets/runtime/gems/gem_30.png"),
 	31: preload("res://assets/runtime/gems/gem_31.png"),
 	32: preload("res://assets/runtime/gems/gem_32.png"),
+	33: preload("res://assets/runtime/gems/gem_33.png"),
+	34: preload("res://assets/runtime/gems/gem_34.png"),
 }
 
 ## Internal IDs are intentionally generic. Player-facing gem names are not part
@@ -92,7 +94,7 @@ const GEM_IDS := {
 	16: "gem_16", 17: "gem_17", 18: "gem_18", 19: "gem_19", 20: "gem_20",
 	21: "gem_21", 22: "gem_22", 23: "gem_23", 24: "gem_24", 25: "gem_25",
 	26: "gem_26", 27: "gem_27", 28: "gem_28", 29: "gem_29", 30: "gem_30",
-	31: "gem_31", 32: "gem_32",
+	31: "gem_31", 32: "gem_32", 33: "gem_33", 34: "gem_34",
 }
 
 ## One audited metadata registry for every supplied gem. Categories describe
@@ -132,6 +134,8 @@ const GEM_DEFINITIONS := {
 	30: {"shape": "rounded_square", "color_family": "blue", "color_style": "gradient", "rarity": "unique"},
 	31: {"shape": "rounded_square", "color_family": "pink", "color_style": "gradient", "rarity": "unique"},
 	32: {"shape": "rounded_square", "color_family": "green", "color_style": "gradient", "rarity": "unique"},
+	33: {"shape": "circle", "color_family": "pink", "color_style": "gradient", "rarity": "unique"},
+	34: {"shape": "rounded_square", "color_family": "pink", "color_style": "gradient", "rarity": "unique"},
 }
 static var active_gem_identity_by_tier: Dictionary = {}
 

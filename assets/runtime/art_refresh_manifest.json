@@ -842,6 +842,46 @@
 				1254,
 				1254
 			]
+		},
+		{
+			"alpha_rect": [
+				100,
+				94,
+				1054,
+				1042
+			],
+			"runtime": "res://assets/runtime/gems/gem_33.png",
+			"runtime_sha256": "cc21cb0174e80f1e3b9edca9d68d0aa4586b5ed5a8108998ad81a89544968ccc",
+			"runtime_size": [
+				256,
+				253
+			],
+			"source": "res://assets/gems/gem_33.png",
+			"source_sha256": "743b4e3b750b0ec3443ce80256cd96daae529e304799119cfe82e192308353c5",
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		{
+			"alpha_rect": [
+				146,
+				141,
+				962,
+				954
+			],
+			"runtime": "res://assets/runtime/gems/gem_34.png",
+			"runtime_sha256": "1169a14476877b15e107d4fe1ecef643cd9319ffd88ad200b4a35f17dad5eeac",
+			"runtime_size": [
+				256,
+				254
+			],
+			"source": "res://assets/gems/gem_34.png",
+			"source_sha256": "f500e7cfe8d8b84939ce97b4a196595ddca2254193c3e1e2b0b4302f295cd4a3",
+			"source_size": [
+				1254,
+				1254
+			]
 		}
 	],
 	"tables": [

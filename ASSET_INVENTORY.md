@@ -1,3 +1,13 @@
+# Gem Registry and Runtime Expansion V2 - 2026-08-25
+
+| Purpose | Preserved originals | Active runtime derivatives | Processing / boundary |
+| --- | --- | --- | --- |
+| Full gem catalog | `assets/gems/gem_01.png` through `gem_34.png`; 34 x 1254x1254 RGBA; 39,939,292 bytes | `assets/runtime/gems/gem_01.png` through `gem_34.png`; alpha-tight widths 255-256, heights 243-256; 3,081,575 bytes | Alpha >= 0.01 exact crop, aspect-preserving 256 px longest edge, low-alpha clear; presentation never defines collider size |
+
+The two Aug-24 intake files were preserved byte-for-byte under stable IDs: `10_21_05 PM (1)` -> `gem_33` and `10_21_09 PM (7)` -> `gem_34`. Their source alpha rectangles are `(100,94,1054,1042)` and `(146,141,962,954)`; their runtime sizes are `256x253` and `256x254`.
+
+`assets/runtime/art_refresh_manifest.json` records all 34 mappings/hashes/bounds. Current manifest SHA-256: `DA3EF0309B7850E9342184F7221621698BD99130859EA323D2512A480F7F68C7`.
+
 # Gem Registry and Runtime Expansion V1 - 2026-08-24
 
 | Purpose | Preserved originals | Active runtime derivatives | Processing / boundary |
