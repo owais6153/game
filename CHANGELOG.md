@@ -877,3 +877,8 @@
 - Debounced the two platform Back entry points for 350 ms so one physical press cannot execute two transitions.
 - Added source and export-contract coverage for Home dependency retention, hidden gameplay, and duplicate Back suppression.
 - Exported and audited `build/android/majestic-gems-last-aab-home-back-repair.apk`; the four required Home Tween Composer bytecode files, current project payload, both ARM ABIs, package/API metadata, and v2 signature pass inspection. No AAB or device test is claimed.
+# 2026-08-25 - Rail target blast release AAB v1.0.6 (versionCode 8)
+
+- Prepared and exported the signed Play-ready AAB for the already validated rail/target blast/gem-expansion milestone.
+- Advanced Android release identity from versionName `1.0.5` / versionCode `7` to `1.0.6` / `8` before export; verified the embedded AAB manifest with Bundletool.
+- Recorded dual-ARM native libraries, 34 runtime gems, packaging exclusions, focused regression result, and device status in the AAB delivery report and build manifest.

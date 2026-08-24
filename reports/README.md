@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Rail, Target Blast AAB v1.0.6](RAIL_TARGET_BLAST_AAB_V1.0.6_REPORT.md) - signed Play-ready versionCode-8 AAB delivery, Bundletool manifest/structure verification, regression evidence, and device-status limits.
+
 - [Rail, Target Blast, and Gem Expansion V1](RAIL_TARGET_BLAST_GEM_EXPANSION_V1_REPORT.md) - measured shared inner-rail recalibration, two alpha-tight supplied gems, larger target physics/art, five-ring waves, bounded target blast, music gain, tests, renders, and Android delivery evidence.
 
 - [Gem Categories, Pattern Blocks, and Target Feedback V1](GEM_PATTERN_FEEDBACK_V1_REPORT.md) - 32-gem audited registry, Common/Unique target safety, deterministic shape/color blocks, shared target cinematic, stronger waves, four-coin parity, rail verification, alpha-tight crops, HUD shadow removal, optimization, tests, renders, and Android delivery evidence.

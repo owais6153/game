@@ -1,5 +1,19 @@
 # Build Manifest
 
+## Rail, Target Blast, and Gem Expansion RELEASE AAB v1.0.6 (versionCode 8)
+
+- AAB: `build/android/majestic-gems-rail-target-blast-v1.0.6-vc8.aab`
+- Size: 70,147,820 bytes (66.90 MiB)
+- Export timestamp: 2026-08-25 01:07:59 +05:00 (Asia/Karachi)
+- SHA-256: `54D92F90D0D81A637E3DDDEF5B20AEA4EC5A5E7E65A369D85BD9412B1EA6390E`
+- Source commit/tag: `15071b8` / `rail-target-blast-v1.0.6-vc8-source`. Delivery tag: `rail-target-blast-v1.0.6-vc8-release` on the manifest/provenance follow-up commit.
+- Version selection: versionCode 8 is strictly greater than the latest recorded release code 7; versionName 1.0.6 is greater than the latest release name 1.0.5. Both values were committed in `export_presets.cfg` before export.
+- Export: Godot 4.6.3 `--export-release Android`, Gradle AAB, configured release/upload signing, and both `arm64-v8a` and `armeabi-v7a` architectures.
+- Validation: Bundletool 1.18.3 `validate` passed. Its embedded base manifest reports `com.owais.majestygems`, versionCode 8, versionName 1.0.6, min SDK 24, target/compile SDK 36. Archive audit found 1,004 entries, both ARM library sets, `gem_33` and `gem_34`, and zero root `tests/`, `reports/`, or `scripts/dev/` entries. `jarsigner -verify -certs` completed successfully; it emitted the existing JarInputStream signed-entry notices typical of this bundle format.
+- Tests: `RAIL_TARGET_BLAST_GEM_EXPANSION_V1_TESTS: PASS` before export. The prior milestone recorded all eleven repository suites passing against the unchanged gameplay source.
+- Device status: `adb devices -l` was not rerun for this export; the prior milestone found no connected device. AABs are not directly installable, and no Play upload, split delivery, or device launch is claimed.
+- Report: `reports/RAIL_TARGET_BLAST_AAB_V1.0.6_REPORT.md`.
+
 ## Rail, Target Blast, and Gem Expansion V1 TEST APK (versionCode 7, unreleased)
 
 - APK: `build/android/majestic-gems-rail-target-blast-gem-expansion-v1.apk`

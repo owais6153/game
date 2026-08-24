@@ -1,3 +1,7 @@
+# Current State Addendum - Rail, Target Blast, and Gem Expansion Release v1.0.6
+
+The signed Android App Bundle `build/android/majestic-gems-rail-target-blast-v1.0.6-vc8.aab` is ready for Play upload. It is versionCode 8 / versionName 1.0.6, which advances the prior released versionCode 7 / versionName 1.0.5. Bundletool confirms package `com.owais.majestygems`, min SDK 24, target/compile SDK 36, dual `arm64-v8a` and `armeabi-v7a` native libraries, all 34 runtime gem assets including `gem_33` and `gem_34`, and no packaged tests, reports, or development scripts. Focused rail/target/gem regression passed before export; no Android device was connected.
+
 # Current State Addendum - Rail, Target Blast, and Gem Expansion V1
 
 The active catalog contains 34 supplied gems. The two Aug-24 additions are preserved byte-for-byte as stable `gem_33` and `gem_34` sources and classified from visual inspection as pink gradient Unique artwork (circle and rounded square). Runtime derivatives are exactly alpha-tight at `256x253` and `256x254`; the catalog remains name-free and now totals 22 Common / 12 Unique.
