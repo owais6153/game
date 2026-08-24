@@ -8,6 +8,7 @@
 - Final visible coin count is four. Earlier/final groups retain 1.20/1.00 s table holds and light 0.24 contact shadows. Keep table idle movement planar; do not restore vertical floating.
 - All HUD box shadows are intentionally disabled centrally. Preserve amethyst fill/rim/highlight and all layout metrics.
 - Current table constants passed all ten normalized-art samples plus in-game rail-edge proofs. Do not retune rails without new measured evidence.
+- Keep `scripts/dev/*` in the Android exclusion filter. Asset preparation is repository tooling, never a runtime dependency.
 
 # Knowledge Base Addendum - Supplied Art, Purple UI, and Cleanup V1
 

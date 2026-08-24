@@ -8,6 +8,10 @@ All three target completions now share one reward sequence: enhanced three-layer
 
 The ten tables were re-audited through their normalized derivatives, the shared `GameConfig` transform, all-table pixel bounds, and fresh in-game rail-contact captures. Existing board/rail constants already align with the visible opening, so no speculative physics retune was made. Strict contact-only merge, movement, launcher, danger, scoring, reward authority, ads, persistence, and local-tier radii are unchanged.
 
+Android export now explicitly excludes `scripts/dev/*` in addition to tests, reports, build output, and source art. This was verified after the first artifact audit exposed the preparation script as packaged development code.
+
+All ten suites print PASS and nine GL Compatibility/ANGLE production frames were reviewed. Source is `8f93d1c` / `gem-pattern-feedback-v1-source`; intake is `64cc6df` / `gem-pattern-feedback-2026-08-24-intake`. Final standalone APK `build/android/majestic-gems-gem-pattern-feedback-v1.apk` is 82,140,536 bytes with SHA-256 `D86997A3C132F2A99C663C44D863A487D0517EAB60758210D1C45A924B3E26CB`; AAPT/version, v2 signature, dual-ARM, 32-gem, compiled-script, and exclusion audits pass. ADB found no connected device.
+
 # Current State Addendum - Supplied Art, Purple UI, and Codebase Cleanup V1
 
 The active art set is now the newly supplied 10 backgrounds, 10 portrait tables, and 20 gems. Originals use stable names in `assets/backgrounds`, `assets/tables`, and `assets/gems`; `scripts/dev/prepare_supplied_art_refresh.gd` generates the only active mobile derivatives under `assets/runtime` and records hashes/bounds in `assets/runtime/art_refresh_manifest.json`. Every runtime gem is alpha-tight and no larger than 256 pixels on its longest edge.

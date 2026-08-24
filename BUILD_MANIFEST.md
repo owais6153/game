@@ -1,5 +1,18 @@
 # Build Manifest
 
+## Gem Categories, Pattern Blocks, and Target Feedback V1 TEST APK (versionCode 7, unreleased)
+
+- APK: `build/android/majestic-gems-gem-pattern-feedback-v1.apk`
+- Size: 82,140,536 bytes (78.34 MiB)
+- Export timestamp: 2026-08-24 23:23:22 +05:00 (Asia/Karachi)
+- SHA-256: `D86997A3C132F2A99C663C44D863A487D0517EAB60758210D1C45A924B3E26CB`
+- Source commit/tag: `8f93d1c` / `gem-pattern-feedback-v1-source`. Intake: `64cc6df` / `gem-pattern-feedback-2026-08-24-intake`. Delivery tag: `gem-pattern-feedback-v1` on the manifest/provenance follow-up commit.
+- Version/export: Godot 4.6.3 debug APK using the committed versionCode 7 / versionName 1.0.5 and Godot debug signing. The AAB preset format was switched only for APK export and restored immediately; no AAB was generated and no release version changed. The persistent packaging change adds `scripts/dev/*` to the exclusion filter.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 7, versionName 1.0.5, min SDK 24, target/compile SDK 36. APK Signature Scheme v2 PASS with one Godot RSA-2048 signer. ZIP audit: 989 entries, both `arm64-v8a` and `armeabi-v7a`, compiled registry/generator scripts, and all 32 runtime gem identities including `gem_32`. Zero source-art, tests, reports, build output, or development-script entries are packaged.
+- Tests: all ten repository suites printed PASS: gem-pattern-feedback v1, reward-feedback v3, reference-game-feel v2, animation/audio/back/privacy, UI scale/layout, game-flow/reward/splash, sound/privacy, branding/push-line, scene-variety/assets, and AdMob integration. `SUPPLIED_ART_REFRESH_PREPARATION: PASS` and `GEM_PATTERN_FEEDBACK_V1_CAPTURE: PASS`; nine 720x1280 GL Compatibility/ANGLE frames were reviewed.
+- Device status: `adb devices -l` started the daemon and found no connected device. Installation, touch/rail feel, physical listening, and on-device performance are not claimed.
+- Report: `reports/GEM_PATTERN_FEEDBACK_V1_REPORT.md`.
+
 ## Supplied Art, Purple UI, and Codebase Cleanup V1 TEST APK (versionCode 7, unreleased)
 
 - APK: `build/android/majestic-gems-supplied-art-purple-ui-cleanup-v1.apk`

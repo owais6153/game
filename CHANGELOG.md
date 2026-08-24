@@ -8,6 +8,7 @@
 - Disabled box shadows on all centralized HUD/UI StyleBoxFancy and StyleBoxFlat surfaces while preserving dimensions, positions, fills, rims, highlights, and theme colors.
 - Re-audited every table against the centralized trapezoid and captured rail-contact proofs; the current normalized shared geometry required no retune.
 - Added focused 32-gem/pattern/target/coin/HUD regressions and nine reviewed GL Compatibility/ANGLE captures under `reports/gem-pattern-feedback-v1/`.
+- Excluded `scripts/dev/*` from Android after the first APK audit caught the asset-preparation script in the package; production APKs now contain only runtime code/resources.
 
 # 2026-08-24 - Supplied Art, Purple UI, and Codebase Cleanup V1
 

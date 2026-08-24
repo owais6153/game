@@ -138,12 +138,13 @@ This intentionally affects shared HUD/Home/modal/result style factories, prevent
 - Merge rings remain capped draw records; coin records are freed at arrival and reset/failure paths clear all channels.
 - The level-reward sound wave plan is computed once per final reward and retained.
 - No shaders, GPUParticles, physics objects, or per-frame resource loads were added.
+- The first APK audit found the preparation script still packaged under `assets/scripts/dev`. `export_presets.cfg` now explicitly excludes `scripts/dev/*`; the replacement artifact must report zero source/test/report/dev entries.
 
 ## Validation
 
 Focused suite `GEM_PATTERN_FEEDBACK_V1_TESTS`: PASS across 80 levels. It covers 32 metadata records/textures, exact alpha-tight bounds, 22/10 pool split, both shape dominants, cool/warm color blocks, 3-4-level history, deterministic retries, three valid Unique targets, contrast rules, L6-L8 reachability, 1.12 scale, wave hierarchy, 120 ms hold, coin parity/holds/shadows, and zero HUD StyleBox shadows.
 
-Existing focused regressions currently pass: scene variety/assets, reward feedback v3 (updated only where this explicit milestone supersedes its compact/non-final and 16-coin expectations), sound/privacy routing, UI/table scale, and reference strict-contact game feel. Complete suite results and Android artifact evidence are recorded at delivery.
+All ten repository suites print PASS: gem-pattern-feedback v1, reward-feedback v3 (updated only where this explicit milestone supersedes its compact/non-final and 16-coin expectations), reference game-feel v2, animation/audio/back/privacy, UI scale/layout, game-flow/reward/splash, sound/privacy, branding/push-line, scene-variety/assets, and AdMob integration.
 
 `tests/capture_gem_pattern_feedback_v1.gd` ran the production scene through GL Compatibility/ANGLE and produced nine reviewed 720x1280 PNGs plus contact sheets under `reports/gem-pattern-feedback-v1/`. Evidence includes circle dominant, rounded-square dominant, cool color, warm color, computed rail contacts, three-ring target wave, settled origin hold, center travel/hold, and exactly four final coins resting on the table.
 
@@ -151,4 +152,10 @@ No Android device was connected at the time of source validation; on-device touc
 
 ## Delivery
 
-Source commit/tag, APK filename/hash/audit, complete suite results, and connected-device status are appended in the delivery commit after validation.
+- Intake: `64cc6df` / `gem-pattern-feedback-2026-08-24-intake`.
+- Source: `8f93d1c` / `gem-pattern-feedback-v1-source`.
+- APK: `build/android/majestic-gems-gem-pattern-feedback-v1.apk`; 82,140,536 bytes; SHA-256 `D86997A3C132F2A99C663C44D863A487D0517EAB60758210D1C45A924B3E26CB`.
+- Android identity: package `com.owais.majestygems`, debug versionCode 7 / versionName 1.0.5, min SDK 24, target/compile SDK 36. No AAB was generated.
+- APK audit: v2 signature PASS, one RSA-2048 Godot debug signer, both ARM ABIs, 989 ZIP entries, all 32 runtime identities, compiled registry/generator scripts, and zero source/test/report/dev entries.
+- Delivery tag: `gem-pattern-feedback-v1` on the manifest/provenance commit.
+- Device: ADB found no connected device. Installation, touch feel, rail feel, physical listening, and on-device performance are not claimed.
