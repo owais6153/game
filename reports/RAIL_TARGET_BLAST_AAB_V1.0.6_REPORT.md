@@ -15,4 +15,4 @@ Godot 4.6.3 exported the configured signed release AAB. Bundletool 1.18.3 valida
 
 ## Device status
 
-No device validation is claimed. An AAB is intended for Play split delivery and is not directly installable; this delivery was not uploaded to Play in this task.
+The matching prior milestone APK exists at `build/android/majestic-gems-rail-target-blast-gem-expansion-v1.apk` (82,310,470 bytes); no new APK was requested or exported. `adb devices -l` found no connected devices. An AAB is intended for Play split delivery and is not directly installable; this delivery was not uploaded to Play in this task.
