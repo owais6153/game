@@ -1,3 +1,7 @@
+# Current State Addendum - Complete Majestic Logo Refresh v1.0.8
+
+All active Home, fallback boot, launcher, adaptive-icon, and Android system-splash paths now use derivatives of `assets/logo/majestic_gems_logo_source_v2.png`. The obsolete v1 Majestic source/logo/launcher/adaptive assets and old system-splash derivative were removed. Signed AAB `build/android/majestic-gems-logo-refresh-v1.0.8-vc10.aab` is versionCode 10 / versionName 1.0.8; Bundletool confirms the v3 splash asset is packaged and no old Majestic v1 or splash-v2 asset is present. Branding and splash-flow tests pass; no device was connected.
+
 # Current State Addendum - Android Targeting and Launcher Branding v1.0.7
 
 The signed Android App Bundle `build/android/majestic-gems-android-targeting-icons-v1.0.7-vc9.aab` is ready for Play upload as versionCode 9 / versionName 1.0.7. The persistent Gradle-template manifest now requires `android.hardware.touchscreen`; the final merged AAB manifest confirms that requirement alongside unchanged package `com.owais.majestygems`, min SDK 24, target/compile SDK 36, portrait orientation, tablet support, and game category. It contains no Leanback, Automotive, Wear, or XR declarations.

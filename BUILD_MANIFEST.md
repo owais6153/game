@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Complete Majestic Logo Refresh RELEASE AAB v1.0.8 (versionCode 10)
+
+- AAB: `build/android/majestic-gems-logo-refresh-v1.0.8-vc10.aab`
+- Size: 68,429,441 bytes (65.26 MiB)
+- SHA-256: `F02AD034D03C37657CBB1CEEDF47C5612D6C7C493A8E02182F565A2C6B6EB4F4`
+- Source commit/tag: `7e8dc77` / `majestic-logo-refresh-v1.0.8-vc10-source`. Delivery tag: `majestic-logo-refresh-v1.0.8-vc10-release`.
+- Validation: Godot 4.6.3 release AAB export and Bundletool validation passed. Embedded manifest is versionCode 10 / versionName 1.0.8 with the required touchscreen and portrait activity. Archive audit found `system_splash_1152_v3` entries, zero old Majestic v1 or splash-v2 entries, and zero tests/reports/dev scripts.
+- Tests: `BRANDING_PUSH_LINE_TESTS: PASS`; `GAME_FLOW_REWARD_SPLASH_TESTS: PASS`.
+- Device status: no Android device was connected; install and physical splash appearance are not claimed.
+- Report: `reports/MAJESTIC_LOGO_REFRESH_V1.0.8_REPORT.md`.
+
 ## Android Targeting and Launcher Branding RELEASE AAB v1.0.7 (versionCode 9)
 
 - AAB: `build/android/majestic-gems-android-targeting-icons-v1.0.7-vc9.aab`

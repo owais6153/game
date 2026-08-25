@@ -887,3 +887,8 @@
 - Added the required touchscreen feature to the persistent Godot Gradle-template manifest; phone and tablet support, portrait orientation, package/signing, game category, and AdMob settings remain unchanged.
 - Replaced launcher branding inputs with non-destructive v2 derivatives from the supplied transparent Majestic Gems logo: 192px legacy icon plus 432px adaptive foreground/background with conservative mask-safe padding.
 - Verified the final AAB merged manifest with Bundletool: touchscreen required, portrait activity, game category, no Leanback/Automotive/Wear/XR declarations, dual ARM ABIs, package/version invariants, and development-file exclusions.
+# 2026-08-25 - Complete Majestic logo refresh v1.0.8 (versionCode 10)
+
+- Replaced the remaining old Home/fallback and Android system-splash logo paths with derivatives of the supplied v2 transparent logo.
+- Removed obsolete Majestic v1 source, Home, legacy launcher, adaptive-icon, and old system-splash assets.
+- Bundletool verified versionCode 10 / versionName 1.0.8, new v3 splash packaging, and zero packaged legacy Majestic logo assets.

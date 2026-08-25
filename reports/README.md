@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Complete Majestic Logo Refresh v1.0.8](MAJESTIC_LOGO_REFRESH_V1.0.8_REPORT.md) - replacement of every active old logo path, system-splash correction, legacy asset removal, tests, and versionCode-10 AAB evidence.
+
 - [Android Targeting and Launcher Branding v1.0.7](ANDROID_TARGETING_LAUNCHER_V1.0.7_REPORT.md) - persistent touchscreen requirement, form-factor audit, supplied-logo launcher derivatives, merged-manifest verification, responsive-layout checks, and versionCode-9 AAB delivery.
 
 - [Rail, Target Blast AAB v1.0.6](RAIL_TARGET_BLAST_AAB_V1.0.6_REPORT.md) - signed Play-ready versionCode-8 AAB delivery, Bundletool manifest/structure verification, regression evidence, and device-status limits.
