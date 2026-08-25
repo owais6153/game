@@ -222,9 +222,9 @@ The gameplay scene has no `Camera2D`. The COMBO 3+ camera impulse in the reward 
 
 # 2026-08-11 — Majestic Gems branding and push-line guardrails
 
-- Supplied originals: `assets/logo/majestic_gems_logo_source_v1.png` and `assets/logo/majestic_gems_icon_source_v1.jpeg`. Do not overwrite them.
-- Active logo: `assets/runtime/ui/majestic_gems_logo_v1.png`. Keep `TextureRect.STRETCH_KEEP_ASPECT_CENTERED`; do not crop it for Home.
-- Android icons: `majestic_gems_app_icon_192_v1.png`, `majestic_gems_adaptive_foreground_v1.png`, and `majestic_gems_adaptive_background_v1.png`. The foreground's occupied square is intentionally 68% of 432 px so common launcher masks retain the entire supplied icon.
+- Supplied original: `assets/logo/majestic_gems_logo_source_v2.png`. Do not overwrite or crop it.
+- Active Home/fallback logo: `assets/runtime/ui/majestic_gems_logo_v2.png`. Keep `TextureRect.STRETCH_KEEP_ASPECT_CENTERED`.
+- Android icons: `majestic_gems_app_icon_192_v2.png`, `majestic_gems_adaptive_foreground_v2.png`, `majestic_gems_adaptive_background_v2.png`, and system splash `majestic_gems_system_splash_1152_v3.png`. The adaptive foreground's occupied square is intentionally at most 288 px inside its 432 px canvas.
 - Push-line touches are legal only while the same active gem is `READY_TO_AIM` and settled. Never create a second input handler, a trajectory predictor, or a physics line body.
 - Both gem and guide dragging must continue through `GameConfig.launcher_drag_x()`. Releasing either must continue through `launch_active_piece()` exactly once.
 - Keep obsolete/reference resources out of Android through the export filter. If reactivating one, remove its exclusion and add an explicit production reference in the same change.

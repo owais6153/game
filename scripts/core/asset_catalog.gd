@@ -33,7 +33,7 @@ const GEM_SOFT_SHADOW: Texture2D = preload("res://assets/runtime/effects/gem_sof
 ## Cropped mobile derivative of the supplied glossy coin artwork. The original
 ## remains untouched under assets/buttons and this texture is presentation-only.
 const COIN_REWARD: Texture2D = preload("res://assets/runtime/effects/coin_reward_reference_v2.png")
-const BRAND_LOGO: Texture2D = preload("res://assets/runtime/ui/majestic_gems_logo_v1.png")
+const BRAND_LOGO: Texture2D = preload("res://assets/runtime/ui/majestic_gems_logo_v2.png")
 const HUD_SCORE_PANEL_REGION := Rect2(632.0, 358.0, 360.0, 232.0)
 const HUD_NEXT_PANEL_REGION := Rect2(632.0, 610.0, 360.0, 400.0)
 const HUD_WHITE_PANEL_REGION := Rect2(38.0, 620.0, 550.0, 190.0)

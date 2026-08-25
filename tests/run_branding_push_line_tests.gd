@@ -18,11 +18,11 @@ func _run() -> void:
 	quit(1)
 
 func _test_brand_assets() -> void:
-	var logo := (load("res://assets/runtime/ui/majestic_gems_logo_v1.png") as Texture2D).get_image()
+	var logo := (load("res://assets/runtime/ui/majestic_gems_logo_v2.png") as Texture2D).get_image()
 	var legacy_icon := (load("res://assets/runtime/ui/majestic_gems_app_icon_192_v2.png") as Texture2D).get_image()
 	var adaptive_foreground := (load("res://assets/runtime/ui/majestic_gems_adaptive_foreground_v2.png") as Texture2D).get_image()
 	var adaptive_background := (load("res://assets/runtime/ui/majestic_gems_adaptive_background_v2.png") as Texture2D).get_image()
-	_assert(logo.get_size() == Vector2i(1536, 1024), "Home logo must retain the complete supplied 1536x1024 canvas")
+	_assert(logo.get_size() == Vector2i(1254, 1254), "Home logo must retain the complete supplied v2 canvas")
 	_assert(legacy_icon.get_size() == Vector2i(192, 192), "Legacy launcher icon must be 192x192")
 	_assert(adaptive_foreground.get_size() == Vector2i(432, 432), "Adaptive foreground must be 432x432")
 	_assert(adaptive_background.get_size() == Vector2i(432, 432), "Adaptive background must be 432x432")

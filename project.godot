@@ -19,7 +19,7 @@ run/main_scene="res://scenes/Game.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.188235, 0.611765, 0.847059, 1)
-boot_splash/image="res://assets/runtime/ui/majestic_gems_logo_v1.png"
+boot_splash/image="res://assets/runtime/ui/majestic_gems_logo_v2.png"
 config/icon="res://assets/runtime/ui/majestic_gems_app_icon_192_v2.png"
 
 [autoload]

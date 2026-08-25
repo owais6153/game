@@ -1,13 +1,17 @@
 extends SceneTree
 
 const SOURCE_PATH := "res://assets/logo/majestic_gems_logo_source_v2.png"
+const RUNTIME_LOGO_PATH := "res://assets/runtime/ui/majestic_gems_logo_v2.png"
 const LEGACY_PATH := "res://assets/runtime/ui/majestic_gems_app_icon_192_v2.png"
 const FOREGROUND_PATH := "res://assets/runtime/ui/majestic_gems_adaptive_foreground_v2.png"
 const BACKGROUND_PATH := "res://assets/runtime/ui/majestic_gems_adaptive_background_v2.png"
+const SYSTEM_SPLASH_PATH := "res://assets/runtime/ui/majestic_gems_system_splash_1152_v3.png"
 const LEGACY_SIZE := 192
 const ADAPTIVE_SIZE := 432
 const LEGACY_ART_EDGE := 134
 const ADAPTIVE_ART_EDGE := 288
+const SYSTEM_SPLASH_SIZE := 1152
+const SYSTEM_SPLASH_ART_EDGE := 784
 const BRAND_BACKGROUND := Color("1d0734")
 
 
@@ -23,10 +27,17 @@ func _init() -> void:
 		quit(1)
 		return
 	var logo := source.get_region(used)
+	if source.save_png(RUNTIME_LOGO_PATH) != OK:
+		push_error("Unable to save runtime logo")
+		quit(1)
+		return
 	if not _save_padded_logo(logo, LEGACY_SIZE, LEGACY_ART_EDGE, LEGACY_PATH):
 		quit(1)
 		return
 	if not _save_padded_logo(logo, ADAPTIVE_SIZE, ADAPTIVE_ART_EDGE, FOREGROUND_PATH):
+		quit(1)
+		return
+	if not _save_padded_logo(logo, SYSTEM_SPLASH_SIZE, SYSTEM_SPLASH_ART_EDGE, SYSTEM_SPLASH_PATH):
 		quit(1)
 		return
 	var background := Image.create(ADAPTIVE_SIZE, ADAPTIVE_SIZE, false, Image.FORMAT_RGBA8)

@@ -224,7 +224,7 @@ Every entry is an immediate-mode drawn record: no nodes are allocated, nothing e
 
 # Majestic Gems branding + push-line input boundary — 2026-08-11
 
-- `AssetCatalog.BRAND_LOGO` owns the active Home logo mapping at `assets/runtime/ui/majestic_gems_logo_v1.png`; `project.godot` reuses it for the fallback boot splash.
+- `AssetCatalog.BRAND_LOGO` owns the active Home logo mapping at `assets/runtime/ui/majestic_gems_logo_v2.png`; `project.godot` reuses it for the fallback boot splash.
 - Android icon composition is export-only: legacy 192 px plus adaptive 432 px foreground/background derivatives. These images never enter gameplay state or layout authority.
 - `GameConfig.aim_guide_contains()` owns the presentation/input hit geometry for the ready push line. `GameConfig.launcher_drag_x()` owns the shared rail clamp for both direct-gem and push-line dragging.
 - `GameController._handle_pointer()` is still the sole board pointer authority. Both touch origins set the same `dragging` flag, call `move_active_to()`, and release through `launch_active_piece()`.
