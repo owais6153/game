@@ -102,9 +102,9 @@ Dependency review removed 66 unused files totaling 27.83 MiB: five retired level
 
 | Purpose | Preserved supplied source | Active runtime derivative | Audit |
 | --- | --- | --- | --- |
-| Home and fallback boot logo | `assets/logo/majestic_gems_logo_source_v2.png` | `assets/runtime/ui/majestic_gems_logo_v2.png` | Exact transparent 1254×1254 supplied logo; aspect-centered at runtime. |
-| Legacy launcher/project icon | same supplied logo source | `assets/runtime/ui/majestic_gems_app_icon_192_v2.png` | 192×192 PNG with the complete logo centered inside safe padding. |
-| Adaptive launcher/system-splash icon | same supplied logo source | `majestic_gems_adaptive_foreground_v2.png` + `majestic_gems_adaptive_background_v2.png` + `majestic_gems_system_splash_1152_v3.png` | 432×432 transparent foreground limited to a 288 px safe edge, dark-amethyst adaptive background, and an 1152×1152 high-resolution transparent system-splash derivative. |
+| Home and fallback boot logo | `assets/logo/majestic_gems_logo_source_v3.png` | `assets/runtime/ui/majestic_gems_logo_v3.png` | Supplied 1448×1086 logo; its fully black studio backdrop is removed only in the transparent runtime derivative, which remains aspect-centered. |
+| Legacy launcher/project icon | same supplied logo source | `assets/runtime/ui/majestic_gems_app_icon_192_v3.png` | 192×192 PNG with the complete logo centered inside safe padding. |
+| Adaptive launcher/system-splash icon | same supplied logo source | `majestic_gems_adaptive_foreground_v3.png` + `majestic_gems_adaptive_background_v3.png` + `majestic_gems_system_splash_1152_v4.png` | 432×432 transparent foreground limited to a 288 px safe edge, dark-amethyst adaptive background, and an 1152×1152 high-resolution transparent system-splash derivative. |
 
 Historical Crystal Magic/Gem Aim branding, retired five-gem fallback textures, inactive reference audio, old reward art, and retired HUD atlases remain preserved in the repository but are explicitly excluded from Android export. The enumerated obsolete runtime set accounts for 6,593,409 source bytes before Godot import/compression. The final APK is 42,831,666 bytes, 17,685,982 bytes (29.22%) smaller than the prior `gem-aim0.2.apk`; its 260-entry audit contains zero forbidden retired/source/report/test/tool paths.
 
@@ -337,7 +337,7 @@ All eight user-provided originals and byte-identical runtime copies remain prese
 
 | Purpose | Preserved source | Runtime derivative | Processing / verification |
 | --- | --- | --- | --- |
-| Android native system splash logo | `assets/logo/majestic_gems_logo_source_v2.png` (1254x1254 supplied source) | `assets/runtime/ui/majestic_gems_system_splash_1152_v3.png` | Complete supplied logo is Lanczos-scaled to a 784px longest edge and centered on a transparent 1152×1152 canvas. The platform splash background is unchanged. |
+| Android native system splash logo | `assets/logo/majestic_gems_logo_source_v3.png` (1448×1086 supplied source) | `assets/runtime/ui/majestic_gems_system_splash_1152_v4.png` | Complete logo is Lanczos-scaled to a 784px longest edge and centered on a transparent 1152×1152 canvas. The platform splash background is unchanged. |
 
 # Soft contact and target-completion derivatives v1 - 2026-08-18
 

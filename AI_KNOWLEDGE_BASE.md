@@ -240,9 +240,9 @@ The gameplay scene has no `Camera2D`. The COMBO 3+ camera impulse in the reward 
 
 # 2026-08-11 — Majestic Gems branding and push-line guardrails
 
-- Supplied original: `assets/logo/majestic_gems_logo_source_v2.png`. Do not overwrite or crop it.
-- Active Home/fallback logo: `assets/runtime/ui/majestic_gems_logo_v2.png`. Keep `TextureRect.STRETCH_KEEP_ASPECT_CENTERED`.
-- Android icons: `majestic_gems_app_icon_192_v2.png`, `majestic_gems_adaptive_foreground_v2.png`, `majestic_gems_adaptive_background_v2.png`, and system splash `majestic_gems_system_splash_1152_v3.png`. The adaptive foreground's occupied square is intentionally at most 288 px inside its 432 px canvas.
+- Supplied original: `assets/logo/majestic_gems_logo_source_v3.png`. Do not overwrite or crop it.
+- Active Home/fallback logo: `assets/runtime/ui/majestic_gems_logo_v3.png`. Keep `TextureRect.STRETCH_KEEP_ASPECT_CENTERED`.
+- Android icons: `majestic_gems_app_icon_192_v3.png`, `majestic_gems_adaptive_foreground_v3.png`, `majestic_gems_adaptive_background_v3.png`, and system splash `majestic_gems_system_splash_1152_v4.png`. The adaptive foreground's occupied square is intentionally at most 288 px inside its 432 px canvas.
 - Push-line touches are legal only while the same active gem is `READY_TO_AIM` and settled. Never create a second input handler, a trajectory predictor, or a physics line body.
 - Both gem and guide dragging must continue through `GameConfig.launcher_drag_x()`. Releasing either must continue through `launch_active_piece()` exactly once.
 - Keep obsolete/reference resources out of Android through the export filter. If reactivating one, remove its exclusion and add an explicit production reference in the same change.
@@ -973,7 +973,7 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Treat `android/build/src/main/AndroidManifest.xml` as the persistent custom Gradle-template manifest. Do not edit `android/build/build/intermediates/*` or any other merged/generated Android output.
 - Majestic Gems requires `android.hardware.touchscreen` with `android:required="true"`. Do not add a false touchscreen declaration, Leanback launcher/category, Automotive, Wear, or XR features.
 - Keep phone/tablet support and portrait behavior controlled by Godot's `project.godot` display settings and `export_presets.cfg`; do not add screen-size exclusions or change game coordinates to address large-screen recommendations.
-- Launcher assets are `assets/runtime/ui/majestic_gems_app_icon_192_v2.png`, `majestic_gems_adaptive_foreground_v2.png`, and `majestic_gems_adaptive_background_v2.png`, configured exclusively through `export_presets.cfg`. Preserve the supplied transparent source `assets/logo/majestic_gems_logo_source_v2.png`; the foreground art must remain inside the 288px safe area of its 432px canvas.
+- Launcher assets are `assets/runtime/ui/majestic_gems_app_icon_192_v3.png`, `majestic_gems_adaptive_foreground_v3.png`, and `majestic_gems_adaptive_background_v3.png`, configured exclusively through `export_presets.cfg`. Preserve the supplied v3 source `assets/logo/majestic_gems_logo_source_v3.png`; the foreground art must remain inside the 288px safe area of its 432px canvas.
 # Knowledge Base Addendum - Firebase Analytics
 
 - Keep Firebase Gradle/plugin configuration in tracked `android/build` custom-template inputs, never under `android/build/build/` or other Gradle output.

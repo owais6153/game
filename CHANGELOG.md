@@ -1,5 +1,11 @@
 # 2026-08-25 - HUD panel flattening v1
 
+# 2026-08-26 - Majestic branding refresh v1.0.7
+
+- Replaced every active Home, fallback-splash, launcher, adaptive-icon, and Android system-splash branding path with derivatives of the supplied v3 logo, preserving the new root originals under `assets/logo/`.
+- Removed superseded active v2 branding assets and changed the Home tagline to `A Majestic World of Gems`.
+- Retained package name, production signing, AdMob identifiers, gameplay, and Android version `9 (1.0.7)` as requested.
+
 - Removed the nested Next heading badge, framed settings rows in Home/Pause, and nested Result reward card/margin wrapper.
 - Preserved each control and data group with direct layout containers only; responsive HUD, game-flow, and privacy regressions pass.
 

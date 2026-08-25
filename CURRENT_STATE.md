@@ -1,5 +1,9 @@
 # Current State Addendum - HUD Panel Flattening V1
 
+# Current State Addendum - Majestic Branding Refresh v1.0.7
+
+The active Home/fallback logo, legacy launcher icon, adaptive icon pair, and Android system-splash icon now derive from the two supplied v3 root branding images, preserved under `assets/logo/`. The old active v2 logo/icon derivatives are removed. Home now displays the exact tagline `A Majestic World of Gems`. Package `com.owais.majestygems`, signing, AdMob identifiers, version `9 (1.0.7)`, and gameplay remain unchanged.
+
 Next now uses a direct label inside its one outer card; Home/Pause settings rows no longer each create a glass panel; and Result reward data is grouped directly in the modal instead of inside another card. All remaining panel surfaces are intentional top-level cards, modals, or distinct status elements. Responsive HUD, game-flow, and privacy tests pass. See `reports/HUD_PANEL_FLATTENING_V1_REPORT.md`.
 
 # Current State Addendum - HUD and Popup Simplification V1

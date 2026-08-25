@@ -219,7 +219,7 @@ func _build() -> void:
 	hero.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(hero)
 	logo_rect = TextureRect.new()
-	logo_rect.name = "GemAimLogo"
+	logo_rect.name = "MajesticGemsLogo"
 	logo_rect.texture = AssetCatalogType.BRAND_LOGO
 	logo_rect.custom_minimum_size = Vector2(540.0, 470.0)
 	logo_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -228,7 +228,7 @@ func _build() -> void:
 	hero.add_child(logo_rect)
 	_logo_motion_composer = _attach_scale_loop(logo_rect, "HomeLogoBreath", 1.018, 2.10)
 
-	tagline_label = _label("A TROPICAL GEM ADVENTURE", 23, Color.WHITE)
+	tagline_label = _label("A Majestic World of Gems", 23, Color.WHITE)
 	tagline_label.custom_minimum_size = Vector2(0.0, 44.0)
 	tagline_label.add_theme_constant_override("outline_size", 6)
 	tagline_label.add_theme_color_override("font_outline_color", Color(0.02, 0.30, 0.34, 0.85))
