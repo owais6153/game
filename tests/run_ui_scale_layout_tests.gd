@@ -195,8 +195,10 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	_assert(target_progress != null and target_progress.get_theme_constant("outline_size") >= 3, "%s target text must retain the stronger contrast outline" % viewport_size)
 	_assert(hud.progression_icons.size() == 8, "%s complete eight-gem path must remain present" % viewport_size)
 	_assert(UiDesignSystemType.PROGRESSION_ICON_SIZE == 56.0, "%s progression gems must retain the less-congested 56 px presentation size" % viewport_size)
-	var settings_button := hud.root_control.find_child("SettingsButton", true, false) as TextureButton
+	var settings_button := hud.root_control.find_child("SettingsButton", true, false) as Button
 	_assert(settings_button != null and settings_button.custom_minimum_size == Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE, "%s settings cog must fit its utility frame" % viewport_size)
+	_assert(hud.root_control.find_child("TargetProgressBar", true, false) == null, "%s Target must use compact numeric progress without a progress bar" % viewport_size)
+	_assert(hud.root_control.find_child("CoinsHeading", true, false) == null, "%s Coins HUD must not repeat a redundant label" % viewport_size)
 	viewport.queue_free()
 	await process_frame
 

@@ -1,5 +1,7 @@
 # Reports Index
 
+- [HUD and Popup Simplification V1](HUD_UI_SIMPLIFICATION_V1_REPORT.md) - single-surface dark-amethyst UI cleanup, compact Target, direct settings cogs, popup decluttering, and regression evidence.
+
 - [HUD Density and Collision Stability V1](HUD_DENSITY_COLLISION_STABILITY_V1_REPORT.md) - progression-strip cleanup, in-game settings-cog fit, bounded dense-pile separation, and focused regression evidence.
 
 - [Complete Majestic Logo Refresh v1.0.8](MAJESTIC_LOGO_REFRESH_V1.0.8_REPORT.md) - replacement of every active old logo path, system-splash correction, legacy asset removal, tests, and versionCode-10 AAB evidence.

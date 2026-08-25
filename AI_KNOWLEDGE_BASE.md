@@ -1,3 +1,10 @@
+# Knowledge Base Addendum - HUD and Popup Simplification V1
+
+- Use one dark-amethyst surface per card/popup. Do not restore white gloss/highlight borders, nested Target badges/surfaces, or decorative settings frames.
+- Gameplay Target is fixed at 340x84 and shows only target artwork, `TARGET n/n`, and numeric quantity. Never reintroduce `TargetProgressBar`.
+- Currency UI uses coin artwork plus the numeric amount; do not reintroduce redundant `COINS` captions in Home or gameplay HUD.
+- Preserve Home/Gameplay settings actions, safe-area behavior, button order, and modal input blocking while keeping their cog controls direct and compact.
+
 # Knowledge Base Addendum - HUD Density and Collision Stability V1
 
 - Keep the gameplay HUD geometry fixed. The eight-icon progression strip uses a 56 px artwork scale inside the existing 620x88 panel to preserve readable gaps.

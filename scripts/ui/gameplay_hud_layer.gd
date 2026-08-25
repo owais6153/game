@@ -40,12 +40,11 @@ var target_panel: Control
 var target_header_label: Label
 var target_icon: TextureRect
 var target_status_label: Label
-var target_progress_bar: ProgressBar
 var reward_foreground_host: Node2D
 var target_swap_outgoing: Sprite2D
 var target_swap_incoming: Sprite2D
 var target_reward_overlay: Control
-var settings_button: TextureButton
+var settings_button: Button
 var pause_blocker: Control
 var pause_dimmer: ColorRect
 var pause_safe_margin: MarginContainer
@@ -597,19 +596,9 @@ func _build_hud() -> void:
 	settings_row.alignment = BoxContainer.ALIGNMENT_END
 	settings_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	right_slot.add_child(settings_row)
-	var settings_frame := PanelContainer.new()
-	settings_frame.name = "SettingsFrame"
-	settings_frame.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE
-	settings_frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	settings_frame.add_theme_stylebox_override("panel", UiDesignSystemType.utility_frame_style())
-	settings_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	settings_row.add_child(settings_frame)
-	var settings_center := CenterContainer.new()
-	settings_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	settings_frame.add_child(settings_center)
 	settings_button = _build_settings_button()
 	settings_button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE
-	settings_center.add_child(settings_button)
+	settings_row.add_child(settings_button)
 
 	# Target -> complete merge path -> table matches the supplied reference's
 	# attention flow and keeps progression inside the active gameplay sightline.
@@ -649,17 +638,9 @@ func _build_score_panel() -> Control:
 	panel.custom_minimum_size = UiDesignSystemType.SCORE_PANEL_SIZE
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.secondary_hud_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var column := VBoxContainer.new()
-	column.name = "ScoreContent"
-	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 4)
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(column)
-	column.add_child(_build_card_heading("COINS", "CoinsHeading", 124.0))
 	var center := CenterContainer.new()
-	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(center)
+	panel.add_child(center)
 	var row := HBoxContainer.new()
 	row.name = "CoinValueRow"
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -749,50 +730,26 @@ func _build_progression_group() -> PanelContainer:
 
 
 func _build_target_panel() -> Control:
-	var panel := Control.new()
+	var panel := PanelContainer.new()
 	panel.name = "ActiveTargetPanel"
 	panel.custom_minimum_size = UiDesignSystemType.TARGET_PANEL_SIZE
-	panel.clip_contents = false
+	panel.add_theme_stylebox_override("panel", UiDesignSystemType.target_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var inner := PanelContainer.new()
-	inner.name = "TargetContentSurface"
-	inner.add_theme_stylebox_override("panel", UiDesignSystemType.target_panel_style())
-	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(inner)
-	inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var badge := PanelContainer.new()
-	badge.name = "TargetBadge"
-	badge.custom_minimum_size = Vector2(200.0, 38.0)
-	badge.add_theme_stylebox_override("panel", UiDesignSystemType.target_badge_style())
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var badge_label := _label("TARGET  1 / 1", 24, Color.WHITE)
-	badge_label.name = "Label"
-	_decorate_header_label(badge_label)
-	badge.add_child(badge_label)
-	badge.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	badge.offset_left = -100.0
-	badge.offset_right = 100.0
-	badge.offset_top = 0.0
-	badge.offset_bottom = 38.0
-	panel.add_child(badge)
-	target_header_label = badge.get_node("Label") as Label
 	var content_margin := MarginContainer.new()
-	content_margin.name = "TargetContentMargin"
-	content_margin.add_theme_constant_override("margin_left", 22)
-	content_margin.add_theme_constant_override("margin_top", 36)
-	content_margin.add_theme_constant_override("margin_right", 22)
+	content_margin.add_theme_constant_override("margin_left", 16)
+	content_margin.add_theme_constant_override("margin_top", 10)
+	content_margin.add_theme_constant_override("margin_right", 16)
 	content_margin.add_theme_constant_override("margin_bottom", 10)
 	content_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(content_margin)
-	content_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var row := HBoxContainer.new()
 	row.name = "TargetContentRow"
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 12)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_margin.add_child(row)
 	var icon_slot := CenterContainer.new()
 	icon_slot.name = "TargetGemCenter"
-	icon_slot.custom_minimum_size = Vector2(104.0, 82.0)
+	icon_slot.custom_minimum_size = Vector2(68.0, 60.0)
 	icon_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(icon_slot)
 	var icon_aspect := AspectRatioContainer.new()
@@ -806,21 +763,19 @@ func _build_target_panel() -> Control:
 	details.name = "TargetDetails"
 	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	details.alignment = BoxContainer.ALIGNMENT_CENTER
-	details.add_theme_constant_override("separation", 3)
+	details.add_theme_constant_override("separation", 0)
 	details.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(details)
-	target_status_label = _label("0 / 1", 24, UiDesignSystemType.COLOR_BLUE_DEEP)
+	target_header_label = _label("TARGET  1 / 1", 17, UiDesignSystemType.COLOR_TEXT_MUTED)
+	target_header_label.name = "TargetHeader"
+	target_header_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	details.add_child(target_header_label)
+	target_status_label = _label("0 / 1", 25, UiDesignSystemType.COLOR_BLUE_DEEP)
 	target_status_label.name = "TargetProgressText"
 	target_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	target_status_label.add_theme_constant_override("outline_size", 3)
 	target_status_label.add_theme_color_override("font_outline_color", Color(0.08, 0.015, 0.14, 0.96))
 	details.add_child(target_status_label)
-	target_progress_bar = ProgressBar.new()
-	target_progress_bar.name = "TargetProgressBar"
-	target_progress_bar.custom_minimum_size = Vector2(0.0, 14.0)
-	target_progress_bar.show_percentage = false
-	target_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	details.add_child(target_progress_bar)
 	return panel
 
 
@@ -838,18 +793,15 @@ func _build_card_heading(text: String, node_name: String, width: float) -> Panel
 	return badge
 
 
-func _build_settings_button() -> TextureButton:
-	var button := TextureButton.new()
+func _build_settings_button() -> Button:
+	var button := Button.new()
 	button.name = "SettingsButton"
-	# Keep the cog inside its explicit 64 px utility frame. The old 88 px child
-	# expanded beyond that frame and made the in-game control look misaligned.
 	button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE
-	button.ignore_texture_size = true
-	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	button.texture_normal = ICON_SETTINGS
-	button.texture_hover = ICON_SETTINGS
-	button.texture_pressed = ICON_SETTINGS
-	button.texture_disabled = ICON_SETTINGS
+	button.icon = ICON_SETTINGS
+	button.expand_icon = true
+	button.add_theme_stylebox_override("normal", UiDesignSystemType.utility_frame_style())
+	button.add_theme_stylebox_override("hover", UiDesignSystemType.utility_frame_style())
+	button.add_theme_stylebox_override("pressed", UiDesignSystemType.utility_frame_style())
 	button.tooltip_text = "Pause"
 	button.focus_mode = Control.FOCUS_ALL
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -886,7 +838,7 @@ func _build_pause_popup() -> void:
 	pause_safe_margin.add_child(center)
 	pause_panel = PanelContainer.new()
 	pause_panel.name = "PausePanel"
-	pause_panel.custom_minimum_size = Vector2(520.0, 700.0)
+	pause_panel.custom_minimum_size = Vector2(520.0, 560.0)
 	pause_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(pause_panel)
@@ -910,18 +862,6 @@ func _build_pause_popup() -> void:
 	title.add_theme_constant_override("outline_size", 5)
 	title.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.92))
 	column.add_child(title)
-	var pause_gem := TextureRect.new()
-	pause_gem.name = "PauseGemAccent"
-	pause_gem.texture = AssetCatalogType.gem_texture(8)
-	pause_gem.custom_minimum_size = Vector2(96.0, 96.0)
-	pause_gem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	pause_gem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	pause_gem.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(pause_gem)
-	var subtitle := _label("SETTINGS", 15, UiDesignSystemType.COLOR_TEXT_MUTED)
-	subtitle.name = "PauseSubtitle"
-	subtitle.custom_minimum_size = Vector2(0.0, 28.0)
-	column.add_child(subtitle)
 	music_toggle = _setting_toggle(column, "MUSIC", "MusicToggle")
 	music_toggle.toggled.connect(func(enabled: bool) -> void:
 		_sync_switch_label(music_toggle)
@@ -1174,21 +1114,17 @@ func _apply_target_state(header: String, state: String, maximum: int, value: int
 func _set_target_progress(maximum: int, value: int, state: String) -> void:
 	_kill_tween(_target_progress_tween)
 	_kill_tween(_target_number_tween)
-	target_progress_bar.max_value = maximum
 	var clamped_value := clampi(value, 0, maximum)
 	var animate_up := not _snapshot.is_empty() \
 		and is_inside_tree() \
 		and maximum == _displayed_target_maximum \
 		and clamped_value > _displayed_target_progress
 	if not animate_up:
-		target_progress_bar.value = clamped_value
 		_displayed_target_progress = clamped_value
 		_displayed_target_maximum = maximum
 		target_status_label.text = _target_status_text_clean(state, clamped_value, maximum)
 		target_status_label.scale = Vector2.ONE
 		return
-	_target_progress_tween = create_tween()
-	_target_progress_tween.tween_property(target_progress_bar, "value", float(clamped_value), UiDesignSystemType.VALUE_CHANGE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	var start_value := _displayed_target_progress
 	_displayed_target_maximum = maximum
 	target_status_label.scale = Vector2.ONE * 0.90

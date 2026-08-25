@@ -736,3 +736,8 @@ Persistent Android targeting is defined by `android/build/src/main/AndroidManife
 `UiDesignSystem.PROGRESSION_ICON_SIZE` owns the fixed-strip gem artwork scale. `GameplayHudLayer` keeps the original panel/anchor geometry and binds the settings `TextureButton` to `TOP_SETTINGS_SIZE`, matching its containing utility frame.
 
 `BoardSimulation._step_subframe()` retains one authoritative pair sweep for merge capture and impact telemetry. It then runs `GameConfig.COLLISION_SEPARATION_PASSES - 1` additional pair sweeps with both capture and telemetry disabled. This is a bounded positional stabilization stage, not a second merge path.
+# Architecture Addendum - HUD and Popup Simplification V1
+
+`UiDesignSystem._frosted_glass_style()` now creates one gradient/rim surface without a separate white highlight border. Gameplay Target is one `PanelContainer` built by `GameplayHudLayer`; it has no nested target panel, badge, or `ProgressBar`. Target completion/progress continues to animate only the numeric `TargetProgressText` from controller snapshots.
+
+Gameplay Settings is a direct `Button` styled through `utility_frame_style()`; Home Settings is a direct cog texture button. No UI node added by these presentation paths participates in board input, physics, merge, score, or target qualification.

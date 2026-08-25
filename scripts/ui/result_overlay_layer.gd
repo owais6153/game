@@ -190,7 +190,7 @@ func _build_ui() -> void:
 	# Pause and Home Settings. Win/fail changes content, never the shell styling.
 	panel = PanelContainer.new()
 	panel.name = "ResultPanel"
-	panel.custom_minimum_size = Vector2(520.0, 690.0)
+	panel.custom_minimum_size = Vector2(520.0, 620.0)
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(panel)
@@ -218,14 +218,14 @@ func _build_ui() -> void:
 	title_label.add_theme_color_override("font_outline_color", Color(1.0, 1.0, 1.0, 0.92))
 	column.add_child(title_label)
 
-	celebration_label = _label("✦", 22, UiDesignSystemType.COLOR_BLUE)
+	celebration_label = _label("✦", 18, UiDesignSystemType.COLOR_BLUE)
 	celebration_label.name = "CelebrationAccents"
-	celebration_label.custom_minimum_size = Vector2(0.0, 24.0)
+	celebration_label.custom_minimum_size = Vector2(0.0, 18.0)
 	column.add_child(celebration_label)
 
 	subtitle_label = _label("LEVEL COMPLETE", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
 	subtitle_label.name = "ResultSubtitle"
-	subtitle_label.custom_minimum_size = Vector2(0.0, 36.0)
+	subtitle_label.custom_minimum_size = Vector2(0.0, 28.0)
 	subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(subtitle_label)
 

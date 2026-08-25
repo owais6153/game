@@ -1,3 +1,10 @@
+# 2026-08-25 - HUD and popup simplification v1
+
+- Simplified every shared dark-amethyst panel by removing the white gloss/highlight overlay while retaining violet rims and no box shadows.
+- Removed redundant Coins captions, condensed Target to one 340x84 surface without a badge or progress bar, and replaced the nested gameplay/Home settings glass frames with direct cog controls.
+- Removed redundant Home Settings/Pause copy and decorative Pause artwork; compacted Settings, Pause, and Result popup heights without changing actions, authority, anchors, or safe-area behavior.
+- Added layout regressions for compact Target, unlabelled Coins, and the direct settings cog; focused HUD/game-flow/physics/privacy tests pass.
+
 # 2026-08-25 - HUD density and collision stability v1
 
 - Reduced progression-strip gem artwork from 64 px to 56 px inside its unchanged fixed HUD strip, restoring space between all eight gem silhouettes and connectors.

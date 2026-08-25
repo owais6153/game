@@ -1,3 +1,7 @@
+# Current State Addendum - HUD and Popup Simplification V1
+
+The UI now uses a single restrained dark-amethyst surface per visual unit: the shared white gloss layer is removed, HUD Coins is icon-plus-value only, and Target is a compact 340x84 single panel with gem, target index, and numeric quantity only. The Target badge, nested target surface, and progress bar are gone. Gameplay Settings is now one 64px framed button, Home Settings has no separate glass cog frame, and redundant popup decoration/copy was removed while actions and safe-area behavior remain unchanged. Focused HUD, game-flow, feel, and privacy tests pass. See `reports/HUD_UI_SIMPLIFICATION_V1_REPORT.md`.
+
 # Current State Addendum - HUD Density and Collision Stability V1
 
 Gameplay HUD anchors and panel dimensions remain unchanged, but the fixed eight-gem progression strip now uses 56 px artwork so adjacent silhouettes and arrows have clear breathing room. The in-game settings cog now fits its existing 64 px utility frame instead of its former 88 px child minimum overflowing the frame. Dark-amethyst styling and the no-box-shadow rule remain intact.

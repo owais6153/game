@@ -269,8 +269,6 @@ func _build() -> void:
 	var coin_col := VBoxContainer.new()
 	coin_col.alignment = BoxContainer.ALIGNMENT_CENTER
 	coin_row.add_child(coin_col)
-	var coin_caption := _label("COINS", 13, UiDesignSystemType.COLOR_TEXT_MUTED)
-	coin_col.add_child(coin_caption)
 	coins_label = _label("0", 28, UiDesignSystemType.COLOR_BLUE_DEEP)
 	coin_col.add_child(coins_label)
 
@@ -302,19 +300,6 @@ func _build_top_settings_control() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_END
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top_controls_margin.add_child(row)
-	var frame := PanelContainer.new()
-	frame.name = "HomeSettingsFrame"
-	frame.custom_minimum_size = Vector2(94.0, 94.0)
-	# HBoxContainer fills children on its cross axis unless they explicitly shrink.
-	# Without this, the 94px settings card stretched into a full-height glass rail.
-	frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	frame.size_flags_horizontal = Control.SIZE_SHRINK_END
-	frame.add_theme_stylebox_override("panel", UiDesignSystemType.utility_frame_style())
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(frame)
-	var center := CenterContainer.new()
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_child(center)
 	settings_button = TextureButton.new()
 	settings_button.name = "HomeSettingsButton"
 	settings_button.texture_normal = ICON_SETTINGS
@@ -328,7 +313,7 @@ func _build_top_settings_control() -> void:
 	settings_button.tooltip_text = "Settings"
 	settings_button.pressed.connect(_show_settings)
 	_wire_button_motion(settings_button)
-	center.add_child(settings_button)
+	row.add_child(settings_button)
 
 func _build_privacy_policy_link() -> void:
 	privacy_link_margin = MarginContainer.new()
@@ -377,7 +362,7 @@ func _build_settings_popup() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	settings_panel = PanelContainer.new()
 	settings_panel.name = "HomeSettingsPanel"
-	settings_panel.custom_minimum_size = Vector2(500.0, 550.0)
+	settings_panel.custom_minimum_size = Vector2(500.0, 470.0)
 	settings_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	settings_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(settings_panel)
@@ -390,9 +375,6 @@ func _build_settings_popup() -> void:
 	var title := _label("SETTINGS", 34, UiDesignSystemType.COLOR_BLUE_DEEP)
 	title.custom_minimum_size = Vector2(0, 58)
 	column.add_child(title)
-	var subtitle := _label("MAKE GEM AIM YOURS", 15, UiDesignSystemType.COLOR_TEXT_MUTED)
-	subtitle.custom_minimum_size = Vector2(0, 30)
-	column.add_child(subtitle)
 	settings_music_toggle = _setting_switch_row(column, "MUSIC", "HomeMusicToggle")
 	settings_music_toggle.toggled.connect(func(enabled: bool) -> void:
 		_sync_switch_label(settings_music_toggle)

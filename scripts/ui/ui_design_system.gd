@@ -60,7 +60,7 @@ const HUD_ICON_SIZE := 58.0
 ## Eight progression identities must remain individually legible without their
 ## silhouettes visually touching in the fixed-width HUD strip.
 const PROGRESSION_ICON_SIZE := 56.0
-const TARGET_ICON_SIZE := 82.0
+const TARGET_ICON_SIZE := 60.0
 const NEXT_ICON_SIZE := 54.0
 const HEADER_HEIGHT := 172.0
 const UTILITY_ROW_HEIGHT := 116.0
@@ -69,12 +69,12 @@ const TOP_SETTINGS_SIZE := 64.0
 const OBJECTIVE_STACK_GAP := 14.0
 const OBJECTIVE_TABLE_GAP_MIN := 20.0
 const OBJECTIVE_TABLE_GAP_MAX := 76.0
-const PROGRESSION_HEIGHT := 88.0
+const PROGRESSION_HEIGHT := 78.0
 ## Coins retains the approved larger footprint. Next receives one additional
 ## 10% emphasis pass while remaining secondary to the centered Target.
-const SCORE_PANEL_SIZE := Vector2(164.25, 112.5)
+const SCORE_PANEL_SIZE := Vector2(164.25, 72.0)
 const NEXT_PANEL_SIZE := Vector2(141.075, 123.75)
-const TARGET_PANEL_SIZE := Vector2(400.0, 120.0)
+const TARGET_PANEL_SIZE := Vector2(340.0, 84.0)
 
 const TITLE_FONT_SIZE := 42
 const POPUP_TITLE_FONT_SIZE := 40
@@ -164,10 +164,9 @@ static func _glass_highlight_texture() -> GradientTexture2D:
 	return texture
 
 
-static func _frosted_glass_style(top: Color, bottom: Color, radius: int, border_width: int = 2, _strong_shadow: bool = false, gloss: bool = true) -> StyleBox:
-	# StyleBoxFancy cannot blur the framebuffer by itself. This uses translucent
-	# layered gradients and a bright rim to create a mobile-safe frosted-glass
-	# approximation without a screen-sampling shader or HUD box shadow.
+static func _frosted_glass_style(top: Color, bottom: Color, radius: int, border_width: int = 2, _strong_shadow: bool = false, _gloss: bool = false) -> StyleBox:
+	# Keep one restrained dark-amethyst surface. The former white gloss border
+	# made nested cards and utility buttons look like stacked glass plates.
 	var style := StyleBoxFancy.new()
 	style.color = Color.WHITE
 	style.texture = _glass_gradient(top, bottom)
@@ -188,16 +187,6 @@ static func _frosted_glass_style(top: Color, bottom: Color, radius: int, border_
 	rim.width_right = border_width
 	rim.width_bottom = border_width
 	style.borders.append(rim)
-	if gloss:
-		var highlight := StyleBorder.new()
-		highlight.color = Color.WHITE
-		highlight.blend = true
-		highlight.texture = _glass_highlight_texture()
-		highlight.ignore_stack = true
-		highlight.width_top = 16
-		highlight.inset_left = 5
-		highlight.inset_right = 5
-		style.borders.append(highlight)
 	return style
 
 
