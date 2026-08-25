@@ -520,16 +520,11 @@ func _popup_margin(left: int, top: int, right: int, bottom: int) -> MarginContai
 	return margin
 
 func _setting_switch_row(parent: VBoxContainer, text: String, node_name: String) -> Button:
-	var frame := PanelContainer.new()
-	frame.name = "%sRow" % node_name
-	frame.custom_minimum_size = Vector2(400.0, 64.0)
-	frame.add_theme_stylebox_override("panel", UiDesignSystemType.setting_row_style())
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(frame)
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0.0, 64.0)
+	row.name = "%sRow" % node_name
+	row.custom_minimum_size = Vector2(400.0, 64.0)
 	row.add_theme_constant_override("separation", 16)
-	frame.add_child(row)
+	parent.add_child(row)
 	var icon := TextureRect.new()
 	icon.name = "%sIcon" % node_name
 	icon.texture = _setting_icon_texture(node_name)

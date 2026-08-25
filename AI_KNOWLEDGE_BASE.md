@@ -1,3 +1,8 @@
+# Knowledge Base Addendum - HUD Panel Flattening V1
+
+- Do not add a nested panel for Next headings, settings rows, or Result reward totals. Use direct labels/layout containers within their existing parent surface.
+- A panel must represent an actual top-level card, modal, or distinct status surface; decoration alone is not a reason to introduce another panel.
+
 # Knowledge Base Addendum - HUD and Popup Simplification V1
 
 - Use one dark-amethyst surface per card/popup. Do not restore white gloss/highlight borders, nested Target badges/surfaces, or decorative settings frames.

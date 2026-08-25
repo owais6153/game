@@ -40,7 +40,7 @@ var celebration_label: Label
 var subtitle_label: Label
 var result_icon: TextureRect
 var fail_badge: PanelContainer
-var reward_card: PanelContainer
+var reward_card: VBoxContainer
 var earned_label: Label
 var reward_row: HBoxContainer
 var reward_coin_icon: Control
@@ -260,22 +260,17 @@ func _build_ui() -> void:
 	fail_badge.add_child(fail_mark)
 	fail_badge.visible = false
 
-	reward_card = PanelContainer.new()
+	reward_card = VBoxContainer.new()
 	reward_card.name = "ResultRewardCard"
 	reward_card.custom_minimum_size = Vector2(424.0, 132.0)
-	reward_card.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
+	reward_card.alignment = BoxContainer.ALIGNMENT_CENTER
+	reward_card.add_theme_constant_override("separation", 3)
 	reward_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(reward_card)
-	var reward_margin := MarginContainer.new()
-	reward_margin.add_theme_constant_override("margin_left", 24)
-	reward_margin.add_theme_constant_override("margin_top", 10)
-	reward_margin.add_theme_constant_override("margin_right", 24)
-	reward_margin.add_theme_constant_override("margin_bottom", 10)
-	reward_card.add_child(reward_margin)
 	var reward_column := VBoxContainer.new()
 	reward_column.alignment = BoxContainer.ALIGNMENT_CENTER
 	reward_column.add_theme_constant_override("separation", 3)
-	reward_margin.add_child(reward_column)
+	reward_card.add_child(reward_column)
 	earned_label = _label("YOU EARNED", 14, UiDesignSystemType.COLOR_TEXT_MUTED)
 	earned_label.name = "RewardCaption"
 	earned_label.custom_minimum_size = Vector2(0.0, 22.0)

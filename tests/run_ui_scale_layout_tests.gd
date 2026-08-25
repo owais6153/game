@@ -199,6 +199,7 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	_assert(settings_button != null and settings_button.custom_minimum_size == Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE, "%s settings cog must fit its utility frame" % viewport_size)
 	_assert(hud.root_control.find_child("TargetProgressBar", true, false) == null, "%s Target must use compact numeric progress without a progress bar" % viewport_size)
 	_assert(hud.root_control.find_child("CoinsHeading", true, false) == null, "%s Coins HUD must not repeat a redundant label" % viewport_size)
+	_assert(hud.root_control.find_child("NextHeading", true, false) is Label, "%s Next heading must be direct text rather than a nested panel" % viewport_size)
 	viewport.queue_free()
 	await process_frame
 

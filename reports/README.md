@@ -1,5 +1,7 @@
 # Reports Index
 
+- [HUD Panel Flattening V1](HUD_PANEL_FLATTENING_V1_REPORT.md) - removal of remaining Next/settings/result nested presentation panels, with focused UI-flow regressions.
+
 - [HUD and Popup Simplification V1](HUD_UI_SIMPLIFICATION_V1_REPORT.md) - single-surface dark-amethyst UI cleanup, compact Target, direct settings cogs, popup decluttering, and regression evidence.
 
 - [HUD Density and Collision Stability V1](HUD_DENSITY_COLLISION_STABILITY_V1_REPORT.md) - progression-strip cleanup, in-game settings-cog fit, bounded dense-pile separation, and focused regression evidence.

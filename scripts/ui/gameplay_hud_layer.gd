@@ -673,7 +673,10 @@ func _build_next_panel() -> Control:
 	column.add_theme_constant_override("separation", 3)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(column)
-	column.add_child(_build_card_heading("NEXT", "NextHeading", 94.0))
+	var heading := _label("NEXT", 18, UiDesignSystemType.COLOR_TEXT_MUTED)
+	heading.name = "NextHeading"
+	heading.custom_minimum_size = Vector2(0.0, 26.0)
+	column.add_child(heading)
 	var center := CenterContainer.new()
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -777,20 +780,6 @@ func _build_target_panel() -> Control:
 	target_status_label.add_theme_color_override("font_outline_color", Color(0.08, 0.015, 0.14, 0.96))
 	details.add_child(target_status_label)
 	return panel
-
-
-func _build_card_heading(text: String, node_name: String, width: float) -> PanelContainer:
-	var badge := PanelContainer.new()
-	badge.name = node_name
-	badge.custom_minimum_size = Vector2(width, 34.0)
-	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	badge.add_theme_stylebox_override("panel", UiDesignSystemType.card_header_style())
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var heading := _label(text, 18, Color.WHITE)
-	heading.name = "Label"
-	_decorate_header_label(heading)
-	badge.add_child(heading)
-	return badge
 
 
 func _build_settings_button() -> Button:
@@ -918,16 +907,11 @@ func _button(node_name: String, text: String, minimum: Vector2, variation: Strin
 
 
 func _setting_toggle(parent: VBoxContainer, text: String, node_name: String) -> Button:
-	var frame := PanelContainer.new()
-	frame.name = "%sRow" % node_name
-	frame.custom_minimum_size = Vector2(424.0, 62.0)
-	frame.add_theme_stylebox_override("panel", UiDesignSystemType.setting_row_style())
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(frame)
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0.0, 62.0)
+	row.name = "%sRow" % node_name
+	row.custom_minimum_size = Vector2(424.0, 62.0)
 	row.add_theme_constant_override("separation", 16)
-	frame.add_child(row)
+	parent.add_child(row)
 	var icon := TextureRect.new()
 	icon.name = "%sIcon" % node_name
 	icon.texture = _setting_icon_texture(node_name)

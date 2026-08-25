@@ -1,3 +1,7 @@
+# Current State Addendum - HUD Panel Flattening V1
+
+Next now uses a direct label inside its one outer card; Home/Pause settings rows no longer each create a glass panel; and Result reward data is grouped directly in the modal instead of inside another card. All remaining panel surfaces are intentional top-level cards, modals, or distinct status elements. Responsive HUD, game-flow, and privacy tests pass. See `reports/HUD_PANEL_FLATTENING_V1_REPORT.md`.
+
 # Current State Addendum - HUD and Popup Simplification V1
 
 The UI now uses a single restrained dark-amethyst surface per visual unit: the shared white gloss layer is removed, HUD Coins is icon-plus-value only, and Target is a compact 340x84 single panel with gem, target index, and numeric quantity only. The Target badge, nested target surface, and progress bar are gone. Gameplay Settings is now one 64px framed button, Home Settings has no separate glass cog frame, and redundant popup decoration/copy was removed while actions and safe-area behavior remain unchanged. Focused HUD, game-flow, feel, and privacy tests pass. See `reports/HUD_UI_SIMPLIFICATION_V1_REPORT.md`.

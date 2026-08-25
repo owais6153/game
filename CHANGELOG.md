@@ -1,3 +1,8 @@
+# 2026-08-25 - HUD panel flattening v1
+
+- Removed the nested Next heading badge, framed settings rows in Home/Pause, and nested Result reward card/margin wrapper.
+- Preserved each control and data group with direct layout containers only; responsive HUD, game-flow, and privacy regressions pass.
+
 # 2026-08-25 - HUD and popup simplification v1
 
 - Simplified every shared dark-amethyst panel by removing the white gloss/highlight overlay while retaining violet rims and no box shadows.

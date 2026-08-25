@@ -741,3 +741,6 @@ Persistent Android targeting is defined by `android/build/src/main/AndroidManife
 `UiDesignSystem._frosted_glass_style()` now creates one gradient/rim surface without a separate white highlight border. Gameplay Target is one `PanelContainer` built by `GameplayHudLayer`; it has no nested target panel, badge, or `ProgressBar`. Target completion/progress continues to animate only the numeric `TargetProgressText` from controller snapshots.
 
 Gameplay Settings is a direct `Button` styled through `utility_frame_style()`; Home Settings is a direct cog texture button. No UI node added by these presentation paths participates in board input, physics, merge, score, or target qualification.
+# Architecture Addendum - HUD Panel Flattening V1
+
+`GameplayHudLayer.NextPanel` contains one outer `PanelContainer` plus direct label/art layout; its old nested heading panel is removed. Settings rows and Result reward information now use layout-only `HBoxContainer`/`VBoxContainer` nodes. Surface ownership remains with their parent modal/card only.
