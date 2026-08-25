@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Playable Game Moments V1](PLAYABLE_GAME_MOMENTS_V1_REPORT.md) - eight 1080x1920 real production-gameplay screenshots across color/shape patterns, target, combo, and final-target moments.
+
 - [Majestic Branding Refresh v1.0.7](MAJESTIC_BRANDING_REFRESH_V1.0.7_REPORT.md) - supplied logo/icon integration, tagline update, replacement-asset audit, and same-version AAB validation.
 
 - [Firebase Analytics Android Integration v1.0.7](FIREBASE_ANALYTICS_ANDROID_V1.0.7_REPORT.md) - persistent custom-template Firebase configuration, GDScript bridge, confirmed event mapping, validation, AAB, and DebugView/device status.
