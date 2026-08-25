@@ -1,5 +1,16 @@
 # Build Manifest
 
+## Majestic Branding Refresh AAB v1.0.7 (versionCode 9)
+
+- AAB: `build/android/majestic-gems-branding-refresh-v1.0.7-vc9.aab`
+- Size: 71,224,093 bytes; timestamp: 2026-08-26 00:49:20 +05:00; SHA-256: `B155F63DDBFF012BD7AFDE6BA0253827C27A3BB0D1DD44DA77362737C3C32A38`.
+- Source commit/tag: `47ac361` / `majestic-branding-refresh-v1.0.7-vc9-source`. Delivery tag: `majestic-branding-refresh-v1.0.7-vc9-release`.
+- Version: user-requested same release identity, versionCode `9` / versionName `1.0.7`. It is a fresh AAB with a distinct filename; it must replace the prior local v9 AAB before any Play upload because Play accepts each versionCode only once.
+- Validation: Godot 4.6.3 release export, Bundletool 1.18.3 validation, embedded package/version/AdMob/Firebase-plugin manifest audit, v3/v4 branding archive audit (eight new entries, zero v2 entries), and `jarsigner` verification all passed. The existing Teckvertex Labs upload certificate fingerprint is unchanged.
+- Tests: `BRANDING_PUSH_LINE_TESTS` and `GAME_FLOW_REWARD_SPLASH_TESTS` passed.
+- Device status: not performed; `adb devices -l` found no device. AAB delivery is not blocked.
+- Report: `reports/MAJESTIC_BRANDING_REFRESH_V1.0.7_REPORT.md`.
+
 ## Firebase Analytics AAB v1.0.7 (versionCode 9)
 
 - Status: delivered. The fresh Godot export contains `analytics_service.gdc`; Bundletool validates its package/version/Firebase metadata. `jarsigner` verifies the unchanged Teckvertex Labs upload certificate. Device installation and Firebase DebugView: not performed because no ADB device was connected; this does not block delivery of the signed validated AAB.

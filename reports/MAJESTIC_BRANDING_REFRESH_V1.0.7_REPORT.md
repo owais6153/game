@@ -25,4 +25,9 @@ The Android package remains `com.owais.majestygems`; production signing and exis
 - `BRANDING_PUSH_LINE_TESTS`: passed.
 - `GAME_FLOW_REWARD_SPLASH_TESTS`: passed.
 - Generated assets: RGBA logo `1448×1086`, legacy icon `192×192`, adaptive foreground/background `432×432`, system splash `1152×1152`.
-- Fresh release-AAB, Bundletool, signing, manifest, and archive evidence will be appended after export.
+- Fresh Godot 4.6.3 release AAB: `build/android/majestic-gems-branding-refresh-v1.0.7-vc9.aab`.
+- Size: 71,224,093 bytes; timestamp: 2026-08-26 00:49:20 +05:00; SHA-256: `B155F63DDBFF012BD7AFDE6BA0253827C27A3BB0D1DD44DA77362737C3C32A38`.
+- Bundletool 1.18.3 validation passed. Its embedded manifest confirms package `com.owais.majestygems`, versionCode `9`, versionName `1.0.7`, the unchanged AdMob ID `ca-app-pub-4605895178658062~1516881747`, and `FirebaseAnalyticsPlugin` metadata.
+- Archive audit finds eight new v3/v4 branding entries and zero old v2 branding entries. It also contains `analytics_service.gdc`, Firebase analytics metadata, and `firebase_common_keep.xml`.
+- `jarsigner` verification passed. The SHA-256 upload certificate fingerprint remains `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14` (Muhammad Owais Khan / Teckvertex Labs).
+- Device status: not performed; `adb devices -l` found no connected device. This does not block the signed AAB delivery.
