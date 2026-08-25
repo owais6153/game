@@ -3,6 +3,7 @@
 .godot_user/
 .import/
 *.import
+google-services.json
 
 # Android and exported build artifacts
 build/

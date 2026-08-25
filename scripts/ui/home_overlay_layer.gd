@@ -36,7 +36,7 @@ var level_label: Label
 var coins_label: Label
 var play_button: Button
 var tagline_label: Label
-var settings_button: TextureButton
+var settings_button: Button
 var privacy_link_margin: MarginContainer
 var privacy_policy_link: LinkButton
 
@@ -295,25 +295,27 @@ func _build_top_settings_control() -> void:
 	top_controls_margin.name = "HomeTopControls"
 	top_controls_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root_control.add_child(top_controls_margin)
-	top_controls_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_END
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	top_controls_margin.add_child(row)
-	settings_button = TextureButton.new()
+	# Historical placement: the literal top-right of the Home screen.
+	top_controls_margin.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	top_controls_margin.offset_left = -96.0
+	top_controls_margin.offset_top = 24.0
+	top_controls_margin.offset_right = -18.0
+	top_controls_margin.offset_bottom = 102.0
+	settings_button = Button.new()
 	settings_button.name = "HomeSettingsButton"
-	settings_button.texture_normal = ICON_SETTINGS
-	settings_button.texture_hover = ICON_SETTINGS
-	settings_button.texture_pressed = ICON_SETTINGS
-	settings_button.ignore_texture_size = true
-	settings_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	settings_button.icon = ICON_SETTINGS
+	settings_button.expand_icon = true
 	settings_button.custom_minimum_size = Vector2(78.0, 78.0)
+	settings_button.add_theme_stylebox_override("normal", UiDesignSystemType.utility_frame_style())
+	settings_button.add_theme_stylebox_override("hover", UiDesignSystemType.utility_frame_style())
+	settings_button.add_theme_stylebox_override("pressed", UiDesignSystemType.utility_frame_style())
+	settings_button.self_modulate = Color("ead4ff")
 	settings_button.focus_mode = Control.FOCUS_ALL
 	settings_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	settings_button.tooltip_text = "Settings"
 	settings_button.pressed.connect(_show_settings)
 	_wire_button_motion(settings_button)
-	row.add_child(settings_button)
+	top_controls_margin.add_child(settings_button)
 
 func _build_privacy_policy_link() -> void:
 	privacy_link_margin = MarginContainer.new()
@@ -745,7 +747,7 @@ func _refresh_safe_margins() -> void:
 	if safe_margin == null or not is_inside_tree():
 		return
 	var insets := _safe_insets()
-	for container in [safe_margin, top_controls_margin]:
+	for container in [safe_margin]:
 		if container == null:
 			continue
 		for entry in [["left", insets.x], ["top", insets.y], ["right", insets.z], ["bottom", insets.w]]:
