@@ -57,7 +57,9 @@ const BUTTON_CORNER_RADIUS := 24
 const BUTTON_BORDER_WIDTH := 3
 const MIN_TOUCH_TARGET := 88.0
 const HUD_ICON_SIZE := 58.0
-const PROGRESSION_ICON_SIZE := 64.0
+## Eight progression identities must remain individually legible without their
+## silhouettes visually touching in the fixed-width HUD strip.
+const PROGRESSION_ICON_SIZE := 56.0
 const TARGET_ICON_SIZE := 82.0
 const NEXT_ICON_SIZE := 54.0
 const HEADER_HEIGHT := 172.0

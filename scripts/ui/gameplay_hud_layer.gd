@@ -841,7 +841,9 @@ func _build_card_heading(text: String, node_name: String, width: float) -> Panel
 func _build_settings_button() -> TextureButton:
 	var button := TextureButton.new()
 	button.name = "SettingsButton"
-	button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.MIN_TOUCH_TARGET
+	# Keep the cog inside its explicit 64 px utility frame. The old 88 px child
+	# expanded beyond that frame and made the in-game control look misaligned.
+	button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE
 	button.ignore_texture_size = true
 	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	button.texture_normal = ICON_SETTINGS

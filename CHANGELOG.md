@@ -1,3 +1,10 @@
+# 2026-08-25 - HUD density and collision stability v1
+
+- Reduced progression-strip gem artwork from 64 px to 56 px inside its unchanged fixed HUD strip, restoring space between all eight gem silhouettes and connectors.
+- Corrected the gameplay settings cog's child size to the existing 64 px utility frame, removing its former 88 px overflow/misalignment.
+- Added three bounded collision-separation sweeps per simulation substep. Merge capture and collision telemetry remain first-sweep-only, preventing visible dense-pile overlap without duplicate merge/impact events.
+- Added dense-pile separation and settings-frame/progression-density regression coverage; focused reference-feel, UI-layout, and gem-pattern suites pass.
+
 # 2026-08-25 - Rail, target blast, and gem expansion v1
 
 - Added supplied `gem_33` and `gem_34` as alpha-tight 256 px runtime derivatives and audited pink-gradient Unique metadata; expanded the registry to 34 identities without adding display names.

@@ -1,3 +1,9 @@
+# Current State Addendum - HUD Density and Collision Stability V1
+
+Gameplay HUD anchors and panel dimensions remain unchanged, but the fixed eight-gem progression strip now uses 56 px artwork so adjacent silhouettes and arrows have clear breathing room. The in-game settings cog now fits its existing 64 px utility frame instead of its former 88 px child minimum overflowing the frame. Dark-amethyst styling and the no-box-shadow rule remain intact.
+
+Crowded board contact now uses three bounded pair-separation sweeps per simulation substep. Only the first captures contact/telemetry; the remaining two are physics-only, eliminating residual gem overlap without duplicate merge or audio events. Focused reference-feel, responsive HUD, and gem-pattern tests pass. No Android export or device test was run for this source-only polish milestone. See `reports/HUD_DENSITY_COLLISION_STABILITY_V1_REPORT.md`.
+
 # Current State Addendum - Complete Majestic Logo Refresh v1.0.8
 
 All active Home, fallback boot, launcher, adaptive-icon, and Android system-splash paths now use derivatives of `assets/logo/majestic_gems_logo_source_v2.png`. The obsolete v1 Majestic source/logo/launcher/adaptive assets and old system-splash derivative were removed. Signed AAB `build/android/majestic-gems-logo-refresh-v1.0.8-vc10.aab` is versionCode 10 / versionName 1.0.8; Bundletool confirms the v3 splash asset is packaged and no old Majestic v1 or splash-v2 asset is present. Branding and splash-flow tests pass; no device was connected.

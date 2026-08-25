@@ -731,3 +731,8 @@ Large-screen containment remains configuration-driven: Godot's expanding canvas 
 # Android Targeting and Launcher Branding
 
 Persistent Android targeting is defined by `android/build/src/main/AndroidManifest.xml` inside the installed Godot Gradle template; Godot injects package, version, orientation, screen support, and app-category values from `export_presets.cfg` during export. The template contributes only the explicit touch requirement, avoiding generated-build-only edits. Launcher resources are sourced from the three `launcher_icons/*` paths in `export_presets.cfg`; Godot generates density-specific legacy/adaptive Android resources at export time. The logo source and presentation reference remain under `assets/logo/`, while runtime launcher inputs stay under `assets/runtime/ui/` and are excluded from the Godot asset pack because Android consumes them as native resources.
+# Architecture Addendum - HUD Density and Collision Stability V1
+
+`UiDesignSystem.PROGRESSION_ICON_SIZE` owns the fixed-strip gem artwork scale. `GameplayHudLayer` keeps the original panel/anchor geometry and binds the settings `TextureButton` to `TOP_SETTINGS_SIZE`, matching its containing utility frame.
+
+`BoardSimulation._step_subframe()` retains one authoritative pair sweep for merge capture and impact telemetry. It then runs `GameConfig.COLLISION_SEPARATION_PASSES - 1` additional pair sweeps with both capture and telemetry disabled. This is a bounded positional stabilization stage, not a second merge path.

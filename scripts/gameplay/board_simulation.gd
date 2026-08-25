@@ -41,6 +41,14 @@ func _step_subframe(pieces: Array[GemPiece], delta: float, merger: ContactMergeS
 		var first := pieces[first_index]
 		for second_index in range(first_index + 1, pieces.size()):
 			_resolve_pair(first, pieces[second_index], merger)
+	# A single pair sweep can leave a visible overlap when one gem is pressed by
+	# several neighbours in the same frame. These physics-only stabilization
+	# sweeps do not capture another merge or emit duplicate impact telemetry.
+	for _pass in range(1, GameConfig.COLLISION_SEPARATION_PASSES):
+		for first_index in range(pieces.size()):
+			var first := pieces[first_index]
+			for second_index in range(first_index + 1, pieces.size()):
+				_resolve_pair(first, pieces[second_index], merger, false, false)
 
 func _required_substeps(pieces: Array[GemPiece], delta: float) -> int:
 	var maximum_displacement := 0.0
@@ -80,7 +88,7 @@ func _resolve_bounds(piece: GemPiece) -> void:
 		piece.position.y = bottom
 		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION
 
-func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeService) -> void:
+func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeService, capture_merge: bool = true, record_impact: bool = true) -> void:
 	var offset := second.position - first.position
 	var distance := offset.length()
 	var minimum_distance := first.radius + second.radius
@@ -91,7 +99,7 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	# reward, sharply reducing instant unreadable cascades on crowded boards.
 	var bonus_release_grace := first.bonus_merge_grace_remaining > 0.0 \
 		or second.bonus_merge_grace_remaining > 0.0
-	if not bonus_release_grace:
+	if capture_merge and not bonus_release_grace:
 		merger.capture_contact(first, second)
 	var normal := offset / distance if distance > 0.001 else Vector2.RIGHT
 	var overlap := maxf(0.0, minimum_distance - distance)
@@ -104,7 +112,8 @@ func _resolve_pair(first: GemPiece, second: GemPiece, merger: ContactMergeServic
 	var relative_speed := (second.velocity - first.velocity).dot(normal)
 	if relative_speed < 0.0:
 		var contact_point := first.position + normal * first.radius
-		_collision_impacts.append({"kind": "gem", "strength": absf(relative_speed), "position": contact_point, "normal": normal, "first_id": first.id, "second_id": second.id})
+		if record_impact:
+			_collision_impacts.append({"kind": "gem", "strength": absf(relative_speed), "position": contact_point, "normal": normal, "first_id": first.id, "second_id": second.id})
 		# Equal masses share the normal impulse. The former multiplier-only
 		# response left the pair moving inward whenever its value was below 0.5,
 		# making crowded contacts look sticky. This uses the documented

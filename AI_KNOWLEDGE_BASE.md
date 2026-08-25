@@ -1,3 +1,9 @@
+# Knowledge Base Addendum - HUD Density and Collision Stability V1
+
+- Keep the gameplay HUD geometry fixed. The eight-icon progression strip uses a 56 px artwork scale inside the existing 620x88 panel to preserve readable gaps.
+- The gameplay settings cog must request `TOP_SETTINGS_SIZE` (64 px), matching `SettingsFrame`; do not restore an 88 px child inside that frame.
+- `COLLISION_SEPARATION_PASSES` is 3. Only the first board pair sweep may capture a merge or emit collision telemetry; later sweeps are positional stabilization only.
+
 # Knowledge Base Addendum - Rail, Target Blast, and Gem Expansion V1
 
 - Current catalog: 34 identities, 22 Common / 12 Unique. `gem_33` is pink-gradient circle; `gem_34` is pink-gradient rounded square. Keep all player-facing names empty.

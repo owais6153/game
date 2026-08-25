@@ -94,6 +94,9 @@ const MAX_PIECE_SPEED := 1200.0 # containment guard; preserves natural launch/co
 ## a confirmed contact so matching gems cannot remain stuck while touching.
 const CONTACT_EPSILON := VISIBLE_CONTACT_TOLERANCE # calibrated range 0.20–2.0
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
+## Bounded physics-only stabilization for dense piles. This removes residual
+## visual penetration without changing radii or merge eligibility.
+const COLLISION_SEPARATION_PASSES := 3
 const MAX_SIMULATION_SUBSTEPS := 8
 const MAX_SUBSTEP_RADIUS_FRACTION := 0.45 # swept-step guard; never changes contact distance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,

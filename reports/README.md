@@ -1,5 +1,7 @@
 # Reports Index
 
+- [HUD Density and Collision Stability V1](HUD_DENSITY_COLLISION_STABILITY_V1_REPORT.md) - progression-strip cleanup, in-game settings-cog fit, bounded dense-pile separation, and focused regression evidence.
+
 - [Complete Majestic Logo Refresh v1.0.8](MAJESTIC_LOGO_REFRESH_V1.0.8_REPORT.md) - replacement of every active old logo path, system-splash correction, legacy asset removal, tests, and versionCode-10 AAB evidence.
 
 - [Android Targeting and Launcher Branding v1.0.7](ANDROID_TARGETING_LAUNCHER_V1.0.7_REPORT.md) - persistent touchscreen requirement, form-factor audit, supplied-logo launcher derivatives, merged-manifest verification, responsive-layout checks, and versionCode-9 AAB delivery.
