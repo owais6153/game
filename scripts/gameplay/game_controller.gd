@@ -600,6 +600,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			processed_merge_result_ids[result_id] = true
 		var result_level: int = int(merge_event.level)
 		var depth := int(merge_event.get("depth", 0))
+		_log_analytics("merge", {"result_level": result_level, "depth": depth})
 		var completes_active_target := result_level == active_target_tier()
 		merge_event.target_objective_completed = false
 		merge_event.final_target_completed = false
@@ -964,6 +965,7 @@ func _advance_target_state_authoritative(result_id: int, merge_event: Dictionary
 	target_progress = 0
 	target_index += 1
 	merge_event.target_objective_completed = true
+	_log_analytics("target_complete", {"level": level_number, "target_index": target_index, "target_tier": int(merge_event.get("level", 1))})
 	if target_index >= target_sequence().size():
 		merge_event.final_target_completed = true
 		final_target_result_id = result_id
@@ -1024,6 +1026,7 @@ func _trigger_failure() -> void:
 	if failed:
 		return
 	failed = true
+	_log_analytics("level_fail", {"level": level_number, "score": score})
 	active_piece_id = -1
 	launcher_state = LauncherState.RESOLVING
 	dragging = false
@@ -1328,6 +1331,7 @@ func _qualify_win_if_target_complete() -> void:
 	if target_index < target_sequence().size() or win_qualified:
 		return
 	won = true
+	_log_analytics("level_complete", {"level": level_number, "score": score})
 	win_qualified = true
 	win_presented = false
 	win_hold_elapsed = 0.0
@@ -1752,12 +1756,21 @@ func _show_level_start() -> void:
 	if is_inside_tree():
 		get_tree().paused = true
 
+
+func _log_analytics(event_name: String, parameters: Dictionary = {}) -> void:
+	# Analytics is observational only. A missing native bridge must never affect
+	# simulation, reward authority, or a desktop/editor test run.
+	var analytics := get_node_or_null("/root/Analytics")
+	if analytics != null:
+		analytics.log_event(event_name, parameters)
+
 func _on_home_play_requested() -> void:
 	if home_overlay != null:
 		home_overlay.dismiss()
 	if gameplay_ui != null:
 		gameplay_ui.show()
 	app_flow_state = AppFlowState.PLAYING
+	_log_analytics("level_start", {"level": level_number})
 	if is_inside_tree():
 		get_tree().paused = false
 

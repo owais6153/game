@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Firebase Analytics Android Integration v1.0.7](FIREBASE_ANALYTICS_ANDROID_V1.0.7_REPORT.md) - persistent custom-template Firebase configuration, GDScript bridge, confirmed event mapping, validation, AAB, and DebugView/device status.
+
 - [HUD Panel Flattening V1](HUD_PANEL_FLATTENING_V1_REPORT.md) - removal of remaining Next/settings/result nested presentation panels, with focused UI-flow regressions.
 
 - [HUD and Popup Simplification V1](HUD_UI_SIMPLIFICATION_V1_REPORT.md) - single-surface dark-amethyst UI cleanup, compact Target, direct settings cogs, popup decluttering, and regression evidence.

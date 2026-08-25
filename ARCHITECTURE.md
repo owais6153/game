@@ -744,3 +744,8 @@ Gameplay Settings is a direct `Button` styled through `utility_frame_style()`; H
 # Architecture Addendum - HUD Panel Flattening V1
 
 `GameplayHudLayer.NextPanel` contains one outer `PanelContainer` plus direct label/art layout; its old nested heading panel is removed. Settings rows and Result reward information now use layout-only `HBoxContainer`/`VBoxContainer` nodes. Surface ownership remains with their parent modal/card only.
+# Architecture Addendum - Firebase Analytics Bridge
+
+`scripts/services/analytics_service.gd` is the GDScript-facing, no-op-safe `Analytics` autoload. On Android it calls the `FirebaseAnalytics` Godot singleton. `android/build/src/main/java/com/owais/majestygems/analytics/FirebaseAnalyticsPlugin.java` parses flat JSON event payloads and sends them to Firebase; it cannot call gameplay code.
+
+`GameController` reports only confirmed level/target/merge/loss/win boundaries. `AdManager` reports only committed fullscreen shows and confirmed earned rewarded callbacks. Analytics remains observational and never gates simulation, scoring, rewards, progression, or ads.

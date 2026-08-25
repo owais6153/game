@@ -12,6 +12,7 @@ android/.gradle/
 *.aab
 majestic-gems-upload-key.jks
 *.avi
+tools/*.jar
 
 # User-supplied comparison recordings are local reference inputs, never source assets.
 *.mp4
@@ -23,3 +24,28 @@ majestic-gems-upload-key.jks
 WhatsApp Video*.mp4
 WhatsApp Image*.jpeg
 !assets/logo/majestic_gems_icon_source_v1.jpeg
+
+# Version-controlled inputs for the Godot custom Android build. Gradle outputs
+# remain ignored even though the template itself is stored under android/build.
+!android/build/
+android/build/*
+!android/build/.gdignore
+!android/build/build.gradle
+!android/build/config.gradle
+!android/build/gradle.properties
+!android/build/gradlew
+!android/build/gradlew.bat
+!android/build/settings.gradle
+!android/build/google-services.json
+!android/build/gradle/
+android/build/gradle/*
+!android/build/gradle/wrapper/
+!android/build/gradle/wrapper/gradle-wrapper.jar
+!android/build/gradle/wrapper/gradle-wrapper.properties
+!android/build/src/
+android/build/src/*
+!android/build/src/main/
+android/build/src/main/*
+!android/build/src/main/AndroidManifest.xml
+!android/build/src/main/java/
+!android/build/src/main/java/**

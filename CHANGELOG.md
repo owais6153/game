@@ -911,3 +911,8 @@
 - Replaced the remaining old Home/fallback and Android system-splash logo paths with derivatives of the supplied v2 transparent logo.
 - Removed obsolete Majestic v1 source, Home, legacy launcher, adaptive-icon, and old system-splash assets.
 - Bundletool verified versionCode 10 / versionName 1.0.8, new v3 splash packaging, and zero packaged legacy Majestic logo assets.
+# 2026-08-25 - Firebase Analytics Android integration v1.0.7
+
+- Added persistent custom-template Firebase Analytics configuration and a desktop-safe GDScript/native Android bridge.
+- Routed the eight requested events only from confirmed gameplay and ad lifecycle boundaries; gameplay, package, signing, and AdMob IDs are unchanged.
+- Restored the user-confirmed Play release identity to versionCode 9 / versionName 1.0.7.

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "736526251556",
+    "project_id": "majestic-gems",
+    "storage_bucket": "majestic-gems.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:736526251556:android:41a46251ab465e67ce0ab1",
+        "android_client_info": {
+          "package_name": "com.owais.majestygems"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIli3EclX3cLV7iNeP63L8I5G2PhcDlV0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -974,3 +974,7 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 - Majestic Gems requires `android.hardware.touchscreen` with `android:required="true"`. Do not add a false touchscreen declaration, Leanback launcher/category, Automotive, Wear, or XR features.
 - Keep phone/tablet support and portrait behavior controlled by Godot's `project.godot` display settings and `export_presets.cfg`; do not add screen-size exclusions or change game coordinates to address large-screen recommendations.
 - Launcher assets are `assets/runtime/ui/majestic_gems_app_icon_192_v2.png`, `majestic_gems_adaptive_foreground_v2.png`, and `majestic_gems_adaptive_background_v2.png`, configured exclusively through `export_presets.cfg`. Preserve the supplied transparent source `assets/logo/majestic_gems_logo_source_v2.png`; the foreground art must remain inside the 288px safe area of its 432px canvas.
+# Knowledge Base Addendum - Firebase Analytics
+
+- Keep Firebase Gradle/plugin configuration in tracked `android/build` custom-template inputs, never under `android/build/build/` or other Gradle output.
+- Use `Analytics` only for observational confirmed events. The bridge must stay optional outside Android and must not affect gameplay or ad decisions.

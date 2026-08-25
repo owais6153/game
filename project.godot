@@ -26,6 +26,7 @@ config/icon="res://assets/runtime/ui/majestic_gems_app_icon_192_v2.png"
 
 GlobalTweens="*res://GlobalTweens.gd"
 AdManager="*res://scripts/services/ad_manager.gd"
+Analytics="*res://scripts/services/analytics_service.gd"
 
 [display]
 

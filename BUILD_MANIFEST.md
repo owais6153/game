@@ -1,5 +1,10 @@
 # Build Manifest
 
+## Firebase Analytics AAB v1.0.7 (versionCode 9)
+
+- Status: delivered. The fresh Godot export contains `analytics_service.gdc`; Bundletool validates its package/version/Firebase metadata. `jarsigner` verifies the unchanged Teckvertex Labs upload certificate. Device installation and Firebase DebugView: not performed because no ADB device was connected; this does not block delivery of the signed validated AAB.
+- Version decision: the user confirmed Google Play's latest uploaded build is versionCode 8 / versionName 1.0.6. This release uses the requested next Play identity versionCode 9 / versionName 1.0.7; earlier local v9/v10 entries are superseded artifacts, not Play-upload evidence.
+
 ## Complete Majestic Logo Refresh RELEASE AAB v1.0.8 (versionCode 10)
 
 - AAB: `build/android/majestic-gems-logo-refresh-v1.0.8-vc10.aab`

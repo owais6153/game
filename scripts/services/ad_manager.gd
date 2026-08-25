@@ -310,6 +310,7 @@ func show_interstitial(on_finished: Callable = Callable()) -> bool:
 	_fullscreen_showing = true
 	interstitial_availability_changed.emit(false)
 	fullscreen_started.emit("interstitial")
+	_log_analytics("interstitial_shown")
 	_start_fullscreen_safety_timeout("interstitial", ad)
 	ad.show()
 	return true
@@ -331,6 +332,7 @@ func show_rewarded(on_reward: Callable, on_finished: Callable = Callable()) -> b
 	_fullscreen_showing = true
 	rewarded_availability_changed.emit(false)
 	fullscreen_started.emit("rewarded")
+	_log_analytics("rewarded_ad_shown")
 	_start_fullscreen_safety_timeout("rewarded", ad)
 	var session_id := _reward_session_id
 	var reward_listener := OnUserEarnedRewardListener.new()
@@ -364,6 +366,7 @@ func _on_user_earned_reward(session_id: int, item) -> void:
 	if not _rewarded_showing or session_id != _reward_session_id or _reward_granted_for_session:
 		return
 	_reward_granted_for_session = true
+	_log_analytics("rewarded_ad_completed")
 	if _reward_completion.is_valid():
 		_reward_completion.call(item)
 
@@ -452,6 +455,14 @@ func _invoke_deferred(callback: Callable, arguments: Array = []) -> void:
 func _invoke_callback(callback: Callable, arguments: Array) -> void:
 	if callback.is_valid():
 		callback.callv(arguments)
+
+
+func _log_analytics(event_name: String) -> void:
+	# The ad lifecycle remains authoritative; analytics only observes callbacks
+	# that have already committed a fullscreen show or earned reward.
+	var analytics := get_node_or_null("/root/Analytics")
+	if analytics != null:
+		analytics.log_event(event_name)
 
 
 func _log_load_failure(ad_format: String, error) -> void:

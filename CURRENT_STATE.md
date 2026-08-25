@@ -629,3 +629,6 @@ The version-code-3 AAB baseline was compared directly with current source. Produ
 Android window-Back and Escape-style Back representations share one 350 ms platform debounce before the state-aware policy. One physical press therefore cannot perform two state transitions. See `reports/LAST_AAB_HOME_BACK_REGRESSION_AUDIT.md`.
 
 Corrected TEST APK: `build/android/majestic-gems-last-aab-home-back-repair.apk` (82,166,770 bytes; SHA-256 `B84DDD485475F5BA60ECB01ECE765E1AF39AEDB5A1691F0C0B499B8F9BFB4A8B`). Package inspection confirms all four Home Tween Composer runtime bytecode files, both ARM ABIs, and v2 signing. No device was connected.
+# Current State Addendum - Firebase Analytics Android Integration v1.0.7
+
+Firebase Analytics is configured in the tracked Godot Android custom template using Google Services plugin 4.5.0, Firebase BoM 34.18.0, and `firebase-analytics`; its supplied configuration matches the unchanged `com.owais.majestygems` package. The `Analytics` autoload and Android plugin observe only confirmed level, target, merge, and ad events, with no gameplay or reward authority. The requested Play sequence is restored to versionCode 9 / versionName 1.0.7 because the user confirmed Play's highest upload is 8 / 1.0.6. See `reports/FIREBASE_ANALYTICS_ANDROID_V1.0.7_REPORT.md`.
