@@ -193,6 +193,11 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	var target_progress := hud.root_control.find_child("TargetProgressText", true, false) as Label
 	_assert(coin_value != null and coin_value.get_theme_constant("outline_size") >= 3, "%s coin text must retain the stronger contrast outline" % viewport_size)
 	_assert(target_progress != null and target_progress.get_theme_constant("outline_size") >= 3, "%s target text must retain the stronger contrast outline" % viewport_size)
+	var collecting_snapshot: Dictionary = hud._snapshot.duplicate(true)
+	collecting_snapshot["target_collecting"] = true
+	hud.update_snapshot(collecting_snapshot)
+	await create_timer(0.30, true, false, true).timeout
+	_assert(target_progress != null and target_progress.text.contains("ACHIEVED"), "%s confirmed target collection must visibly say ACHIEVED" % viewport_size)
 	_assert(hud.progression_icons.size() == 8, "%s complete eight-gem path must remain present" % viewport_size)
 	_assert(UiDesignSystemType.PROGRESSION_ICON_SIZE == 56.0, "%s progression gems must retain the less-congested 56 px presentation size" % viewport_size)
 	var settings_button := hud.root_control.find_child("SettingsButton", true, false) as Button

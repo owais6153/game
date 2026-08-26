@@ -161,7 +161,7 @@ func update_snapshot(snapshot: Dictionary) -> void:
 	var target_header := "TARGET  %d / %d" % [mini(target_index + 1, target_total), target_total]
 	var target_state := "%d / %d" % [mini(target_progress, target_quantity), target_quantity]
 	if bool(snapshot.get("target_collecting", false)):
-		target_state = "ARRIVING  %s" % target_state
+		target_state = "ACHIEVED  %d / %d" % [target_quantity, target_quantity]
 	elif bool(snapshot.get("target_completed", false)):
 		target_state = "COMPLETE  %d / %d" % [target_quantity, target_quantity]
 	var target_bar_value := target_quantity if bool(snapshot.get("target_completed", false)) else target_progress
@@ -1123,6 +1123,8 @@ func _set_target_progress(maximum: int, value: int, state: String) -> void:
 func _target_status_text(state: String, value: int, maximum: int) -> String:
 	if state.begins_with("COMPLETE"):
 		return "COMPLETE  â€¢  %d / %d" % [value, maximum]
+	if state.begins_with("ACHIEVED"):
+		return "ACHIEVED  %d / %d" % [value, maximum]
 	if state.begins_with("ARRIVING"):
 		return "ARRIVING  â€¢  %d / %d" % [value, maximum]
 	return "%d / %d" % [value, maximum]
@@ -1131,6 +1133,8 @@ func _target_status_text(state: String, value: int, maximum: int) -> String:
 func _target_status_text_clean(state: String, value: int, maximum: int) -> String:
 	if state.begins_with("COMPLETE"):
 		return "COMPLETE  %d / %d" % [value, maximum]
+	if state.begins_with("ACHIEVED"):
+		return "ACHIEVED  %d / %d" % [value, maximum]
 	if state.begins_with("ARRIVING"):
 		return "ARRIVING  %d / %d" % [value, maximum]
 	return "%d / %d" % [value, maximum]

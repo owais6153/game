@@ -73,6 +73,14 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 			"elapsed": -delay,
 			"duration": GameConfig.COMBO_LABEL_DURATION,
 		})
+	if target_merge:
+		var target_label_lift := minf(GameConfig.COMBO_LABEL_OFFSET_Y - 34.0, -(GameConfig.gem_collision_radius(result_level) * 1.75 + 42.0))
+		combo_labels.append({
+			"position": midpoint + Vector2(0.0, target_label_lift),
+			"text": "TARGET ACHIEVED",
+			"elapsed": -delay,
+			"duration": GameConfig.TARGET_ACHIEVED_LABEL_DURATION,
+		})
 	_cap_effects()
 	queue_redraw()
 

@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Target Achieved and Combo Readability V1](TARGET_ACHIEVED_COMBO_READABILITY_V1_REPORT.md) - literal confirmed-target feedback, longer readable combo labels, focused regressions, and local capture-log hygiene.
+
 - [Playable Game Moments V1](PLAYABLE_GAME_MOMENTS_V1_REPORT.md) - eight 1080x1920 real production-gameplay screenshots across color/shape patterns, target, combo, and final-target moments.
 
 - [Majestic Branding Refresh v1.0.7](MAJESTIC_BRANDING_REFRESH_V1.0.7_REPORT.md) - supplied logo/icon integration, tagline update, replacement-asset audit, and same-version AAB validation.

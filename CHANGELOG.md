@@ -1,3 +1,9 @@
+# 2026-08-26 - Target achieved and combo readability v1
+
+- Replaced the transient target-collection `ARRIVING` state with truthful `ACHIEVED 1 / 1` feedback after authoritative target confirmation.
+- Added a real `TARGET ACHIEVED` board label to confirmed target merges and extended combo-label readability from 0.48 s to 1.10 s; gameplay authority, merge rules, target qualification, rewards, and physics remain unchanged.
+- Ignored local input-replay capture folders/logs so generated screenshot evidence is not accidentally committed.
+
 # 2026-08-25 - HUD panel flattening v1
 
 # 2026-08-26 - Majestic branding refresh v1.0.7

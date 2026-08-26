@@ -5,6 +5,7 @@ extends SceneTree
 ## the staged final-target celebration, and the exactly-once reward contract.
 
 const GameControllerType = preload("res://scripts/gameplay/game_controller.gd")
+const GameplayEffectsLayerType = preload("res://scripts/presentation/gameplay_effects_layer.gd")
 const PieceType = preload("res://scripts/core/gem_piece.gd")
 const ProgressionSaveServiceType = preload("res://scripts/services/progression_save_service.gd")
 const SAVE_FILE := "user://infinite_progression.cfg"
@@ -69,6 +70,12 @@ func _test_merge_timeline_hierarchy() -> void:
 	_assert(GameConfig.combo_label_text(1) == "COMBO 1" and GameConfig.combo_label_text(2) == "COMBO 2", "Low chains must use plain combo labels")
 	_assert(GameConfig.combo_label_text(3) == "COMBO 3!", "COMBO 3 must stay a plain emphatic label")
 	_assert(GameConfig.combo_label_text(4).contains("AMAZING") and GameConfig.combo_label_text(5).contains("PERFECT"), "Rare deep chains may use the escalated wording")
+	_assert(GameConfig.COMBO_LABEL_DURATION >= 1.0, "Combo text must remain readable across low-frame-rate capture and play")
+	_assert(GameConfig.TARGET_ACHIEVED_LABEL_DURATION >= GameConfig.COMBO_LABEL_DURATION, "Target-achieved feedback must remain at least as readable as combo text")
+	var effects := GameplayEffectsLayerType.new()
+	effects.begin_merge_feedback({"result_id": 77, "midpoint": Vector2(360.0, 620.0), "level": 6, "depth": 1, "target_objective_completed": true, "final_target_completed": false})
+	_assert(effects.combo_labels.any(func(label: Dictionary) -> bool: return String(label.get("text", "")) == "TARGET ACHIEVED"), "A confirmed target merge must create a literal TARGET ACHIEVED label")
+	effects.free()
 	# The two deliberate pauses of the celebration must survive retuning.
 	_assert(GameConfig.HERO_HOLD_DURATION >= 0.95 and GameConfig.HERO_LABEL_DURATION >= 0.90, "The final-target gem and caption must remain readable at center")
 	_assert(GameConfig.LEVEL_REWARD_COIN_TABLE_HOLD >= 0.95, "The full final coin pile must remain on the table for a readable hold")

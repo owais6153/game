@@ -26,6 +26,16 @@ WhatsApp Video*.mp4
 WhatsApp Image*.jpeg
 !assets/logo/majestic_gems_icon_source_v1.jpeg
 
+# Local real-gameplay capture runs and their engine logs are review artifacts.
+reports/*.log
+reports/**/*.log
+reports/input-replay-gameplay-*/
+reports/real-gameplay-screenshots-*/
+reports/all-gameplay-screenshots-by-level-*/
+scripts/dev/capture_input_replay_gameplay_v1.gd
+scripts/dev/capture_input_replay_gameplay_v1.gd.uid
+scripts/dev/render_playable_game_moments_v1.gd.uid
+
 # Version-controlled inputs for the Godot custom Android build. Gradle outputs
 # remain ignored even though the template itself is stored under android/build.
 !android/build/

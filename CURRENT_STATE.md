@@ -1,3 +1,7 @@
+# Current State Addendum - Target Achieved and Combo Readability V1
+
+Confirmed target collection now reads `ACHIEVED 1 / 1` in the existing compact HUD and produces a literal `TARGET ACHIEVED` board label during the genuine target reward sequence. Combo labels remain visible for 1.10 seconds and target-achieved labels for 1.40 seconds, improving readability at low frame rates without changing simulation, merge eligibility, target qualification, coins, physics, or layout. Local replay screenshots and capture logs remain ignored review artifacts. See `reports/TARGET_ACHIEVED_COMBO_READABILITY_V1_REPORT.md`.
+
 # Current State Addendum - HUD Panel Flattening V1
 
 # Current State Addendum - Majestic Branding Refresh v1.0.7

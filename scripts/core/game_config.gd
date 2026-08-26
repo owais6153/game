@@ -267,9 +267,10 @@ const BONUS_SPAWN_DIRECTIONS_3 := [-138.0, -90.0, -42.0]
 ## Combo labels for chain merges produced by one shot.
 const COMBO_LABEL_POP_DURATION := 0.06
 const COMBO_LABEL_SETTLE_DURATION := 0.10
-const COMBO_LABEL_DURATION := 0.48
+const COMBO_LABEL_DURATION := 1.10
 const COMBO_LABEL_RISE := 20.0
 const COMBO_LABEL_OFFSET_Y := -58.0
+const TARGET_ACHIEVED_LABEL_DURATION := 1.40
 ## Target collection starts only after the 420 ms merge feedback plus a readable
 ## 120 ms table-position hold. All three targets share this exact cadence.
 const TARGET_COLLECTION_OVERLAP_START := 0.54
