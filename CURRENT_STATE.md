@@ -1,3 +1,12 @@
+# Firebase Custom Gameplay Analytics Pipeline v1 - 2026-08-27
+
+- `Analytics` remains registered in `project.godot`. Its facade now validates Firebase-compatible names and primitive parameters, reports service/native availability, emits an observable request boundary for tests, calls the exact native `logEvent` method, and records the returned acceptance status.
+- The Android bridge initializes Firebase lazily as well as at construction, so early Activity ordering cannot permanently remove the custom-event path. It logs registration, forwarding, JSON rejection, and Firebase exceptions and returns success/failure to GDScript.
+- Live controller hooks now provide `level_number`, generated pattern, mapped gem identity/local type, target involvement/index, earned coins, and danger fail reason. Run-end and run-start guards prevent duplicate start/complete/fail events; Retry now emits its own real `level_start`.
+- Interstitial/rewarded shown events moved from the pre-`show()` request to the Poing SDK `on_ad_showed_full_screen_content` callback. Rewarded completion remains exactly-once at `OnUserEarnedRewardListener`.
+- The user-supplied opaque 512x512 logo is preserved as `assets/logo/majestic_gems_logo_with_background_source_v5.png` and replaces the retired opaque presentation reference for launcher/native-splash derivatives. The active transparent Home/fallback `majestic_gems_logo_v4.png` is unchanged.
+- The next release identity is persisted as versionCode 12 / versionName 1.0.10. Code 11 / 1.0.9 is skipped because a prior local AAB already used that identity, even though the latest delivered record is code 10 / 1.0.8.
+
 # Current State Addendum - Target Achieved and Combo Readability V1
 
 Confirmed target collection now reads `ACHIEVED 1 / 1` in the existing compact HUD and produces a literal `TARGET ACHIEVED` board label during the genuine target reward sequence. Combo labels remain visible for 1.10 seconds and target-achieved labels for 1.40 seconds, improving readability at low frame rates without changing simulation, merge eligibility, target qualification, coins, physics, or layout. Local replay screenshots and capture logs remain ignored review artifacts. See `reports/TARGET_ACHIEVED_COMBO_READABILITY_V1_REPORT.md`.

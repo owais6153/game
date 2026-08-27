@@ -1,3 +1,11 @@
+# Architecture Addendum - Acknowledged Firebase Custom-Event Pipeline
+
+`Analytics` is an early Autoload and the only GDScript/native Firebase boundary. Callers submit fixed event names plus flat primitive dictionaries. The service validates/sanitizes them, emits a test-visible request signal, discovers the `FirebaseAnalytics` engine singleton, invokes its exact `logEvent(String, String)` API, and logs the returned acceptance result. Desktop/editor absence remains a safe no-op.
+
+`FirebaseAnalyticsPlugin` remains registered by the persistent custom-template v2 manifest metadata. It retries `FirebaseAnalytics.getInstance()` when an event arrives if the Godot Activity was unavailable during plugin construction, translates JSON primitives to `Bundle` values, forwards to Firebase, logs native success/failure, and returns a boolean. Firebase automatic collection does not use this bridge.
+
+`GameController` owns per-run start/end duplicate guards and reports only existing confirmed merge/target/win/fail transitions. `AdManager` owns per-fullscreen-session shown guards and reports shown only from `on_ad_showed_full_screen_content`; earned reward remains the only rewarded-completion authority. No analytics result can feed simulation, UI, score, currency, ads, or navigation.
+
 # Architecture Addendum - Rail, Target Blast, and Gem Expansion V1
 
 `AssetCatalog` now preloads 34 alpha-tight runtime textures and immutable metadata entries. The two new identities extend only presentation selection; `LevelConfig` continues mapping selected identities into local L1-L8 roles, and no display name or source pixel enters simulation.

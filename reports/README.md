@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Firebase Custom Gameplay Analytics Pipeline v1](FIREBASE_CUSTOM_GAMEPLAY_ANALYTICS_PIPELINE_V1_REPORT.md) - root-cause audit, acknowledged native bridge, live controller/ad hooks, runtime diagnostics, branding replacement, tests, and release-AAB evidence.
+
 - [Target Achieved and Combo Readability V1](TARGET_ACHIEVED_COMBO_READABILITY_V1_REPORT.md) - literal confirmed-target feedback, longer readable combo labels, focused regressions, and local capture-log hygiene.
 
 - [Playable Game Moments V1](PLAYABLE_GAME_MOMENTS_V1_REPORT.md) - eight 1080x1920 real production-gameplay screenshots across color/shape patterns, target, combo, and final-target moments.

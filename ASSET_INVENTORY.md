@@ -1,3 +1,13 @@
+# Supplied opaque Majestic logo replacement v5 - 2026-08-27
+
+| Purpose | Preserved source | Runtime derivative | Processing / verification |
+| --- | --- | --- | --- |
+| Opaque illustrated launcher branding | `assets/logo/majestic_gems_logo_with_background_source_v5.png` (512x512 supplied PNG) | `assets/runtime/ui/majestic_gems_app_icon_192_v5.png` | Complete square artwork is aspect-contained at 134px on the existing 192px brand canvas. |
+| Adaptive launcher foreground/background | same supplied opaque source | `majestic_gems_adaptive_foreground_v5.png` + `majestic_gems_adaptive_background_v5.png` | Complete artwork is bounded to the existing 288px adaptive safe edge; the established dark-amethyst background remains separate. |
+| Android native system splash | same supplied opaque source | `assets/runtime/ui/majestic_gems_system_splash_1152_v6.png` | Complete artwork is Lanczos-scaled to a 784px safe edge and centered on the existing 1152px canvas. |
+
+The retired opaque `majestic_gems_logo_presentation_reference_v3.png` is removed. The transparent `assets/logo/majestic_gems_home_logo_source_v4.png` and `assets/runtime/ui/majestic_gems_logo_v4.png` are unchanged and remain authoritative for Home and fallback boot presentation.
+
 # Gem Registry and Runtime Expansion V2 - 2026-08-25
 
 | Purpose | Preserved originals | Active runtime derivatives | Processing / boundary |

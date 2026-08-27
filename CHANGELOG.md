@@ -1,3 +1,12 @@
+# 2026-08-27 - Firebase custom gameplay analytics pipeline v1
+
+- Replaced the silent GDScript-to-Android analytics hop with explicit request/service/native/forwarded diagnostics and an acknowledged `logEvent` bridge call.
+- Made native Firebase acquisition retry lazily after Godot Activity startup, validated primitive event parameters, and surfaced malformed payload/native failures without affecting gameplay.
+- Added exactly-once run guards and complete schemas for level start, confirmed merge, target completion, win, and danger failure; added the missing Retry level-start hook.
+- Moved rewarded/interstitial shown analytics to the SDK shown callback and retained rewarded completion only at the earned callback.
+- Replaced the old opaque launcher/splash source with the supplied background logo and generated v5/v6 native derivatives; preserved the transparent Home/fallback logo unchanged.
+- Advanced the release identity to versionCode 12 / versionName 1.0.10 and added the permanent non-blocking device-validation AAB delivery rule.
+
 # 2026-08-26 - Target achieved and combo readability v1
 
 - Replaced the transient target-collection `ARRIVING` state with truthful `ACHIEVED 1 / 1` feedback after authoritative target confirmation.

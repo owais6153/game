@@ -1,3 +1,11 @@
+# Firebase custom gameplay analytics pipeline v1 - 2026-08-27
+
+- Firebase automatic collection and custom gameplay analytics are separate paths. Custom events travel only through the `Analytics` Autoload and the acknowledged Android `FirebaseAnalytics` Godot-plugin bridge.
+- Confirmed runtime events are fixed-name `level_start`, `merge`, `target_complete`, `level_complete`, `level_fail`, `rewarded_ad_shown`, `rewarded_ad_completed`, and `interstitial_shown`; dynamic values remain primitive parameters.
+- `level_start` occurs once when Level Ready starts play or a playable retry begins. `merge` observes accepted merge results only. Target, win, and danger-fail events observe their existing authoritative controller transitions and cannot alter them.
+- Fullscreen-ad shown events occur only from the SDK shown callback. Rewarded completion occurs only from the earned-reward callback. Per-run/per-session guards prevent duplicates.
+- Analytics diagnostics are bounded to initialization and event requests/forwarding; they never run per frame and never gate gameplay, rewards, ads, or progression.
+
 # Rail, Target Blast, and Gem Expansion V1 - 2026-08-25
 
 - The active presentation registry contains 34 supplied identities: 22 Common and 12 Unique. `gem_33` is a pink gradient circle and `gem_34` a pink gradient rounded square. Names remain prohibited in player-facing data/UI.

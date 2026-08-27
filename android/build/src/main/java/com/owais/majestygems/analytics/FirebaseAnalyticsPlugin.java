@@ -1,6 +1,7 @@
 package com.owais.majestygems.analytics;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -16,11 +17,17 @@ import java.util.Iterator;
 
 /** Android-only Firebase Analytics adapter exposed as Engine.get_singleton("FirebaseAnalytics"). */
 public final class FirebaseAnalyticsPlugin extends GodotPlugin {
-    private final FirebaseAnalytics firebaseAnalytics;
+    private static final String TAG = "MajestyAnalytics";
+    private final Godot godotInstance;
+    private FirebaseAnalytics firebaseAnalytics;
 
     public FirebaseAnalyticsPlugin(Godot godot) {
         super(godot);
-        firebaseAnalytics = FirebaseAnalytics.getInstance(godot.getActivity());
+        godotInstance = godot;
+        ensureFirebaseAnalytics();
+        Log.i(TAG, firebaseAnalytics != null
+                ? "Firebase Analytics bridge registered"
+                : "Firebase Analytics bridge registered; Activity initialization deferred");
     }
 
     @NonNull
@@ -30,9 +37,14 @@ public final class FirebaseAnalyticsPlugin extends GodotPlugin {
     }
 
     @UsedByGodot
-    public void log_event(String eventName, String parametersJson) {
+    public boolean logEvent(String eventName, String parametersJson) {
+        if (!ensureFirebaseAnalytics()) {
+            Log.w(TAG, "Rejected custom event because Firebase Analytics is unavailable: " + eventName);
+            return false;
+        }
         if (eventName == null || eventName.isEmpty()) {
-            return;
+            Log.w(TAG, "Rejected empty custom event name");
+            return false;
         }
         final Bundle parameters = new Bundle();
         try {
@@ -51,9 +63,34 @@ public final class FirebaseAnalyticsPlugin extends GodotPlugin {
                     parameters.putString(key, String.valueOf(value));
                 }
             }
-        } catch (JSONException ignored) {
-            // Do not let malformed optional analytics payloads affect the game.
+        } catch (JSONException exception) {
+            Log.e(TAG, "Rejected malformed parameters for " + eventName, exception);
+            return false;
         }
-        firebaseAnalytics.logEvent(eventName, parameters);
+        try {
+            firebaseAnalytics.logEvent(eventName, parameters);
+            Log.i(TAG, "Forwarded custom event to Firebase: " + eventName);
+            return true;
+        } catch (RuntimeException exception) {
+            Log.e(TAG, "Firebase rejected custom event: " + eventName, exception);
+            return false;
+        }
+    }
+
+    private boolean ensureFirebaseAnalytics() {
+        if (firebaseAnalytics != null) {
+            return true;
+        }
+        try {
+            if (godotInstance.getActivity() == null) {
+                return false;
+            }
+            firebaseAnalytics = FirebaseAnalytics.getInstance(godotInstance.getActivity());
+            Log.i(TAG, "Firebase Analytics native instance available");
+            return true;
+        } catch (RuntimeException exception) {
+            Log.e(TAG, "Firebase Analytics bridge initialization failed", exception);
+            return false;
+        }
     }
 }

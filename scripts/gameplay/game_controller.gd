@@ -109,6 +109,8 @@ var debug_calibration_enabled := false
 var debug_contact_points: Array[Dictionary] = []
 var _last_platform_back_msec := -1000
 var _exit_request_pending := false
+var analytics_level_started := false
+var analytics_level_finished := false
 const PLATFORM_BACK_DEBOUNCE_MSEC := 350
 
 # A completed shot can pass through each state only once. This prevents the
@@ -475,6 +477,8 @@ func restart() -> void:
 	completion_reward_resolved = false
 	final_target_result_id = -1
 	failed = false
+	analytics_level_started = false
+	analytics_level_finished = false
 	collection_in_progress = false
 	_cancel_target_collection()
 	dragging = false
@@ -600,8 +604,15 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			processed_merge_result_ids[result_id] = true
 		var result_level: int = int(merge_event.level)
 		var depth := int(merge_event.get("depth", 0))
-		_log_analytics("merge", {"result_level": result_level, "depth": depth})
 		var completes_active_target := result_level == active_target_tier()
+		var identity_mapping: Dictionary = level_config.get("gem_identity_by_tier", {})
+		_log_analytics("merge", {
+			"level_number": level_number,
+			"merged_gem_id": int(identity_mapping.get(result_level, result_level)),
+			"merged_gem_type": result_level,
+			"involved_target": completes_active_target,
+			"chain_depth": depth,
+		})
 		merge_event.target_objective_completed = false
 		merge_event.final_target_completed = false
 		# Authoritative target state advances first so the reward presentation can
@@ -965,7 +976,14 @@ func _advance_target_state_authoritative(result_id: int, merge_event: Dictionary
 	target_progress = 0
 	target_index += 1
 	merge_event.target_objective_completed = true
-	_log_analytics("target_complete", {"level": level_number, "target_index": target_index, "target_tier": int(merge_event.get("level", 1))})
+	var target_tier := int(merge_event.get("level", 1))
+	var identity_mapping: Dictionary = level_config.get("gem_identity_by_tier", {})
+	_log_analytics("target_complete", {
+		"level_number": level_number,
+		"target_index": target_index,
+		"target_gem_id": int(identity_mapping.get(target_tier, target_tier)),
+		"target_gem_type": target_tier,
+	})
 	if target_index >= target_sequence().size():
 		merge_event.final_target_completed = true
 		final_target_result_id = result_id
@@ -1026,7 +1044,10 @@ func _trigger_failure() -> void:
 	if failed:
 		return
 	failed = true
-	_log_analytics("level_fail", {"level": level_number, "score": score})
+	_emit_level_end_analytics_once("level_fail", {
+		"level_number": level_number,
+		"fail_reason": "danger_line",
+	})
 	active_piece_id = -1
 	launcher_state = LauncherState.RESOLVING
 	dragging = false
@@ -1331,7 +1352,10 @@ func _qualify_win_if_target_complete() -> void:
 	if target_index < target_sequence().size() or win_qualified:
 		return
 	won = true
-	_log_analytics("level_complete", {"level": level_number, "score": score})
+	_emit_level_end_analytics_once("level_complete", {
+		"level_number": level_number,
+		"coins_earned": maxi(0, coins - level_start_coins),
+	})
 	win_qualified = true
 	win_presented = false
 	win_hold_elapsed = 0.0
@@ -1600,6 +1624,7 @@ func _on_restart_requested() -> void:
 		get_tree().paused = false
 	restart()
 	app_flow_state = AppFlowState.PLAYING
+	_emit_level_start_analytics_once()
 
 func _on_pause_home_requested() -> void:
 	# Leave the paused gameplay modal synchronously before presenting Home. Home
@@ -1761,16 +1786,41 @@ func _log_analytics(event_name: String, parameters: Dictionary = {}) -> void:
 	# Analytics is observational only. A missing native bridge must never affect
 	# simulation, reward authority, or a desktop/editor test run.
 	var analytics := get_node_or_null("/root/Analytics")
-	if analytics != null:
-		analytics.log_event(event_name, parameters)
+	print("[Analytics] %s requested by gameplay" % event_name)
+	if analytics == null:
+		push_warning("[Analytics] Service unavailable for %s" % event_name)
+		return
+	print("[Analytics] Service available for %s" % event_name)
+	analytics.log_event(event_name, parameters)
+
+
+func _emit_level_start_analytics_once() -> void:
+	if analytics_level_started or analytics_level_finished:
+		return
+	analytics_level_started = true
+	var pattern_family := String(level_config.get("pattern_family", ""))
+	var pattern_dominant := String(level_config.get("pattern_dominant", ""))
+	var parameters := {"level_number": level_number}
+	if not pattern_family.is_empty():
+		parameters["pattern"] = "%s:%s" % [pattern_family, pattern_dominant]
+	_log_analytics("level_start", parameters)
+
+
+func _emit_level_end_analytics_once(event_name: String, parameters: Dictionary) -> void:
+	if analytics_level_finished:
+		return
+	analytics_level_finished = true
+	_log_analytics(event_name, parameters)
 
 func _on_home_play_requested() -> void:
+	if app_flow_state != AppFlowState.LEVEL_READY:
+		return
 	if home_overlay != null:
 		home_overlay.dismiss()
 	if gameplay_ui != null:
 		gameplay_ui.show()
 	app_flow_state = AppFlowState.PLAYING
-	_log_analytics("level_start", {"level": level_number})
+	_emit_level_start_analytics_once()
 	if is_inside_tree():
 		get_tree().paused = false
 

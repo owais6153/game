@@ -1,12 +1,12 @@
 extends SceneTree
 
 const HOME_SOURCE_PATH := "res://assets/logo/majestic_gems_home_logo_source_v4.png"
-const ICON_SOURCE_PATH := "res://assets/logo/majestic_gems_logo_presentation_reference_v3.png"
+const ICON_SOURCE_PATH := "res://assets/logo/majestic_gems_logo_with_background_source_v5.png"
 const RUNTIME_LOGO_PATH := "res://assets/runtime/ui/majestic_gems_logo_v4.png"
-const LEGACY_PATH := "res://assets/runtime/ui/majestic_gems_app_icon_192_v4.png"
-const FOREGROUND_PATH := "res://assets/runtime/ui/majestic_gems_adaptive_foreground_v4.png"
-const BACKGROUND_PATH := "res://assets/runtime/ui/majestic_gems_adaptive_background_v4.png"
-const SYSTEM_SPLASH_PATH := "res://assets/runtime/ui/majestic_gems_system_splash_1152_v5.png"
+const LEGACY_PATH := "res://assets/runtime/ui/majestic_gems_app_icon_192_v5.png"
+const FOREGROUND_PATH := "res://assets/runtime/ui/majestic_gems_adaptive_foreground_v5.png"
+const BACKGROUND_PATH := "res://assets/runtime/ui/majestic_gems_adaptive_background_v5.png"
+const SYSTEM_SPLASH_PATH := "res://assets/runtime/ui/majestic_gems_system_splash_1152_v6.png"
 const LEGACY_SIZE := 192
 const ADAPTIVE_SIZE := 432
 const LEGACY_ART_EDGE := 134
@@ -38,7 +38,7 @@ func _init() -> void:
 	if not _save_padded_logo(icon_source, LEGACY_SIZE, LEGACY_ART_EDGE, LEGACY_PATH, true):
 		quit(1)
 		return
-	if not _save_padded_logo(icon_source, ADAPTIVE_SIZE, ADAPTIVE_ART_EDGE, FOREGROUND_PATH, true):
+	if not _save_padded_logo(icon_source, ADAPTIVE_SIZE, ADAPTIVE_ART_EDGE, FOREGROUND_PATH, false):
 		quit(1)
 		return
 	if not _save_padded_logo(icon_source, SYSTEM_SPLASH_SIZE, SYSTEM_SPLASH_ART_EDGE, SYSTEM_SPLASH_PATH, true):
@@ -50,7 +50,7 @@ func _init() -> void:
 		push_error("Unable to save adaptive background")
 		quit(1)
 		return
-	print("MAJESTIC_GEMS_LAUNCHER_V4: PASS home_source=%s icon_source=%s alpha_bounds=%s" % [HOME_SOURCE_PATH, ICON_SOURCE_PATH, used])
+	print("MAJESTIC_GEMS_LAUNCHER_V5: PASS home_source=%s icon_source=%s alpha_bounds=%s" % [HOME_SOURCE_PATH, ICON_SOURCE_PATH, used])
 	quit(0)
 
 

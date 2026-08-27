@@ -1,3 +1,12 @@
+# 2026-08-27 - Firebase custom-event and release-delivery guardrails
+
+- Firebase automatic events prove SDK/provider initialization only; they do not prove the Godot Autoload, native singleton, method export, gameplay call sites, or custom-event forwarding.
+- Keep `Analytics` registered in `[autoload]`. Custom events must use fixed valid names and flat Firebase primitives; never encode dynamic data into event names.
+- Native Firebase acquisition must retry after Activity startup. Keep request/service/plugin/forward/success diagnostics bounded to event calls, never `_process()`.
+- Level start/end, merge, target, and ad events stay attached to their confirmed authorities. Shown ads require `on_ad_showed_full_screen_content`; rewarded completion requires the earned callback.
+- Deliver every signed and Bundletool-validated AAB even without a connected phone. Report ADB/DebugView status independently unless device validation was explicitly made a release gate.
+- Preserve `assets/runtime/ui/majestic_gems_logo_v4.png` as the transparent Home/fallback logo. The opaque launcher/splash source is `assets/logo/majestic_gems_logo_with_background_source_v5.png`.
+
 # Knowledge Base Addendum - HUD Panel Flattening V1
 
 - Do not add a nested panel for Next headings, settings rows, or Result reward totals. Use direct labels/layout containers within their existing parent surface.

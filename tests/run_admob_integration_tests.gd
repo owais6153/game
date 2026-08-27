@@ -62,6 +62,12 @@ func _test_consent_gate_contract() -> void:
 func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	var manager := AdManagerType.new()
 	root.add_child(manager)
+	var analytics := root.get_node_or_null("Analytics")
+	var analytics_events: Array[String] = []
+	var analytics_handler := func(event_name: String, _parameters: Dictionary) -> void:
+		analytics_events.append(event_name)
+	if analytics != null:
+		analytics.event_requested.connect(analytics_handler)
 	var state := {"interstitial_finished": 0, "rewarded_finished": 0, "rewarded_earned": true}
 	var interstitial_started := manager.show_interstitial(func() -> void: state.interstitial_finished += 1)
 	var rewarded_started := manager.show_rewarded(
@@ -80,6 +86,9 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	interstitial_started = manager.show_interstitial(func() -> void: state.interstitial_finished += 1)
 	var active_interstitial = manager._active_interstitial_ad
 	_assert(interstitial_started and manager.is_fullscreen_showing(), "A ready interstitial must enter one fullscreen session")
+	manager._on_interstitial_shown(active_interstitial)
+	manager._on_interstitial_shown(active_interstitial)
+	_assert(analytics_events.count("interstitial_shown") == 1, "Interstitial analytics must fire once from the actual shown callback")
 	_assert(not manager.show_interstitial(), "A second fullscreen request must be rejected while one is active")
 	manager._finish_interstitial(active_interstitial)
 	manager._finish_interstitial(active_interstitial)
@@ -100,8 +109,12 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	var active_rewarded = manager._active_rewarded_ad
 	var session_id := manager._reward_session_id
 	_assert(rewarded_started and manager.is_fullscreen_showing(), "A ready rewarded ad must enter one fullscreen session")
+	manager._on_rewarded_shown(active_rewarded)
+	manager._on_rewarded_shown(active_rewarded)
 	manager._on_user_earned_reward(session_id, null)
 	manager._on_user_earned_reward(session_id, null)
+	_assert(analytics_events.count("rewarded_ad_shown") == 1, "Rewarded shown analytics must fire once from the actual shown callback")
+	_assert(analytics_events.count("rewarded_ad_completed") == 1, "Rewarded completion analytics must fire once from the earned callback")
 	manager._finish_rewarded(active_rewarded)
 	await process_frame
 	_assert(int(state.reward_grants) == 1 and int(state.rewarded_finished) == 1 and bool(state.rewarded_earned), "Confirmed reward and dismissal must grant and finish exactly once")
@@ -117,6 +130,7 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 			state.rewarded_finished += 1
 	)
 	active_rewarded = manager._active_rewarded_ad
+	manager._on_rewarded_shown(active_rewarded)
 	manager._finish_rewarded(active_rewarded)
 	await process_frame
 	_assert(rewarded_started and int(state.rewarded_finished) == 1 and not bool(state.rewarded_earned), "Early rewarded close/failure must grant nothing and restore the normal path")
@@ -125,6 +139,8 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	await create_timer(0.7, true).timeout
 	_assert(not manager.is_interstitial_ready() and not manager.is_rewarded_ready(), "Delayed loader callbacks must not repopulate ads after shutdown begins")
 	manager.queue_free()
+	if analytics != null and analytics.event_requested.is_connected(analytics_handler):
+		analytics.event_requested.disconnect(analytics_handler)
 	await process_frame
 
 

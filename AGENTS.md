@@ -28,6 +28,7 @@ Before inspecting or editing project files, every future agent must read, in thi
 - After local validation, commit and tag each completed milestone, then push the existing branch and its new tag to the configured GitHub `origin`. Never force-push or replace the origin URL without explicit user authorization.
 - Preserve verified mechanics and their regression tests. Make the smallest scoped change possible; do not change unrelated launcher, board, queue, or collision behavior.
 - Record tests actually run, the standalone APK file existence check, and connected-device status truthfully. Never infer phone testing from a successful export.
+- A successfully built, release-signed, Bundletool-validated AAB must be delivered even when no physical Android device is available. Report device installation and Firebase DebugView separately; lack of a device does not block artifact delivery unless the user explicitly requires device validation as a release gate.
 - Make one mechanic change per task whenever practical.
 - Do not perform broad refactors or retuning without explicit user approval.
 - Rendering-only work must stay outside the simulation, merge-service, launcher, and collision paths. Keep procedural visuals in dedicated drawing helpers and add a mapping test whenever gem-level artwork changes.

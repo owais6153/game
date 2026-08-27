@@ -27,6 +27,8 @@ var _rewarded_loading := false
 var _fullscreen_showing := false
 var _interstitial_showing := false
 var _rewarded_showing := false
+var _interstitial_reported_shown := false
+var _rewarded_reported_shown := false
 
 var _interstitial_loader
 var _rewarded_loader
@@ -307,10 +309,10 @@ func show_interstitial(on_finished: Callable = Callable()) -> bool:
 	_active_interstitial_ad = ad
 	_interstitial_completion = on_finished
 	_interstitial_showing = true
+	_interstitial_reported_shown = false
 	_fullscreen_showing = true
 	interstitial_availability_changed.emit(false)
 	fullscreen_started.emit("interstitial")
-	_log_analytics("interstitial_shown")
 	_start_fullscreen_safety_timeout("interstitial", ad)
 	ad.show()
 	return true
@@ -329,10 +331,10 @@ func show_rewarded(on_reward: Callable, on_finished: Callable = Callable()) -> b
 	_reward_session_id += 1
 	_reward_granted_for_session = false
 	_rewarded_showing = true
+	_rewarded_reported_shown = false
 	_fullscreen_showing = true
 	rewarded_availability_changed.emit(false)
 	fullscreen_started.emit("rewarded")
-	_log_analytics("rewarded_ad_shown")
 	_start_fullscreen_safety_timeout("rewarded", ad)
 	var session_id := _reward_session_id
 	var reward_listener := OnUserEarnedRewardListener.new()
@@ -344,6 +346,8 @@ func show_rewarded(on_reward: Callable, on_finished: Callable = Callable()) -> b
 
 func _setup_interstitial_callbacks(ad) -> void:
 	var callbacks := FullScreenContentCallback.new()
+	callbacks.on_ad_showed_full_screen_content = func() -> void:
+		_on_interstitial_shown(ad)
 	callbacks.on_ad_dismissed_full_screen_content = func() -> void:
 		_finish_interstitial(ad)
 	callbacks.on_ad_failed_to_show_full_screen_content = func(error: AdError) -> void:
@@ -354,12 +358,28 @@ func _setup_interstitial_callbacks(ad) -> void:
 
 func _setup_rewarded_callbacks(ad) -> void:
 	var callbacks := FullScreenContentCallback.new()
+	callbacks.on_ad_showed_full_screen_content = func() -> void:
+		_on_rewarded_shown(ad)
 	callbacks.on_ad_dismissed_full_screen_content = func() -> void:
 		_finish_rewarded(ad)
 	callbacks.on_ad_failed_to_show_full_screen_content = func(error: AdError) -> void:
 		_log_show_failure("rewarded", error)
 		_finish_rewarded(ad)
 	ad.full_screen_content_callback = callbacks
+
+
+func _on_interstitial_shown(ad) -> void:
+	if not _interstitial_showing or ad != _active_interstitial_ad or _interstitial_reported_shown:
+		return
+	_interstitial_reported_shown = true
+	_log_analytics("interstitial_shown")
+
+
+func _on_rewarded_shown(ad) -> void:
+	if not _rewarded_showing or ad != _active_rewarded_ad or _rewarded_reported_shown:
+		return
+	_rewarded_reported_shown = true
+	_log_analytics("rewarded_ad_shown")
 
 
 func _on_user_earned_reward(session_id: int, item) -> void:
@@ -460,9 +480,16 @@ func _invoke_callback(callback: Callable, arguments: Array) -> void:
 func _log_analytics(event_name: String) -> void:
 	# The ad lifecycle remains authoritative; analytics only observes callbacks
 	# that have already committed a fullscreen show or earned reward.
-	var analytics := get_node_or_null("/root/Analytics")
-	if analytics != null:
-		analytics.log_event(event_name)
+	print("[Analytics] %s requested by AdManager" % event_name)
+	if not is_inside_tree():
+		print("[Analytics] Service unavailable for detached AdManager test instance")
+		return
+	var analytics := get_tree().root.get_node_or_null("Analytics")
+	if analytics == null:
+		push_warning("[Analytics] Service unavailable for %s" % event_name)
+		return
+	print("[Analytics] Service available for %s" % event_name)
+	analytics.log_event(event_name)
 
 
 func _log_load_failure(ad_format: String, error) -> void:
