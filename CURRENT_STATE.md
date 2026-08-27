@@ -6,6 +6,7 @@
 - Interstitial/rewarded shown events moved from the pre-`show()` request to the Poing SDK `on_ad_showed_full_screen_content` callback. Rewarded completion remains exactly-once at `OnUserEarnedRewardListener`.
 - The user-supplied opaque 512x512 logo is preserved as `assets/logo/majestic_gems_logo_with_background_source_v5.png` and replaces the retired opaque presentation reference for launcher/native-splash derivatives. The active transparent Home/fallback `majestic_gems_logo_v4.png` is unchanged.
 - The next release identity is persisted as versionCode 12 / versionName 1.0.10. Code 11 / 1.0.9 is skipped because a prior local AAB already used that identity, even though the latest delivered record is code 10 / 1.0.8.
+- The final signed AAB is `build/android/majestic-gems-firebase-analytics-pipeline-v1.0.10-vc12.aab`; Bundletool, manifest, DEX, packaged-bytecode, archive, and upload-certificate validation passed. No ADB device was connected, so DebugView remains separately unverified and does not block delivery.
 
 # Current State Addendum - Target Achieved and Combo Readability V1
 

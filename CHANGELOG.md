@@ -6,6 +6,7 @@
 - Moved rewarded/interstitial shown analytics to the SDK shown callback and retained rewarded completion only at the earned callback.
 - Replaced the old opaque launcher/splash source with the supplied background logo and generated v5/v6 native derivatives; preserved the transparent Home/fallback logo unchanged.
 - Advanced the release identity to versionCode 12 / versionName 1.0.10 and added the permanent non-blocking device-validation AAB delivery rule.
+- Exported and validated the signed `majestic-gems-firebase-analytics-pipeline-v1.0.10-vc12.aab`; packaged DEX/GDC audits confirm the newest native bridge and gameplay/ad hooks. No device was connected for DebugView.
 
 # 2026-08-26 - Target achieved and combo readability v1
 

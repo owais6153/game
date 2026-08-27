@@ -1,5 +1,21 @@
 # Build Manifest
 
+## Firebase Custom Gameplay Analytics Pipeline RELEASE AAB v1.0.10 (versionCode 12)
+
+- AAB: `build/android/majestic-gems-firebase-analytics-pipeline-v1.0.10-vc12.aab`
+- Size/timestamp: 75,100,120 bytes; 2026-08-27 12:25:19 +05:00.
+- SHA-256: `B5EAE522D8454815D42E6DA9CCF96E612558394FAB3E91E48ACD3E7CE481103A`.
+- Source commit/tag: `26bcab8` / `firebase-custom-gameplay-analytics-pipeline-v1-source`. Delivery tag: `firebase-custom-gameplay-analytics-pipeline-v1.0.10-vc12-release` on the manifest/report follow-up commit.
+- Version decision: versionCode `12` / versionName `1.0.10`. The latest delivered record was code 10 / 1.0.8, but code 11 / 1.0.9 is skipped because an older local AAB already used that identity; neither value is reused.
+- Export: Godot 4.6.3 `--export-release Android`, Gradle AAB, existing upload signing, and both `arm64-v8a` / `armeabi-v7a` architectures.
+- Validation: Bundletool 1.18.3 `validate` passed. The embedded base manifest reports package `com.owais.majestygems`, versionCode 12, versionName 1.0.10, min SDK 24, target/compile SDK 36, portrait activity, required touchscreen, unchanged AdMob application ID, Firebase init/provider components, Firebase plugin metadata, and unchanged Poing AdMob registrations.
+- Native/package proof: a Bundletool universal audit APK exposes `FirebaseAnalyticsPlugin.boolean logEvent(String,String)` and `ensureFirebaseAnalytics()` in DEX. The AAB contains current `analytics_service.gdc`, `game_controller.gdc`, and `ad_manager.gdc`; bytecode strings confirm the new `logEvent` acknowledgement, diagnostics, `level_number`, gem/target schemas, danger reason, and all ad event names. Archive count is 1,039 with zero source-logo, test, or report entries.
+- Signature: `jarsigner` reports `jar verified`. The signer remains Muhammad Owais Khan / Teckvertex Labs with SHA-256 certificate fingerprint `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14`.
+- Tests: Godot editor parse/import, `FIREBASE_ANALYTICS_PIPELINE_TESTS`, `ADMOB_INTEGRATION_TESTS`, `BRANDING_PUSH_LINE_TESTS`, `GAME_FLOW_REWARD_SPLASH_TESTS`, `RAIL_TARGET_BLAST_GEM_EXPANSION_V1_TESTS`, branding derivative generation, and Gradle `compileStandardReleaseJavaWithJavac` passed.
+- Standalone APK check: Bundletool generated `build/android/firebase-analytics-vc12-audit-apks/universal.apk` (76,420,279 bytes) from this exact AAB for DEX/package inspection. It is a debug-signed audit derivative, not the delivered store artifact.
+- Device/DebugView: `adb devices -l` returned no connected device. Installation, physical gameplay, logcat forwarding, and Firebase DebugView receipt were not performed and are not claimed; per project rule this does not block delivery of the signed validated AAB.
+- Report: `reports/FIREBASE_CUSTOM_GAMEPLAY_ANALYTICS_PIPELINE_V1_REPORT.md`.
+
 ## Majestic Branding Refresh AAB v1.0.7 (versionCode 9)
 
 - AAB: `build/android/majestic-gems-branding-refresh-v1.0.7-vc9.aab`

@@ -39,4 +39,12 @@ Release identity is versionCode 12 / versionName 1.0.10. Code 11 / 1.0.9 is deli
 
 Final AAB details, Bundletool/manifest/package/signing/archive validation, latest-script proof, ADB status, and DebugView status are recorded after export below.
 
-<!-- FINAL_AAB_EVIDENCE -->
+- Final signed AAB: `build/android/majestic-gems-firebase-analytics-pipeline-v1.0.10-vc12.aab`.
+- Size/timestamp/SHA-256: 75,100,120 bytes; 2026-08-27 12:25:19 +05:00; `B5EAE522D8454815D42E6DA9CCF96E612558394FAB3E91E48ACD3E7CE481103A`.
+- Bundletool 1.18.3 validation: PASS. Embedded identity is `com.owais.majestygems`, versionCode 12, versionName 1.0.10, min SDK 24, target/compile SDK 36.
+- Android configuration audit: unchanged AdMob application ID, Firebase init/provider and Godot-plugin metadata, Poing AdMob/UMP registrations, portrait activity, required touchscreen, and both ARM ABIs are present.
+- Signing: `jarsigner` reports `jar verified`; upload certificate SHA-256 remains `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14` (Muhammad Owais Khan / Teckvertex Labs).
+- Latest-code proof: AAB bytecode contains the acknowledged `logEvent`, native-plugin diagnostics, `level_number`, mapped gem/target schema, `danger_line`, and ad event constants. Universal-APK DEX inspection shows `boolean logEvent(String,String)` plus lazy `ensureFirebaseAnalytics()`.
+- Archive audit: 1,039 entries; current analytics/controller/ad-manager GDCs are present; source logos, tests, and reports are absent. New v5/v6 branding imports are present and active native resources are generated from them.
+- Standalone existence check: `build/android/firebase-analytics-vc12-audit-apks/universal.apk` exists at 76,420,279 bytes as a Bundletool debug-signed audit derivative of the release AAB.
+- Device status: `adb devices -l` returned no device. Installation, logcat native-forward confirmation, and Firebase DebugView receipt could not be performed. The signed validated AAB is still delivered under the permanent project rule.
