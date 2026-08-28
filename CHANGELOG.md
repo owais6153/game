@@ -1,5 +1,8 @@
 # 2026-08-28 - UI polish pass: current-gem reroll, combo-style cost popups, Play Games removed
 
+- Matched the latest supplied gameplay reference: replaced the lavender dice with a bold white @icons clockwise-arrows glyph and changed Switch Gem to a bright-rimmed 112 px purple squircle seated across the lower table frame.
+- Reduced Next from `141.075x172` to `128x150`, reduced its gem preview from 54 to 48 px, and increased the Next-to-Settings gap from 8 to 12 px to prevent visual overlap.
+
 - Replaced the live-board sink row with one professional 112 px circular `SWITCH GEM` action using the curated @icons dice glyph, stronger amethyst states, 18 px internal padding, a clear caption, and a transient spend popup.
 - Removed Skip Level from live gameplay and placed its @icons fast-forward action in Level Ready, Pause, and Failed overlays with the 200-coin price visible at the decision point. Skip remains absent from successful Level Complete.
 - Kept the entire table/art/rail/board/danger/launcher model lifted together by 64 design pixels so the bottom action zone has proper spacing without desynchronizing physics.

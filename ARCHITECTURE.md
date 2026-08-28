@@ -1,6 +1,8 @@
 # Architecture Addendum - Skip Level Sink and Current Gem Reroll
 
-The finalized presentation distributes one controller intent across three snapshot-only surfaces. `GameplayHudLayer` owns the sole live-board economy control: a 112 px true-circle Switch Gem button with a curated runtime dice SVG and transient spend popup; it also owns the Pause Skip action. `HomeOverlayLayer` owns Level Ready Skip and `ResultOverlayLayer` owns Failed Skip. All emit into `GameController`; none mutate progression or coins. Successful Level Complete deliberately exposes no Skip action.
+Reference refinement V2 changes presentation tokens only: the live Switch Gem control is a 112 px squircle using `arrows_clockwise_white.svg`, and the right utility stack reads compact `NEXT_PANEL_SIZE`/`NEXT_ICON_SIZE` plus an explicit 12 px container separation before Settings. Controller snapshots, input signals, economy authority, and table physics are unchanged.
+
+The finalized presentation distributes one controller intent across three snapshot-only surfaces. `GameplayHudLayer` owns the sole live-board economy control: a 112 px bright-rimmed Switch Gem squircle with a curated runtime clockwise-arrows SVG and transient spend popup; it also owns the Pause Skip action. `HomeOverlayLayer` owns Level Ready Skip and `ResultOverlayLayer` owns Failed Skip. All emit into `GameController`; none mutate progression or coins. Successful Level Complete deliberately exposes no Skip action.
 
 The supplied @icons editor library is not a runtime dependency. `addons/at-icons/*` and `@icons picker.html` remain in `export_presets.cfg`'s exclusion filter; only selected small runtime SVG derivatives under `assets/runtime/ui/icons/` are preloaded by player-facing layers. This supersedes the earlier two-live-button presentation description below.
 

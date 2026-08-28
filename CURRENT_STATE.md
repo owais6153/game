@@ -1,5 +1,7 @@
 # Skip Level and Current Gem Reroll Redesign - 2026-08-28
 
+Reference refinement V2 supersedes the earlier circular/dice treatment: Switch Gem is now a high-contrast 112 px purple squircle with a large white clockwise-arrows glyph, intentionally seated across the table's lower frame. Next is reduced from `141.075x172` to `128x150`, its gem from 54 to 48 px, and the Settings gap from 8 to 12 px so those controls remain visually separate. See `reports/COIN_SINK_VISIBILITY_NEXT_SPACING_V2_REPORT.md`.
+
 UI placement correction: live gameplay now exposes only one prominent 112 px circular `SWITCH GEM` control below the uniformly lifted table. Skip Level is confined to Level Ready, Pause, and Failed overlays, where its 200-coin price is explicit, and remains absent from successful Level Complete. Both actions use curated @icons runtime SVGs; the 5.7 MB editor addon and picker remain export-excluded. This supersedes the earlier two-live-button description below. See `reports/COIN_SINK_UI_POLISH_V1_REPORT.md`.
 
 A second V1 coin sink, Skip Level (`GameConfig.SKIP_LEVEL_COST` = 200 coins), jumps directly to the next level with no win screen, reward, or interstitial — a save-atomic, double-tap-locked paid escape hatch alongside the existing reroll. The reroll itself changes the tier of the currently aimable launcher gem in place; `GemSpriteLayer` re-syncs its texture/radius/shadow automatically. Switch Gem is the sole live circular action, while Skip is placed in Level Ready, Pause, and Failed overlays with its explicit price. See `ECONOMY.md`.

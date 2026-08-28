@@ -1,8 +1,11 @@
 # 2026-08-28 - Coin-sink UI placement guardrails
 
+- The approved V2 reference treatment is a 112 px purple Switch Gem squircle with a large white clockwise-arrows glyph seated across the lower table frame. Do not restore the dice glyph or low-contrast circular treatment.
+- Keep Next at `128x150`, its preview at 48 px, and at least 10 design pixels of visible separation before Settings across supported portrait layouts.
+
 - Live gameplay contains only the 112 px circular Switch Gem control; never restore a live Skip button. Switch cost appears through `GameplayHudLayer._show_sink_cost_popup()`.
 - Skip belongs only in Level Ready, Pause, and Failed overlays, where its explicit coin price helps prevent accidental spending. It must remain absent from successful Level Complete.
-- Runtime UI may preload only curated derivatives such as `dice_lavender.svg` and `fast_forward_lavender.svg`. Keep `addons/at-icons/*` and `@icons picker.html` export-excluded so the editor library does not add roughly 5.7 MB of source files to APK/AAB packaging.
+- Runtime UI may preload only curated derivatives such as `arrows_clockwise_white.svg` and `fast_forward_lavender.svg`. Keep `addons/at-icons/*` and `@icons picker.html` export-excluded so the editor library does not add roughly 5.7 MB of source files to APK/AAB packaging.
 
 # 2026-08-28 - Production-candidate guardrails
 

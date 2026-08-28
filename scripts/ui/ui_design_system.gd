@@ -61,7 +61,7 @@ const HUD_ICON_SIZE := 58.0
 ## silhouettes visually touching in the fixed-width HUD strip.
 const PROGRESSION_ICON_SIZE := 56.0
 const TARGET_ICON_SIZE := 60.0
-const NEXT_ICON_SIZE := 54.0
+const NEXT_ICON_SIZE := 48.0
 const HEADER_HEIGHT := 172.0
 const UTILITY_ROW_HEIGHT := 116.0
 const TOP_HUD_HEIGHT := 122.0
@@ -70,10 +70,10 @@ const OBJECTIVE_STACK_GAP := 14.0
 const OBJECTIVE_TABLE_GAP_MIN := 20.0
 const OBJECTIVE_TABLE_GAP_MAX := 76.0
 const PROGRESSION_HEIGHT := 78.0
-## Coins retains the approved larger footprint. Next receives one additional
-## 10% emphasis pass while remaining secondary to the centered Target.
+## Coins retains the approved larger footprint. Next stays deliberately
+## compact so the Settings control beneath it has a clean independent gap.
 const SCORE_PANEL_SIZE := Vector2(164.25, 72.0)
-const NEXT_PANEL_SIZE := Vector2(141.075, 172.0)
+const NEXT_PANEL_SIZE := Vector2(128.0, 150.0)
 const TARGET_PANEL_SIZE := Vector2(340.0, 84.0)
 
 const TITLE_FONT_SIZE := 42
@@ -243,12 +243,9 @@ static func target_badge_style() -> StyleBox:
 static func utility_frame_style() -> StyleBox:
 	return _frosted_glass_style(Color(0.34, 0.10, 0.52, 0.92), Color(0.12, 0.025, 0.23, 0.92), 32, 2, false, true)
 
-## A big circular icon-button frame (112px, paired with
-## GameplayHudLayer.SINK_BUTTON_SIZE) with real interior padding, so an icon
-## rendered with expand_icon never touches the ring border while still
-## rendering at least as large as the smallest gem on the table (a 72px
-## visible icon here). Radius is exactly half the button size, keeping it a
-## true circle rather than a rounded square.
+## A high-visibility jewel-game action frame paired with the 112px gameplay
+## touch target. Its deep purple squircle, bright lavender-white rim, and large
+## white swap glyph follow the approved lower-table reference treatment.
 static func sink_action_button_style(hovered: bool = false, pressed: bool = false) -> StyleBox:
 	var top := Color(0.72, 0.30, 0.96, 0.99)
 	var bottom := Color(0.26, 0.055, 0.48, 0.99)
@@ -258,11 +255,13 @@ static func sink_action_button_style(hovered: bool = false, pressed: bool = fals
 	if pressed:
 		top = Color(0.44, 0.14, 0.68, 0.99)
 		bottom = Color(0.16, 0.025, 0.31, 0.99)
-	var style := _frosted_glass_style(top, bottom, 56, 4, false, true)
-	style.content_margin_left = 18.0
-	style.content_margin_top = 18.0
-	style.content_margin_right = 18.0
-	style.content_margin_bottom = 18.0
+	var style := _frosted_glass_style(top, bottom, 32, 4, false, true) as StyleBoxFancy
+	if style != null and not style.borders.is_empty():
+		style.borders[0].color = Color("fff4ff") if not pressed else Color("dca6ff")
+	style.content_margin_left = 20.0
+	style.content_margin_top = 20.0
+	style.content_margin_right = 20.0
+	style.content_margin_bottom = 20.0
 	return style
 
 

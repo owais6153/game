@@ -1,5 +1,7 @@
 # Final Pre-Launch Production Readiness Candidate - 2026-08-28
 
+- Reference refinement V2: Switch Gem uses a large white two-arrow glyph inside a bright-rimmed purple 112 px squircle seated across the table's lower frame. Next is compacted to `128x150` with a 48 px gem and a 12 px gap before the independent Settings control.
+
 - Coin-sink presentation correction: live gameplay exposes only one 112 px circular Switch Gem action below the shared table. Skip Level is available only in Level Ready, Pause, and Failed overlays, displays its centralized price there, and is absent from successful Level Complete.
 - The shared 64 px table lift translates table art, physics rails, board, danger line, launcher, and containment together. Selected @icons runtime derivatives identify both actions; the editor addon and picker remain excluded from Android export.
 

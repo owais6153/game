@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Coin Sink Visibility and Next Spacing V2](COIN_SINK_VISIBILITY_NEXT_SPACING_V2_REPORT.md) - reference-matched swap control, compact Next card, Settings clearance, asset mapping, and focused validation.
+
 - [Coin Sink UI Polish V1](COIN_SINK_UI_POLISH_V1_REPORT.md) - professional circular Switch Gem control, overlay-only Skip placement, shared table lift, @icons provenance/export exclusion, and focused regressions.
 
 - [Final Pre-Launch Production Readiness v1.0.11](FINAL_PRELAUNCH_PRODUCTION_READINESS_REPORT.md) - Firebase/AdMob/UMP, Play compliance, Android release, regression, economy, artifact, and residual-risk audit for the production candidate.

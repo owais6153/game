@@ -361,7 +361,7 @@ All originals remain preserved. These files are presentation-only and never defi
 
 # Coin sink icon derivatives - 2026-08-28
 
-- `assets/runtime/ui/icons/dice_lavender.svg` - recolored runtime derivative of `addons/at-icons/node/dice.svg`, used by the live circular Switch Gem action.
+- `assets/runtime/ui/icons/arrows_clockwise_white.svg` - recolored runtime derivative of `addons/at-icons/node/arrows_clockwise.svg`, used by the high-contrast Switch Gem action. It supersedes and removes the prior dice derivative.
 - `assets/runtime/ui/icons/fast_forward_lavender.svg` - recolored runtime derivative of `addons/at-icons/node/fast_forward.svg`, used by Level Ready, Pause, and Failed Skip Level actions.
 - `export_presets.cfg` excludes `addons/at-icons/*` and `@icons picker.html`; only the selected small runtime SVG derivatives enter Android packages.
 

@@ -12,7 +12,7 @@ const ICON_RESTART = preload("res://assets/runtime/ui/icons/restart_lavender.svg
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_lavender.svg")
 const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_lavender.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_lavender.svg")
-const ICON_REROLL = preload("res://assets/runtime/ui/icons/dice_lavender.svg")
+const ICON_REROLL = preload("res://assets/runtime/ui/icons/arrows_clockwise_white.svg")
 const ICON_SKIP = preload("res://assets/runtime/ui/icons/fast_forward_lavender.svg")
 const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "reroll_cost", "reroll_enabled", "skip_cost", "skip_enabled", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled"]
 
@@ -598,9 +598,9 @@ func _build_hud() -> void:
 
 	var right_slot := VBoxContainer.new()
 	right_slot.name = "NextSettingsSlot"
-	right_slot.custom_minimum_size = Vector2(UiDesignSystemType.NEXT_PANEL_SIZE.x, UiDesignSystemType.NEXT_PANEL_SIZE.y + 8.0 + UiDesignSystemType.TOP_SETTINGS_SIZE)
+	right_slot.custom_minimum_size = Vector2(UiDesignSystemType.NEXT_PANEL_SIZE.x, UiDesignSystemType.NEXT_PANEL_SIZE.y + 12.0 + UiDesignSystemType.TOP_SETTINGS_SIZE)
 	right_slot.alignment = BoxContainer.ALIGNMENT_BEGIN
-	right_slot.add_theme_constant_override("separation", 8)
+	right_slot.add_theme_constant_override("separation", 12)
 	right_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	utility_row.add_child(right_slot)
 	next_panel = _build_next_panel()
@@ -646,9 +646,8 @@ func _build_hud() -> void:
 	objective_stack.add_child(progression_center)
 	progression_center.add_child(_build_progression_group())
 
-	# The only live-board economy action sits below the table (which GameConfig
-	# deliberately lifted to make room) as one prominent circular icon button
-	# with a text
+	# The only live-board economy action intentionally overlaps the table's
+	# lower frame as one prominent jewel-game swap button with a text
 	# caption under each — no price/coin clutter, cost shown only as a
 	# transient popup at the moment of spending. Anchored/re-measured against
 	# GameConfig.table_outer_bottom() in _refresh_safe_margins(), exactly like
@@ -1374,14 +1373,13 @@ func _refresh_safe_margins() -> void:
 		sink_buttons_anchor.offset_right = UiDesignSystemType.DESIGN_WIDTH
 		sink_buttons_anchor.add_theme_constant_override("margin_left", left_margin)
 		sink_buttons_anchor.add_theme_constant_override("margin_right", right_margin)
-		# Button circle + gap-to-caption + caption line (mirrors _build_sink_button).
+		# Button frame + gap-to-caption + caption line (mirrors _build_sink_button).
 		var sink_row_height := SINK_BUTTON_SIZE + 6.0 + 24.0
 		var sink_bottom_margin := maxf(base_margin, insets.w * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING)
-		# GameConfig lifted the whole table specifically to open this gap: the
-		# row sits below the table's outer edge with real clearance on both
-		# sides (table above, screen edge below) instead of overlapping either.
+		# Match the approved reference by seating the control across the lower
+		# table frame while retaining the safe-area clamp for short screens.
 		var sink_top := clampf(
-			GameConfig.table_outer_bottom() + 16.0,
+			GameConfig.table_outer_bottom() - 36.0,
 			GameConfig.board_bottom() + 4.0,
 			design_height - sink_row_height - sink_bottom_margin
 		)
