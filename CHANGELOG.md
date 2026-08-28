@@ -1,3 +1,9 @@
+# 2026-08-28 - Firebase custom-event bridge repair AAB v1.0.12 (versionCode 14)
+
+- Exported, Bundletool-validated, and signature-verified the repaired `majestic-gems-production-candidate-v1.0.12-vc14.aab`. All twelve Godot regression suites and a whole-project editor import pass with no errors; the compiled DEX contains the `getPluginMethods`/`logEvent` bridge strings confirming the device-found fix is packaged.
+- Dual `arm64-v8a`/`armeabi-v7a` architectures only, package `com.owais.majestygems`, versionCode 14/versionName 1.0.12 embedded manifest confirmed, unchanged Teckvertex Labs upload signature verified.
+- On-device Firebase DebugView/custom-event verification for this exact build was not performed; it requires explicit user ADB authorization before Play upload.
+
 # 2026-08-28 - Final pre-launch production-readiness candidate
 
 - Real-device release testing found that Firebase automatic events uploaded while the Godot custom-event singleton omitted `logEvent`; versionCode 13 / versionName 1.0.11 is superseded and must not be uploaded.

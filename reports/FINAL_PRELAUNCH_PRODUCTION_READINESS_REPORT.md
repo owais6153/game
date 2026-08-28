@@ -86,7 +86,16 @@ The AAB export, Bundletool manifest/version/ABI inspection, signature/hash audit
 
 ## Repaired versionCode-14 artifact and device evidence
 
-Pending the committed-source export and repeat device run. Focused `FIREBASE_ANALYTICS_PIPELINE_TESTS` and Gradle `compileStandardReleaseJavaWithJavac` pass with the explicit `getPluginMethods()` contract.
+- Release AAB: `build/android/majestic-gems-production-candidate-v1.0.12-vc14.aab`
+- Size/timestamp: 75,104,762 bytes; 2026-08-28 09:28 +05:00
+- SHA-256: `EAD85A7E30CC0E8D88B7000AED2EC41192BE7BFB1E8F36F2CB2AB19FF44328B7`
+- Source commit/tag: `5d6f74489a4ae15a45ca97d45d50419aa9da02aa` / `final-prelaunch-firebase-device-repair-v1.0.12-vc14-source`
+- All twelve Godot regression suites reprinted PASS (Firebase analytics pipeline, AdMob, scene/asset variety, animation/audio/back/privacy, sound/privacy, gem pattern feedback, rail/target/gem expansion, reference game feel, reward feedback, UI scale/layout, branding, game flow/reward/splash), and a whole-project Godot editor `--import` pass completed with no script/import errors.
+- Bundletool 1.18.3 `validate`: PASS. `dump manifest` confirms package `com.owais.majestygems`, versionCode 14, versionName 1.0.12, min SDK 24, target/compile SDK 36, required touchscreen, portrait game activity, the unchanged production AdMob application ID, and the same Firebase/Poing AdMob/UMP plugin registrations as prior releases.
+- Native/package proof: the extracted universal audit APK has 1,036 entries, three `.so` libraries for each ARM ABI, zero x86/x86_64 libraries, current compiled `analytics_service.gdc`/`game_controller.gdc`/`ad_manager.gdc`, and zero packaged test/report/dev-script entries. `classes.dex`/`classes2.dex`/`classes3.dex` contain the `getPluginMethods`/`logEvent` bridge strings, confirming the device-found fix is packaged in this exact build.
+- Signature: `jarsigner -verify` on the AAB reports `jar verified`; unchanged Muhammad Owais Khan / Teckvertex Labs upload signer, SHA-256 certificate fingerprint `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14`.
+- Standalone existence check: `build/android/production-candidate-vc14-audit-apks.apks` (`universal.apk`, 76,436,663 bytes, SHA-256 `758B5EBA4E57FB41A48E8CF1BC38D707FD9A9538BA8F5CD8D3A36D5872FED4F3`). Debug-signed audit derivative only, not the delivered Play artifact.
+- Device/DebugView: **not performed.** No `adb` command was run against a physical device in this session; per explicit user instruction, device installation and Firebase DebugView verification require the user's authorization first. This remains the single open gate before this AAB is confirmed for Play upload — repeat the exact V2149 device flow (install, press Start, confirm `logEvent` no longer logs "unavailable", confirm custom gameplay events appear in DebugView) once authorized.
 
 ## Residual risks and manual acceptance
 

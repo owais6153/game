@@ -1,5 +1,23 @@
 # Build Manifest
 
+## Final Pre-Launch Production Candidate RELEASE AAB v1.0.12 (versionCode 14)
+
+- Status: repaired candidate, exported and locally validated. Not yet installed on a physical device; on-device Firebase DebugView/custom-event verification is pending explicit ADB authorization.
+- AAB: `build/android/majestic-gems-production-candidate-v1.0.12-vc14.aab`
+- Size/timestamp: 75,104,762 bytes; 2026-08-28 09:28 +05:00.
+- SHA-256: `EAD85A7E30CC0E8D88B7000AED2EC41192BE7BFB1E8F36F2CB2AB19FF44328B7`.
+- Source commit/tag: `5d6f74489a4ae15a45ca97d45d50419aa9da02aa` / `final-prelaunch-firebase-device-repair-v1.0.12-vc14-source`. Delivery tag: `final-prelaunch-firebase-device-repair-v1.0.12-vc14-release` on this manifest/report follow-up commit.
+- Version decision: versionCode `14` / versionName `1.0.12`, strictly newer than every recorded/uploaded/delivered identity, including the superseded 13 / 1.0.11 below. Both values were already committed in `export_presets.cfg` by the fix commit before export.
+- Fix contents: `FirebaseAnalyticsPlugin.java` now declares `logEvent` through an explicit `getPluginMethods()` override in addition to `@UsedByGodot`, repairing the device-found defect where the Godot native singleton existed but could not call `logEvent`.
+- Export: Godot 4.6.3 `--export-release Android`, Gradle AAB, existing upload signing, package `com.owais.majestygems`, min SDK 24, target/compile SDK 36, and both `arm64-v8a` / `armeabi-v7a` architectures.
+- Validation: Bundletool 1.18.3 `validate` passed with no errors. `dump manifest` confirms versionCode 14, versionName 1.0.12, package `com.owais.majestygems`, min/target/compile SDK 24/36/36, required touchscreen, portrait game activity, the unchanged production AdMob application ID, and the same Firebase/Poing AdMob/UMP plugin registrations as prior releases.
+- Native/package proof: the extracted universal audit APK has 1,036 entries, three `.so` libraries for each of `arm64-v8a`/`armeabi-v7a`, zero x86/x86_64 libraries, current compiled `analytics_service.gdc` (11,148 bytes), `game_controller.gdc` (207,172 bytes), and `ad_manager.gdc` (46,088 bytes), and zero packaged test/report/dev-script entries. `classes.dex`/`classes2.dex`/`classes3.dex` contain the `getPluginMethods`/`logEvent` bridge strings, confirming the fix is packaged.
+- Signature: `jarsigner -verify` on the AAB itself reports `jar verified` with the existing Muhammad Owais Khan / Teckvertex Labs upload signer; SHA-256 certificate fingerprint `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14` (unchanged, expires 2053-12-29). The expected self-signed/no-timestamp/JarInputStream-vs-JarFile inconsistency notices remain non-failing, matching every prior release.
+- Tests: all twelve Godot suites (`FIREBASE_ANALYTICS_PIPELINE_TESTS`, `ADMOB_INTEGRATION_TESTS`, `SCENE_VARIETY_ASSETS_TESTS`, `ANIMATION_AUDIO_BACK_PRIVACY_POLISH_TESTS`, `SOUND_PRIVACY_LINK_TESTS`, `GEM_PATTERN_FEEDBACK_V1_TESTS`, `RAIL_TARGET_BLAST_GEM_EXPANSION_V1_TESTS`, `REFERENCE_GAME_FEEL_V2_TESTS`, `REWARD_FEEDBACK_V3_TESTS`, `UI_SCALE_LAYOUT_TESTS`, `BRANDING_PUSH_LINE_TESTS`, `GAME_FLOW_REWARD_SPLASH_TESTS`) printed PASS with no assertion failures, and a whole-project Godot editor `--import` pass completed with no script/import errors (one harmless warning about a stray nested `project.godot` under `build/closed_test_aab_audit`, which is excluded from the export). Gradle export completed with no build errors.
+- Standalone APK check: Bundletool `build-apks --mode=universal` generated `build/android/production-candidate-vc14-audit-apks.apks` (`universal.apk`, 76,436,663 bytes, SHA-256 `758B5EBA4E57FB41A48E8CF1BC38D707FD9A9538BA8F5CD8D3A36D5872FED4F3`) from this exact AAB with the local debug keystore; it is a debug-signed audit derivative, not the delivered Play artifact.
+- Device/DebugView: not performed in this session. `adb` was not invoked; per explicit user instruction, any device installation or DebugView check requires the user's authorization first. Live Firebase custom-event forwarding on this exact build therefore remains an open manual verification gate before Play upload.
+- Report: `reports/FINAL_PRELAUNCH_PRODUCTION_READINESS_REPORT.md`.
+
 ## Final Pre-Launch Production Candidate RELEASE AAB v1.0.11 (versionCode 13)
 
 - Status: **SUPERSEDED — DO NOT UPLOAD.** Real-device testing proved Firebase automatic collection/upload but Godot registered the custom singleton without callable `logEvent`, so gameplay custom events were not forwarded. Replaced by the repaired versionCode-14 / versionName-1.0.12 candidate.
