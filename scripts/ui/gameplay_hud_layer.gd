@@ -12,7 +12,9 @@ const ICON_RESTART = preload("res://assets/runtime/ui/icons/restart_lavender.svg
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_lavender.svg")
 const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_lavender.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_lavender.svg")
-const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "reroll_cost", "reroll_enabled", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled"]
+const ICON_REROLL = preload("res://assets/runtime/ui/icons/dice_lavender.svg")
+const ICON_SKIP = preload("res://assets/runtime/ui/icons/fast_forward_lavender.svg")
+const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "reroll_cost", "reroll_enabled", "skip_cost", "skip_enabled", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled"]
 
 signal settings_requested
 signal resume_requested
@@ -23,6 +25,7 @@ signal sound_toggled(enabled: bool)
 signal privacy_options_requested
 signal ui_tap_requested
 signal reroll_next_requested
+signal skip_level_requested
 
 var root_control: Control
 var hud_canvas: Control
@@ -38,6 +41,8 @@ var progression_icons: Array[TextureRect] = []
 var next_panel: Control
 var next_icon: TextureRect
 var reroll_button: Button
+var pause_skip_button: Button
+var sink_buttons_anchor: MarginContainer
 var target_panel: Control
 var target_header_label: Label
 var target_icon: TextureRect
@@ -139,10 +144,13 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		if had_snapshot:
 			_animate_next_swap()
 	if reroll_button != null:
-		var reroll_cost := int(snapshot.get("reroll_cost", GameConfig.NEXT_GEM_REROLL_COST))
-		reroll_button.text = "REROLL  %d" % reroll_cost
-		reroll_button.disabled = not bool(snapshot.get("reroll_enabled", false))
-		reroll_button.tooltip_text = "Spend %d coins to reroll the Next Gem" % reroll_cost
+		var reroll_enabled := bool(snapshot.get("reroll_enabled", false))
+		reroll_button.disabled = not reroll_enabled
+		reroll_button.modulate.a = 1.0 if reroll_enabled else 0.45
+	if pause_skip_button != null:
+		var skip_enabled := bool(snapshot.get("skip_enabled", false))
+		pause_skip_button.disabled = not skip_enabled
+		pause_skip_button.tooltip_text = "Skip this level for %d coins" % int(snapshot.get("skip_cost", GameConfig.SKIP_LEVEL_COST))
 
 	var current_level := int(snapshot.get("current_level", 1))
 	var highest_level := int(snapshot.get("highest_level", 1))
@@ -638,6 +646,122 @@ func _build_hud() -> void:
 	objective_stack.add_child(progression_center)
 	progression_center.add_child(_build_progression_group())
 
+	# The only live-board economy action sits below the table (which GameConfig
+	# deliberately lifted to make room) as one prominent circular icon button
+	# with a text
+	# caption under each — no price/coin clutter, cost shown only as a
+	# transient popup at the moment of spending. Anchored/re-measured against
+	# GameConfig.table_outer_bottom() in _refresh_safe_margins(), exactly like
+	# the objective stack above.
+	sink_buttons_anchor = MarginContainer.new()
+	sink_buttons_anchor.name = "SinkButtonsAnchor"
+	sink_buttons_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sink_buttons_anchor.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	sink_buttons_anchor.offset_left = 0.0
+	sink_buttons_anchor.offset_right = UiDesignSystemType.DESIGN_WIDTH
+	hud_canvas.add_child(sink_buttons_anchor)
+	var sink_center := CenterContainer.new()
+	sink_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sink_buttons_anchor.add_child(sink_center)
+	var sink_row := HBoxContainer.new()
+	sink_row.name = "SinkButtonsRow"
+	sink_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	sink_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sink_center.add_child(sink_row)
+	var reroll_built := _build_sink_button("Reroll", ICON_REROLL, "SWITCH GEM", "Switch the current gem (%d coins)" % GameConfig.NEXT_GEM_REROLL_COST)
+	reroll_button = reroll_built.button
+	reroll_button.pressed.connect(func() -> void:
+		ui_tap_requested.emit()
+		_show_sink_cost_popup(reroll_button, GameConfig.NEXT_GEM_REROLL_COST)
+		reroll_next_requested.emit()
+	)
+	sink_row.add_child(reroll_built.stack)
+
+
+## A transient "-100"-style cost readout matching the gameplay combo labels
+## (GameplayEffectsLayer._draw_combo_label) as closely as a Control can: same
+## font size, same gold-on-dark-shadow coloring, and the same
+## GameConfig.COMBO_LABEL_* pop/settle/rise/fade timing. A price only ever
+## appears momentarily at the moment of spending, never permanently.
+func _show_sink_cost_popup(anchor_button: Button, cost: int) -> void:
+	if anchor_button == null or not anchor_button.is_inside_tree():
+		return
+	const COMBO_LABEL_FONT_SIZE := 30
+	const COMBO_LABEL_GOLD := Color(1.0, 0.94, 0.55, 1.0)
+	const COMBO_LABEL_SHADOW := Color(0.24, 0.12, 0.05, 1.0)
+	var popup := _label("-%d" % cost, COMBO_LABEL_FONT_SIZE, COMBO_LABEL_GOLD)
+	popup.add_theme_color_override("font_shadow_color", COMBO_LABEL_SHADOW)
+	popup.add_theme_constant_override("shadow_offset_x", 2)
+	popup.add_theme_constant_override("shadow_offset_y", 3)
+	popup.z_index = 25
+	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_control.add_child(popup)
+	await get_tree().process_frame
+	if not is_instance_valid(popup):
+		return
+	var button_center := anchor_button.get_global_rect().get_center()
+	popup.pivot_offset = popup.size * 0.5
+	var start_position := button_center - popup.size * 0.5 - Vector2(0.0, anchor_button.size.y * 0.5 + 10.0)
+	popup.global_position = start_position
+	popup.scale = Vector2.ONE * 0.5
+	popup.modulate.a = 1.0
+	var pop_duration := GameConfig.COMBO_LABEL_POP_DURATION
+	var settle_duration := GameConfig.COMBO_LABEL_SETTLE_DURATION
+	var total_duration := GameConfig.COMBO_LABEL_DURATION
+	var travel_duration := maxf(0.001, total_duration - pop_duration - settle_duration)
+	var tween := create_tween()
+	tween.tween_property(popup, "scale", Vector2.ONE * 1.2, pop_duration).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "scale", Vector2.ONE, settle_duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.parallel().tween_property(popup, "global_position:y", start_position.y - GameConfig.COMBO_LABEL_RISE, travel_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# Matches _draw_combo_label's alpha = 1 - smoothstep(0.55, 1.0, travel_t):
+	# the fade only starts 55% of the way through the post-settle travel.
+	tween.parallel().tween_property(popup, "modulate:a", 0.0, travel_duration * 0.45).set_delay(travel_duration * 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.finished.connect(func() -> void:
+		if is_instance_valid(popup):
+			popup.queue_free()
+	)
+
+
+## One circular icon button plus its text caption, stacked. The button is
+## sized so its visible icon (after sink_action_button_style's padding) is at
+## least as large as the smallest gem on the table (tier 1's 36px collision
+## radius, i.e. a 72px-diameter gem) — this is a primary action, not a small
+## utility icon, and must read clearly on a real phone screen.
+const SINK_BUTTON_SIZE := 112.0
+
+func _build_sink_button(action_name: String, icon: Texture2D, caption_text: String, tooltip_text_value: String) -> Dictionary:
+	var button := Button.new()
+	button.name = "%sSinkButton" % action_name
+	button.custom_minimum_size = Vector2.ONE * SINK_BUTTON_SIZE
+	button.icon = icon
+	button.expand_icon = true
+	button.add_theme_stylebox_override("normal", UiDesignSystemType.sink_action_button_style())
+	button.add_theme_stylebox_override("hover", UiDesignSystemType.sink_action_button_style(true, false))
+	button.add_theme_stylebox_override("pressed", UiDesignSystemType.sink_action_button_style(false, true))
+	button.add_theme_stylebox_override("disabled", UiDesignSystemType.sink_action_button_style())
+	button.add_theme_stylebox_override("focus", UiDesignSystemType.sink_action_button_style(true, false))
+	button.focus_mode = Control.FOCUS_ALL
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.self_modulate = Color("ead4ff")
+	button.tooltip_text = tooltip_text_value
+	var stack := VBoxContainer.new()
+	stack.name = "%sSinkStack" % action_name
+	stack.alignment = BoxContainer.ALIGNMENT_CENTER
+	stack.add_theme_constant_override("separation", 6)
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var button_center := CenterContainer.new()
+	button_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button_center.add_child(button)
+	stack.add_child(button_center)
+	var caption := _label(caption_text, 17, UiDesignSystemType.COLOR_TEXT)
+	caption.add_theme_constant_override("outline_size", 4)
+	caption.add_theme_color_override("font_outline_color", Color(0.08, 0.015, 0.14, 0.9))
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.custom_minimum_size = Vector2(SINK_BUTTON_SIZE + 28.0, 24.0)
+	stack.add_child(caption)
+	return {"button": button, "stack": stack}
+
 
 func _build_score_panel() -> Control:
 	var panel := PanelContainer.new()
@@ -696,19 +820,6 @@ func _build_next_panel() -> Control:
 	center.add_child(aspect)
 	next_icon = _gem_texture_rect("NextGem")
 	aspect.add_child(next_icon)
-	reroll_button = Button.new()
-	reroll_button.name = "RerollNextButton"
-	reroll_button.text = "REROLL  %d" % GameConfig.NEXT_GEM_REROLL_COST
-	reroll_button.custom_minimum_size = Vector2(112.0, 48.0)
-	reroll_button.theme_type_variation = "SecondaryButton"
-	reroll_button.add_theme_font_size_override("font_size", 14)
-	reroll_button.focus_mode = Control.FOCUS_ALL
-	reroll_button.mouse_filter = Control.MOUSE_FILTER_STOP
-	reroll_button.pressed.connect(func() -> void:
-		ui_tap_requested.emit()
-		reroll_next_requested.emit()
-	)
-	column.add_child(reroll_button)
 	return panel
 
 
@@ -891,6 +1002,12 @@ func _build_pause_popup() -> void:
 	resume_button.tooltip_text = "Continue playing"
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
 	column.add_child(resume_button)
+	pause_skip_button = _button("PauseSkipLevelButton", "SKIP LEVEL  ·  %d COINS" % GameConfig.SKIP_LEVEL_COST, Vector2(424.0, 68.0), "SecondaryButton")
+	pause_skip_button.icon = ICON_SKIP
+	pause_skip_button.expand_icon = false
+	pause_skip_button.tooltip_text = "Skip this level for %d coins" % GameConfig.SKIP_LEVEL_COST
+	pause_skip_button.pressed.connect(func() -> void: skip_level_requested.emit())
+	column.add_child(pause_skip_button)
 	var utility_row := HBoxContainer.new()
 	utility_row.custom_minimum_size = Vector2(424.0, 72.0)
 	utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1251,6 +1368,25 @@ func _refresh_safe_margins() -> void:
 		var objective_top := maxf(minimum_top, GameConfig.table_outer_top() - table_gap - stack_height)
 		objective_stack_anchor.offset_top = objective_top
 		objective_stack_anchor.offset_bottom = objective_top + stack_height
+
+	if sink_buttons_anchor != null:
+		sink_buttons_anchor.offset_left = 0.0
+		sink_buttons_anchor.offset_right = UiDesignSystemType.DESIGN_WIDTH
+		sink_buttons_anchor.add_theme_constant_override("margin_left", left_margin)
+		sink_buttons_anchor.add_theme_constant_override("margin_right", right_margin)
+		# Button circle + gap-to-caption + caption line (mirrors _build_sink_button).
+		var sink_row_height := SINK_BUTTON_SIZE + 6.0 + 24.0
+		var sink_bottom_margin := maxf(base_margin, insets.w * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING)
+		# GameConfig lifted the whole table specifically to open this gap: the
+		# row sits below the table's outer edge with real clearance on both
+		# sides (table above, screen edge below) instead of overlapping either.
+		var sink_top := clampf(
+			GameConfig.table_outer_bottom() + 16.0,
+			GameConfig.board_bottom() + 4.0,
+			design_height - sink_row_height - sink_bottom_margin
+		)
+		sink_buttons_anchor.offset_top = sink_top
+		sink_buttons_anchor.offset_bottom = sink_top + sink_row_height
 	_apply_safe_margin(pause_safe_margin, insets)
 
 

@@ -1,3 +1,9 @@
+# 2026-08-28 - Coin-sink UI placement guardrails
+
+- Live gameplay contains only the 112 px circular Switch Gem control; never restore a live Skip button. Switch cost appears through `GameplayHudLayer._show_sink_cost_popup()`.
+- Skip belongs only in Level Ready, Pause, and Failed overlays, where its explicit coin price helps prevent accidental spending. It must remain absent from successful Level Complete.
+- Runtime UI may preload only curated derivatives such as `dice_lavender.svg` and `fast_forward_lavender.svg`. Keep `addons/at-icons/*` and `@icons picker.html` export-excluded so the editor library does not add roughly 5.7 MB of source files to APK/AAB packaging.
+
 # 2026-08-28 - Production-candidate guardrails
 
 - Real-device validation of versionCode 13 found Firebase automatic uploads healthy but custom gameplay events not forwarded, logged as `Firebase singleton exists but logEvent is unavailable`. The first suspected cause (missing `getPluginMethods()` on `FirebaseAnalyticsPlugin.java`) was **wrong** — versionCode 14 shipped that change and reproduced the identical failure on a repeat device test.
@@ -6,12 +12,19 @@
 - Passing Bundletool validation, manifest dump, DEX string presence, and `jarsigner` signature checks does **not** prove a native plugin method is actually callable at runtime. On-device verification is a mandatory gate for any future change to a native plugin bridge (Firebase, AdMob), not optional.
 
 - `GameConfig.NEXT_GEM_REROLL_COST` is the only V1 sink price. Do not duplicate it in UI/controller code.
-- Reroll may replace only the displayed `next_level`, using a different tier from the current `launcher_sequence`. Never mutate the active launcher, target mapping, future queue, spawn ranges, or physics.
+- Reroll replaces the tier of the current aimable launcher gem (`GameController.get_active_piece()`), using a different tier from the current `launcher_sequence`; it does not touch the queued Next preview. Only while `launcher_state == READY_TO_AIM`. Never mutate target mapping, future queue, spawn ranges, or physics.
 - Spend only banked `level_start_coins`; persist the reduced banked value before committing in-memory state. This prevents Retry refunds and unresolved-reward duplication.
 - Keep the rapid-request lock and `coin_spent` exactly-once regression. Save failure must cancel the whole transaction.
 - `merge` is the established gem-merge analytics name; `rewarded_ad_completed` is the established earned-reward name. Do not emit duplicate aliases.
 - Ad requested events observe intent; shown events require the SDK shown callback; rewarded completion requires the earned callback; failure events must remain bounded to an actual request/session, never periodic load retries.
-- Play Games, additional sinks, shops, IAP, gameplay modifiers, timers, shot limits, blockers, and leaderboards remain post-launch.
+- Shops, IAP, gameplay modifiers, timers, shot limits, blockers, and leaderboards remain post-launch. A second coin sink (Skip Level) was pulled forward and delivered.
+
+# 2026-08-28 - Skip Level sink and current-gem reroll guardrails
+
+- `GameConfig.SKIP_LEVEL_COST` is the Skip Level price. Skip must never emit `level_complete`, `won`, or a reward — it advances `level_number`/seed and coins in one atomic save exactly like the reroll's transaction contract, then goes straight to `_show_level_start()`. If you ever see a skip granting a reward or triggering the interstitial/result-overlay path, that is a regression.
+- Reroll changes `GameController.get_active_piece()`'s tier (the currently aimable gem), not `next_level`. Only allowed while `launcher_state == READY_TO_AIM`.
+- Switch Gem shows cost only through `GameplayHudLayer._show_sink_cost_popup()`. Skip Level shows its price permanently in Level Ready, Pause, and Failed overlays and must not appear on the live board.
+- A Google Play Games Services v2 integration (sign-in, achievements, streak, local reminder) was built, device-tested, and then fully removed at the user's explicit request. Do not re-add any of it without being asked — if asked to revisit it, treat it as a fresh feature, not a resurrection of deleted files.
 
 # 2026-08-27 - Firebase custom-event and release-delivery guardrails
 

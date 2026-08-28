@@ -1,3 +1,17 @@
+# Architecture Addendum - Skip Level Sink and Current Gem Reroll
+
+The finalized presentation distributes one controller intent across three snapshot-only surfaces. `GameplayHudLayer` owns the sole live-board economy control: a 112 px true-circle Switch Gem button with a curated runtime dice SVG and transient spend popup; it also owns the Pause Skip action. `HomeOverlayLayer` owns Level Ready Skip and `ResultOverlayLayer` owns Failed Skip. All emit into `GameController`; none mutate progression or coins. Successful Level Complete deliberately exposes no Skip action.
+
+The supplied @icons editor library is not a runtime dependency. `addons/at-icons/*` and `@icons picker.html` remain in `export_presets.cfg`'s exclusion filter; only selected small runtime SVG derivatives under `assets/runtime/ui/icons/` are preloaded by player-facing layers. This supersedes the earlier two-live-button presentation description below.
+
+Skip Level reuses the reroll's crossing pattern: `GameplayHudLayer` exposes `skip_cost`/`skip_enabled` and emits one `skip_level_requested` intent it cannot act on directly. `GameController._on_skip_level_requested()` is the sole authority — it deducts the flat cost from the banked baseline, computes the next level's seed via the same `LevelConfig.seed_for_level()` a normal completion would use, and writes level/seed/coins through one atomic `ProgressionSaveService.save_progress()` call before any in-memory state changes, matching the reroll sink's rollback-safe contract. There is no win state, reward, or interstitial in this path — `won`/`completion_*` are never touched, so it cannot be confused with a real completion in analytics or save data.
+
+Reroll now targets the currently aimable launcher gem (`GameController.get_active_piece()`) rather than the queued Next preview: `_on_reroll_next_requested()` only proceeds while `launcher_state == READY_TO_AIM`, then mutates that `GemPiece`'s `.level`/`.base_radius` in place. `GemSpriteLayer` already re-reads `piece.level` every sync pass and swaps texture/visual-scale/shadow automatically, so no presentation code needed to change.
+
+The Switch Gem action is the only live circular button and shows cost through `_show_sink_cost_popup()`. Skip uses standard modal buttons with permanent price text at the Level Ready, Pause, and Failed decision points.
+
+A Google Play Games Services v2 integration (sign-in autoload, achievements, daily streak, local reminder notification) was built and device-verified in this session, then fully removed at the user's request rather than shipped partially configured — no `PlayGames`/`StreakReminder` autoload, native plugin, manifest entry, or Gradle dependency remains in the tree. `ProgressionSaveService` is back to its original three-field schema (`level_number`, `seed`, `total_coins`).
+
 # Architecture Addendum - Production Analytics and V1 Coin Sink
 
 `GameController` remains the only gameplay/economy authority. It counts attempts and actual launches, observes confirmed merge/target/end transitions, and supplies flat analytics context. `AdManager` owns fullscreen callback truth and carries immutable request context into SDK shown/earned/failure events. Neither analytics result nor Firebase availability feeds ads, rewards, navigation, or simulation.

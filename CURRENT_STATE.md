@@ -1,3 +1,11 @@
+# Skip Level and Current Gem Reroll Redesign - 2026-08-28
+
+UI placement correction: live gameplay now exposes only one prominent 112 px circular `SWITCH GEM` control below the uniformly lifted table. Skip Level is confined to Level Ready, Pause, and Failed overlays, where its 200-coin price is explicit, and remains absent from successful Level Complete. Both actions use curated @icons runtime SVGs; the 5.7 MB editor addon and picker remain export-excluded. This supersedes the earlier two-live-button description below. See `reports/COIN_SINK_UI_POLISH_V1_REPORT.md`.
+
+A second V1 coin sink, Skip Level (`GameConfig.SKIP_LEVEL_COST` = 200 coins), jumps directly to the next level with no win screen, reward, or interstitial — a save-atomic, double-tap-locked paid escape hatch alongside the existing reroll. The reroll itself changes the tier of the currently aimable launcher gem in place; `GemSpriteLayer` re-syncs its texture/radius/shadow automatically. Switch Gem is the sole live circular action, while Skip is placed in Level Ready, Pause, and Failed overlays with its explicit price. See `ECONOMY.md`.
+
+A Google Play Games Services v2 integration (sign-in, achievements, daily streak, local reminder notification) was built and device-tested in this same session, then fully removed at the user's request — no PlayGames/Streak code, autoloads, manifest entries, or Gradle dependencies remain. It is queued in `POST_LAUNCH_ROADMAP.md` as a future dedicated pass rather than left half-integrated.
+
 # Final Pre-Launch Production Readiness Candidate - 2026-08-28
 
 On-device validation superseded the versionCode-13 candidate before Play upload: Firebase automatic first-open/session data uploaded successfully, but Godot registered the `FirebaseAnalytics` singleton without its callable `logEvent` method. The Java plugin now explicitly lists `logEvent` through `getPluginMethods()` in addition to `@UsedByGodot`. The repaired release identity is versionCode 14 / versionName 1.0.12; 13 / 1.0.11 must not be uploaded.

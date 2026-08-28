@@ -71,19 +71,25 @@ func _resolve_bounds(piece: GemPiece) -> void:
 	var right := GameConfig.table_right_at(piece.position.y) - piece.radius
 	var top := GameConfig.board_top() + piece.radius
 	var bottom := GameConfig.board_bottom() - piece.radius
-	if piece.position.x < left:
+	# A piece this call already clamped to a boundary must not immediately
+	# re-trigger the same wall impact here or on a later redundant resolve
+	# pass this same frame purely from float noise in the recomputed
+	# left/right/top/bottom (e.g. a changed piece.radius from perspective
+	# scale). Require a measurable crossing, matching the pair-contact
+	# tolerance already used elsewhere (GameConfig.SEPARATION_EPSILON).
+	if piece.position.x < left - GameConfig.SEPARATION_EPSILON:
 		_record_wall_impact(absf(piece.velocity.x), Vector2(left - piece.radius, piece.position.y), piece.id, Vector2.RIGHT)
 		piece.position.x = left
 		piece.velocity.x = abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
-	elif piece.position.x > right:
+	elif piece.position.x > right + GameConfig.SEPARATION_EPSILON:
 		_record_wall_impact(absf(piece.velocity.x), Vector2(right + piece.radius, piece.position.y), piece.id, Vector2.LEFT)
 		piece.position.x = right
 		piece.velocity.x = -abs(piece.velocity.x) * GameConfig.SIDE_WALL_RESTITUTION
-	if piece.position.y < top:
+	if piece.position.y < top - GameConfig.SEPARATION_EPSILON:
 		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, top - piece.radius), piece.id, Vector2.DOWN)
 		piece.position.y = top
 		piece.velocity.y = abs(piece.velocity.y) * GameConfig.TOP_WALL_RESTITUTION
-	elif piece.position.y > bottom:
+	elif piece.position.y > bottom + GameConfig.SEPARATION_EPSILON:
 		_record_wall_impact(absf(piece.velocity.y), Vector2(piece.position.x, bottom + piece.radius), piece.id, Vector2.UP)
 		piece.position.y = bottom
 		piece.velocity.y = -abs(piece.velocity.y) * GameConfig.BOTTOM_WALL_RESTITUTION

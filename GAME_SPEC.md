@@ -1,5 +1,8 @@
 # Final Pre-Launch Production Readiness Candidate - 2026-08-28
 
+- Coin-sink presentation correction: live gameplay exposes only one 112 px circular Switch Gem action below the shared table. Skip Level is available only in Level Ready, Pause, and Failed overlays, displays its centralized price there, and is absent from successful Level Complete.
+- The shared 64 px table lift translates table art, physics rails, board, danger line, launcher, and containment together. Selected @icons runtime derivatives identify both actions; the editor addon and picker remain excluded from Android export.
+
 - V1 adds one economy action only: spend the centralized 100-coin cost to reroll the currently displayed Next Gem from the existing weighted launcher sequence. The active launcher, later queue, targets, physics, merge rules, and balance tuning are unchanged.
 - Reroll spending is save-before-commit, banked-coin-only, retry-safe, non-negative, and protected against rapid duplicate requests. It emits exactly one contextual `coin_spent` event.
 - Analytics retain established canonical names (`merge` for gem merge and `rewarded_ad_completed` for earned reward) and now add attempt/shot/economy/ad-placement context plus retry, bounded coin inflow/outflow, ad-request, and ad-failure coverage.

@@ -359,6 +359,12 @@ All eight user-provided originals and byte-identical runtime copies remain prese
 
 All originals remain preserved. These files are presentation-only and never define contact, merge, target, reward, or physics behavior.
 
+# Coin sink icon derivatives - 2026-08-28
+
+- `assets/runtime/ui/icons/dice_lavender.svg` - recolored runtime derivative of `addons/at-icons/node/dice.svg`, used by the live circular Switch Gem action.
+- `assets/runtime/ui/icons/fast_forward_lavender.svg` - recolored runtime derivative of `addons/at-icons/node/fast_forward.svg`, used by Level Ready, Pause, and Failed Skip Level actions.
+- `export_presets.cfg` excludes `addons/at-icons/*` and `@icons picker.html`; only the selected small runtime SVG derivatives enter Android packages.
+
 # Tester midpoint contact derivatives v2 - 2026-08-18
 
 | Purpose | Preserved source | Runtime derivative | Processing / verification |

@@ -1,3 +1,27 @@
+# 2026-08-28 - UI polish pass: current-gem reroll, combo-style cost popups, Play Games removed
+
+- Replaced the live-board sink row with one professional 112 px circular `SWITCH GEM` action using the curated @icons dice glyph, stronger amethyst states, 18 px internal padding, a clear caption, and a transient spend popup.
+- Removed Skip Level from live gameplay and placed its @icons fast-forward action in Level Ready, Pause, and Failed overlays with the 200-coin price visible at the decision point. Skip remains absent from successful Level Complete.
+- Kept the entire table/art/rail/board/danger/launcher model lifted together by 64 design pixels so the bottom action zone has proper spacing without desynchronizing physics.
+- Added UI and export regressions proving live gameplay contains no Skip button and `addons/at-icons/*` plus `@icons picker.html` remain excluded from Android packages.
+
+- Redesigned Reroll to change the **current aimable launcher gem** in place instead of the queued Next preview, per user request; `GemSpriteLayer` picks up the new tier automatically from the piece model.
+- Replaced the former compact sink controls with the finalized split presentation described above: one live circular Switch Gem action and overlay-only Skip Level actions.
+- Built, device-tested, and then **fully removed** a Google Play Games Services v2 integration (sign-in, achievements, daily streak, local reminder notification) at the user's explicit request, to revisit later as its own dedicated pass rather than ship half-configured. No PlayGames/Streak code, autoloads, manifest entries, permissions, receivers, or Gradle dependencies remain. `ProgressionSaveService` reverted to its original three-field schema.
+- All twelve Godot regression suites pass.
+
+# 2026-08-28 - Skip Level coin sink and Google Play Games Services (sign-in, achievements, daily streak) — superseded by the entry above
+
+- Added a second V1 coin sink: **Skip Level** (`GameConfig.SKIP_LEVEL_COST` = 200 coins), which jumps straight to the next level with no win screen, no interstitial, and no level-complete reward — purely a paid escape hatch, save-atomic and double-tap-locked like the existing reroll sink. See `ECONOMY.md`.
+- Added a new native Android plugin, `PlayGamesPlugin.java` (Play Games Services v2), following the same `GodotPlugin` pattern and the same has_method()-avoidance lesson already learned from the Firebase custom-event bridge: `scripts/services/play_games_service.gd` trusts `Engine.has_singleton()` plus each call's own result, never `Object.has_method()`. Sign-in is silent and fully fail-open.
+- Extended `progression_save_service.gd`'s schema with lifetime counters (`lifetime_coins_earned`, `reroll_uses_total`, `skip_uses_total`), streak state (`streak_count`, `last_streak_date`), and `unlocked_achievement_ids`; all default cleanly on pre-existing saves with no migration step.
+- Added `achievement_service.gd` (pure threshold evaluation, no native calls) covering level, gem-tier, lifetime-coin, reroll/skip-usage, and streak milestones, wired into `game_controller.gd` at every natural checkpoint (merge, coin award, reroll, skip, level advance).
+- Added `streak_service.gd` (pure date/counter logic): the streak increments once per calendar day on the player's first merge of that day and resets on a missed day; mirrored to Play Games via the Events API.
+- Added a second native plugin, `StreakReminderPlugin.java`, plus `StreakReminderReceiver`/`BootReceiver`, for a local "your streak is about to end" notification a few hours before the day ends if it hasn't been secured yet. Uses `AlarmManager.setAndAllowWhileIdle` specifically to avoid requiring `SCHEDULE_EXACT_ALARM`; requests the Android 13+ `POST_NOTIFICATIONS` permission and is a no-op below API 33.
+- Added `PLAY_GAMES_SETUP.md` and `scripts/core/play_games_ids.gd`: the exact achievement/event IDs to create in Play Console and the single file where real Play-Console-issued IDs get pasted in, matching the existing AdMob-unit-ID isolation pattern. Every Play Games call checks for the placeholder prefix and no-ops until configured, so the build is release-safe with or without Play Console setup completed.
+- Added `tests/run_play_games_progression_tests.gd` (streak day-rollover math, achievement threshold evaluation, save-schema backward compatibility) and extended the existing pipeline test with Skip Level coverage; all thirteen Godot regression suites pass.
+- Play Games sign-in/achievements/streak still require Play Console configuration (see `PLAY_GAMES_SETUP.md`) and mandatory device verification before a release candidate ships, per the residual-risk process already established.
+
 # 2026-08-28 - Firebase custom-event bridge genuine fix, device-verified, AAB v1.0.13 (versionCode 15)
 
 - With user authorization, installed the versionCode-14 candidate on the same authorized V2149 device used for the original defect report and reproduced the identical `Firebase singleton exists but logEvent is unavailable` warning: the `getPluginMethods()` change made for vc14 did not fix the root cause. **versionCode 14 / versionName 1.0.12 is also superseded and must not be uploaded.**

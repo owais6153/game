@@ -5,27 +5,41 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## V1 economy sink. The controller performs the deduction and save atomically;
 ## presentation reads this one value and never owns economy rules.
 const NEXT_GEM_REROLL_COST := 100
+## Second economy sink. Skipping jumps straight to the next level (no win
+## screen, no interstitial, no level-complete reward) for a flat coin cost.
+const SKIP_LEVEL_COST := 200
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.
 ## The reference composition reserves a compact utility row plus a visible
 ## Target/path stack above the table. The table remains the dominant center
 ## surface and every visual/physics landmark is transformed together.
-const TABLE_LAYOUT_BASE_TOP := 420.0
-const TABLE_LAYOUT_BASE_BOTTOM := 1215.0
-const TABLE_TEXTURE_CENTER := Vector2(360.0, 844.0)
+## Whole playfield lifted 64px versus the original composition (top/bottom
+## table bounds, texture center, board, danger line, and launch point all
+## shifted together by the same amount) to give the prominent Switch Gem
+## action (with its text caption) a dedicated space below the table,
+## at the user's explicit repeated request. This is a pure vertical
+## translation: every relative distance, rail width, and physics spacing is
+## unchanged. 64px is the largest shift that still keeps the objective
+## stack's designed 20px-minimum gap to the table above (see
+## UiDesignSystemType.OBJECTIVE_TABLE_GAP_MIN and
+## run_ui_scale_layout_tests.gd's "must sit visibly above the table" guard);
+## the sink-button row below clamps itself to whatever space that leaves.
+const TABLE_LAYOUT_BASE_TOP := 356.0
+const TABLE_LAYOUT_BASE_BOTTOM := 1151.0
+const TABLE_TEXTURE_CENTER := Vector2(360.0, 780.0)
 const TABLE_TEXTURE_SIZE := Vector2(720.0, 1280.0)
 const TABLE_TEXTURE_RENDER_SCALE := Vector2(0.9583333, 0.752)
 const BOARD_LEFT := 0.0
 const BOARD_RIGHT := 720.0
 const TABLE_BOTTOM_ALIGNMENT_DELTA_Y := 0.0
-const BOARD_TOP := 454.0
-const BOARD_BOTTOM := 1168.0
+const BOARD_TOP := 390.0
+const BOARD_BOTTOM := 1104.0
 const TABLE_INNER_LEFT_TOP := 140.0
 const TABLE_INNER_LEFT_BOTTOM := 58.0
 const TABLE_INNER_RIGHT_TOP := 580.0
 const TABLE_INNER_RIGHT_BOTTOM := 662.0
-const DANGER_LINE_Y := 1015.0
+const DANGER_LINE_Y := 951.0
 const DANGER_LINE_COLOR := Color("e85f52")
 ## Presentation-only guide/warning values. They never enter input, collision,
 ## overflow detection, timing, or solver decisions.
@@ -34,7 +48,7 @@ const AIM_GUIDE_ALPHA := 0.44
 const AIM_GUIDE_TOUCH_HALF_WIDTH := 28.0
 const DANGER_WARNING_NEAR_DISTANCE := 76.0
 const DANGER_WARNING_PULSE_HZ := 1.65
-const LAUNCH_Y := 1095.0
+const LAUNCH_Y := 1031.0
 ## Expanded portrait screens distribute extra height between the scenery above
 ## the table and a bounded vertical table stretch. The complete table model is
 ## transformed together; HUD geometry remains presentation-only and independent.

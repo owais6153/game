@@ -14,9 +14,11 @@ const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_lavender.svg")
 const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_lavender.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_lavender.svg")
+const ICON_SKIP = preload("res://assets/runtime/ui/icons/fast_forward_lavender.svg")
 
 signal play_requested
 signal level_intro_requested
+signal skip_level_requested
 signal home_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
@@ -53,6 +55,7 @@ var intro_target_badge: Label
 var intro_target_icon: TextureRect
 var intro_objective_label: Label
 var intro_start_button: Button
+var intro_skip_button: Button
 
 var exit_confirm_blocker: Control
 var exit_confirm_panel: PanelContainer
@@ -132,6 +135,12 @@ func present_level_intro(level_number: int, coins: int, snapshot: Dictionary = {
 	_kill_idle_tween()
 	_set_home_stage_visible(false)
 	_show_level_intro()
+
+
+func update_snapshot(snapshot: Dictionary) -> void:
+	_snapshot = snapshot.duplicate(true)
+	_sync_settings_from_snapshot()
+	_refresh_intro_content()
 
 func dismiss() -> void:
 	_kill_tween()
@@ -405,7 +414,7 @@ func _build_level_intro_popup() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	level_intro_panel = PanelContainer.new()
 	level_intro_panel.name = "LevelIntroPanel"
-	level_intro_panel.custom_minimum_size = Vector2(520.0, 600.0)
+	level_intro_panel.custom_minimum_size = Vector2(520.0, 680.0)
 	level_intro_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	level_intro_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(level_intro_panel)
@@ -444,6 +453,12 @@ func _build_level_intro_popup() -> void:
 		play_requested.emit()
 	)
 	column.add_child(intro_start_button)
+	intro_skip_button = _button("LevelIntroSkipButton", "SKIP LEVEL  ·  %d COINS" % GameConfig.SKIP_LEVEL_COST, Vector2(400.0, 70.0), "SecondaryButton")
+	intro_skip_button.icon = ICON_SKIP
+	intro_skip_button.expand_icon = false
+	intro_skip_button.tooltip_text = "Skip this level"
+	intro_skip_button.pressed.connect(func() -> void: skip_level_requested.emit())
+	column.add_child(intro_skip_button)
 
 
 func _build_exit_confirmation_popup() -> void:
@@ -593,6 +608,12 @@ func _refresh_intro_content() -> void:
 	intro_target_icon.texture = AssetCatalogType.gem_texture(target_level)
 	# The target artwork is the identity. Player-facing gem names are omitted.
 	intro_objective_label.text = "MERGE TARGET  ×  %d" % target_quantity
+
+	if intro_skip_button != null:
+		var skip_cost := int(_snapshot.get("skip_cost", GameConfig.SKIP_LEVEL_COST))
+		intro_skip_button.text = "SKIP LEVEL  ·  %d COINS" % skip_cost
+		intro_skip_button.disabled = not bool(_snapshot.get("skip_enabled", false))
+		intro_skip_button.tooltip_text = "Skip Level %d for %d coins" % [_current_level, skip_cost]
 
 func _show_settings() -> void:
 	_sync_settings_from_snapshot()

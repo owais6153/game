@@ -243,6 +243,28 @@ static func target_badge_style() -> StyleBox:
 static func utility_frame_style() -> StyleBox:
 	return _frosted_glass_style(Color(0.34, 0.10, 0.52, 0.92), Color(0.12, 0.025, 0.23, 0.92), 32, 2, false, true)
 
+## A big circular icon-button frame (112px, paired with
+## GameplayHudLayer.SINK_BUTTON_SIZE) with real interior padding, so an icon
+## rendered with expand_icon never touches the ring border while still
+## rendering at least as large as the smallest gem on the table (a 72px
+## visible icon here). Radius is exactly half the button size, keeping it a
+## true circle rather than a rounded square.
+static func sink_action_button_style(hovered: bool = false, pressed: bool = false) -> StyleBox:
+	var top := Color(0.72, 0.30, 0.96, 0.99)
+	var bottom := Color(0.26, 0.055, 0.48, 0.99)
+	if hovered:
+		top = top.lightened(0.08)
+		bottom = bottom.lightened(0.06)
+	if pressed:
+		top = Color(0.44, 0.14, 0.68, 0.99)
+		bottom = Color(0.16, 0.025, 0.31, 0.99)
+	var style := _frosted_glass_style(top, bottom, 56, 4, false, true)
+	style.content_margin_left = 18.0
+	style.content_margin_top = 18.0
+	style.content_margin_right = 18.0
+	style.content_margin_bottom = 18.0
+	return style
+
 
 static func setting_row_style() -> StyleBox:
 	var style := _frosted_glass_style(Color(0.30, 0.09, 0.46, 0.86), Color(0.11, 0.025, 0.22, 0.86), 16, 1, false, false)

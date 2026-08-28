@@ -49,13 +49,13 @@ func _test_new_gem_derivatives() -> void:
 
 
 func _test_measured_rail_geometry_and_containment() -> void:
-	_assert(GameConfig.BOARD_TOP == 454.0 and GameConfig.BOARD_BOTTOM == 1168.0, "Vertical colliders must use the measured shared opening")
+	_assert(GameConfig.BOARD_TOP == 390.0 and GameConfig.BOARD_BOTTOM == 1104.0, "Vertical colliders must use the measured shared opening")
 	_assert(GameConfig.TABLE_INNER_LEFT_TOP == 140.0 and GameConfig.TABLE_INNER_RIGHT_TOP == 580.0, "Back rail colliders must use the measured inner lip")
 	_assert(GameConfig.TABLE_INNER_LEFT_BOTTOM == 58.0 and GameConfig.TABLE_INNER_RIGHT_BOTTOM == 662.0, "Front rail colliders must use the measured inner lip")
 	var simulation := SimulationType.new()
 	var merger := MergeServiceType.new()
 	var objective_radius := GameConfig.gem_collision_radius(8)
-	for y in [GameConfig.board_top() + objective_radius, 650.0, 850.0, 1050.0, GameConfig.board_bottom() - objective_radius]:
+	for y in [GameConfig.board_top() + objective_radius, 650.0, 850.0, 950.0, GameConfig.board_bottom() - objective_radius]:
 		var left_piece := _piece(100 + int(y), 8, Vector2(-100.0, y))
 		var right_piece := _piece(200 + int(y), 8, Vector2(900.0, y))
 		var row_pieces: Array[GemPiece] = [left_piece, right_piece]
@@ -67,12 +67,12 @@ func _test_measured_rail_geometry_and_containment() -> void:
 func _test_contact_telemetry_requires_physical_contact() -> void:
 	var simulation := SimulationType.new()
 	var merger := MergeServiceType.new()
-	var separated := _piece(1, 1, Vector2(300.0, 700.0), Vector2(80.0, 0.0))
-	var other := _piece(2, 2, Vector2(500.0, 700.0))
+	var separated := _piece(1, 1, Vector2(300.0, 620.0), Vector2(80.0, 0.0))
+	var other := _piece(2, 2, Vector2(500.0, 620.0))
 	var separated_pieces: Array[GemPiece] = [separated, other]
 	simulation.step(separated_pieces, 1.0 / 60.0, merger)
 	_assert(simulation.consume_collision_impacts().is_empty(), "Contact audio telemetry must not start before physical contact")
-	var wall_piece := _piece(3, 1, Vector2(GameConfig.table_left_at(700.0) + 10.0, 700.0), Vector2(-300.0, 0.0))
+	var wall_piece := _piece(3, 1, Vector2(GameConfig.table_left_at(620.0) + 10.0, 620.0), Vector2(-300.0, 0.0))
 	var wall_pieces: Array[GemPiece] = [wall_piece]
 	simulation.step(wall_pieces, 1.0 / 30.0, merger)
 	var impacts := simulation.consume_collision_impacts()
@@ -86,9 +86,9 @@ func _test_enlarged_target_contract() -> void:
 
 func _test_target_blast_is_bounded_and_one_shot() -> void:
 	var controller := ControllerType.new()
-	var result := _piece(10, 6, Vector2(360.0, 700.0))
-	var near := _piece(11, 2, Vector2(460.0, 700.0))
-	var outside := _piece(12, 2, Vector2(360.0 + GameConfig.TARGET_MERGE_BLAST_RADIUS + 1.0, 700.0))
+	var result := _piece(10, 6, Vector2(360.0, 620.0))
+	var near := _piece(11, 2, Vector2(460.0, 620.0))
+	var outside := _piece(12, 2, Vector2(360.0 + GameConfig.TARGET_MERGE_BLAST_RADIUS + 1.0, 620.0))
 	var launcher := _piece(13, 1, Vector2(360.0, 760.0))
 	launcher.is_active_launcher = true
 	controller.pieces = [result, near, outside, launcher]

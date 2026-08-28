@@ -7,6 +7,7 @@ const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
 const CoinIconType = preload("res://scripts/presentation/coin_icon.gd")
 const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_lavender.svg")
+const ICON_SKIP = preload("res://assets/runtime/ui/icons/fast_forward_lavender.svg")
 ## Level Complete entrance. The dim leads the panel, then the panel overshoots
 ## once and settles: 0.86 -> 1.04 -> 1.0 across roughly 310 ms.
 const PANEL_DIM_DURATION := 0.14
@@ -20,6 +21,7 @@ signal retry_requested
 signal collect_requested
 signal double_coins_requested
 signal home_requested
+signal skip_level_requested
 signal reward_animation_finished
 signal ui_tap_requested
 
@@ -53,6 +55,9 @@ var transition_label: Label
 var retry_button: Button
 var double_button: Button
 var home_button: Button
+var skip_button: Button
+var _skip_available := false
+var _skip_cost := 0
 var _rewarded_available := false
 var _actions_pending := false
 var _reward_resolved := false
@@ -82,7 +87,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
-func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8, level_reward_amount: int = 0, rewarded_available: bool = false) -> bool:
+func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8, level_reward_amount: int = 0, rewarded_available: bool = false, skip_available: bool = false, skip_cost: int = 0) -> bool:
 	_build_ui()
 	if visible_result:
 		return false
@@ -92,6 +97,8 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 	level_reward = maxi(0, level_reward_amount)
 	_displayed_total = maxi(0, score - level_reward) if won else score
 	_rewarded_available = rewarded_available
+	_skip_available = skip_available
+	_skip_cost = skip_cost
 	_actions_pending = false
 	_reward_resolved = false
 	_reward_doubled = false
@@ -113,6 +120,8 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 	retry_button.tooltip_text = "Collect this level's coins" if won else "Retry Level %d" % level_number
 	double_button.visible = won
 	double_button.tooltip_text = "Watch a rewarded ad to double this level's coins" if rewarded_available else "Rewarded ad unavailable; Collect still works"
+	skip_button.text = "SKIP LEVEL  ·  %d COINS" % _skip_cost
+	skip_button.tooltip_text = "Skip Level %d for %d coins" % [level_number, _skip_cost]
 	_refresh_action_state()
 	root_control.visible = true
 	root_control.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -360,6 +369,21 @@ func _build_ui() -> void:
 	_wire_button_motion(home_button)
 	column.add_child(home_button)
 
+	skip_button = Button.new()
+	skip_button.name = "ResultSkipLevelButton"
+	skip_button.text = "SKIP LEVEL"
+	skip_button.icon = ICON_SKIP
+	skip_button.expand_icon = false
+	skip_button.theme_type_variation = "SecondaryButton"
+	skip_button.custom_minimum_size = Vector2(424.0, 68.0)
+	skip_button.focus_mode = Control.FOCUS_ALL
+	skip_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	skip_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	skip_button.pressed.connect(func() -> void: skip_level_requested.emit())
+	_wire_button_motion(skip_button)
+	column.add_child(skip_button)
+	column.move_child(skip_button, home_button.get_index())
+
 func _on_action_pressed() -> void:
 	if _actions_pending:
 		return
@@ -422,12 +446,14 @@ func _refresh_reward_copy() -> void:
 
 
 func _refresh_action_state() -> void:
-	if retry_button == null or double_button == null or home_button == null:
+	if retry_button == null or double_button == null or home_button == null or skip_button == null:
 		return
 	retry_button.disabled = _actions_pending
 	home_button.disabled = _actions_pending
 	double_button.disabled = _actions_pending or not _rewarded_available or _reward_resolved
 	double_button.visible = result_won and not _reward_resolved
+	skip_button.visible = not result_won
+	skip_button.disabled = _actions_pending or not _skip_available
 	if _reward_resolved:
 		retry_button.text = "COLLECTED"
 		retry_button.icon = null

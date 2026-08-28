@@ -62,14 +62,22 @@ func _test_feedback_polish_contract() -> void:
 
 
 func _test_fixed_table_geometry() -> void:
-	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_TOP, 420.0), "Table top must match the supplied portrait composition")
-	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_BOTTOM, 1215.0), "Table bottom must match the supplied portrait composition")
-	_assert(is_equal_approx(GameConfig.BOARD_TOP, 454.0), "Board top must follow the measured inner back lip")
-	_assert(is_equal_approx(GameConfig.BOARD_BOTTOM, 1168.0), "Board bottom must follow the earliest shared inner front lip")
+	# The whole playfield (table/board/danger-line/launch) is deliberately
+	# lifted 64px versus the original supplied composition, at the user's
+	# explicit repeated request, to give the below-table action buttons real
+	# space. 64px is the largest shift that still honors the objective
+	# stack's own designed 20px-minimum gap to the table (see
+	# _test_responsive_table_geometry below). Every constant here moved by
+	# that same uniform delta; rail widths and all other relative spacing are
+	# unchanged (see GameConfig's own comment).
+	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_TOP, 356.0), "Table top must match the recalibrated (lifted) composition")
+	_assert(is_equal_approx(GameConfig.TABLE_LAYOUT_BASE_BOTTOM, 1151.0), "Table bottom must match the recalibrated (lifted) composition")
+	_assert(is_equal_approx(GameConfig.BOARD_TOP, 390.0), "Board top must follow the measured inner back lip")
+	_assert(is_equal_approx(GameConfig.BOARD_BOTTOM, 1104.0), "Board bottom must follow the earliest shared inner front lip")
 	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_TOP, 140.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_TOP, 580.0), "Back physics rails must follow the measured supplied-table opening")
 	_assert(is_equal_approx(GameConfig.TABLE_INNER_LEFT_BOTTOM, 58.0) and is_equal_approx(GameConfig.TABLE_INNER_RIGHT_BOTTOM, 662.0), "Front physics rails must follow the measured supplied-table opening")
-	_assert(is_equal_approx(GameConfig.DANGER_LINE_Y, 1015.0), "Danger line must remain inside the recalibrated playfield")
-	_assert(is_equal_approx(GameConfig.LAUNCH_Y, 1095.0), "Launcher must remain inside the recalibrated playfield")
+	_assert(is_equal_approx(GameConfig.DANGER_LINE_Y, 951.0), "Danger line must remain inside the recalibrated playfield")
+	_assert(is_equal_approx(GameConfig.LAUNCH_Y, 1031.0), "Launcher must remain inside the recalibrated playfield")
 	_assert(GameConfig.TABLE_TEXTURE_SIZE == Vector2(720.0, 1280.0), "Supplied table derivatives must preserve the full portrait composition")
 	_assert(GameConfig.TABLE_TEXTURE_RENDER_SCALE.is_equal_approx(Vector2(0.9583333, 0.752)), "Supplied table art must use the measured shared transform")
 	GameConfig.configure_viewport(GameConfig.VIEWPORT_SIZE)
@@ -114,7 +122,7 @@ func _test_responsive_table_geometry() -> void:
 		GameConfig.configure_viewport(Vector2(720.0, design_height))
 		var table_height := GameConfig.table_outer_bottom() - GameConfig.table_outer_top()
 		_assert(is_equal_approx(GameConfig.table_center_x(), 360.0), "Table must stay horizontally centered at design height %.0f" % design_height)
-		_assert(GameConfig.table_outer_top() >= 410.0, "Table must clear the table-adjacent objective stack at design height %.0f" % design_height)
+		_assert(GameConfig.table_outer_top() >= 346.0, "Table must clear the table-adjacent objective stack at design height %.0f" % design_height)
 		_assert(GameConfig.table_outer_bottom() <= design_height - 60.0, "Table must remain inside the lower safe composition at design height %.0f" % design_height)
 		_assert(table_height / design_height >= 0.57, "Table must remain the dominant center surface at design height %.0f" % design_height)
 		_assert(GameConfig.table_left_at(GameConfig.board_top()) >= 120.0 and GameConfig.table_right_at(GameConfig.board_top()) <= 600.0, "Back rails must stay centered and bounded")
@@ -205,6 +213,10 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	_assert(hud.root_control.find_child("TargetProgressBar", true, false) == null, "%s Target must use compact numeric progress without a progress bar" % viewport_size)
 	_assert(hud.root_control.find_child("CoinsHeading", true, false) == null, "%s Coins HUD must not repeat a redundant label" % viewport_size)
 	_assert(hud.root_control.find_child("NextHeading", true, false) is Label, "%s Next heading must be direct text rather than a nested panel" % viewport_size)
+	var switch_button := hud.root_control.find_child("RerollSinkButton", true, false) as Button
+	_assert(switch_button != null and switch_button.custom_minimum_size == Vector2.ONE * GameplayHudType.SINK_BUTTON_SIZE, "%s Switch Gem must retain its large circular touch target" % viewport_size)
+	_assert(hud.root_control.find_child("SkipSinkButton", true, false) == null, "%s Skip Level must not appear on the live board" % viewport_size)
+	_assert(hud.pause_skip_button != null, "%s Skip Level must remain available from Pause" % viewport_size)
 	viewport.queue_free()
 	await process_frame
 

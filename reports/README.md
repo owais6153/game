@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Coin Sink UI Polish V1](COIN_SINK_UI_POLISH_V1_REPORT.md) - professional circular Switch Gem control, overlay-only Skip placement, shared table lift, @icons provenance/export exclusion, and focused regressions.
+
 - [Final Pre-Launch Production Readiness v1.0.11](FINAL_PRELAUNCH_PRODUCTION_READINESS_REPORT.md) - Firebase/AdMob/UMP, Play compliance, Android release, regression, economy, artifact, and residual-risk audit for the production candidate.
 
 - [Firebase Custom Gameplay Analytics Pipeline v1](FIREBASE_CUSTOM_GAMEPLAY_ANALYTICS_PIPELINE_V1_REPORT.md) - root-cause audit, acknowledged native bridge, live controller/ad hooks, runtime diagnostics, branding replacement, tests, and release-AAB evidence.

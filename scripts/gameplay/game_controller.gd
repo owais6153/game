@@ -115,6 +115,7 @@ var analytics_attempt_number := 0
 var analytics_shot_count := 0
 var reroll_count_for_level := 0
 var reroll_request_locked := false
+var skip_request_locked := false
 const PLATFORM_BACK_DEBOUNCE_MSEC := 350
 
 # A completed shot can pass through each state only once. This prevents the
@@ -295,6 +296,8 @@ func hud_snapshot() -> Dictionary:
 		"score": coins,
 		"reroll_cost": GameConfig.NEXT_GEM_REROLL_COST,
 		"reroll_enabled": _can_reroll_next_gem(),
+		"skip_cost": GameConfig.SKIP_LEVEL_COST,
+		"skip_enabled": _can_skip_level(),
 		"chain_multiplier": chain_multiplier,
 		"target_level": int(visible_target.get("tier", 1)),
 		"target_progress": presented_target_progress,
@@ -443,18 +446,24 @@ func get_active_piece() -> GemPiece:
 	return null
 
 
-func _reroll_candidates() -> Array[int]:
+func _reroll_candidates(exclude_level: int) -> Array[int]:
 	var candidates: Array[int] = []
 	for tier_value in level_config.get("launcher_sequence", []) as Array:
 		var tier := int(tier_value)
-		if tier != next_level and tier >= int(level_config.get("active_tier_min", 1)) and tier <= int(level_config.get("active_tier_max", 8)):
+		if tier != exclude_level and tier >= int(level_config.get("active_tier_min", 1)) and tier <= int(level_config.get("active_tier_max", 8)):
 			candidates.append(tier)
 	return candidates
 
 
 func _can_reroll_next_gem() -> bool:
+	var active := get_active_piece()
 	return (
 		app_flow_state == AppFlowState.PLAYING
+		# Only the still-aimable current gem may be rerolled; a piece already
+		# in flight or mid-resolution must keep the identity it was launched
+		# with, matching the existing merge/contact/combo contract.
+		and launcher_state == LauncherState.READY_TO_AIM
+		and active != null
 		and not won
 		and not failed
 		and not win_qualified
@@ -462,15 +471,18 @@ func _can_reroll_next_gem() -> bool:
 		# Spend only banked coins. Unresolved target earnings remain rollback-safe
 		# until Level Complete, matching the existing retry/save contract.
 		and level_start_coins >= GameConfig.NEXT_GEM_REROLL_COST
-		and not _reroll_candidates().is_empty()
+		and not _reroll_candidates(active.level).is_empty()
 	)
 
 
 func _on_reroll_next_requested() -> void:
 	if not _can_reroll_next_gem():
 		return
+	var active := get_active_piece()
+	if active == null:
+		return
 	reroll_request_locked = true
-	var candidates := _reroll_candidates()
+	var candidates := _reroll_candidates(active.level)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int((level_seed ^ ((next_queue_index + 1) * 1103515245) ^ ((reroll_count_for_level + 1) * 7919)) & 0x7fffffff)
 	var replacement := int(candidates[rng.randi_range(0, candidates.size() - 1)])
@@ -484,14 +496,18 @@ func _on_reroll_next_requested() -> void:
 		return
 	coins = resulting_balance
 	level_start_coins = resulting_banked_balance
-	next_level = replacement
+	# GemSpriteLayer re-reads piece.level every sync pass and swaps texture,
+	# visual scale, and shadow automatically; only the model needs updating.
+	active.level = replacement
+	active.base_radius = GameConfig.gem_collision_radius(replacement)
+	active.apply_perspective_scale(active.perspective_scale)
 	reroll_count_for_level += 1
 	_log_analytics("coin_spent", {
 		"amount": GameConfig.NEXT_GEM_REROLL_COST,
-		"reason": "next_gem_reroll",
+		"reason": "current_gem_reroll",
 		"level_number": level_number,
 		"resulting_balance": coins,
-		"result_gem_type": next_level,
+		"result_gem_type": active.level,
 	})
 	_refresh_hud()
 	if is_inside_tree():
@@ -507,6 +523,64 @@ func _on_reroll_next_requested() -> void:
 func _unlock_reroll_request() -> void:
 	reroll_request_locked = false
 	_refresh_hud()
+
+
+func _can_skip_level() -> bool:
+	return (
+		app_flow_state in [AppFlowState.PLAYING, AppFlowState.LEVEL_READY]
+		and not won
+		and not win_qualified
+		and not skip_request_locked
+		# Spend only banked coins, matching the reroll sink's rollback-safe contract.
+		and level_start_coins >= GameConfig.SKIP_LEVEL_COST
+	)
+
+
+func _on_skip_level_requested() -> void:
+	if not _can_skip_level():
+		return
+	skip_request_locked = true
+	var resulting_balance := coins - GameConfig.SKIP_LEVEL_COST
+	var skipped_level := level_number
+	var next_level_number := level_number + 1
+	var next_seed := LevelConfigType.seed_for_level(next_level_number)
+	var save_error := ProgressionSaveServiceType.save_progress(next_level_number, next_seed, resulting_balance)
+	if save_error != OK:
+		skip_request_locked = false
+		push_warning("Skip Level cancelled because coin persistence failed (%d)" % save_error)
+		_refresh_hud()
+		return
+	_log_analytics("coin_spent", {
+		"amount": GameConfig.SKIP_LEVEL_COST,
+		"reason": "skip_level",
+		"level_number": skipped_level,
+		"resulting_balance": resulting_balance,
+	})
+	_log_analytics("level_skipped", {
+		"level_number": skipped_level,
+		"resulting_balance": resulting_balance,
+	})
+	coins = resulting_balance
+	level_number = next_level_number
+	level_seed = next_seed
+	level_start_coins = coins
+	analytics_attempt_number = 0
+	reroll_count_for_level = 0
+	restart()
+	_show_level_start()
+	if is_inside_tree():
+		var unlock_timer := get_tree().create_timer(0.35)
+		unlock_timer.timeout.connect(_unlock_skip_request, CONNECT_ONE_SHOT)
+	else:
+		call_deferred("_unlock_skip_request")
+
+
+func _unlock_skip_request() -> void:
+	skip_request_locked = false
+	_refresh_hud()
+	if app_flow_state == AppFlowState.LEVEL_READY and home_overlay != null:
+		home_overlay.update_snapshot(hud_snapshot())
+
 
 func restart() -> void:
 	if is_inside_tree():
@@ -602,6 +676,7 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.privacy_options_requested.connect(_on_privacy_options_requested)
 	gameplay_ui.ui_tap_requested.connect(_on_ui_tap_requested)
 	gameplay_ui.reroll_next_requested.connect(_on_reroll_next_requested)
+	gameplay_ui.skip_level_requested.connect(_on_skip_level_requested)
 	effects_layer = GameplayEffectsLayerType.new()
 	effects_layer.z_index = 0
 	gameplay_ui.attach_reward_foreground(effects_layer)
@@ -616,6 +691,7 @@ func _setup_asset_presentation() -> void:
 	result_overlay.collect_requested.connect(_on_collect_requested)
 	result_overlay.double_coins_requested.connect(_on_double_coins_requested)
 	result_overlay.home_requested.connect(_on_result_home_requested)
+	result_overlay.skip_level_requested.connect(_on_skip_level_requested)
 	result_overlay.reward_animation_finished.connect(_on_reward_animation_finished)
 	result_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	home_overlay = HomeOverlayType.new()
@@ -623,6 +699,7 @@ func _setup_asset_presentation() -> void:
 	home_overlay.play_requested.connect(_on_home_play_requested)
 	home_overlay.level_intro_requested.connect(_on_home_level_intro_requested)
 	home_overlay.home_requested.connect(_show_home)
+	home_overlay.skip_level_requested.connect(_on_skip_level_requested)
 	home_overlay.music_toggled.connect(_on_music_toggled)
 	home_overlay.sound_toggled.connect(_on_sound_toggled)
 	home_overlay.privacy_policy_requested.connect(_on_privacy_policy_requested)
@@ -1160,7 +1237,7 @@ func _trigger_failure() -> void:
 	if effects_layer != null:
 		effects_layer.clear()
 	haptics_feedback.emit_event("fail")
-	result_overlay.present(false, score, level_number, active_target_tier())
+	result_overlay.present(false, score, level_number, active_target_tier(), 0, false, _can_skip_level(), GameConfig.SKIP_LEVEL_COST)
 
 func _update_merge_presentations(delta: float) -> void:
 	var completed: Array[Dictionary] = []

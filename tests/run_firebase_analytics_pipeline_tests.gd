@@ -50,19 +50,38 @@ func _test_live_gameplay_hooks() -> void:
 	controller._on_home_play_requested()
 	controller._on_home_play_requested()
 	_assert(_event_count("level_start") == 1, "START GAME must emit level_start exactly once")
-	_assert(controller.gameplay_ui.reroll_button != null and controller.gameplay_ui.reroll_button.text.contains("100"), "The HUD must expose the centrally configured reroll cost")
+	_assert(controller.gameplay_ui.reroll_button != null and controller.gameplay_ui.reroll_button.tooltip_text.contains("100"), "The HUD must expose the centrally configured reroll cost")
 	var start_parameters := _first_parameters("level_start")
 	_assert(start_parameters.has("level_number") and start_parameters.has("pattern") and int(start_parameters.get("attempt_number", 0)) == 1, "level_start must include level, pattern, and the true attempt number")
 
 	controller.coins = 500
 	controller.level_start_coins = 500
-	var prior_next := controller.next_level
+	var active_before_reroll := controller.get_active_piece()
+	_assert(active_before_reroll != null, "A fresh READY_TO_AIM state must have a spawned active launcher piece")
+	var prior_active_level := active_before_reroll.level if active_before_reroll != null else -1
 	controller._on_reroll_next_requested()
 	controller._on_reroll_next_requested()
-	_assert(controller.coins == 400 and controller.level_start_coins == 400, "Next Gem reroll must atomically deduct one configured cost from displayed and banked coins")
-	_assert(controller.next_level != prior_next and (controller.level_config.get("launcher_sequence", []) as Array).has(controller.next_level), "Reroll must select a different tier from the existing weighted launcher sequence")
-	_assert(_event_count("coin_spent") == 1 and String(_first_parameters("coin_spent").get("reason", "")) == "next_gem_reroll", "Double taps must spend once and emit one contextual coin_spent event")
+	_assert(controller.coins == 400 and controller.level_start_coins == 400, "Current Gem reroll must atomically deduct one configured cost from displayed and banked coins")
+	var active_after_reroll := controller.get_active_piece()
+	_assert(active_after_reroll != null and active_after_reroll.id == active_before_reroll.id, "Reroll must change the current launcher piece in place, not replace or remove it")
+	_assert(active_after_reroll.level != prior_active_level and (controller.level_config.get("launcher_sequence", []) as Array).has(active_after_reroll.level), "Reroll must select a different tier from the existing weighted launcher sequence for the current gem")
+	_assert(active_after_reroll.radius == GameConfig.gem_collision_radius(active_after_reroll.level) * active_after_reroll.perspective_scale, "Reroll must keep the current gem's collision radius consistent with its new tier")
+	_assert(_event_count("coin_spent") == 1 and String(_first_parameters("coin_spent").get("reason", "")) == "current_gem_reroll", "Double taps must spend once and emit one contextual coin_spent event")
 	_assert(int(ProgressionSaveServiceType.load_progress().total_coins) == 400, "Reroll must persist the resulting banked balance immediately")
+
+	_assert(controller.gameplay_ui.root_control.find_child("SkipSinkButton", true, false) == null, "The live board must not expose a Skip Level button")
+	_assert(controller.gameplay_ui.pause_skip_button != null and controller.gameplay_ui.pause_skip_button.tooltip_text.contains("200"), "Pause must expose the centrally configured skip cost")
+	_assert(controller.home_overlay.intro_skip_button != null and controller.home_overlay.intro_skip_button.text.contains("200 COINS"), "Level Ready must expose the centrally configured skip cost")
+	_assert(controller.result_overlay.skip_button != null, "The Failed overlay must own a dedicated Skip Level action")
+	var level_before_skip := controller.level_number
+	controller._on_skip_level_requested()
+	controller._on_skip_level_requested()
+	_assert(controller.level_number == level_before_skip + 1, "Skip Level must advance exactly one level per confirmed request, ignoring the double tap")
+	_assert(controller.coins == 200 and controller.level_start_coins == 200, "Skip Level must atomically deduct its configured cost from displayed and banked coins")
+	_assert(_event_count("level_skipped") == 1, "Double taps must spend once and emit one level_skipped event")
+	_assert(_event_count("coin_spent") == 2 and String(_first_parameters("coin_spent").get("reason", "")) == "current_gem_reroll", "Skip Level must add exactly one more coin_spent event alongside the earlier reroll spend")
+	_assert(_event_count("level_complete") == 0 and _event_count("level_start") == 1, "Skip Level must never emit level_complete and must not itself emit a new level_start")
+	_assert(int(ProgressionSaveServiceType.load_progress().total_coins) == 200, "Skip Level must persist the resulting banked balance and advanced level atomically")
 
 	for tier_value in [6, 7, 8]:
 		var tier: int = int(tier_value)
@@ -123,9 +142,11 @@ func _test_live_gameplay_hooks() -> void:
 
 func _test_android_bridge_contract() -> void:
 	var project_source := FileAccess.get_file_as_string("res://project.godot")
+	var export_source := FileAccess.get_file_as_string("res://export_presets.cfg")
 	var manifest_source := FileAccess.get_file_as_string("res://android/build/src/main/AndroidManifest.xml")
 	var java_source := FileAccess.get_file_as_string("res://android/build/src/main/java/com/owais/majestygems/analytics/FirebaseAnalyticsPlugin.java")
 	_assert(project_source.contains("Analytics=\"*res://scripts/services/analytics_service.gd\""), "project.godot must register the Analytics Autoload")
+	_assert(export_source.contains("addons/at-icons/*") and export_source.contains("@icons picker.html"), "The @icons editor addon and picker must stay excluded from Android exports")
 	_assert(manifest_source.contains("org.godotengine.plugin.v2.FirebaseAnalytics") and manifest_source.contains("FirebaseAnalyticsPlugin"), "The Android manifest must register the Firebase v2 Godot plugin")
 	_assert(java_source.contains("@UsedByGodot") and java_source.contains("List<String> getPluginMethods()") and java_source.contains("Collections.singletonList(\"logEvent\")") and java_source.contains("boolean logEvent(") and java_source.contains("firebaseAnalytics.logEvent(eventName, parameters)"), "The native bridge must explicitly register, expose, and forward the acknowledged logEvent method")
 
