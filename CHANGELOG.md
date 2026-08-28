@@ -1,5 +1,8 @@
 # 2026-08-28 - Final pre-launch production-readiness candidate
 
+- Real-device release testing found that Firebase automatic events uploaded while the Godot custom-event singleton omitted `logEvent`; versionCode 13 / versionName 1.0.11 is superseded and must not be uploaded.
+- Added an explicit Java `getPluginMethods()` contract for `logEvent`, retained `@UsedByGodot`, and advanced the repaired production identity to versionCode 14 / versionName 1.0.12 for a fresh device-validated export.
+
 - Added the single approved V1 coin sink: a centrally priced 100-coin Next Gem reroll using only the existing weighted launcher sequence.
 - Made reroll spending save-before-commit, banked-coin-only, retry-safe, non-negative, deterministic, and guarded against rapid duplicate requests.
 - Expanded analytics with attempt/shot context, Retry, bounded `coin_earned`/`coin_spent`, ad request/failure events, and placement/reward context on SDK-confirmed shown/earned events.

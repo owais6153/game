@@ -2,6 +2,7 @@
 
 ## Final Pre-Launch Production Candidate RELEASE AAB v1.0.11 (versionCode 13)
 
+- Status: **SUPERSEDED — DO NOT UPLOAD.** Real-device testing proved Firebase automatic collection/upload but Godot registered the custom singleton without callable `logEvent`, so gameplay custom events were not forwarded. Replaced by the repaired versionCode-14 / versionName-1.0.12 candidate.
 - AAB: `build/android/majestic-gems-production-candidate-v1.0.11-vc13.aab`
 - Size/timestamp: 75,104,667 bytes; 2026-08-28 08:08:04 +05:00.
 - SHA-256: `94852CCA6B75F8D8D0D19219A25B6849962DAA8286B3DDC568CDBFB8226D2257`.
@@ -13,7 +14,7 @@
 - Signature: `jarsigner` reports `jar verified`. The upload signer is Muhammad Owais Khan / Teckvertex Labs; SHA-256 certificate fingerprint `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14`.
 - Tests: all twelve Godot suites printed their PASS sentinels, whole-project editor parse/import completed without script errors, Gradle dependency resolution passed, and `compileStandardReleaseJavaWithJavac` passed. The known Windows Godot post-PASS shutdown access violation remains separately disclosed in the report.
 - Standalone APK check: Bundletool generated `build/android/production-candidate-vc13-audit-apks/universal.apk` (76,432,567 bytes; SHA-256 `C87A6F30DFA3048CBA0F5177132DAE413E210F8FE374746C052D5A0492C642AF`) from this exact AAB. It is a debug-signed audit derivative, not the delivered Play artifact.
-- Device/DebugView: the V2149 phone became ADB-authorized. It already contains a debuggable Majestic Gems versionCode 2 / versionName 1.0.1 installation. Streamed and direct package-manager replacement attempts with the versionCode-13 audit APK did not replace that package and returned no final Android error text; the phone still reports 2 / 1.0.1. The existing app/data were not uninstalled. Candidate launch, physical gameplay, live UMP/ad behavior, and Firebase DebugView receipt therefore remain unperformed and are not claimed. This does not block delivery of the signed, validated AAB under the repository release rule.
+- Device/DebugView: after the user removed the old owner-profile app, a never-launched Guest-profile registration was also removed and the versionCode-13 audit APK installed successfully. The phone reported 1.0.11/code 13, arm64, Android 11/API 30. Firebase automatic first-open/session/config upload succeeded with HTTP 204, but pressing Start logged `Firebase singleton exists but logEvent is unavailable`; custom gameplay events were not forwarded. This device proof is why the bundle is superseded.
 - Report: `reports/FINAL_PRELAUNCH_PRODUCTION_READINESS_REPORT.md`.
 
 ## Firebase Custom Gameplay Analytics Pipeline RELEASE AAB v1.0.10 (versionCode 12)

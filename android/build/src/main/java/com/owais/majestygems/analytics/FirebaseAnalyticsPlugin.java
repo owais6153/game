@@ -13,7 +13,9 @@ import org.godotengine.godot.plugin.UsedByGodot;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 /** Android-only Firebase Analytics adapter exposed as Engine.get_singleton("FirebaseAnalytics"). */
 public final class FirebaseAnalyticsPlugin extends GodotPlugin {
@@ -34,6 +36,13 @@ public final class FirebaseAnalyticsPlugin extends GodotPlugin {
     @Override
     public String getPluginName() {
         return "FirebaseAnalytics";
+    }
+
+    /** Keep the callable contract explicit when annotation discovery is omitted. */
+    @NonNull
+    @Override
+    public List<String> getPluginMethods() {
+        return Collections.singletonList("logEvent");
     }
 
     @UsedByGodot

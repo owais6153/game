@@ -127,7 +127,7 @@ func _test_android_bridge_contract() -> void:
 	var java_source := FileAccess.get_file_as_string("res://android/build/src/main/java/com/owais/majestygems/analytics/FirebaseAnalyticsPlugin.java")
 	_assert(project_source.contains("Analytics=\"*res://scripts/services/analytics_service.gd\""), "project.godot must register the Analytics Autoload")
 	_assert(manifest_source.contains("org.godotengine.plugin.v2.FirebaseAnalytics") and manifest_source.contains("FirebaseAnalyticsPlugin"), "The Android manifest must register the Firebase v2 Godot plugin")
-	_assert(java_source.contains("@UsedByGodot") and java_source.contains("boolean logEvent(") and java_source.contains("firebaseAnalytics.logEvent(eventName, parameters)"), "The native bridge must expose and forward the acknowledged logEvent method")
+	_assert(java_source.contains("@UsedByGodot") and java_source.contains("List<String> getPluginMethods()") and java_source.contains("Collections.singletonList(\"logEvent\")") and java_source.contains("boolean logEvent(") and java_source.contains("firebaseAnalytics.logEvent(eventName, parameters)"), "The native bridge must explicitly register, expose, and forward the acknowledged logEvent method")
 
 
 func _on_event_requested(event_name: String, parameters: Dictionary) -> void:

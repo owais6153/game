@@ -1,8 +1,10 @@
 # Final Pre-Launch Production Readiness Report
 
+> Device correction: versionCode 13 / versionName 1.0.11 is superseded and must not be uploaded. On the authorized V2149, Firebase automatic first-open/session events uploaded successfully, but pressing Start produced `Firebase singleton exists but logEvent is unavailable`; custom gameplay events were not forwarded. The Java bridge now explicitly lists `logEvent` through `getPluginMethods()` as well as `@UsedByGodot`, and the repaired candidate advances to 1.0.12 / code 14 for a fresh export and device proof.
+
 ## Scope and release identity
 
-This is the final pre-launch production-readiness pass for Majestic Gems. It preserves the approved game loop and adds exactly one economy sink: a deterministic `REROLL 100` action for the displayed Next Gem. The prepared Google Play identity is versionName `1.0.11`, versionCode `13`, package `com.owais.majestygems`, with a dual-ARM release AAB named `majestic-gems-production-candidate-v1.0.11-vc13.aab`.
+This is the final pre-launch production-readiness pass for Majestic Gems. It preserves the approved game loop and adds exactly one economy sink: a deterministic `REROLL 100` action for the displayed Next Gem. Following the device-found Firebase bridge defect in 1.0.11/code 13, the repaired Google Play identity is versionName `1.0.12`, versionCode `14`, package `com.owais.majestygems`, with a dual-ARM release AAB named `majestic-gems-production-candidate-v1.0.12-vc14.aab`.
 
 ## Firebase Analytics audit
 
@@ -68,7 +70,7 @@ The AAB export, Bundletool manifest/version/ABI inspection, signature/hash audit
 
 `POST_LAUNCH_ROADMAP.md` separates V1.1, V1.2, and later ideas. No second coin sink, shop, booster, progression redesign, remote-config economy, mediation expansion, or post-launch feature was pulled into this release.
 
-## Artifact and device evidence
+## Superseded versionCode-13 artifact evidence
 
 - Release AAB: `build/android/majestic-gems-production-candidate-v1.0.11-vc13.aab`
 - Size/timestamp: 75,104,667 bytes; 2026-08-28 08:08:04 +05:00
@@ -80,7 +82,11 @@ The AAB export, Bundletool manifest/version/ABI inspection, signature/hash audit
 - Archive: 1,039 entries; three `.so` files for `arm64-v8a`; three for `armeabi-v7a`; zero x86/x86_64 libraries; current compiled config/controller/ad manager; zero packaged test/report entries
 - Signature: `jar verified`; existing Muhammad Owais Khan / Teckvertex Labs upload signer; SHA-256 certificate fingerprint `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14`. The expected self-signed/no-timestamp and JarInputStream bundle-format notices remain non-failing.
 - Standalone existence check: `build/android/production-candidate-vc13-audit-apks/universal.apk`, 76,432,567 bytes, SHA-256 `C87A6F30DFA3048CBA0F5177132DAE413E210F8FE374746C052D5A0492C642AF`. Bundletool generated it from this exact AAB with its local debug keystore; it is an audit derivative, not the delivered Play artifact.
-- ADB/device: the V2149 phone became authorized and reports Android 11 / API 30. It already has a debuggable `com.owais.majestygems` versionCode 2 / versionName 1.0.1 package. Both streamed replacement and a direct `pm install -r` attempt with the exact versionCode-13 audit APK failed to replace it and returned no final package-manager reason; a post-attempt package query still reports 2 / 1.0.1. The old installation and its data were preserved. Candidate app launch, touch/audio/performance acceptance, live UMP/ad callbacks, and Firebase DebugView receipt were therefore not performed or claimed.
+- ADB/device: after the old owner-profile app and its never-launched Guest-profile registration were removed, the exact audit APK installed successfully on the V2149 (Android 11/API 30). The package reported 1.0.11/code 13 and arm64. Firebase fetched config and uploaded automatic first-open/session data with HTTP 204. Pressing Start then logged `Firebase singleton exists but logEvent is unavailable`; custom gameplay telemetry was not forwarded, so this artifact is invalid for upload.
+
+## Repaired versionCode-14 artifact and device evidence
+
+Pending the committed-source export and repeat device run. Focused `FIREBASE_ANALYTICS_PIPELINE_TESTS` and Gradle `compileStandardReleaseJavaWithJavac` pass with the explicit `getPluginMethods()` contract.
 
 ## Residual risks and manual acceptance
 

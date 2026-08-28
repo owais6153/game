@@ -1,5 +1,8 @@
 # 2026-08-28 - Production-candidate guardrails
 
+- Real-device validation of versionCode 13 found Firebase automatic uploads healthy but the custom Godot singleton missing callable `logEvent`. Keep both `@UsedByGodot` and the explicit `getPluginMethods()` entry for `logEvent`; never remove the explicit list without release-device custom-event proof.
+- VersionCode 13 / versionName 1.0.11 is superseded and must not be uploaded. The repaired candidate is 14 / 1.0.12.
+
 - `GameConfig.NEXT_GEM_REROLL_COST` is the only V1 sink price. Do not duplicate it in UI/controller code.
 - Reroll may replace only the displayed `next_level`, using a different tier from the current `launcher_sequence`. Never mutate the active launcher, target mapping, future queue, spawn ranges, or physics.
 - Spend only banked `level_start_coins`; persist the reduced banked value before committing in-memory state. This prevents Retry refunds and unresolved-reward duplication.
