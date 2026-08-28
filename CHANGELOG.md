@@ -1,3 +1,12 @@
+# 2026-08-28 - Final pre-launch production-readiness candidate
+
+- Added the single approved V1 coin sink: a centrally priced 100-coin Next Gem reroll using only the existing weighted launcher sequence.
+- Made reroll spending save-before-commit, banked-coin-only, retry-safe, non-negative, deterministic, and guarded against rapid duplicate requests.
+- Expanded analytics with attempt/shot context, Retry, bounded `coin_earned`/`coin_spent`, ad request/failure events, and placement/reward context on SDK-confirmed shown/earned events.
+- Preserved canonical `merge` and `rewarded_ad_completed` event names to avoid duplicate semantic telemetry while documenting their `gem_merge` and earned-reward meanings.
+- Added the analytics catalog, economy contract, Play Console production checklist, post-launch roadmap, and consolidated production-readiness report.
+- Preserved gameplay, visuals, physics, target progression, rewards, audio assets/mix, AdMob cadence/IDs, UMP gate, package ID, and save-format compatibility.
+
 # 2026-08-27 - Firebase custom gameplay analytics pipeline v1
 
 - Replaced the silent GDScript-to-Android analytics hop with explicit request/service/native/forwarded diagnostics and an acknowledged `logEvent` bridge call.

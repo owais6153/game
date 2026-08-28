@@ -73,7 +73,7 @@ const PROGRESSION_HEIGHT := 78.0
 ## Coins retains the approved larger footprint. Next receives one additional
 ## 10% emphasis pass while remaining secondary to the centered Target.
 const SCORE_PANEL_SIZE := Vector2(164.25, 72.0)
-const NEXT_PANEL_SIZE := Vector2(141.075, 123.75)
+const NEXT_PANEL_SIZE := Vector2(141.075, 172.0)
 const TARGET_PANEL_SIZE := Vector2(340.0, 84.0)
 
 const TITLE_FONT_SIZE := 42

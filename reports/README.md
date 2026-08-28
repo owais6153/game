@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Final Pre-Launch Production Readiness v1.0.11](FINAL_PRELAUNCH_PRODUCTION_READINESS_REPORT.md) - Firebase/AdMob/UMP, Play compliance, Android release, regression, economy, artifact, and residual-risk audit for the production candidate.
+
 - [Firebase Custom Gameplay Analytics Pipeline v1](FIREBASE_CUSTOM_GAMEPLAY_ANALYTICS_PIPELINE_V1_REPORT.md) - root-cause audit, acknowledged native bridge, live controller/ad hooks, runtime diagnostics, branding replacement, tests, and release-AAB evidence.
 
 - [Target Achieved and Combo Readability V1](TARGET_ACHIEVED_COMBO_READABILITY_V1_REPORT.md) - literal confirmed-target feedback, longer readable combo labels, focused regressions, and local capture-log hygiene.

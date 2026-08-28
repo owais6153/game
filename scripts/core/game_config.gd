@@ -2,6 +2,9 @@ class_name GameConfig
 extends RefCounted
 
 const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
+## V1 economy sink. The controller performs the deduction and save atomically;
+## presentation reads this one value and never owns economy rules.
+const NEXT_GEM_REROLL_COST := 100
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.

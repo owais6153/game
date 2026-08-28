@@ -1,3 +1,11 @@
+# Final Pre-Launch Production Readiness Candidate - 2026-08-28
+
+- V1 adds one economy action only: spend the centralized 100-coin cost to reroll the currently displayed Next Gem from the existing weighted launcher sequence. The active launcher, later queue, targets, physics, merge rules, and balance tuning are unchanged.
+- Reroll spending is save-before-commit, banked-coin-only, retry-safe, non-negative, and protected against rapid duplicate requests. It emits exactly one contextual `coin_spent` event.
+- Analytics retain established canonical names (`merge` for gem merge and `rewarded_ad_completed` for earned reward) and now add attempt/shot/economy/ad-placement context plus retry, bounded coin inflow/outflow, ad-request, and ad-failure coverage.
+- Ad shown events remain SDK-shown-callback-only; rewarded completion remains earned-callback-only. UMP `canRequestAds()` remains the only ad-request gate.
+- No post-launch gameplay modifier, shop, IAP, leaderboard, Play Games, timed/limited-shot mode, blocker, or progression redesign is part of this candidate.
+
 # Firebase custom gameplay analytics pipeline v1 - 2026-08-27
 
 - Firebase automatic collection and custom gameplay analytics are separate paths. Custom events travel only through the `Analytics` Autoload and the acknowledged Android `FirebaseAnalytics` Godot-plugin bridge.

@@ -64,8 +64,10 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	root.add_child(manager)
 	var analytics := root.get_node_or_null("Analytics")
 	var analytics_events: Array[String] = []
-	var analytics_handler := func(event_name: String, _parameters: Dictionary) -> void:
+	var analytics_parameters: Dictionary = {}
+	var analytics_handler := func(event_name: String, parameters: Dictionary) -> void:
 		analytics_events.append(event_name)
+		analytics_parameters[event_name] = parameters.duplicate(true)
 	if analytics != null:
 		analytics.event_requested.connect(analytics_handler)
 	var state := {"interstitial_finished": 0, "rewarded_finished": 0, "rewarded_earned": true}
@@ -83,12 +85,13 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	_assert(manager.is_interstitial_ready() and manager.is_rewarded_ready(), "Initialization must preload both fullscreen formats")
 
 	state.interstitial_finished = 0
-	interstitial_started = manager.show_interstitial(func() -> void: state.interstitial_finished += 1)
+	interstitial_started = manager.show_interstitial(func() -> void: state.interstitial_finished += 1, {"placement": "post_level_complete", "level_number": 2})
 	var active_interstitial = manager._active_interstitial_ad
 	_assert(interstitial_started and manager.is_fullscreen_showing(), "A ready interstitial must enter one fullscreen session")
 	manager._on_interstitial_shown(active_interstitial)
 	manager._on_interstitial_shown(active_interstitial)
 	_assert(analytics_events.count("interstitial_shown") == 1, "Interstitial analytics must fire once from the actual shown callback")
+	_assert(String((analytics_parameters.get("interstitial_shown", {}) as Dictionary).get("placement", "")) == "post_level_complete", "Interstitial shown analytics must preserve its gameplay placement context")
 	_assert(not manager.show_interstitial(), "A second fullscreen request must be rejected while one is active")
 	manager._finish_interstitial(active_interstitial)
 	manager._finish_interstitial(active_interstitial)
@@ -100,12 +103,11 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	state.rewarded_finished = 0
 	state.rewarded_earned = false
 	state.reward_grants = 0
-	rewarded_started = manager.show_rewarded(
-		func(_item = null) -> void: state.reward_grants += 1,
-		func(earned: bool) -> void:
-			state.rewarded_earned = earned
-			state.rewarded_finished += 1
-	)
+	var grant_reward := func(_item = null) -> void: state.reward_grants += 1
+	var finish_reward := func(earned: bool) -> void:
+		state.rewarded_earned = earned
+		state.rewarded_finished += 1
+	rewarded_started = manager.show_rewarded(grant_reward, finish_reward, {"placement": "double_coins", "level_number": 2, "reward_amount": 300})
 	var active_rewarded = manager._active_rewarded_ad
 	var session_id := manager._reward_session_id
 	_assert(rewarded_started and manager.is_fullscreen_showing(), "A ready rewarded ad must enter one fullscreen session")
@@ -115,6 +117,7 @@ func _test_manager_lifecycle_and_fail_open_paths() -> void:
 	manager._on_user_earned_reward(session_id, null)
 	_assert(analytics_events.count("rewarded_ad_shown") == 1, "Rewarded shown analytics must fire once from the actual shown callback")
 	_assert(analytics_events.count("rewarded_ad_completed") == 1, "Rewarded completion analytics must fire once from the earned callback")
+	_assert(int((analytics_parameters.get("rewarded_ad_completed", {}) as Dictionary).get("reward_amount", 0)) == 300, "Earned-reward analytics must retain the authoritative gameplay reward context")
 	manager._finish_rewarded(active_rewarded)
 	await process_frame
 	_assert(int(state.reward_grants) == 1 and int(state.rewarded_finished) == 1 and bool(state.rewarded_earned), "Confirmed reward and dismissal must grant and finish exactly once")

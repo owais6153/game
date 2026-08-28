@@ -1,3 +1,11 @@
+# Architecture Addendum - Production Analytics and V1 Coin Sink
+
+`GameController` remains the only gameplay/economy authority. It counts attempts and actual launches, observes confirmed merge/target/end transitions, and supplies flat analytics context. `AdManager` owns fullscreen callback truth and carries immutable request context into SDK shown/earned/failure events. Neither analytics result nor Firebase availability feeds ads, rewards, navigation, or simulation.
+
+The Next Gem reroll crosses the existing HUD snapshot boundary through `reroll_cost` and `reroll_enabled`. `GameplayHudLayer` emits one intent and cannot mutate currency or the queue. The controller samples a different entry from the existing weighted launcher sequence, writes the reduced banked balance through `ProgressionSaveService`, then commits the displayed balance and `next_level`. The active launcher and future deterministic queue are untouched.
+
+Banked balance and unresolved run earnings remain distinct through the existing `level_start_coins` baseline. Spending reduces both displayed coins and that banked baseline; only the banked value is written mid-attempt. This preserves Retry rollback and prevents force-close reward duplication. No save-schema migration is required.
+
 # Architecture Addendum - Acknowledged Firebase Custom-Event Pipeline
 
 `Analytics` is an early Autoload and the only GDScript/native Firebase boundary. Callers submit fixed event names plus flat primitive dictionaries. The service validates/sanitizes them, emits a test-visible request signal, discovers the `FirebaseAnalytics` engine singleton, invokes its exact `logEvent(String, String)` API, and logs the returned acceptance result. Desktop/editor absence remains a safe no-op.

@@ -1,3 +1,13 @@
+# 2026-08-28 - Production-candidate guardrails
+
+- `GameConfig.NEXT_GEM_REROLL_COST` is the only V1 sink price. Do not duplicate it in UI/controller code.
+- Reroll may replace only the displayed `next_level`, using a different tier from the current `launcher_sequence`. Never mutate the active launcher, target mapping, future queue, spawn ranges, or physics.
+- Spend only banked `level_start_coins`; persist the reduced banked value before committing in-memory state. This prevents Retry refunds and unresolved-reward duplication.
+- Keep the rapid-request lock and `coin_spent` exactly-once regression. Save failure must cancel the whole transaction.
+- `merge` is the established gem-merge analytics name; `rewarded_ad_completed` is the established earned-reward name. Do not emit duplicate aliases.
+- Ad requested events observe intent; shown events require the SDK shown callback; rewarded completion requires the earned callback; failure events must remain bounded to an actual request/session, never periodic load retries.
+- Play Games, additional sinks, shops, IAP, gameplay modifiers, timers, shot limits, blockers, and leaderboards remain post-launch.
+
 # 2026-08-27 - Firebase custom-event and release-delivery guardrails
 
 - Firebase automatic events prove SDK/provider initialization only; they do not prove the Godot Autoload, native singleton, method export, gameplay call sites, or custom-event forwarding.

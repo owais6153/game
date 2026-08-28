@@ -111,6 +111,10 @@ var _last_platform_back_msec := -1000
 var _exit_request_pending := false
 var analytics_level_started := false
 var analytics_level_finished := false
+var analytics_attempt_number := 0
+var analytics_shot_count := 0
+var reroll_count_for_level := 0
+var reroll_request_locked := false
 const PLATFORM_BACK_DEBOUNCE_MSEC := 350
 
 # A completed shot can pass through each state only once. This prevents the
@@ -289,6 +293,8 @@ func hud_snapshot() -> Dictionary:
 		"next_level": next_level,
 		"coins": coins,
 		"score": coins,
+		"reroll_cost": GameConfig.NEXT_GEM_REROLL_COST,
+		"reroll_enabled": _can_reroll_next_gem(),
 		"chain_multiplier": chain_multiplier,
 		"target_level": int(visible_target.get("tier", 1)),
 		"target_progress": presented_target_progress,
@@ -400,6 +406,7 @@ func move_active_to(x_position: float) -> void:
 func launch_active_piece() -> void:
 	var active := get_active_piece()
 	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
+		analytics_shot_count += 1
 		bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 		active.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 		audio_feedback.emit_event("launch")
@@ -434,6 +441,72 @@ func get_active_piece() -> GemPiece:
 		if piece.id == active_piece_id and piece.is_active_launcher and not piece.consumed:
 			return piece
 	return null
+
+
+func _reroll_candidates() -> Array[int]:
+	var candidates: Array[int] = []
+	for tier_value in level_config.get("launcher_sequence", []) as Array:
+		var tier := int(tier_value)
+		if tier != next_level and tier >= int(level_config.get("active_tier_min", 1)) and tier <= int(level_config.get("active_tier_max", 8)):
+			candidates.append(tier)
+	return candidates
+
+
+func _can_reroll_next_gem() -> bool:
+	return (
+		app_flow_state == AppFlowState.PLAYING
+		and not won
+		and not failed
+		and not win_qualified
+		and not reroll_request_locked
+		# Spend only banked coins. Unresolved target earnings remain rollback-safe
+		# until Level Complete, matching the existing retry/save contract.
+		and level_start_coins >= GameConfig.NEXT_GEM_REROLL_COST
+		and not _reroll_candidates().is_empty()
+	)
+
+
+func _on_reroll_next_requested() -> void:
+	if not _can_reroll_next_gem():
+		return
+	reroll_request_locked = true
+	var candidates := _reroll_candidates()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int((level_seed ^ ((next_queue_index + 1) * 1103515245) ^ ((reroll_count_for_level + 1) * 7919)) & 0x7fffffff)
+	var replacement := int(candidates[rng.randi_range(0, candidates.size() - 1)])
+	var resulting_balance := coins - GameConfig.NEXT_GEM_REROLL_COST
+	var resulting_banked_balance := level_start_coins - GameConfig.NEXT_GEM_REROLL_COST
+	var save_error := ProgressionSaveServiceType.save_progress(level_number, level_seed, resulting_banked_balance)
+	if save_error != OK:
+		reroll_request_locked = false
+		push_warning("Next Gem reroll cancelled because coin persistence failed (%d)" % save_error)
+		_refresh_hud()
+		return
+	coins = resulting_balance
+	level_start_coins = resulting_banked_balance
+	next_level = replacement
+	reroll_count_for_level += 1
+	_log_analytics("coin_spent", {
+		"amount": GameConfig.NEXT_GEM_REROLL_COST,
+		"reason": "next_gem_reroll",
+		"level_number": level_number,
+		"resulting_balance": coins,
+		"result_gem_type": next_level,
+	})
+	_refresh_hud()
+	if is_inside_tree():
+		var unlock_timer := get_tree().create_timer(0.35)
+		unlock_timer.timeout.connect(func() -> void:
+			reroll_request_locked = false
+			_refresh_hud()
+		, CONNECT_ONE_SHOT)
+	else:
+		call_deferred("_unlock_reroll_request")
+
+
+func _unlock_reroll_request() -> void:
+	reroll_request_locked = false
+	_refresh_hud()
 
 func restart() -> void:
 	if is_inside_tree():
@@ -479,6 +552,8 @@ func restart() -> void:
 	failed = false
 	analytics_level_started = false
 	analytics_level_finished = false
+	analytics_shot_count = 0
+	reroll_request_locked = false
 	collection_in_progress = false
 	_cancel_target_collection()
 	dragging = false
@@ -526,6 +601,7 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.sound_toggled.connect(_on_sound_toggled)
 	gameplay_ui.privacy_options_requested.connect(_on_privacy_options_requested)
 	gameplay_ui.ui_tap_requested.connect(_on_ui_tap_requested)
+	gameplay_ui.reroll_next_requested.connect(_on_reroll_next_requested)
 	effects_layer = GameplayEffectsLayerType.new()
 	effects_layer.z_index = 0
 	gameplay_ui.attach_reward_foreground(effects_layer)
@@ -608,6 +684,8 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		var identity_mapping: Dictionary = level_config.get("gem_identity_by_tier", {})
 		_log_analytics("merge", {
 			"level_number": level_number,
+			"attempt_number": analytics_attempt_number,
+			"shots": analytics_shot_count,
 			"merged_gem_id": int(identity_mapping.get(result_level, result_level)),
 			"merged_gem_type": result_level,
 			"involved_target": completes_active_target,
@@ -643,6 +721,12 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			if gameplay_ui != null:
 				gameplay_ui.begin_coin_reward(awarded_coins)
 			coins += awarded_coins
+			_log_analytics("coin_earned", {
+				"amount": awarded_coins,
+				"reason": "target_complete",
+				"level_number": level_number,
+				"resulting_balance": coins,
+			})
 		# Chain resolution remains immediate and deterministic; this only staggers its visuals.
 		merge_event.elapsed = -float(depth) * GameConfig.CHAIN_PRESENTATION_STAGGER
 		merge_event.first_frame_visible = false
@@ -972,6 +1056,12 @@ func _advance_target_state_authoritative(result_id: int, merge_event: Dictionary
 	var required_quantity := active_target_quantity()
 	target_progress += 1
 	if target_progress < required_quantity:
+		_log_analytics("target_progress", {
+			"level_number": level_number,
+			"target_index": target_index + 1,
+			"target_progress": target_progress,
+			"target_quantity": required_quantity,
+		})
 		return
 	target_progress = 0
 	target_index += 1
@@ -983,6 +1073,8 @@ func _advance_target_state_authoritative(result_id: int, merge_event: Dictionary
 		"target_index": target_index,
 		"target_gem_id": int(identity_mapping.get(target_tier, target_tier)),
 		"target_gem_type": target_tier,
+		"attempt_number": analytics_attempt_number,
+		"shots": analytics_shot_count,
 	})
 	if target_index >= target_sequence().size():
 		merge_event.final_target_completed = true
@@ -1047,6 +1139,9 @@ func _trigger_failure() -> void:
 	_emit_level_end_analytics_once("level_fail", {
 		"level_number": level_number,
 		"fail_reason": "danger_line",
+		"attempt_number": analytics_attempt_number,
+		"shots": analytics_shot_count,
+		"coin_balance": coins,
 	})
 	active_piece_id = -1
 	launcher_state = LauncherState.RESOLVING
@@ -1355,6 +1450,9 @@ func _qualify_win_if_target_complete() -> void:
 	_emit_level_end_analytics_once("level_complete", {
 		"level_number": level_number,
 		"coins_earned": maxi(0, coins - level_start_coins),
+		"attempt_number": analytics_attempt_number,
+		"shots": analytics_shot_count,
+		"coin_balance": coins,
 	})
 	win_qualified = true
 	win_presented = false
@@ -1618,6 +1716,13 @@ func _save_settings() -> void:
 	)
 
 func _on_restart_requested() -> void:
+	var retry_reason := "level_fail" if failed else "manual_restart"
+	_log_analytics("retry", {
+		"level_number": level_number,
+		"attempt_number": analytics_attempt_number + 1,
+		"shots": analytics_shot_count,
+		"reason": retry_reason,
+	})
 	if gameplay_ui != null:
 		gameplay_ui.hide_pause(false)
 	if is_inside_tree():
@@ -1657,11 +1762,19 @@ func _begin_completion_transition(destination: String) -> void:
 	completion_destination = destination
 	if result_overlay != null:
 		result_overlay.set_actions_pending(true)
-	if AdConfigType.should_show_interstitial_after_level(level_number) and ad_manager != null:
+	if AdConfigType.should_show_interstitial_after_level(level_number):
 		app_flow_state = AppFlowState.AD_SHOWING
 		if result_overlay != null:
 			result_overlay.dismiss()
-		ad_manager.call("show_interstitial", Callable(self, "_finish_completion_transition"))
+		var ad_context := {"placement": "post_level_complete", "level_number": level_number}
+		_log_analytics("interstitial_requested", ad_context)
+		if ad_manager != null:
+			var started := bool(ad_manager.call("show_interstitial", Callable(self, "_finish_completion_transition"), ad_context))
+			if not started:
+				_log_analytics("interstitial_failed", ad_context.merged({"failure_reason": "unavailable"}))
+		else:
+			_log_analytics("interstitial_failed", ad_context.merged({"failure_reason": "manager_unavailable"}))
+			call_deferred("_finish_completion_transition")
 	else:
 		if result_overlay != null:
 			result_overlay.dismiss()
@@ -1677,6 +1790,8 @@ func _finish_completion_transition() -> void:
 	level_number += 1
 	level_seed = LevelConfigType.seed_for_level(level_number)
 	level_start_coins = coins
+	analytics_attempt_number = 0
+	reroll_count_for_level = 0
 	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
 	restart()
 	if destination == "home":
@@ -1692,14 +1807,25 @@ func _on_double_coins_requested() -> void:
 	app_flow_state = AppFlowState.AD_SHOWING
 	if result_overlay != null:
 		result_overlay.set_actions_pending(true)
+	var ad_context := {
+		"placement": "double_coins",
+		"level_number": level_number,
+		"reward_amount": level_reward_for_completion,
+		"coin_balance": coins,
+	}
+	_log_analytics("rewarded_ad_requested", ad_context)
 	if ad_manager == null:
+		_log_analytics("rewarded_ad_failed", ad_context.merged({"failure_reason": "manager_unavailable"}))
 		_on_rewarded_ad_finished(false)
 		return
-	ad_manager.call(
+	var started := bool(ad_manager.call(
 		"show_rewarded",
 		Callable(self, "_on_rewarded_bonus_earned"),
-		Callable(self, "_on_rewarded_ad_finished")
-	)
+		Callable(self, "_on_rewarded_ad_finished"),
+		ad_context
+	))
+	if not started:
+		_log_analytics("rewarded_ad_failed", ad_context.merged({"failure_reason": "unavailable"}))
 
 
 func _on_rewarded_bonus_earned(_rewarded_item = null) -> void:
@@ -1707,6 +1833,12 @@ func _on_rewarded_bonus_earned(_rewarded_item = null) -> void:
 		return
 	rewarded_bonus_granted = true
 	coins += level_reward_for_completion
+	_log_analytics("coin_earned", {
+		"amount": level_reward_for_completion,
+		"reason": "rewarded_double_coins",
+		"level_number": level_number,
+		"resulting_balance": coins,
+	})
 	completion_reward_resolved = true
 	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
 
@@ -1798,9 +1930,14 @@ func _emit_level_start_analytics_once() -> void:
 	if analytics_level_started or analytics_level_finished:
 		return
 	analytics_level_started = true
+	analytics_attempt_number += 1
 	var pattern_family := String(level_config.get("pattern_family", ""))
 	var pattern_dominant := String(level_config.get("pattern_dominant", ""))
-	var parameters := {"level_number": level_number}
+	var parameters := {
+		"level_number": level_number,
+		"attempt_number": analytics_attempt_number,
+		"coin_balance": coins,
+	}
 	if not pattern_family.is_empty():
 		parameters["pattern"] = "%s:%s" % [pattern_family, pattern_dominant]
 	_log_analytics("level_start", parameters)

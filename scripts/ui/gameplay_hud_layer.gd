@@ -12,7 +12,7 @@ const ICON_RESTART = preload("res://assets/runtime/ui/icons/restart_lavender.svg
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_lavender.svg")
 const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_lavender.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_lavender.svg")
-const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled"]
+const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "reroll_cost", "reroll_enabled", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled"]
 
 signal settings_requested
 signal resume_requested
@@ -22,6 +22,7 @@ signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
 signal privacy_options_requested
 signal ui_tap_requested
+signal reroll_next_requested
 
 var root_control: Control
 var hud_canvas: Control
@@ -36,6 +37,7 @@ var progression_frames: Array[Control] = []
 var progression_icons: Array[TextureRect] = []
 var next_panel: Control
 var next_icon: TextureRect
+var reroll_button: Button
 var target_panel: Control
 var target_header_label: Label
 var target_icon: TextureRect
@@ -136,6 +138,11 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		next_icon.texture = AssetCatalogType.gem_texture(next_level)
 		if had_snapshot:
 			_animate_next_swap()
+	if reroll_button != null:
+		var reroll_cost := int(snapshot.get("reroll_cost", GameConfig.NEXT_GEM_REROLL_COST))
+		reroll_button.text = "REROLL  %d" % reroll_cost
+		reroll_button.disabled = not bool(snapshot.get("reroll_enabled", false))
+		reroll_button.tooltip_text = "Spend %d coins to reroll the Next Gem" % reroll_cost
 
 	var current_level := int(snapshot.get("current_level", 1))
 	var highest_level := int(snapshot.get("highest_level", 1))
@@ -689,6 +696,19 @@ func _build_next_panel() -> Control:
 	center.add_child(aspect)
 	next_icon = _gem_texture_rect("NextGem")
 	aspect.add_child(next_icon)
+	reroll_button = Button.new()
+	reroll_button.name = "RerollNextButton"
+	reroll_button.text = "REROLL  %d" % GameConfig.NEXT_GEM_REROLL_COST
+	reroll_button.custom_minimum_size = Vector2(112.0, 48.0)
+	reroll_button.theme_type_variation = "SecondaryButton"
+	reroll_button.add_theme_font_size_override("font_size", 14)
+	reroll_button.focus_mode = Control.FOCUS_ALL
+	reroll_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	reroll_button.pressed.connect(func() -> void:
+		ui_tap_requested.emit()
+		reroll_next_requested.emit()
+	)
+	column.add_child(reroll_button)
 	return panel
 
 

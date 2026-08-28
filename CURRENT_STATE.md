@@ -1,3 +1,9 @@
+# Final Pre-Launch Production Readiness Candidate - 2026-08-28
+
+The source candidate now includes one production-safe coin sink: a 100-coin Next Gem reroll inside the existing Next card. It deterministically selects a different valid L1-L4 entry from the current level's weighted launcher sequence, persists banked spending before committing UI/game state, cannot be double-spent by rapid taps, and cannot be refunded by Retry. It changes no active gem, target, physics, collision, merge, or later queue rule.
+
+Analytics now cover true attempts/shots, Retry, bounded coin earnings/spending, requested/shown/completed/failed rewarded flow, and requested/shown/failed interstitial flow. Shown events still originate only from SDK shown callbacks; earned completion still originates only from the official earned callback. Existing UMP, production ad IDs, privacy link, dual ARM export, save clamping, audio ownership, and gameplay mechanics remain intact. Production build/device/DebugView evidence is recorded in `reports/FINAL_PRELAUNCH_PRODUCTION_READINESS_REPORT.md` and `BUILD_MANIFEST.md` after final validation.
+
 # Firebase Custom Gameplay Analytics Pipeline v1 - 2026-08-27
 
 - `Analytics` remains registered in `project.godot`. Its facade now validates Firebase-compatible names and primitive parameters, reports service/native availability, emits an observable request boundary for tests, calls the exact native `logEvent` method, and records the returned acceptance status.

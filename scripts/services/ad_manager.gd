@@ -29,6 +29,8 @@ var _interstitial_showing := false
 var _rewarded_showing := false
 var _interstitial_reported_shown := false
 var _rewarded_reported_shown := false
+var _interstitial_analytics_context: Dictionary = {}
+var _rewarded_analytics_context: Dictionary = {}
 
 var _interstitial_loader
 var _rewarded_loader
@@ -299,7 +301,7 @@ func preload_rewarded() -> void:
 	_rewarded_loader.load(ad_unit_id, AdRequest.new(), callback)
 
 
-func show_interstitial(on_finished: Callable = Callable()) -> bool:
+func show_interstitial(on_finished: Callable = Callable(), analytics_context: Dictionary = {}) -> bool:
 	if not is_interstitial_ready():
 		_invoke_deferred(on_finished)
 		preload_interstitial()
@@ -308,6 +310,7 @@ func show_interstitial(on_finished: Callable = Callable()) -> bool:
 	_interstitial_ad = null
 	_active_interstitial_ad = ad
 	_interstitial_completion = on_finished
+	_interstitial_analytics_context = analytics_context.duplicate(true)
 	_interstitial_showing = true
 	_interstitial_reported_shown = false
 	_fullscreen_showing = true
@@ -318,7 +321,7 @@ func show_interstitial(on_finished: Callable = Callable()) -> bool:
 	return true
 
 
-func show_rewarded(on_reward: Callable, on_finished: Callable = Callable()) -> bool:
+func show_rewarded(on_reward: Callable, on_finished: Callable = Callable(), analytics_context: Dictionary = {}) -> bool:
 	if not is_rewarded_ready():
 		_invoke_deferred(on_finished, [false])
 		preload_rewarded()
@@ -328,6 +331,7 @@ func show_rewarded(on_reward: Callable, on_finished: Callable = Callable()) -> b
 	_active_rewarded_ad = ad
 	_reward_completion = on_reward
 	_reward_finished = on_finished
+	_rewarded_analytics_context = analytics_context.duplicate(true)
 	_reward_session_id += 1
 	_reward_granted_for_session = false
 	_rewarded_showing = true
@@ -352,6 +356,7 @@ func _setup_interstitial_callbacks(ad) -> void:
 		_finish_interstitial(ad)
 	callbacks.on_ad_failed_to_show_full_screen_content = func(error: AdError) -> void:
 		_log_show_failure("interstitial", error)
+		_log_ad_failure("interstitial_failed", error, _interstitial_analytics_context)
 		_finish_interstitial(ad)
 	ad.full_screen_content_callback = callbacks
 
@@ -364,6 +369,7 @@ func _setup_rewarded_callbacks(ad) -> void:
 		_finish_rewarded(ad)
 	callbacks.on_ad_failed_to_show_full_screen_content = func(error: AdError) -> void:
 		_log_show_failure("rewarded", error)
+		_log_ad_failure("rewarded_ad_failed", error, _rewarded_analytics_context)
 		_finish_rewarded(ad)
 	ad.full_screen_content_callback = callbacks
 
@@ -372,21 +378,21 @@ func _on_interstitial_shown(ad) -> void:
 	if not _interstitial_showing or ad != _active_interstitial_ad or _interstitial_reported_shown:
 		return
 	_interstitial_reported_shown = true
-	_log_analytics("interstitial_shown")
+	_log_analytics("interstitial_shown", _interstitial_analytics_context)
 
 
 func _on_rewarded_shown(ad) -> void:
 	if not _rewarded_showing or ad != _active_rewarded_ad or _rewarded_reported_shown:
 		return
 	_rewarded_reported_shown = true
-	_log_analytics("rewarded_ad_shown")
+	_log_analytics("rewarded_ad_shown", _rewarded_analytics_context)
 
 
 func _on_user_earned_reward(session_id: int, item) -> void:
 	if not _rewarded_showing or session_id != _reward_session_id or _reward_granted_for_session:
 		return
 	_reward_granted_for_session = true
-	_log_analytics("rewarded_ad_completed")
+	_log_analytics("rewarded_ad_completed", _rewarded_analytics_context)
 	if _reward_completion.is_valid():
 		_reward_completion.call(item)
 
@@ -402,6 +408,7 @@ func _finish_interstitial(ad) -> void:
 	_active_interstitial_ad = null
 	var completion := _interstitial_completion
 	_interstitial_completion = Callable()
+	_interstitial_analytics_context.clear()
 	fullscreen_finished.emit("interstitial")
 	preload_interstitial()
 	_invoke_deferred(completion)
@@ -420,6 +427,7 @@ func _finish_rewarded(ad) -> void:
 	var completion := _reward_finished
 	_reward_completion = Callable()
 	_reward_finished = Callable()
+	_rewarded_analytics_context.clear()
 	fullscreen_finished.emit("rewarded")
 	preload_rewarded()
 	_invoke_deferred(completion, [earned])
@@ -436,8 +444,10 @@ func _start_fullscreen_safety_timeout(ad_format: String, ad) -> void:
 			return
 		push_warning("AdManager: %s callback timeout; releasing the blocked transition" % ad_format)
 		if ad_format == "interstitial":
+			_log_analytics("interstitial_failed", _interstitial_analytics_context.merged({"failure_reason": "callback_timeout"}))
 			_finish_interstitial(ad)
 		else:
+			_log_analytics("rewarded_ad_failed", _rewarded_analytics_context.merged({"failure_reason": "callback_timeout"}))
 			_finish_rewarded(ad)
 	, CONNECT_ONE_SHOT)
 
@@ -477,7 +487,7 @@ func _invoke_callback(callback: Callable, arguments: Array) -> void:
 		callback.callv(arguments)
 
 
-func _log_analytics(event_name: String) -> void:
+func _log_analytics(event_name: String, parameters: Dictionary = {}) -> void:
 	# The ad lifecycle remains authoritative; analytics only observes callbacks
 	# that have already committed a fullscreen show or earned reward.
 	print("[Analytics] %s requested by AdManager" % event_name)
@@ -489,7 +499,14 @@ func _log_analytics(event_name: String) -> void:
 		push_warning("[Analytics] Service unavailable for %s" % event_name)
 		return
 	print("[Analytics] Service available for %s" % event_name)
-	analytics.log_event(event_name)
+	analytics.log_event(event_name, parameters)
+
+
+func _log_ad_failure(event_name: String, error, context: Dictionary) -> void:
+	var parameters := context.duplicate(true)
+	parameters["failure_reason"] = "sdk_show_failure"
+	parameters["error_code"] = int(error.code) if error != null else -1
+	_log_analytics(event_name, parameters)
 
 
 func _log_load_failure(ad_format: String, error) -> void:
@@ -541,6 +558,8 @@ func prepare_for_exit() -> void:
 	_interstitial_completion = Callable()
 	_reward_completion = Callable()
 	_reward_finished = Callable()
+	_interstitial_analytics_context.clear()
+	_rewarded_analytics_context.clear()
 
 
 func _exit_tree() -> void:
