@@ -1,8 +1,16 @@
-# 2026-08-28 - Firebase custom-event bridge repair AAB v1.0.12 (versionCode 14)
+# 2026-08-28 - Firebase custom-event bridge genuine fix, device-verified, AAB v1.0.13 (versionCode 15)
 
-- Exported, Bundletool-validated, and signature-verified the repaired `majestic-gems-production-candidate-v1.0.12-vc14.aab`. All twelve Godot regression suites and a whole-project editor import pass with no errors; the compiled DEX contains the `getPluginMethods`/`logEvent` bridge strings confirming the device-found fix is packaged.
+- With user authorization, installed the versionCode-14 candidate on the same authorized V2149 device used for the original defect report and reproduced the identical `Firebase singleton exists but logEvent is unavailable` warning: the `getPluginMethods()` change made for vc14 did not fix the root cause. **versionCode 14 / versionName 1.0.12 is also superseded and must not be uploaded.**
+- Root-caused the real defect by decompiling the bundled Godot Android plugin runtime (`GodotPlugin.class` inside `godot-lib.template_release.aar`): `logEvent` was in fact natively registered via `nativeRegisterMethod` at plugin load in both vc13 and vc14. The actual defect is that `Object.has_method("logEvent")` on the JNI-backed native singleton unreliably returns `false` even when the method is registered and callable.
+- Fixed `scripts/services/analytics_service.gd`'s `_native_bridge()` to stop gating on `has_method()`; it now relies on `Engine.has_singleton()` plus the real call's own accept/reject result.
+- Exported, Bundletool-validated, and signature-verified `majestic-gems-production-candidate-v1.0.13-vc15.aab`; all twelve Godot regression suites and a whole-project editor import pass with no errors.
+- **Device-verified with user authorization**: reinstalled the exact vc15 build on the V2149, launched, and pressed Start. Logcat confirms `MajestyAnalytics: Forwarded custom event to Firebase: level_start` and, critically, Firebase's own `FA-SVC` module logged `origin=app,name=level_start` with correct gameplay parameters — the first candidate proven to forward custom events end to end. Device left in a clean (app-uninstalled) state afterward.
+
+# 2026-08-28 - Firebase custom-event bridge repair AAB v1.0.12 (versionCode 14) — superseded
+
+- Exported, Bundletool-validated, and signature-verified the repaired `majestic-gems-production-candidate-v1.0.12-vc14.aab`. All twelve Godot regression suites and a whole-project editor import pass with no errors; the compiled DEX contains the `getPluginMethods`/`logEvent` bridge strings confirming the intended fix was packaged.
 - Dual `arm64-v8a`/`armeabi-v7a` architectures only, package `com.owais.majestygems`, versionCode 14/versionName 1.0.12 embedded manifest confirmed, unchanged Teckvertex Labs upload signature verified.
-- On-device Firebase DebugView/custom-event verification for this exact build was not performed; it requires explicit user ADB authorization before Play upload.
+- Device testing later showed this static/local validation was insufficient: the `has_method()` runtime defect persisted despite it. See the versionCode-15 entry above for the actual fix.
 
 # 2026-08-28 - Final pre-launch production-readiness candidate
 

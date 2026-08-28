@@ -41,10 +41,13 @@ func _native_bridge():
 		return null
 	print("%s Native Firebase plugin available" % LOG_PREFIX)
 	var bridge = Engine.get_singleton(NATIVE_SINGLETON)
-	if bridge == null or not bridge.has_method("logEvent"):
+	if bridge == null:
 		_bridge_available = false
-		push_warning("%s Firebase singleton exists but logEvent is unavailable" % LOG_PREFIX)
+		push_warning("%s Firebase singleton reported available but returned null" % LOG_PREFIX)
 		return null
+	# Android JNI plugin singletons register callable methods natively; the
+	# generic Object.has_method() check does not reliably see them, so the
+	# actual logEvent call result (not has_method) is the source of truth.
 	return bridge
 
 

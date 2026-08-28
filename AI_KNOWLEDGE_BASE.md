@@ -1,7 +1,9 @@
 # 2026-08-28 - Production-candidate guardrails
 
-- Real-device validation of versionCode 13 found Firebase automatic uploads healthy but the custom Godot singleton missing callable `logEvent`. Keep both `@UsedByGodot` and the explicit `getPluginMethods()` entry for `logEvent`; never remove the explicit list without release-device custom-event proof.
-- VersionCode 13 / versionName 1.0.11 is superseded and must not be uploaded. The repaired candidate is 14 / 1.0.12.
+- Real-device validation of versionCode 13 found Firebase automatic uploads healthy but custom gameplay events not forwarded, logged as `Firebase singleton exists but logEvent is unavailable`. The first suspected cause (missing `getPluginMethods()` on `FirebaseAnalyticsPlugin.java`) was **wrong** — versionCode 14 shipped that change and reproduced the identical failure on a repeat device test.
+- The real cause, found by decompiling `godot-lib.template_release.aar`'s `GodotPlugin.class`: `logEvent` was natively registered via `nativeRegisterMethod` in both builds (both `@UsedByGodot` and a `getPluginMethods()` entry satisfy the registration scan), but `Object.has_method("logEvent")` on the JNI-backed native singleton returned `false` unreliably even though the method was registered and callable. **Do not gate a Godot Android plugin singleton call on `has_method()`.** Call the method and trust its own accept/reject result instead; `scripts/services/analytics_service.gd::_native_bridge()` is the reference implementation.
+- VersionCode 13 / versionName 1.0.11 **and** versionCode 14 / versionName 1.0.12 are both superseded and must not be uploaded. The device-verified repaired candidate is 15 / 1.0.13.
+- Passing Bundletool validation, manifest dump, DEX string presence, and `jarsigner` signature checks does **not** prove a native plugin method is actually callable at runtime. On-device verification is a mandatory gate for any future change to a native plugin bridge (Firebase, AdMob), not optional.
 
 - `GameConfig.NEXT_GEM_REROLL_COST` is the only V1 sink price. Do not duplicate it in UI/controller code.
 - Reroll may replace only the displayed `next_level`, using a different tier from the current `launcher_sequence`. Never mutate the active launcher, target mapping, future queue, spawn ranges, or physics.
