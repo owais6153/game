@@ -70,7 +70,17 @@ The AAB export, Bundletool manifest/version/ABI inspection, signature/hash audit
 
 ## Artifact and device evidence
 
-Pending the committed-source export. This section will be replaced with the exact path, bytes, timestamp, SHA-256, signing identity, Bundletool output, embedded package/version/SDK/ABI results, audit APK, commit/tag, connected-device status, installation status, and DebugView status.
+- Release AAB: `build/android/majestic-gems-production-candidate-v1.0.11-vc13.aab`
+- Size/timestamp: 75,104,667 bytes; 2026-08-28 08:08:04 +05:00
+- SHA-256: `94852CCA6B75F8D8D0D19219A25B6849962DAA8286B3DDC568CDBFB8226D2257`
+- Source commit/tag: `25bfdffba9d8fdc6b57ec26814ec4a892b0acf44` / `final-prelaunch-production-readiness-v1.0.11-vc13-source`
+- Delivery tag: `final-prelaunch-production-readiness-v1.0.11-vc13-release` on the final documentation/manifest commit
+- Bundletool 1.18.3 `validate`: PASS
+- Embedded manifest: package `com.owais.majestygems`; versionCode 13; versionName 1.0.11; min SDK 24; target/compile SDK 36; required touchscreen; portrait game activity; production AdMob app ID; Firebase and Poing AdMob/UMP components present
+- Archive: 1,039 entries; three `.so` files for `arm64-v8a`; three for `armeabi-v7a`; zero x86/x86_64 libraries; current compiled config/controller/ad manager; zero packaged test/report entries
+- Signature: `jar verified`; existing Muhammad Owais Khan / Teckvertex Labs upload signer; SHA-256 certificate fingerprint `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14`. The expected self-signed/no-timestamp and JarInputStream bundle-format notices remain non-failing.
+- Standalone existence check: `build/android/production-candidate-vc13-audit-apks/universal.apk`, 76,432,567 bytes, SHA-256 `C87A6F30DFA3048CBA0F5177132DAE413E210F8FE374746C052D5A0492C642AF`. Bundletool generated it from this exact AAB with its local debug keystore; it is an audit derivative, not the delivered Play artifact.
+- ADB/device: the V2149 phone became authorized and reports Android 11 / API 30. It already has a debuggable `com.owais.majestygems` versionCode 2 / versionName 1.0.1 package. Both streamed replacement and a direct `pm install -r` attempt with the exact versionCode-13 audit APK failed to replace it and returned no final package-manager reason; a post-attempt package query still reports 2 / 1.0.1. The old installation and its data were preserved. Candidate app launch, touch/audio/performance acceptance, live UMP/ad callbacks, and Firebase DebugView receipt were therefore not performed or claimed.
 
 ## Residual risks and manual acceptance
 

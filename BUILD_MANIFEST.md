@@ -1,5 +1,21 @@
 # Build Manifest
 
+## Final Pre-Launch Production Candidate RELEASE AAB v1.0.11 (versionCode 13)
+
+- AAB: `build/android/majestic-gems-production-candidate-v1.0.11-vc13.aab`
+- Size/timestamp: 75,104,667 bytes; 2026-08-28 08:08:04 +05:00.
+- SHA-256: `94852CCA6B75F8D8D0D19219A25B6849962DAA8286B3DDC568CDBFB8226D2257`.
+- Source commit/tag: `25bfdffba9d8fdc6b57ec26814ec4a892b0acf44` / `final-prelaunch-production-readiness-v1.0.11-vc13-source`. Delivery tag: `final-prelaunch-production-readiness-v1.0.11-vc13-release` on the manifest/report follow-up commit.
+- Version decision: versionCode `13` / versionName `1.0.11`, strictly newer than every recorded/uploaded/delivered identity. Both values and the versioned filename were committed before export.
+- Export: Godot 4.6.3 `--export-release Android`, Gradle AAB, existing upload signing, package `com.owais.majestygems`, min SDK 24, target/compile SDK 36, and both `arm64-v8a` / `armeabi-v7a` architectures.
+- Validation: Bundletool 1.18.3 `validate` passed. The embedded base manifest reports versionCode 13, versionName 1.0.11, package `com.owais.majestygems`, min SDK 24, target/compile SDK 36, required touchscreen, portrait game activity, production AdMob application ID, Firebase components, and Poing AdMob/UMP registrations.
+- Native/package proof: the AAB has 1,039 entries, three libraries for each ARM ABI, zero x86/x86_64 libraries, current compiled `game_config.gdc`, `game_controller.gdc`, and `ad_manager.gdc`, and zero packaged test/report entries.
+- Signature: `jarsigner` reports `jar verified`. The upload signer is Muhammad Owais Khan / Teckvertex Labs; SHA-256 certificate fingerprint `E3:BA:32:87:A5:0A:F4:AC:49:C0:7C:BC:B2:E4:F1:09:40:AD:51:96:42:CB:24:F2:1B:CF:85:6B:3F:3B:CE:14`.
+- Tests: all twelve Godot suites printed their PASS sentinels, whole-project editor parse/import completed without script errors, Gradle dependency resolution passed, and `compileStandardReleaseJavaWithJavac` passed. The known Windows Godot post-PASS shutdown access violation remains separately disclosed in the report.
+- Standalone APK check: Bundletool generated `build/android/production-candidate-vc13-audit-apks/universal.apk` (76,432,567 bytes; SHA-256 `C87A6F30DFA3048CBA0F5177132DAE413E210F8FE374746C052D5A0492C642AF`) from this exact AAB. It is a debug-signed audit derivative, not the delivered Play artifact.
+- Device/DebugView: the V2149 phone became ADB-authorized. It already contains a debuggable Majestic Gems versionCode 2 / versionName 1.0.1 installation. Streamed and direct package-manager replacement attempts with the versionCode-13 audit APK did not replace that package and returned no final Android error text; the phone still reports 2 / 1.0.1. The existing app/data were not uninstalled. Candidate launch, physical gameplay, live UMP/ad behavior, and Firebase DebugView receipt therefore remain unperformed and are not claimed. This does not block delivery of the signed, validated AAB under the repository release rule.
+- Report: `reports/FINAL_PRELAUNCH_PRODUCTION_READINESS_REPORT.md`.
+
 ## Firebase Custom Gameplay Analytics Pipeline RELEASE AAB v1.0.10 (versionCode 12)
 
 - AAB: `build/android/majestic-gems-firebase-analytics-pipeline-v1.0.10-vc12.aab`

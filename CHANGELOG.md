@@ -6,6 +6,7 @@
 - Preserved canonical `merge` and `rewarded_ad_completed` event names to avoid duplicate semantic telemetry while documenting their `gem_merge` and earned-reward meanings.
 - Added the analytics catalog, economy contract, Play Console production checklist, post-launch roadmap, and consolidated production-readiness report.
 - Preserved gameplay, visuals, physics, target progression, rewards, audio assets/mix, AdMob cadence/IDs, UMP gate, package ID, and save-format compatibility.
+- Advanced the committed Play identity to versionCode 13 / versionName 1.0.11 and exported the signed dual-ARM `majestic-gems-production-candidate-v1.0.11-vc13.aab`; Bundletool, manifest, archive, signature, hash, and audit-APK checks passed. The V2149 phone became authorized, but its existing debuggable 1.0.1/code-2 package was not replaced; candidate launch and DebugView are not claimed.
 
 # 2026-08-27 - Firebase custom gameplay analytics pipeline v1
 
