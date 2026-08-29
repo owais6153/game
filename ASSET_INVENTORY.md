@@ -421,3 +421,34 @@ These v2 derivatives supersede soft v1 at runtime. The original and soft-v1 file
 | Full-target sparkle | `assets/sound/mixkit-fairy-arcade-sparkle-866.wav` | `assets/runtime/audio/target_complete_soft_v1.ogg` — 21,931 bytes — SHA-256 `2B0A07FAB59A84F4050148A449D7E9B6B85B4E0990114DEA9EB344048499171E` | 720 ms trim with 10 ms fade-in and 150 ms fade-out; stereo 44.1 kHz Vorbis. |
 
 All originals remain preserved. These files are presentation-only and never define contact, merge, target, reward, or physics behavior.
+
+# Powers, VFX, and treasure source intake - 2026-08-29
+
+Eleven supplied images were delivered to the repository root and relocated into the
+established source folders. Originals are preserved verbatim; no runtime derivatives
+have been sliced yet, and none of these files are loaded at runtime.
+
+| Organized path | Contents | Intended use |
+| --- | --- | --- |
+| `assets/ui_kit_source/sheet_power_icons.png` | Bomb, rocket, hammer, gem ball, magnet, switch, freeze, target | Power iconography source |
+| `assets/ui_kit_source/sheet_power_buttons.png` | Four framed power tiles with built-in count-badge slots, one empty tile, digits 0-9 | Gameplay HUD power buttons and count badges |
+| `assets/ui_kit_source/sheet_icons_v2.png` | Coin, green `+`, gear, gems, power tiles, star shield, decorator, laurel check | `+` affordance and mission-complete icon |
+| `assets/ui_kit_source/sheet_panels_v2.png` | Pill bars, gem panel, portrait panel, gear tile, diamond and wing decorators | Popup panels and title-label decorators |
+| `assets/ui_kit_source/sheet_frames.png` | Portrait frame, wide pill frame, divider chains, crest | Popup framing and dividers |
+| `assets/ui/treasure/treasure_open.png` | Open treasure chest | Treasure claim reveal state (closed state is `badge_chest`) |
+| `assets/vfx/vfx_switch.png` | Twin-arrow swirl | Switch power candidate |
+| `assets/vfx/vfx_shuffle.png` | Multi-arrow gem swirl | Shuffle/switch candidate |
+| `assets/vfx/vfx_magnet.png` | Magnet with converging gem streaks | Magnet power candidate |
+| `assets/vfx/vfx_blast.png` | Tile-shattering purple/gold blast | Bomb power candidate |
+| `assets/vfx/vfx_explosion.png` | Starburst explosion with gem debris | Bomb / level-complete candidate |
+
+Caveats recorded at intake, to be resolved before any runtime use:
+
+- Every sheet carries red/magenta fringing along the alpha edges. Extraction must trim
+  or de-fringe these borders rather than blitting the source pixels directly.
+- The five `assets/vfx/` files are single static hero illustrations at roughly 1250 px,
+  not sprite strips. They cannot animate on their own. Procedural particles remain the
+  preferred choice for in-play effects; these are only candidates for one-shot accents
+  and for shop/popup power artwork.
+- The rocket, freeze, and target icons in `sheet_power_icons.png` have no corresponding
+  power in the current design and are unused.
