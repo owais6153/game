@@ -2,6 +2,7 @@ extends SceneTree
 
 const GameControllerType = preload("res://scripts/gameplay/game_controller.gd")
 const ProgressionSaveServiceType = preload("res://scripts/services/progression_save_service.gd")
+const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 
 var failures: Array[String] = []
 var observed_events: Array[Dictionary] = []
@@ -50,29 +51,43 @@ func _test_live_gameplay_hooks() -> void:
 	controller._on_home_play_requested()
 	controller._on_home_play_requested()
 	_assert(_event_count("level_start") == 1, "START GAME must emit level_start exactly once")
-	_assert(controller.gameplay_ui.reroll_button != null and controller.gameplay_ui.reroll_button.tooltip_text.contains("100"), "The HUD must expose the centrally configured reroll cost")
 	var start_parameters := _first_parameters("level_start")
 	_assert(start_parameters.has("level_number") and start_parameters.has("pattern") and int(start_parameters.get("attempt_number", 0)) == 1, "level_start must include level, pattern, and the true attempt number")
 
 	# Seeded from the configured costs rather than fixed literals so retuning
 	# GameConfig.SKIP_LEVEL_COST cannot silently leave this suite red.
-	var reroll_cost := GameConfig.NEXT_GEM_REROLL_COST
 	var skip_cost := GameConfig.SKIP_LEVEL_COST
-	var seed_coins := reroll_cost + skip_cost + 200
+	var seed_coins := skip_cost + 200
 	controller.coins = seed_coins
 	controller.level_start_coins = seed_coins
-	var active_before_reroll := controller.get_active_piece()
-	_assert(active_before_reroll != null, "A fresh READY_TO_AIM state must have a spawned active launcher piece")
-	var prior_active_level := active_before_reroll.level if active_before_reroll != null else -1
-	controller._on_reroll_next_requested()
-	controller._on_reroll_next_requested()
-	_assert(controller.coins == seed_coins - reroll_cost and controller.level_start_coins == seed_coins - reroll_cost, "Current Gem reroll must atomically deduct one configured cost from displayed and banked coins")
-	var active_after_reroll := controller.get_active_piece()
-	_assert(active_after_reroll != null and active_after_reroll.id == active_before_reroll.id, "Reroll must change the current launcher piece in place, not replace or remove it")
-	_assert(active_after_reroll.level != prior_active_level and (controller.level_config.get("launcher_sequence", []) as Array).has(active_after_reroll.level), "Reroll must select a different tier from the existing weighted launcher sequence for the current gem")
-	_assert(active_after_reroll.radius == GameConfig.gem_collision_radius(active_after_reroll.level) * active_after_reroll.perspective_scale, "Reroll must keep the current gem's collision radius consistent with its new tier")
-	_assert(_event_count("coin_spent") == 1 and String(_first_parameters("coin_spent").get("reason", "")) == "current_gem_reroll", "Double taps must spend once and emit one contextual coin_spent event")
-	_assert(int(ProgressionSaveServiceType.load_progress().total_coins) == seed_coins - reroll_cost, "Reroll must persist the resulting banked balance immediately")
+
+	# Switch is a power now, not a coin action. It must spend one owned power
+	# and no coins at all; the old -100 behaviour is gone.
+	# Seed the inventory explicitly: this suite shares user:// with the powers
+	# suite, so relying on the starter grant would make it order-dependent.
+	controller.power_state = PowerInventoryServiceType.ensure_state({"counts": {"switch": 2}, "granted_starter": true})
+	var owned_before := PowerInventoryServiceType.count(controller.power_state, PowerInventoryServiceType.SWITCH)
+	_assert(owned_before > 0, "The seeded inventory must leave a Switch power available to spend")
+	var active_before_switch := controller.get_active_piece()
+	_assert(active_before_switch != null, "A fresh READY_TO_AIM state must have a spawned active launcher piece")
+	var prior_active_level := active_before_switch.level if active_before_switch != null else -1
+	controller._on_power_requested(PowerInventoryServiceType.SWITCH)
+	controller._on_power_requested(PowerInventoryServiceType.SWITCH)
+	_assert(controller.coins == seed_coins and controller.level_start_coins == seed_coins,
+		"Switch must no longer deduct coins now that it is an owned power")
+	_assert(PowerInventoryServiceType.count(controller.power_state, PowerInventoryServiceType.SWITCH) == owned_before - 1,
+		"Double taps must spend exactly one Switch power")
+	var active_after_switch := controller.get_active_piece()
+	_assert(active_after_switch != null and active_after_switch.id == active_before_switch.id, "Switch must change the current launcher piece in place, not replace or remove it")
+	_assert(active_after_switch.level != prior_active_level and (controller.level_config.get("launcher_sequence", []) as Array).has(active_after_switch.level), "Switch must select a different tier from the existing weighted launcher sequence for the current gem")
+	_assert(active_after_switch.radius == GameConfig.gem_collision_radius(active_after_switch.level) * active_after_switch.perspective_scale, "Switch must keep the current gem's collision radius consistent with its new tier")
+	_assert(_event_count("coin_spent") == 0, "Spending a power must emit no coin_spent event")
+	_assert(_event_count("power_used") == 1 and String(_first_parameters("power_used").get("power", "")) == PowerInventoryServiceType.SWITCH,
+		"Double taps must spend once and emit one contextual power_used event")
+	var persisted_powers := PowerInventoryServiceType.ensure_state(ProgressionSaveServiceType.load_progress().get("power_state", {}) as Dictionary)
+	_assert(PowerInventoryServiceType.count(persisted_powers, PowerInventoryServiceType.SWITCH) == owned_before - 1,
+		"Spending a power must persist the decremented inventory immediately")
+	_assert(int(ProgressionSaveServiceType.load_progress().total_coins) == seed_coins, "Spending a power must leave the banked balance untouched")
 
 	_assert(controller.gameplay_ui.root_control.find_child("SkipSinkButton", true, false) == null, "The live board must not expose a Skip Level button")
 	_assert(controller.gameplay_ui.pause_skip_button != null and controller.gameplay_ui.pause_skip_button.tooltip_text.contains(str(skip_cost)), "Pause must expose the centrally configured skip cost")
@@ -82,11 +97,11 @@ func _test_live_gameplay_hooks() -> void:
 	controller._on_skip_level_requested()
 	controller._on_skip_level_requested()
 	_assert(controller.level_number == level_before_skip + 1, "Skip Level must advance exactly one level per confirmed request, ignoring the double tap")
-	_assert(controller.coins == seed_coins - reroll_cost - skip_cost and controller.level_start_coins == seed_coins - reroll_cost - skip_cost, "Skip Level must atomically deduct its configured cost from displayed and banked coins")
+	_assert(controller.coins == seed_coins - skip_cost and controller.level_start_coins == seed_coins - skip_cost, "Skip Level must atomically deduct its configured cost from displayed and banked coins")
 	_assert(_event_count("level_skipped") == 1, "Double taps must spend once and emit one level_skipped event")
-	_assert(_event_count("coin_spent") == 2 and String(_first_parameters("coin_spent").get("reason", "")) == "current_gem_reroll", "Skip Level must add exactly one more coin_spent event alongside the earlier reroll spend")
+	_assert(_event_count("coin_spent") == 1 and String(_first_parameters("coin_spent").get("reason", "")) == "skip_level", "Skip Level must be the only coin_spent event now that Switch costs a power")
 	_assert(_event_count("level_complete") == 0 and _event_count("level_start") == 1, "Skip Level must never emit level_complete and must not itself emit a new level_start")
-	_assert(int(ProgressionSaveServiceType.load_progress().total_coins) == seed_coins - reroll_cost - skip_cost, "Skip Level must persist the resulting banked balance and advanced level atomically")
+	_assert(int(ProgressionSaveServiceType.load_progress().total_coins) == seed_coins - skip_cost, "Skip Level must persist the resulting banked balance and advanced level atomically")
 
 	for tier_value in [6, 7, 8]:
 		var tier: int = int(tier_value)

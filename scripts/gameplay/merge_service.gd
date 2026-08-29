@@ -82,6 +82,18 @@ func _resolve_cycle(pieces: Array[GemPiece], candidates: Array[ContactPair], nex
 				chain_contacts.append(ContactPair.new(upgraded.id, other.id))
 	return {"pieces": remaining, "next_id": id_cursor, "merge_count": spawned.size(), "presentation_events": events, "chain_contacts": chain_contacts}
 
+## Drops every pending contact involving a piece that has left the board by a
+## route other than a merge (a power destroying it). Without this, a captured
+## contact would still name the removed id when the next cycle resolves.
+func forget(piece_id: int) -> void:
+	var surviving: Array[ContactPair] = []
+	for candidate in _candidates:
+		if candidate.first_id == piece_id or candidate.second_id == piece_id:
+			continue
+		surviving.append(candidate)
+	_candidates = surviving
+
+
 func clear() -> void:
 	_candidates.clear()
 

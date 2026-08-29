@@ -328,6 +328,25 @@ static func target_badge_style() -> StyleBox:
 	style.content_margin_right = 14.0
 	return style
 
+## The gameplay HUD's power count badge. A small, high-contrast gold-rimmed
+## disc that overlaps the power plate's corner, sized so a two-digit count
+## still reads on a phone.
+static func power_count_badge_style() -> StyleBox:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.20, 0.045, 0.36, 0.99)
+	style.set_corner_radius_all(23)
+	style.border_width_left = 3
+	style.border_width_top = 3
+	style.border_width_right = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(0.98, 0.78, 0.32, 1.0)
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
+	style.shadow_size = 4
+	style.content_margin_left = 2.0
+	style.content_margin_right = 2.0
+	return style
+
+
 
 static func utility_frame_style() -> StyleBox:
 	return _frosted_glass_style(Color(0.34, 0.10, 0.52, 0.92), Color(0.12, 0.025, 0.23, 0.92), 32, 2, false, true)

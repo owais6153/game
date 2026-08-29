@@ -15,6 +15,37 @@ const MAX_COIN_CONTINUES_PER_ATTEMPT := 1
 ## Second economy sink. Skipping jumps straight to the next level (no win
 ## screen, no interstitial, no level-complete reward) for a flat coin cost.
 const SKIP_LEVEL_COST := 800
+## Powers V1. Prices and ownership live in PowerInventoryService; only the
+## in-play tuning belongs here. Every value is deliberately bounded so a power
+## rescues one situation rather than solving the level: the board is 720x714,
+## so a 165px bomb reaches roughly a two-gem ring around the tap and can never
+## approach a full clear, and the cap holds even where gems are packed tightest.
+const POWER_BOMB_RADIUS := 165.0 # safe readable range 140-190
+const POWER_BOMB_MAX_CLEARED := 8
+## Survivors just outside the blast are shoved outward so the hole reads as an
+## explosion rather than gems silently vanishing. Reuses the target-merge blast
+## feel at a lower impulse because this clears rather than only pushes.
+const POWER_BOMB_PUSH_RADIUS := 260.0
+const POWER_BOMB_PUSH_IMPULSE := 420.0
+## Magnet pulls same-tier gems toward the current gem to set up one merge. The
+## radius is wider than the bomb's because it only attracts; the speed is capped
+## so pulled gems still collide and settle through the normal simulation.
+const POWER_MAGNET_RADIUS := 280.0 # safe readable range 240-320
+const POWER_MAGNET_MAX_ATTRACTED := 4
+const POWER_MAGNET_PULL_SPEED := 520.0
+## Hammer destroys exactly one tapped gem. The pick radius is generous because a
+## thumb is imprecise, but it never exceeds one gem's spacing so the wrong gem
+## is not destroyed by a near miss.
+const POWER_HAMMER_PICK_RADIUS := 64.0
+## Which merge tier's impact ring each power borrows for its burst. Higher tiers
+## read as larger and brighter, which is how the four powers stay ordered
+## against each other without a bespoke effect per power.
+const POWER_EFFECT_LEVEL := {
+	"switch": 3,
+	"magnet": 4,
+	"hammer": 5,
+	"bomb": 7,
+}
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.
@@ -600,6 +631,14 @@ const AUDIO_TONES := {
 	"target_collect": {"frequency": 1046.0, "duration": 0.48, "volume": 0.82, "brightness": 0.46, "fall": 0.82},
 	"target_complete": {"volume": 0.78},
 	"coin_tick": {"frequency": 1244.0, "duration": 0.09, "volume": 0.38, "brightness": 0.34, "fall": 1.18},
+	## Powers sit above a combo and below a completed target in the reward
+	## hierarchy: a power is a deliberate spend, so it must land harder than an
+	## incidental chain, but it is a means to an objective rather than one being
+	## met. Bomb is the loudest and lowest because it clears the most.
+	"power_switch": {"frequency": 1174.0, "duration": 0.16, "volume": 0.62, "brightness": 0.74, "fall": 1.22},
+	"power_magnet": {"frequency": 988.0, "duration": 0.26, "volume": 0.68, "brightness": 0.58, "fall": 0.86},
+	"power_hammer": {"frequency": 523.0, "duration": 0.20, "volume": 0.74, "brightness": 0.42, "fall": 1.40},
+	"power_bomb": {"frequency": 392.0, "duration": 0.34, "volume": 0.86, "brightness": 0.30, "fall": 1.48},
 	"coin_reward": {"volume": 0.72},
 	"win": {"volume": 0.92},
 	"button": {"volume": 0.32},
@@ -626,6 +665,10 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"coin_reward": 0.20,
 	"win": 0.25,
 	"button": 0.08,
+	"power_switch": 0.12,
+	"power_magnet": 0.12,
+	"power_hammer": 0.12,
+	"power_bomb": 0.15,
 }
 const AUDIO_PITCH_RANGE_BY_EVENT := {
 }
@@ -647,6 +690,12 @@ const AUDIO_PRIORITY_BY_EVENT := {
 	"merge_7": 75,
 	"merge_8": 76,
 	"chain": 75,
+	# Between chain (75) and target_complete (85): a spent power must cut
+	# through an incidental combo without ever masking a met objective.
+	"power_switch": 78,
+	"power_magnet": 79,
+	"power_hammer": 80,
+	"power_bomb": 82,
 	"win": 100,
 }
 ## Compatibility only for the retired extracted-event service. Production

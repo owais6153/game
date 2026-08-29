@@ -2,6 +2,7 @@ extends SceneTree
 
 const GameplayHudType = preload("res://scripts/ui/gameplay_hud_layer.gd")
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
+const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 const EXPECTED_RADII := [36.0, 39.0, 42.0, 45.0, 48.0, 56.0, 61.0, 66.0]
 const VIEWPORTS := [
 	Vector2i(576, 1312),
@@ -219,8 +220,20 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	_assert(hud.root_control.find_child("TargetProgressBar", true, false) == null, "%s Target must use compact numeric progress without a progress bar" % viewport_size)
 	_assert(hud.root_control.find_child("CoinsHeading", true, false) == null, "%s Coins HUD must not repeat a redundant label" % viewport_size)
 	_assert(hud.root_control.find_child("NextHeading", true, false) is Label, "%s Next heading must be direct text rather than a nested panel" % viewport_size)
-	var switch_button := hud.root_control.find_child("RerollSinkButton", true, false) as Button
-	_assert(switch_button != null and switch_button.custom_minimum_size == Vector2.ONE * GameplayHudType.SINK_BUTTON_SIZE, "%s Switch Gem must retain its large circular touch target" % viewport_size)
+	# The single coin-priced Switch button was replaced by the four-power row.
+	# Every tile must keep a thumb-sized touch target and stay enabled even at
+	# zero owned, because an empty power offers a rewarded ad rather than
+	# presenting a dead button.
+	for power in PowerInventoryServiceType.ALL:
+		var tile := hud.root_control.find_child("%sPowerButton" % power.capitalize(), true, false) as Button
+		_assert(tile != null and tile.custom_minimum_size == Vector2.ONE * GameplayHudType.POWER_TILE_SIZE,
+			"%s %s power tile must retain its large touch target" % [viewport_size, power])
+		_assert(tile != null and not tile.disabled,
+			"%s %s power tile must never be disabled" % [viewport_size, power])
+	# Four tiles plus their gaps must still fit the design width with margins.
+	var row_width := 4.0 * GameplayHudType.POWER_TILE_SIZE + 3.0 * float(GameplayHudType.POWER_TILE_GAP)
+	_assert(row_width <= UiDesignSystemType.DESIGN_WIDTH - 32.0,
+		"%s the four power tiles must fit the design width with margins (row %.0f)" % [viewport_size, row_width])
 	_assert(hud.root_control.find_child("SkipSinkButton", true, false) == null, "%s Skip Level must not appear on the live board" % viewport_size)
 	_assert(hud.pause_skip_button != null, "%s Skip Level must remain available from Pause" % viewport_size)
 	viewport.queue_free()

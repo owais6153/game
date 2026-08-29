@@ -1,0 +1,81 @@
+{
+	"alpha_cut": 0.5,
+	"entries": [
+		{
+			"runtime": "res://assets/runtime/ui/kit/power_tile.png",
+			"runtime_sha256": "930dc003c4a2d1d83ec91cefd1dfbcfe7225fd4e363b681f26a0f7c38013b18a",
+			"runtime_size": [
+				223,
+				224
+			],
+			"source": "res://assets/ui_kit_source/sheet_power_buttons.png",
+			"source_rect": [
+				761,
+				455,
+				405,
+				407
+			]
+		},
+		{
+			"runtime": "res://assets/runtime/ui/kit/power_icon_bomb.png",
+			"runtime_sha256": "c8cb5c2fa5c22c3b65d4673900893e312f7e5a3827ffa034e1ba42075b6aa6d7",
+			"runtime_size": [
+				102,
+				128
+			],
+			"source": "res://assets/ui_kit_source/sheet_power_icons.png",
+			"source_rect": [
+				75,
+				73,
+				308,
+				385
+			]
+		},
+		{
+			"runtime": "res://assets/runtime/ui/kit/power_icon_hammer.png",
+			"runtime_sha256": "95779c848beeb70a1b2ee3796fac3fbc8b70b213a88d583c0a83c344866e0d14",
+			"runtime_size": [
+				100,
+				128
+			],
+			"source": "res://assets/ui_kit_source/sheet_power_icons.png",
+			"source_rect": [
+				819,
+				113,
+				281,
+				359
+			]
+		},
+		{
+			"runtime": "res://assets/runtime/ui/kit/power_icon_magnet.png",
+			"runtime_sha256": "6e370fffb727d31a00d581cd3733ea358e3c2eb42ec8202742bc95d42579bbd2",
+			"runtime_size": [
+				128,
+				127
+			],
+			"source": "res://assets/ui_kit_source/sheet_power_icons.png",
+			"source_rect": [
+				54,
+				532,
+				354,
+				350
+			]
+		},
+		{
+			"runtime": "res://assets/runtime/ui/kit/power_icon_switch.png",
+			"runtime_sha256": "c926138c7afb496c3437fb4018383a1427cde9ab81b61af0f5931b22d5e2f3f8",
+			"runtime_size": [
+				122,
+				128
+			],
+			"source": "res://assets/ui_kit_source/sheet_power_icons.png",
+			"source_rect": [
+				464,
+				574,
+				280,
+				293
+			]
+		}
+	],
+	"version": 1
+}

@@ -12,13 +12,20 @@ const ICON_RESTART = preload("res://assets/runtime/ui/icons/restart_lavender.svg
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_lavender.svg")
 const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_lavender.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_lavender.svg")
-const ICON_REROLL = preload("res://assets/runtime/ui/icons/arrows_clockwise_white.svg")
+const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
+const POWER_TILE = preload("res://assets/runtime/ui/kit/power_tile.png")
+const POWER_ICONS := {
+	"bomb": preload("res://assets/runtime/ui/kit/power_icon_bomb.png"),
+	"magnet": preload("res://assets/runtime/ui/kit/power_icon_magnet.png"),
+	"switch": preload("res://assets/runtime/ui/kit/power_icon_switch.png"),
+	"hammer": preload("res://assets/runtime/ui/kit/power_icon_hammer.png"),
+}
 const ICON_SKIP = preload("res://assets/runtime/ui/icons/fast_forward_lavender.svg")
 const SHOTS_PANEL_SIZE := Vector2(300.0, 82.0)
 const SHOTS_PULSE_SCALE := 1.28
 const SHOTS_PULSE_DURATION := 0.26
 
-const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "reroll_cost", "reroll_enabled", "skip_cost", "skip_enabled", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled", "limited_shots", "shots_remaining"]
+const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "power_counts", "power_actionable", "pending_power_target", "skip_cost", "skip_enabled", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled", "limited_shots", "shots_remaining"]
 
 signal settings_requested
 signal resume_requested
@@ -28,7 +35,11 @@ signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
 signal privacy_options_requested
 signal ui_tap_requested
-signal reroll_next_requested
+## Emitted when a power tile is tapped while the player owns at least one.
+signal power_requested(power: String)
+## Emitted when the "+" affordance on an empty power tile is tapped. A power at
+## zero is never disabled — it offers a rewarded ad for one instead.
+signal power_ad_requested(power: String)
 signal skip_level_requested
 
 var root_control: Control
@@ -49,7 +60,8 @@ var progression_frames: Array[Control] = []
 var progression_icons: Array[TextureRect] = []
 var next_panel: Control
 var next_icon: TextureRect
-var reroll_button: Button
+## One entry per power, keyed by power name: {button, count_label, plus_icon}.
+var power_tiles: Dictionary = {}
 var pause_skip_button: Button
 var sink_buttons_anchor: MarginContainer
 var target_panel: Control
@@ -152,10 +164,7 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		next_icon.texture = AssetCatalogType.gem_texture(next_level)
 		if had_snapshot:
 			_animate_next_swap()
-	if reroll_button != null:
-		var reroll_enabled := bool(snapshot.get("reroll_enabled", false))
-		reroll_button.disabled = not reroll_enabled
-		reroll_button.modulate.a = 1.0 if reroll_enabled else 0.45
+	_refresh_power_tiles(snapshot)
 	if pause_skip_button != null:
 		var skip_enabled := bool(snapshot.get("skip_enabled", false))
 		pause_skip_button.disabled = not skip_enabled
@@ -692,14 +701,199 @@ func _build_hud() -> void:
 	sink_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	sink_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	sink_center.add_child(sink_row)
-	var reroll_built := _build_sink_button("Reroll", ICON_REROLL, "SWITCH GEM", "Switch the current gem (%d coins)" % GameConfig.NEXT_GEM_REROLL_COST)
-	reroll_button = reroll_built.button
-	reroll_button.pressed.connect(func() -> void:
+	sink_row.add_theme_constant_override("separation", POWER_TILE_GAP)
+	for power in PowerInventoryServiceType.ALL:
+		sink_row.add_child(_build_power_tile(power))
+## Four tiles plus their gaps and captions must fit the 720px design width.
+## The earlier framed tile carried a built-in name pill and count slot that were
+## too small for the text and numbers at this size, so the row now uses the
+## plain square plate: the icon gets the whole tile, the name sits under it, and
+## the count rides the corner where it always has room.
+const POWER_TILE_SIZE := 124.0
+const POWER_TILE_GAP := 18
+const POWER_CAPTION_GAP := 4
+const POWER_CAPTION_HEIGHT := 24.0
+## The icon fills the plate, inset only enough to clear the bevelled border.
+const POWER_ICON_INSET := 14.0
+## The count badge overlaps the plate's top-right corner rather than sitting
+## inside it, so a two-digit count never collides with the artwork.
+const POWER_BADGE_SIZE := 46.0
+const POWER_BADGE_OVERLAP := 12.0
+const POWER_ROW_BOTTOM_PADDING := 18.0
+const POWER_TILE_ARMED_SCALE := 1.14
+const POWER_TILE_ARMED_MODULATE := Color(1.34, 1.24, 0.94, 1.0)
+## A power that cannot act right now is dimmed but never disabled.
+const POWER_TILE_IDLE_MODULATE := Color(1.0, 1.0, 1.0, 0.5)
+
+
+## One power tile: the plain square plate, a large power icon, a caption beneath
+## it, and a corner count badge that becomes the "+" affordance at zero. The
+## tile is never disabled — an empty power offers a rewarded ad instead of going
+## dead, which is the whole point of the coin-sink change.
+func _build_power_tile(power: String) -> Control:
+	var column := VBoxContainer.new()
+	column.name = "%sPowerColumn" % power.capitalize()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", POWER_CAPTION_GAP)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var button := Button.new()
+	button.name = "%sPowerButton" % power.capitalize()
+	button.custom_minimum_size = Vector2.ONE * POWER_TILE_SIZE
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	# The plate is a nine-patch, so it stays crisp at whatever tile size the
+	# row settles on instead of smearing a fixed-composition frame.
+	for state in ["normal", "hover", "pressed", "focus", "disabled"]:
+		button.add_theme_stylebox_override(state, UiKit.nine_patch_style("btn_square_small"))
+	# The plate art carries the entire visual state. A focus ring would draw a
+	# second, competing border over it, which read as a stuck selection.
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.tooltip_text = "%s — %s" % [
+		PowerInventoryServiceType.label(power),
+		PowerInventoryServiceType.description(power),
+	]
+	column.add_child(button)
+
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.texture = POWER_ICONS.get(power, POWER_ICONS[PowerInventoryServiceType.BOMB])
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = POWER_ICON_INSET
+	icon.offset_right = -POWER_ICON_INSET
+	icon.offset_top = POWER_ICON_INSET
+	icon.offset_bottom = -POWER_ICON_INSET
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(icon)
+
+	# Anchored to the plate's top-right and pushed outward, so it overlaps the
+	# corner. Controls do not clip children, so the overflow renders correctly.
+	var badge := Control.new()
+	badge.name = "Badge"
+	badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	badge.offset_left = -POWER_BADGE_SIZE + POWER_BADGE_OVERLAP
+	badge.offset_right = POWER_BADGE_OVERLAP
+	badge.offset_top = -POWER_BADGE_OVERLAP
+	badge.offset_bottom = POWER_BADGE_SIZE - POWER_BADGE_OVERLAP
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(badge)
+
+	var count_plate := PanelContainer.new()
+	count_plate.name = "CountPlate"
+	count_plate.set_anchors_preset(Control.PRESET_FULL_RECT)
+	count_plate.add_theme_stylebox_override("panel", UiDesignSystemType.power_count_badge_style())
+	count_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(count_plate)
+
+	var count_label := _label("0", 26, Color("fff6d2"))
+	count_label.name = "Count"
+	count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	count_label.add_theme_color_override("font_shadow_color", Color(0.16, 0.05, 0.24, 1.0))
+	count_label.add_theme_constant_override("shadow_offset_x", 1)
+	count_label.add_theme_constant_override("shadow_offset_y", 2)
+	count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	count_plate.add_child(count_label)
+
+	var plus_icon := TextureRect.new()
+	plus_icon.name = "Plus"
+	plus_icon.texture = UiKit.ICON_PLUS
+	plus_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	plus_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	plus_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	plus_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(plus_icon)
+
+	var caption := _label(PowerInventoryServiceType.label(power).to_upper(), 18, Color("e6d4ff"))
+	caption.name = "Caption"
+	caption.custom_minimum_size = Vector2(0.0, POWER_CAPTION_HEIGHT)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	caption.add_theme_color_override("font_shadow_color", Color(0.16, 0.05, 0.24, 1.0))
+	caption.add_theme_constant_override("shadow_offset_x", 1)
+	caption.add_theme_constant_override("shadow_offset_y", 2)
+	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(caption)
+
+	# button_down rather than pressed: a targeted power starts its drag the
+	# moment the finger lands, so the player can carry it straight to a gem.
+	button.button_down.connect(func() -> void:
 		ui_tap_requested.emit()
-		_show_sink_cost_popup(reroll_button, GameConfig.NEXT_GEM_REROLL_COST)
-		reroll_next_requested.emit()
+		# The count is the authority on which action the press means, so the two
+		# affordances can never disagree with what the badge is showing.
+		if int(_power_count(_snapshot, power)) > 0:
+			power_requested.emit(power)
+		else:
+			power_ad_requested.emit(power)
 	)
-	sink_row.add_child(reroll_built.stack)
+
+	power_tiles[power] = {
+		"button": button,
+		"column": column,
+		"icon": icon,
+		"caption": caption,
+		"count_label": count_label,
+		"count_plate": count_plate,
+		"plus_icon": plus_icon,
+	}
+	return column
+
+
+func _power_count(snapshot: Dictionary, power: String) -> int:
+	var counts: Dictionary = snapshot.get("power_counts", {}) if snapshot.get("power_counts", {}) is Dictionary else {}
+	return maxi(0, int(counts.get(power, 0)))
+
+
+## Keeps every tile's badge, dimming, and armed highlight in step with the
+## controller snapshot. Ownership drives the badge; actionability drives only
+## the dimming, never the disabled flag.
+func _refresh_power_tiles(snapshot: Dictionary) -> void:
+	var actionable: Dictionary = snapshot.get("power_actionable", {}) if snapshot.get("power_actionable", {}) is Dictionary else {}
+	var armed := String(snapshot.get("pending_power_target", ""))
+	for power in power_tiles.keys():
+		var tile: Dictionary = power_tiles[power]
+		var button := tile.get("button") as Button
+		var column := tile.get("column") as Control
+		var count_plate := tile.get("count_plate") as Control
+		var count_label := tile.get("count_label") as Label
+		var plus_icon := tile.get("plus_icon") as TextureRect
+		if button == null or column == null or count_plate == null or count_label == null or plus_icon == null:
+			continue
+		var owned := _power_count(snapshot, power)
+		# The disc and the "+" are alternates in the same corner slot: exactly
+		# one is ever visible, so the badge can never show both or neither.
+		count_plate.visible = owned > 0
+		plus_icon.visible = owned <= 0
+		if owned > 0:
+			count_label.text = str(owned)
+		# Three states, and the armed one has to be unmistakable: the player is
+		# about to spend a power on their next tap. Scale alone was too subtle
+		# across four tiles, so armed also brightens well above the others.
+		var can_act := bool(actionable.get(power, false))
+		if power == armed:
+			column.modulate = POWER_TILE_ARMED_MODULATE
+		elif can_act or owned <= 0:
+			# At zero owned the tile stays fully lit: the tap still opens the
+			# rewarded-ad offer, so it must read as available rather than dead.
+			column.modulate = Color.WHITE
+		else:
+			column.modulate = POWER_TILE_IDLE_MODULATE
+		# Scaling the whole column keeps the caption locked to its plate.
+		var target_scale := POWER_TILE_ARMED_SCALE if power == armed else 1.0
+		if not is_equal_approx(column.scale.x, target_scale):
+			column.pivot_offset = Vector2(POWER_TILE_SIZE, POWER_TILE_SIZE + POWER_CAPTION_HEIGHT) * 0.5
+			column.scale = Vector2.ONE * target_scale
+
+
+## Called by the controller when a targeted power is armed or cancelled, so the
+## HUD reflects targeting immediately rather than waiting for the next snapshot.
+func set_power_targeting(power: String) -> void:
+	var snapshot := _snapshot.duplicate(true)
+	snapshot["pending_power_target"] = power
+	_snapshot = snapshot
+	_refresh_power_tiles(snapshot)
 
 
 ## A transient "-100"-style cost readout matching the gameplay combo labels
@@ -1455,9 +1649,13 @@ func _refresh_safe_margins() -> void:
 		sink_buttons_anchor.offset_right = UiDesignSystemType.DESIGN_WIDTH
 		sink_buttons_anchor.add_theme_constant_override("margin_left", left_margin)
 		sink_buttons_anchor.add_theme_constant_override("margin_right", right_margin)
-		# Button frame + gap-to-caption + caption line (mirrors _build_sink_button).
-		var sink_row_height := SINK_BUTTON_SIZE + 6.0 + 24.0
-		var sink_bottom_margin := maxf(base_margin, insets.w * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING)
+		# The power tiles carry their own name and count inside the frame, so the
+		# row is exactly one tile tall with no caption line beneath it.
+		var sink_row_height := POWER_TILE_SIZE + float(POWER_CAPTION_GAP) + POWER_CAPTION_HEIGHT
+		# The tiles are taller than the single button they replaced and carry
+		# their name and count inside the frame, so the row needs real clearance
+		# from the screen edge rather than the bare safe-area minimum.
+		var sink_bottom_margin := maxf(base_margin + POWER_ROW_BOTTOM_PADDING, insets.w * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING)
 		# Match the approved reference by seating the control across the lower
 		# table frame while retaining the safe-area clamp for short screens.
 		var sink_top := clampf(

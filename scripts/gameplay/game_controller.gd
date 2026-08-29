@@ -13,6 +13,7 @@ const GameSettingsServiceType = preload("res://scripts/services/game_settings_se
 const HomeOverlayType = preload("res://scripts/ui/home_overlay_layer.gd")
 const AdConfigType = preload("res://scripts/services/ad_config.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
+const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 const DailyMissionsOverlayType = preload("res://scripts/ui/daily_missions_overlay_layer.gd")
 const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.gd")
 const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
@@ -123,6 +124,13 @@ var analytics_attempt_number := 0
 var analytics_shot_count := 0
 var reroll_count_for_level := 0
 var reroll_request_locked := false
+## Powers V1. `power_state` is the persisted inventory; `pending_power_target`
+## names the power waiting for the player to tap a spot on the board (bomb and
+## hammer), and is empty whenever no power is targeting. Targeting input is
+## resolved here rather than in the HUD because the controller owns board input.
+var power_state: Dictionary = {}
+var pending_power_target := ""
+var power_request_locked := false
 var skip_request_locked := false
 var daily_state: Dictionary = {}
 var shots_remaining := -1
@@ -159,6 +167,13 @@ func _ready() -> void:
 	var rolled_new_day := DailyMissionServiceType.needs_new_day(saved_daily)
 	daily_state = DailyMissionServiceType.ensure_current_day(saved_daily)
 	seen_level_types = saved.get("seen_level_types", [] as Array[String])
+	var saved_powers: Dictionary = saved.get("power_state", {}) as Dictionary
+	var powers_need_save := PowerInventoryServiceType.needs_normalisation(saved_powers)
+	power_state = PowerInventoryServiceType.ensure_state(saved_powers)
+	if powers_need_save:
+		# Persist the starter grant or daily ad-cap reset immediately, so a cold
+		# start cannot hand out the starter powers again on the next launch.
+		ProgressionSaveServiceType.save_power_state(power_state, coins)
 	if rolled_new_day:
 		# Persist the roll immediately. Without this the same day is reported as
 		# "generated" on every cold start until an unrelated save happens to run.
@@ -321,8 +336,11 @@ func hud_snapshot() -> Dictionary:
 		"next_level": next_level,
 		"coins": coins,
 		"score": coins,
-		"reroll_cost": GameConfig.NEXT_GEM_REROLL_COST,
-		"reroll_enabled": _can_reroll_next_gem(),
+		"power_counts": power_counts(),
+		# Actionable is independent of ownership: a power at zero stays tappable
+		# and offers a rewarded ad rather than presenting a dead button.
+		"power_actionable": _power_actionable_map(),
+		"pending_power_target": pending_power_target,
 		"skip_cost": GameConfig.SKIP_LEVEL_COST,
 		"skip_enabled": _can_skip_level(),
 		"chain_multiplier": chain_multiplier,
@@ -423,6 +441,10 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 		dragging = false
 		return
 	if pressed:
+		# An armed bomb or hammer claims the tap before aiming can begin, so the
+		# same press can never both target a power and grab the launcher.
+		if _resolve_power_target(pointer):
+			return
 		var active := get_active_piece()
 		var grabbed_gem := active != null and pointer.distance_to(active.position) <= active.radius * GameConfig.DRAG_HIT_RADIUS_MULTIPLIER
 		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and (grabbed_gem or GameConfig.aim_guide_contains(pointer, active.position, active.radius)):
@@ -493,74 +515,387 @@ func _reroll_candidates(exclude_level: int) -> Array[int]:
 	return candidates
 
 
-func _can_reroll_next_gem() -> bool:
-	var active := get_active_piece()
+## True while the board is in a state where any power may act at all. Individual
+## powers add their own preconditions on top of this.
+func _powers_available() -> bool:
 	return (
 		app_flow_state == AppFlowState.PLAYING
-		# Only the still-aimable current gem may be rerolled; a piece already
-		# in flight or mid-resolution must keep the identity it was launched
-		# with, matching the existing merge/contact/combo contract.
-		and launcher_state == LauncherState.READY_TO_AIM
-		and active != null
 		and not won
 		and not failed
 		and not win_qualified
-		and not reroll_request_locked
-		# Spend only banked coins. Unresolved target earnings remain rollback-safe
-		# until Level Complete, matching the existing retry/save contract.
-		and level_start_coins >= GameConfig.NEXT_GEM_REROLL_COST
-		and not _reroll_candidates(active.level).is_empty()
+		and not power_request_locked
 	)
 
 
-func _on_reroll_next_requested() -> void:
-	if not _can_reroll_next_gem():
+func _power_actionable_map() -> Dictionary:
+	var actionable := {}
+	for power in PowerInventoryServiceType.ALL:
+		actionable[power] = _power_is_actionable(power)
+	return actionable
+
+
+func power_counts() -> Dictionary:
+	var counts := {}
+	for power in PowerInventoryServiceType.ALL:
+		counts[power] = PowerInventoryServiceType.count(power_state, power)
+	return counts
+
+
+## Whether tapping the power would do something right now, ignoring ownership.
+## The HUD keeps a power's button enabled even at zero owned — a zero count
+## shows the "+" affordance and offers a rewarded ad instead of going dead.
+func _power_is_actionable(power: String) -> bool:
+	if not _powers_available():
+		return false
+	match power:
+		PowerInventoryServiceType.SWITCH:
+			# Only the still-aimable current gem may be switched; a piece already
+			# in flight or mid-resolution must keep the identity it was launched
+			# with, matching the existing merge/contact/combo contract.
+			var active := get_active_piece()
+			return (
+				launcher_state == LauncherState.READY_TO_AIM
+				and active != null
+				and not _reroll_candidates(active.level).is_empty()
+			)
+		PowerInventoryServiceType.MAGNET:
+			var magnet_active := get_active_piece()
+			return (
+				launcher_state == LauncherState.READY_TO_AIM
+				and magnet_active != null
+				and not _magnet_targets(magnet_active).is_empty()
+			)
+		PowerInventoryServiceType.BOMB, PowerInventoryServiceType.HAMMER:
+			# Both are targeted: they need at least one settled gem to act on.
+			return _targetable_pieces().size() > 0
+	return false
+
+
+func _targetable_pieces() -> Array[GemPiece]:
+	var targets: Array[GemPiece] = []
+	for piece in pieces:
+		if piece.consumed or piece.is_active_launcher:
+			continue
+		targets.append(piece)
+	return targets
+
+
+## Same-tier gems near the current gem, closest first. Magnet attracts only
+## matching tiers because its stated purpose is to help create one merge.
+func _magnet_targets(active: GemPiece) -> Array[GemPiece]:
+	var matches: Array[GemPiece] = []
+	for piece in pieces:
+		if piece.consumed or piece.is_active_launcher or piece.level != active.level:
+			continue
+		if piece.position.distance_to(active.position) <= GameConfig.POWER_MAGNET_RADIUS:
+			matches.append(piece)
+	matches.sort_custom(func(a: GemPiece, b: GemPiece) -> bool:
+		return a.position.distance_squared_to(active.position) < b.position.distance_squared_to(active.position)
+	)
+	return matches.slice(0, GameConfig.POWER_MAGNET_MAX_ATTRACTED)
+
+
+## Spends one owned power, persisting before adopting the result so a failed
+## save can never consume it. Returns false when none are owned, which the HUD
+## turns into the rewarded-ad offer rather than a dead button.
+func _consume_power(power: String) -> bool:
+	var attempt := PowerInventoryServiceType.consume(power_state, power)
+	if not bool(attempt.get("ok", false)):
+		return false
+	var next_state: Dictionary = attempt.get("state", power_state) as Dictionary
+	var save_error := ProgressionSaveServiceType.save_power_state(next_state, level_start_coins)
+	if save_error != OK:
+		push_warning("%s cancelled because power persistence failed (%d)" % [power, save_error])
+		return false
+	power_state = next_state
+	_log_analytics("power_used", {
+		"power": power,
+		"level_number": level_number,
+		"remaining": PowerInventoryServiceType.count(power_state, power),
+	})
+	return true
+
+
+func _on_power_requested(power: String) -> void:
+	if not PowerInventoryServiceType.is_power(power) or not _powers_available():
 		return
+	# Tapping the armed power again cancels targeting instead of trapping the
+	# player in a mode with no way out.
+	if pending_power_target == power:
+		_cancel_power_targeting()
+		return
+	if not _power_is_actionable(power):
+		return
+	if not PowerInventoryServiceType.owns(power_state, power):
+		_offer_power_ad(power)
+		return
+	match power:
+		PowerInventoryServiceType.SWITCH:
+			_activate_switch_power()
+		PowerInventoryServiceType.MAGNET:
+			_activate_magnet_power()
+		PowerInventoryServiceType.BOMB, PowerInventoryServiceType.HAMMER:
+			_begin_power_targeting(power)
+
+
+## Bomb and hammer arm a targeting mode; the next board tap resolves them.
+func _begin_power_targeting(power: String) -> void:
+	pending_power_target = power
+	dragging = false
+	if gameplay_ui != null:
+		gameplay_ui.set_power_targeting(power)
+	_refresh_hud()
+
+
+func _cancel_power_targeting() -> void:
+	if pending_power_target.is_empty():
+		return
+	pending_power_target = ""
+	if gameplay_ui != null:
+		gameplay_ui.set_power_targeting("")
+	_refresh_hud()
+
+
+## Consumes a board tap while a targeted power is armed. Returns true when the
+## tap was spent on the power, so the caller skips aiming entirely.
+func _resolve_power_target(pointer: Vector2) -> bool:
+	if pending_power_target.is_empty():
+		return false
+	var power := pending_power_target
+	if not _powers_available():
+		_cancel_power_targeting()
+		return false
+	var resolved := false
+	match power:
+		PowerInventoryServiceType.BOMB:
+			resolved = _activate_bomb_power(pointer)
+		PowerInventoryServiceType.HAMMER:
+			resolved = _activate_hammer_power(pointer)
+	# A tap that hit nothing leaves the power armed and unspent, so a misfire
+	# never costs the player the power.
+	if resolved:
+		_cancel_power_targeting()
+	return true
+
+
+func _activate_switch_power() -> bool:
 	var active := get_active_piece()
 	if active == null:
-		return
-	reroll_request_locked = true
+		return false
 	var candidates := _reroll_candidates(active.level)
+	if candidates.is_empty() or not _consume_power(PowerInventoryServiceType.SWITCH):
+		return false
+	power_request_locked = true
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int((level_seed ^ ((next_queue_index + 1) * 1103515245) ^ ((reroll_count_for_level + 1) * 7919)) & 0x7fffffff)
 	var replacement := int(candidates[rng.randi_range(0, candidates.size() - 1)])
-	var resulting_balance := coins - GameConfig.NEXT_GEM_REROLL_COST
-	var resulting_banked_balance := level_start_coins - GameConfig.NEXT_GEM_REROLL_COST
-	var save_error := ProgressionSaveServiceType.save_progress(level_number, level_seed, resulting_banked_balance)
-	if save_error != OK:
-		reroll_request_locked = false
-		push_warning("Next Gem reroll cancelled because coin persistence failed (%d)" % save_error)
-		_refresh_hud()
-		return
-	coins = resulting_balance
-	level_start_coins = resulting_banked_balance
 	# GemSpriteLayer re-reads piece.level every sync pass and swaps texture,
 	# visual scale, and shadow automatically; only the model needs updating.
 	active.level = replacement
 	active.base_radius = GameConfig.gem_collision_radius(replacement)
 	active.apply_perspective_scale(active.perspective_scale)
 	reroll_count_for_level += 1
-	_log_analytics("coin_spent", {
-		"amount": GameConfig.NEXT_GEM_REROLL_COST,
-		"reason": "current_gem_reroll",
-		"level_number": level_number,
-		"resulting_balance": coins,
-		"result_gem_type": active.level,
-	})
+	_present_power_effect(PowerInventoryServiceType.SWITCH, active.position)
+	_unlock_power_request_soon()
+	return true
+
+
+func _activate_magnet_power() -> bool:
+	var active := get_active_piece()
+	if active == null:
+		return false
+	var targets := _magnet_targets(active)
+	if targets.is_empty() or not _consume_power(PowerInventoryServiceType.MAGNET):
+		return false
+	power_request_locked = true
+	for piece in targets:
+		var offset := active.position - piece.position
+		var distance := offset.length()
+		if distance <= 0.001:
+			continue
+		# Give velocity rather than teleporting, so pulled gems still collide,
+		# merge, and settle through the normal simulation.
+		piece.velocity = (offset / distance * GameConfig.POWER_MAGNET_PULL_SPEED).limit_length(GameConfig.MAX_PIECE_SPEED)
+	_present_power_effect(PowerInventoryServiceType.MAGNET, active.position)
+	_unlock_power_request_soon()
+	return true
+
+
+func _activate_bomb_power(origin: Vector2) -> bool:
+	var cleared: Array[GemPiece] = []
+	for piece in _targetable_pieces():
+		if piece.position.distance_to(origin) <= GameConfig.POWER_BOMB_RADIUS:
+			cleared.append(piece)
+	if cleared.is_empty():
+		return false
+	# Nearest first, so the cap always removes the tight cluster the player
+	# aimed at rather than an arbitrary slice of the radius.
+	cleared.sort_custom(func(a: GemPiece, b: GemPiece) -> bool:
+		return a.position.distance_squared_to(origin) < b.position.distance_squared_to(origin)
+	)
+	cleared = cleared.slice(0, GameConfig.POWER_BOMB_MAX_CLEARED)
+	if not _consume_power(PowerInventoryServiceType.BOMB):
+		return false
+	power_request_locked = true
+	for piece in cleared:
+		_destroy_piece(piece)
+	# Shove the survivors just outside the blast so the hole reads as an
+	# explosion instead of gems silently vanishing.
+	for piece in _targetable_pieces():
+		var offset := piece.position - origin
+		var distance := offset.length()
+		if distance > GameConfig.POWER_BOMB_PUSH_RADIUS:
+			continue
+		var direction := offset / distance if distance > 0.001 else Vector2.from_angle(float(posmod(piece.id * 97, 360)) * PI / 180.0)
+		var proximity := 1.0 - clampf(distance / GameConfig.POWER_BOMB_PUSH_RADIUS, 0.0, 1.0)
+		piece.velocity = (piece.velocity + direction * GameConfig.POWER_BOMB_PUSH_IMPULSE * proximity).limit_length(GameConfig.MAX_PIECE_SPEED)
+	_present_power_effect(PowerInventoryServiceType.BOMB, origin)
+	_unlock_power_request_soon()
+	return true
+
+
+func _activate_hammer_power(pointer: Vector2) -> bool:
+	var chosen: GemPiece = null
+	var best_distance := GameConfig.POWER_HAMMER_PICK_RADIUS
+	for piece in _targetable_pieces():
+		var distance := piece.position.distance_to(pointer)
+		# A generous pick radius forgives an imprecise thumb, but never reaches
+		# past one gem's spacing, so a near miss cannot destroy the wrong gem.
+		if distance <= maxf(best_distance, piece.radius) and distance < best_distance + piece.radius:
+			chosen = piece
+			best_distance = distance
+	if chosen == null or not _consume_power(PowerInventoryServiceType.HAMMER):
+		return false
+	power_request_locked = true
+	var destroyed_at := chosen.position
+	_destroy_piece(chosen)
+	_present_power_effect(PowerInventoryServiceType.HAMMER, destroyed_at)
+	_unlock_power_request_soon()
+	return true
+
+
+## Removes one piece from the simulation using the same bookkeeping the merge
+## path uses, so danger timers and visual feedback never outlive the gem.
+func _destroy_piece(piece: GemPiece) -> void:
+	piece.consumed = true
+	pieces.erase(piece)
+	danger_timers.erase(piece.id)
+	piece_visual_feedbacks.erase(piece.id)
+	merge_service.forget(piece.id)
+
+
+func _unlock_power_request_soon() -> void:
 	_refresh_hud()
 	if is_inside_tree():
 		var unlock_timer := get_tree().create_timer(0.35)
-		unlock_timer.timeout.connect(func() -> void:
-			reroll_request_locked = false
-			_refresh_hud()
-		, CONNECT_ONE_SHOT)
+		unlock_timer.timeout.connect(_unlock_power_request, CONNECT_ONE_SHOT)
 	else:
-		call_deferred("_unlock_reroll_request")
+		call_deferred("_unlock_power_request")
 
 
-func _unlock_reroll_request() -> void:
-	reroll_request_locked = false
+func _unlock_power_request() -> void:
+	power_request_locked = false
 	_refresh_hud()
+
+
+## Audio, haptics, and VFX for a spent power. Intensity is graded so the four
+## powers stay ordered against each other and against the surrounding reward
+## hierarchy; none of them shakes the screen, which stays reserved for a
+## completed level.
+func _present_power_effect(power: String, at_position: Vector2) -> void:
+	if audio_feedback != null:
+		audio_feedback.emit_event("power_%s" % power)
+	if haptics_feedback != null:
+		haptics_feedback.emit_event("major_merge" if power == PowerInventoryServiceType.BOMB else "merge")
+	if effects_layer == null:
+		return
+	# Reuses the merge impact ring rather than adding a second particle system:
+	# the supplied VFX art is a set of static hero illustrations that cannot
+	# animate, so procedural effects read better here.
+	effects_layer.begin_merge_feedback({
+		"result_id": -1,
+		"midpoint": at_position,
+		"level": GameConfig.POWER_EFFECT_LEVEL.get(power, 4),
+		"depth": 0,
+		"timeline": GameConfig.MERGE_TIMELINE_NORMAL,
+	})
+
+
+## Offers a rewarded ad for exactly one of the requested power. Nothing is
+## granted unless the ad reports a completed reward, so cancelling or failing
+## leaves the inventory and the daily allowance untouched.
+func _offer_power_ad(power: String) -> void:
+	if not PowerInventoryServiceType.is_power(power):
+		return
+	if not PowerInventoryServiceType.can_grant_from_ad(power_state, power):
+		# The daily cap is reached. Purchasing with coins remains available, so
+		# this is a quiet no-op rather than an error the player cannot act on.
+		_log_analytics("power_ad_declined", {"power": power, "reason": "daily_cap"})
+		return
+	if ad_manager == null or not bool(ad_manager.call("is_rewarded_ready")):
+		_log_analytics("power_ad_declined", {"power": power, "reason": "no_fill"})
+		return
+	var granted := false
+	ad_manager.call(
+		"show_rewarded",
+		func(_item = null) -> void:
+			granted = _grant_power_from_ad(power),
+		func() -> void:
+			# Runs on dismissal for success, cancellation, and failure alike.
+			if not granted:
+				_log_analytics("power_ad_declined", {"power": power, "reason": "not_completed"})
+			_refresh_hud(),
+		{"placement": "power_grant", "power": power, "level_number": level_number}
+	)
+
+
+## Grants exactly one power for a completed rewarded ad. Only the reward
+## callback may call this, so a cancelled or failed ad grants nothing and
+## consumes none of the daily allowance.
+func _grant_power_from_ad(power: String) -> bool:
+	var attempt := PowerInventoryServiceType.grant_from_ad(power_state, power)
+	if not bool(attempt.get("ok", false)):
+		return false
+	var next_state: Dictionary = attempt.get("state", power_state) as Dictionary
+	if ProgressionSaveServiceType.save_power_state(next_state, level_start_coins) != OK:
+		push_warning("Power ad grant for %s could not be persisted" % power)
+		return false
+	power_state = next_state
+	_log_analytics("power_granted", {
+		"power": power,
+		"source": "rewarded_ad",
+		"level_number": level_number,
+		"owned": PowerInventoryServiceType.count(power_state, power),
+	})
+	_refresh_hud()
+	return true
+
+
+## Buys one power with coins. Spends only banked coins, matching the skip sink's
+## rollback-safe contract: unresolved target earnings stay recoverable until
+## Level Complete.
+func _purchase_power(power: String) -> bool:
+	var attempt := PowerInventoryServiceType.purchase(power_state, level_start_coins, power)
+	if not bool(attempt.get("ok", false)):
+		return false
+	var next_state: Dictionary = attempt.get("state", power_state) as Dictionary
+	var resulting_banked := int(attempt.get("resulting_coins", level_start_coins))
+	var cost := int(attempt.get("cost", 0))
+	if ProgressionSaveServiceType.save_power_state(next_state, resulting_banked) != OK:
+		push_warning("Power purchase of %s cancelled because persistence failed" % power)
+		return false
+	power_state = next_state
+	coins -= cost
+	level_start_coins = resulting_banked
+	_log_analytics("coin_spent", {
+		"amount": cost,
+		"reason": "power_purchase",
+		"power": power,
+		"level_number": level_number,
+		"resulting_balance": coins,
+	})
+	_refresh_hud()
+	return true
 
 
 func _can_skip_level() -> bool:
@@ -719,7 +1054,8 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.sound_toggled.connect(_on_sound_toggled)
 	gameplay_ui.privacy_options_requested.connect(_on_privacy_options_requested)
 	gameplay_ui.ui_tap_requested.connect(_on_ui_tap_requested)
-	gameplay_ui.reroll_next_requested.connect(_on_reroll_next_requested)
+	gameplay_ui.power_requested.connect(_on_power_requested)
+	gameplay_ui.power_ad_requested.connect(_offer_power_ad)
 	gameplay_ui.skip_level_requested.connect(_on_skip_level_requested)
 	effects_layer = GameplayEffectsLayerType.new()
 	effects_layer.z_index = 0

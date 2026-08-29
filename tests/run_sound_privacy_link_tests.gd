@@ -29,7 +29,9 @@ func _test_audio_service() -> void:
 	var service := AudioFeedbackServiceType.new()
 	root.add_child(service)
 	await process_frame
-	_assert(service.cached_stream_count() == 18, "Audio service must cache the bounded contact, merge, target, coin, result, and UI identities")
+	# 18 original identities plus one per power. The bound still matters: it is
+	# what stops the cache growing an unbounded stream per gameplay event.
+	_assert(service.cached_stream_count() == 22, "Audio service must cache the bounded contact, merge, target, coin, power, result, and UI identities")
 	_assert(service._players.size() == GameConfig.AUDIO_MAX_CONCURRENT_PLAYERS, "Audio service must use the bounded shared voice pool")
 	_assert(AudioServer.get_bus_index("Music") >= 0 and AudioServer.get_bus_index("SFX") >= 0, "Dedicated Music and SFX buses must load")
 	var sfx_bus := AudioServer.get_bus_index("SFX")
