@@ -16,6 +16,7 @@ const DailyMissionServiceType = preload("res://scripts/services/daily_mission_se
 const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 const DailyMissionsOverlayType = preload("res://scripts/ui/daily_missions_overlay_layer.gd")
 const PowerOverlayType = preload("res://scripts/ui/power_overlay_layer.gd")
+const PowerCinematicType = preload("res://scripts/presentation/power_cinematic_layer.gd")
 const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.gd")
 const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
 
@@ -97,6 +98,7 @@ var result_overlay: ResultOverlayLayer
 var home_overlay: HomeOverlayLayer
 var daily_overlay: DailyMissionsOverlayLayer
 var power_overlay: PowerOverlayLayer
+var power_cinematic: PowerCinematicLayer
 ## Powers whose first-use tutorial has already been shown, loaded once at start.
 var seen_power_tutorials: Array[String] = []
 ## Set while a rewarded ad opened from the power popup is on screen, so the
@@ -449,6 +451,10 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 	# locked so no shot can be aimed, launched, or dragged during the sequence.
 	if win_presented or failed or win_qualified or final_celebration_active:
 		dragging = false
+		return
+	if pressed and power_cinematic != null and power_cinematic.is_playing():
+		# A player who has seen the sequence should never be held up by it.
+		power_cinematic.skip_to_impact()
 		return
 	if pressed:
 		# An armed bomb or hammer claims the tap before aiming can begin, so the
@@ -811,27 +817,45 @@ func _unlock_power_request() -> void:
 	_refresh_hud()
 
 
-## Audio, haptics, and VFX for a spent power. Intensity is graded so the four
-## powers stay ordered against each other and against the surrounding reward
-## hierarchy; none of them shakes the screen, which stays reserved for a
-## completed level.
+## Audio, haptics, and the full-screen cinematic for a spent power. The board
+## effect has already been applied by the time this runs, so a slow or skipped
+## sequence can never change the outcome.
+##
+## Each power announces itself at screen centre, travels into the spot it acted
+## on, and lands with its own impact. The supplied assets/vfx/ art is a set of
+## static single frames that cannot carry the travel or the landing, so the icon
+## art drives the hero sprite and everything that moves is drawn procedurally.
 func _present_power_effect(power: String, at_position: Vector2) -> void:
+	if audio_feedback != null:
+		# The charge cue leads; the impact tone lands with the strike.
+		audio_feedback.emit_event("power_charge")
+	if power_cinematic != null:
+		power_cinematic.play(power, at_position, _viewport_centre())
+		return
+	# Without the cinematic layer the power still has to read as having fired.
+	_play_power_impact_feedback(power)
+
+
+func _viewport_centre() -> Vector2:
+	return Vector2(
+		GameConfig.BOARD_RIGHT * 0.5 + GameConfig.viewport_center_offset_x,
+		(GameConfig.board_top() + GameConfig.board_bottom()) * 0.5
+	)
+
+
+func _on_power_cinematic_impact(power: String) -> void:
+	_play_power_impact_feedback(power)
+
+
+## Fires on the cinematic's impact beat rather than at activation, so the sound
+## and the haptic land with the visible strike instead of ahead of it.
+func _play_power_impact_feedback(power: String) -> void:
 	if audio_feedback != null:
 		audio_feedback.emit_event("power_%s" % power)
 	if haptics_feedback != null:
-		haptics_feedback.emit_event("major_merge" if power == PowerInventoryServiceType.BOMB else "merge")
-	if effects_layer == null:
-		return
-	# Reuses the merge impact ring rather than adding a second particle system:
-	# the supplied VFX art is a set of static hero illustrations that cannot
-	# animate, so procedural effects read better here.
-	effects_layer.begin_merge_feedback({
-		"result_id": -1,
-		"midpoint": at_position,
-		"level": GameConfig.POWER_EFFECT_LEVEL.get(power, 4),
-		"depth": 0,
-		"timeline": GameConfig.MERGE_TIMELINE_NORMAL,
-	})
+		# Only the two destructive powers get the heavier tap.
+		var destructive := power == PowerInventoryServiceType.BOMB or power == PowerInventoryServiceType.HAMMER
+		haptics_feedback.emit_event("major_merge" if destructive else "merge")
 
 
 ## Opens the rewarded-ad offer for one power. This never plays an ad directly:
@@ -1120,6 +1144,9 @@ func _setup_asset_presentation() -> void:
 	effects_layer.level_reward_wave_launched.connect(_on_level_reward_wave_launched)
 	effects_layer.level_reward_coin_arrived.connect(_on_level_reward_coin_arrived)
 	effects_layer.level_reward_finished.connect(_on_level_reward_finished)
+	power_cinematic = PowerCinematicType.new()
+	gameplay_ui.attach_reward_foreground(power_cinematic)
+	power_cinematic.impact_reached.connect(_on_power_cinematic_impact)
 	result_overlay = ResultOverlayScene.instantiate() as ResultOverlayLayer
 	add_child(result_overlay)
 	result_overlay.retry_requested.connect(_on_restart_requested)

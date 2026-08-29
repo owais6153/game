@@ -37,15 +37,6 @@ const POWER_MAGNET_PULL_SPEED := 520.0
 ## thumb is imprecise, but it never exceeds one gem's spacing so the wrong gem
 ## is not destroyed by a near miss.
 const POWER_HAMMER_PICK_RADIUS := 64.0
-## Which merge tier's impact ring each power borrows for its burst. Higher tiers
-## read as larger and brighter, which is how the four powers stay ordered
-## against each other without a bespoke effect per power.
-const POWER_EFFECT_LEVEL := {
-	"switch": 3,
-	"magnet": 4,
-	"hammer": 5,
-	"bomb": 7,
-}
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.
@@ -631,6 +622,9 @@ const AUDIO_TONES := {
 	"target_collect": {"frequency": 1046.0, "duration": 0.48, "volume": 0.82, "brightness": 0.46, "fall": 0.82},
 	"target_complete": {"volume": 0.78},
 	"coin_tick": {"frequency": 1244.0, "duration": 0.09, "volume": 0.38, "brightness": 0.34, "fall": 1.18},
+	# Powers V1. The charge cue leads every cinematic; each power then lands on
+	# its own impact tone below, so the four stay distinguishable by ear alone.
+	"power_charge": {"frequency": 520.0, "duration": 0.22, "volume": 0.52, "brightness": 0.44, "fall": 0.62},
 	## Powers sit above a combo and below a completed target in the reward
 	## hierarchy: a power is a deliberate spend, so it must land harder than an
 	## incidental chain, but it is a means to an objective rather than one being
@@ -669,6 +663,7 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"power_magnet": 0.12,
 	"power_hammer": 0.12,
 	"power_bomb": 0.15,
+	"power_charge": 0.15,
 }
 const AUDIO_PITCH_RANGE_BY_EVENT := {
 }
@@ -696,6 +691,9 @@ const AUDIO_PRIORITY_BY_EVENT := {
 	"power_magnet": 79,
 	"power_hammer": 80,
 	"power_bomb": 82,
+	# The charge cue leads the cinematic, so it must not outrank the impact it
+	# is announcing.
+	"power_charge": 77,
 	"win": 100,
 }
 ## Compatibility only for the retired extracted-event service. Production

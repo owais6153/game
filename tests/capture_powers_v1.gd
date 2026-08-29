@@ -32,6 +32,7 @@ func _run() -> void:
 	# One armed-targeting frame, to prove the selected tile reads as armed.
 	await _capture(Vector2i(720, 1280), STATES[0], PowerInventoryServiceType.BOMB)
 	await _capture_popups()
+	await _capture_cinematics()
 	print("POWERS_V1_CAPTURE: PASS")
 	quit(0)
 
@@ -147,5 +148,52 @@ func _capture_popups() -> void:
 		var error := viewport.get_texture().get_image().save_png(OUTPUT_DIR + "popup-%s.png" % case.name)
 		if error != OK:
 			push_error("Unable to save popup capture %s (error %d)" % [case.name, error])
+		viewport.queue_free()
+		await process_frame
+
+
+## Each power cinematic sampled at its announce, travel, and impact beats, so
+## the four sequences can be compared without a device.
+func _capture_cinematics() -> void:
+	for power in PowerInventoryServiceType.ALL:
+		var viewport := SubViewport.new()
+		viewport.size = Vector2i(720, 1280)
+		viewport.disable_3d = true
+		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		root.add_child(viewport)
+		var controller = GameScene.instantiate()
+		viewport.add_child(controller)
+		await process_frame
+		controller.level_number = 4
+		controller.level_seed = LevelConfigType.seed_for_level(4)
+		controller.restart()
+		controller._on_home_level_intro_requested()
+		controller._on_home_play_requested()
+		controller.coins = 1240
+		_populate_board(controller)
+		controller._sync_gems_and_mark_visibility()
+		controller._refresh_hud()
+		# Drive the layer directly at a fixed step so each beat is sampled at the
+		# same point of the sequence every run.
+		var target := Vector2(360.0, GameConfig.danger_line_y() - 120.0)
+		var cinematic = controller.power_cinematic
+		cinematic.play(power, target, controller._viewport_centre())
+		# Step the layer by hand only; its own _process would double the advance
+		# and the sequence would already be over by the impact sample.
+		cinematic.set_process(false)
+		var beats := {"announce": 0.18, "travel": 0.50, "impact": 0.78}
+		var elapsed := 0.0
+		for beat_name in ["announce", "travel", "impact"]:
+			var until: float = cinematic.DURATION * float(beats[beat_name])
+			while elapsed < until:
+				cinematic._process(1.0 / 60.0)
+				elapsed += 1.0 / 60.0
+			await process_frame
+			await RenderingServer.frame_post_draw
+			var error := viewport.get_texture().get_image().save_png(
+				OUTPUT_DIR + "cinematic-%s-%s.png" % [power, beat_name]
+			)
+			if error != OK:
+				push_error("Unable to save cinematic capture %s %s (error %d)" % [power, beat_name, error])
 		viewport.queue_free()
 		await process_frame

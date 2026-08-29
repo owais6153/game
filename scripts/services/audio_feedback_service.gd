@@ -152,6 +152,7 @@ func _build_stream_cache() -> void:
 		"target_collect": _build_reward_chime_stream(GameConfig.AUDIO_TONES.target_collect),
 		"target_complete": SuppliedTargetComplete,
 		"coin_tick": _build_crystal_stream(GameConfig.AUDIO_TONES.coin_tick, 11),
+		"power_charge": _build_crystal_stream(GameConfig.AUDIO_TONES.power_charge, 15),
 		"power_switch": _build_crystal_stream(GameConfig.AUDIO_TONES.power_switch, 12),
 		"power_magnet": _build_reward_chime_stream(GameConfig.AUDIO_TONES.power_magnet),
 		"power_hammer": _build_crystal_stream(GameConfig.AUDIO_TONES.power_hammer, 13),
