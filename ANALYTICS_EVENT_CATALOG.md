@@ -22,3 +22,7 @@ Production events use fixed Firebase-compatible names and flat primitive paramet
 | `interstitial_failed` | Unavailable manager/inventory, SDK show failure, or callback timeout | request context, failure reason/code when known | One completion transition | Fail-open diagnosis |
 
 Load retries are deliberately not analytics events because a 15-second retry loop would create noisy, high-frequency telemetry. Native request/forward/rejection diagnostics remain available in Godot output and Android logcat. Firebase DebugView receipt still requires a connected authorized Android device and Firebase debug mode.
+
+## Retention V1 events
+
+`limited_shots_level_start`, `out_of_shots`, `extra_shots_offered`, `extra_shots_purchased`, `extra_shots_declined`, `continue_offered`, `continue_purchased`, `continue_declined`, `daily_mission_generated`, `daily_mission_progress`, `daily_mission_completed`, `daily_mission_reward_claimed`, `daily_all_missions_completed`, and `daily_chest_claimed` are controller-owned, fixed-name events. `coin_spent` uses reasons `current_gem_reroll`, `extra_shots`, `continue`, and `skip_level`; all flows use request/result guards so a tap cannot duplicate an event.

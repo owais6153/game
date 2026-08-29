@@ -1,3 +1,41 @@
+# Kit plate re-authoring - 2026-08-29
+
+The runtime button/banner plates under `assets/runtime/ui/kit/` were regenerated from the same preserved slices at the exact design height each is drawn at, because these plates have no meaningful uniform vertical band (measured 2-5px) and therefore cannot be stretched vertically without smearing the rim and specular highlight.
+
+| Plate | Authored size | Drawn at | Nine-patch margins (L,T,R,B) |
+| --- | --- | --- | --- |
+| `btn_hero_bright` | 650x116 | `HERO_BUTTON_HEIGHT` 116 | 72, 56, 72, 56 |
+| `btn_pill_gem` / `_off` | 317x96 | `BUTTON_HEIGHT` 96 | 54, 46, 48, 46 |
+| `btn_pill_plain` | 282x96 | `BUTTON_HEIGHT` 96 | 32, 46, 31, 46 |
+| `btn_green` / `_off` | 242x96 | `BUTTON_HEIGHT` 96 | 40, 46, 40, 46 |
+| `btn_pill_silver` | 360x96 | `BUTTON_HEIGHT` 96 | 52, 46, 51, 46 |
+| `btn_square_small` | 78x76 | `ICON_BUTTON_SIZE` 76 | 20, 36, 20, 36 |
+| `bar_gold_frame` | 679x92 | `BANNER_HEIGHT` 92 | 63, 44, 63, 44 |
+| `banner_leaf` | 424x92 | `BANNER_HEIGHT` 92 | 84, 44, 85, 44 |
+
+Horizontal margins were measured from the opaque silhouette (where the ornamental cap stops changing the outline), not from colour uniformity: the gloss is a smooth horizontal gradient that stretches cleanly, and a colour metric wrongly treats it as unstretchable. `btn_green_off` and `btn_pill_gem_off` are luma-desaturated derivatives of their plates, used for disabled states where a tint cannot remove green.
+
+# Supplied UI art kit - 2026-08-29
+
+Six supplied sheets (1448x1086 RGBA, transparent) plus the home-screen mockup are preserved under `assets/ui_kit_source/`. Runtime derivatives live in `assets/runtime/ui/kit/` and are the only versions loaded at runtime, via `scripts/ui/ui_kit.gd`.
+
+| Purpose | Preserved source | Runtime derivatives | Processing / boundary |
+| --- | --- | --- | --- |
+| Button plates | `assets/ui_kit_source/sheet_buttons.png` | `btn_hero_bright`, `btn_hero_deep`, `btn_pill_plain`, `btn_green`, `btn_square_small`, `btn_square_swap`, `btn_pill_gem`, `btn_pill_gem_glow`, `btn_pill_silver` | Connected-component extraction (alpha > 0.30, 2px half-res dilation to bridge glow seams), alpha >= 0.02 trim, Lanczos downscale to <= 664px longest edge |
+| Panels, bars, banners | `assets/ui_kit_source/sheet_panels.png` | `chip_coin`, `bar_gem_wide`, `tile_coin`, `bar_gem_row`, `card_leaf_cta`, `panel_banner_slots`, `bar_coin_progress`, `banner_leaf`, `bar_gold_frame` | Same extraction; nine-patch margins recorded in `UiKit.NINE` only for assets that may stretch |
+| UI icons | `assets/ui_kit_source/sheet_icons.png` | `icon_gear`, `icon_gear_tile`, `icon_plus`, `icon_coin`, `icon_swap`, `icon_check`, `icon_star_coin`, `icon_shield_star`, `icon_sparkle`, `icon_gem_count` | Same extraction, 128px longest edge (224px for the gem-count pill) |
+| Mission / reward badges | `assets/ui_kit_source/sheet_badges.png` | `badge_gems`, `badge_crown`, `badge_coinbag`, `badge_calendar`, `badge_flame`, `badge_chest`, `badge_timer`, `badge_medal`, `badge_check_laurel` | Fixed 3x3 grid slice then alpha trim; connected components merged these rows because the artwork touches vertically |
+| Composition reference only | `assets/ui_kit_source/mockup_home_screen.png`, `sheet_gems.png` | none | Never loaded at runtime; the gem sheet is superseded by the existing `assets/runtime/gems/` catalog |
+
+Nine-patch margins must stay below half the shortest height each asset is drawn at. Where top+bottom margins exceed the drawn height the unstretched caps overlap and the plate's rim visibly crushes; button verticals are therefore 26-34, not the art's natural rim thickness. Kit art is presentation only and never defines collision radius, merge eligibility, or score behavior.
+
+# Supplied typefaces - 2026-08-29
+
+| Purpose | Preserved source | Runtime derivative | Processing / verification |
+| --- | --- | --- | --- |
+| All UI copy, counters, button captions | `assets/fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf` | `assets/runtime/fonts/NunitoSans-Variable.ttf` | Variable font; `wght` axis defaults to 200 (ExtraLight) and **must** be set explicitly. `UiDesignSystem` applies 800 for UI and 1000 for counters via `FontVariation.variation_opentype` |
+| Brand tagline and display | `assets/fonts/Cinzel/static/Cinzel-Black.ttf` | `assets/runtime/fonts/Cinzel-Black.ttf` | Static Black instance; also kept `Cinzel-Bold.ttf` |
+
 # Supplied opaque Majestic logo replacement v5 - 2026-08-27
 
 | Purpose | Preserved source | Runtime derivative | Processing / verification |

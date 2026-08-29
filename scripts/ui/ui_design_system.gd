@@ -29,6 +29,9 @@ const COLOR_TEXT := Color("fff8ff")
 const COLOR_TEXT_MUTED := Color("d8bde9")
 const COLOR_TRACK := Color(0.08, 0.02, 0.14, 0.70)
 const COLOR_DISABLED := Color("b9afa1")
+## Disabled controls keep their plate silhouette and are desaturated instead of
+## swapping to the silver plate, whose wide caps collapse on narrow buttons.
+const COLOR_DISABLED_PLATE := Color(0.62, 0.60, 0.66, 0.92)
 const COLOR_OVERLAY := Color(0.025, 0.008, 0.05, 0.68)
 
 # Dark amethyst glass palette matched to the supplied reference. Legacy token
@@ -39,7 +42,12 @@ const COLOR_BLUE_LIGHT := Color("ead0ff")
 const COLOR_BLUE_PALE := Color("f8eeff")
 const COLOR_GLASS_WHITE := Color(0.24, 0.07, 0.38, 0.90)
 const COLOR_GLASS_BLUE := Color(0.38, 0.13, 0.58, 0.84)
-const COLOR_GLASS_BORDER := Color(0.74, 0.31, 0.92, 0.92)
+## Every framed surface in the supplied art is rimmed in brass, not violet.
+## Routing the shared border token to gold lifts each panel, card, and inset
+## across all screens without touching their individual layouts.
+const COLOR_GLASS_BORDER := Color("d9922f")
+const COLOR_GOLD_RIM := Color("f2c14e")
+const COLOR_GOLD_RIM_DEEP := Color("a9661c")
 const COLOR_GLASS_SHADOW := Color(0.02, 0.0, 0.06, 0.52)
 
 const HUD_MARGIN := 24
@@ -56,6 +64,13 @@ const PANEL_BORDER_WIDTH := 2
 const BUTTON_CORNER_RADIUS := 24
 const BUTTON_BORDER_WIDTH := 3
 const MIN_TOUCH_TARGET := 88.0
+## Kit plates are authored at the exact height they are drawn at, so these are a
+## contract, not a preference: drawing a kit button shorter overlaps its caps and
+## crushes the plate. See UiKit.DRAWN_HEIGHT.
+const BUTTON_HEIGHT := 96.0
+const HERO_BUTTON_HEIGHT := 116.0
+const BANNER_HEIGHT := 92.0
+const ICON_BUTTON_SIZE := 76.0
 const HUD_ICON_SIZE := 58.0
 ## Eight progression identities must remain individually legible without their
 ## silhouettes visually touching in the fixed-width HUD strip.
@@ -76,13 +91,26 @@ const SCORE_PANEL_SIZE := Vector2(164.25, 72.0)
 const NEXT_PANEL_SIZE := Vector2(128.0, 150.0)
 const TARGET_PANEL_SIZE := Vector2(340.0, 84.0)
 
-const TITLE_FONT_SIZE := 42
-const POPUP_TITLE_FONT_SIZE := 40
-const PANEL_TITLE_FONT_SIZE := 21
-const BODY_FONT_SIZE := 18
-const SMALL_FONT_SIZE := 15
-const BUTTON_FONT_SIZE := 28
-const SCORE_FONT_SIZE := 44
+## Type scale. These are canvas units at the 720x1280 design viewport, so they
+## read roughly half as large on a 360dp phone. The previous scale topped out at
+## 18px body copy, which rendered as ~9dp on device and was the main reason UI
+## text looked undersized next to the artwork.
+const TITLE_FONT_SIZE := 56
+const POPUP_TITLE_FONT_SIZE := 50
+const PANEL_TITLE_FONT_SIZE := 30
+const BODY_FONT_SIZE := 27
+const SMALL_FONT_SIZE := 23
+## Long captions ("SKIP LEVEL · 800 COINS") have to clear the plates ornamental
+## caps on a 720px screen, so the button face is a step below the title scale.
+const BUTTON_FONT_SIZE := 32
+const SCORE_FONT_SIZE := 52
+const CAPTION_FONT_SIZE := 21
+const TAGLINE_FONT_SIZE := 27
+
+## Text is set over busy jewel artwork, so every label carries a dark outline.
+const TEXT_OUTLINE_SIZE := 6
+const TEXT_OUTLINE_SIZE_SMALL := 4
+const COLOR_TEXT_OUTLINE := Color(0.06, 0.01, 0.11, 0.95)
 
 const BUTTON_PRESS_DURATION := 0.07
 const BUTTON_RELEASE_DURATION := 0.11
@@ -92,8 +120,22 @@ const TARGET_PULSE_DURATION := 0.22
 const POPUP_ENTER_DURATION := 0.20
 const POPUP_EXIT_DURATION := 0.14
 
+const UiKitType = preload("res://scripts/ui/ui_kit.gd")
+
+## Supplied typefaces. Nunito Sans carries all UI copy; Cinzel is the serif
+## display face used for the brand tagline and screen titles.
+const FONT_UI_SOURCE := preload("res://assets/runtime/fonts/NunitoSans-Variable.ttf")
+const FONT_DISPLAY_SOURCE := preload("res://assets/runtime/fonts/Cinzel-Black.ttf")
+
+## OpenType axis tag for weight. NunitoSans-Variable.ttf defaults this axis to
+## 200 (ExtraLight); leaving it unset is what makes the face look spindly, so
+## every variation below sets it explicitly.
+const AXIS_WEIGHT := "wght"
+
 static var _theme_cache: Theme
 static var _font_cache: Font
+static var _font_heavy_cache: Font
+static var _font_display_cache: Font
 
 
 static func theme() -> Theme:
@@ -105,10 +147,20 @@ static func theme() -> Theme:
 	result.set_font("font", "Label", font())
 	result.set_color("font_color", "Label", COLOR_TEXT)
 	result.set_font_size("font_size", "Label", BODY_FONT_SIZE)
+	# Every label sits over jewel artwork, so the dark outline is a theme-wide
+	# default rather than something each screen has to remember.
+	result.set_color("font_outline_color", "Label", COLOR_TEXT_OUTLINE)
+	result.set_constant("outline_size", "Label", TEXT_OUTLINE_SIZE_SMALL)
 
 	_configure_primary_button(result, "Button")
 	result.set_type_variation("SecondaryButton", "Button")
 	_configure_secondary_button(result, "SecondaryButton")
+	result.set_type_variation("HeroButton", "Button")
+	_configure_hero_button(result, "HeroButton")
+	result.set_type_variation("GreenButton", "Button")
+	_configure_green_button(result, "GreenButton")
+	result.set_type_variation("IconButton", "Button")
+	_configure_icon_button(result, "IconButton")
 	result.set_type_variation("SettingsSwitch", "Button")
 	_configure_settings_switch(result, "SettingsSwitch")
 
@@ -119,14 +171,51 @@ static func theme() -> Theme:
 	return _theme_cache
 
 
+## Standard UI face. SemiBold, not ExtraBold: at 800 every label on screen —
+## including running paragraph copy — rendered as a heavy block that was hard to
+## read. Weight is now reserved for numbers and headings via heavy_font().
 static func font() -> Font:
 	if _font_cache != null:
 		return _font_cache
-	var variation := FontVariation.new()
-	variation.base_font = ThemeDB.fallback_font
-	variation.variation_embolden = 0.72
-	_font_cache = variation
+	_font_cache = _weighted(FONT_UI_SOURCE, 620)
 	return _font_cache
+
+
+## Heaviest UI face: Nunito Sans Black. Reserved for score readouts, counters,
+## and button captions that must survive a busy jewel background.
+static func heavy_font() -> Font:
+	if _font_heavy_cache != null:
+		return _font_heavy_cache
+	_font_heavy_cache = _weighted(FONT_UI_SOURCE, 1000)
+	return _font_heavy_cache
+
+
+## Serif display face: Cinzel Black. Brand tagline and screen titles only.
+static func display_font() -> Font:
+	if _font_display_cache != null:
+		return _font_display_cache
+	var variation := FontVariation.new()
+	variation.base_font = FONT_DISPLAY_SOURCE
+	_font_display_cache = variation
+	return _font_display_cache
+
+
+static func _weighted(source: FontFile, weight: int) -> FontVariation:
+	var variation := FontVariation.new()
+	variation.base_font = source
+	variation.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag(AXIS_WEIGHT): weight}
+	return variation
+
+
+## Applies the project's outlined-text treatment to a Label so copy stays
+## readable over artwork without each call site repeating four overrides.
+static func style_label(label: Label, font_size: int, color: Color = COLOR_TEXT, use_display: bool = false, outline: int = -1) -> Label:
+	label.add_theme_font_override("font", display_font() if use_display else font())
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_outline_color", COLOR_TEXT_OUTLINE)
+	label.add_theme_constant_override("outline_size", TEXT_OUTLINE_SIZE if outline < 0 else outline)
+	return label
 
 
 static func panel_style() -> StyleBoxFlat:
@@ -313,6 +402,23 @@ static func floating_status_style() -> StyleBoxFlat:
 static func logo_frame_style() -> StyleBoxFlat:
 	return _rounded_style(Color("16081f"), COLOR_PURPLE_LIGHT, 3, 30, 7, COLOR_GLASS_SHADOW)
 
+## Each mission card carries its own jewel hue with a brass rim, matching the
+## three-colour card row in the supplied mockup. A single flat purple made the
+## row read as one undifferentiated block.
+const MISSION_CARD_TINTS := [
+	[Color("a63fce"), Color("54137a")],
+	[Color("2f86dd"), Color("143f78")],
+	[Color("e0901f"), Color("8f4d0e")],
+]
+
+static func mission_card_style(index: int) -> StyleBox:
+	var pair: Array = MISSION_CARD_TINTS[index % MISSION_CARD_TINTS.size()]
+	var style := _frosted_glass_style(pair[0], pair[1], 26, 3, false, true) as StyleBoxFancy
+	if style != null and not style.borders.is_empty():
+		style.borders[0].color = COLOR_GOLD_RIM
+	return style
+
+
 static func continue_card_style() -> StyleBoxFlat:
 	return _rounded_style(Color(0.22, 0.055, 0.36, 0.96), COLOR_GLASS_BORDER, 2, 24, 4, COLOR_GLASS_SHADOW)
 
@@ -341,8 +447,10 @@ static func progress_background_style() -> StyleBoxFlat:
 	return _rounded_style(Color(0.04, 0.01, 0.08, 0.72), Color(0.53, 0.20, 0.73, 0.78), 1, 6, 0, Color.TRANSPARENT)
 
 
+## Reward progress reads green in the supplied art, distinct from the violet
+## surfaces it sits on.
 static func progress_fill_style() -> StyleBoxFlat:
-	return _rounded_style(Color("b65cff"), Color(0, 0, 0, 0), 0, 6, 0, Color.TRANSPARENT)
+	return _rounded_style(Color("5fc63a"), Color("2f7a18"), 2, 8, 0, Color.TRANSPARENT)
 
 
 static func fail_badge_style() -> StyleBoxFlat:
@@ -395,8 +503,10 @@ static func _configure_settings_switch(target_theme: Theme, theme_type: StringNa
 
 
 static func _switch_style(enabled: bool, hover: bool = false) -> StyleBox:
-	var top := Color(0.60, 0.25, 0.88, 0.98) if enabled else Color(0.30, 0.10, 0.44, 0.94)
-	var bottom := Color(0.28, 0.07, 0.50, 0.98) if enabled else Color(0.11, 0.025, 0.21, 0.94)
+	# ON reads green and OFF reads inert, matching the affirmative/neutral split
+	# the rest of the kit uses. Two violet states were hard to tell apart.
+	var top := Color(0.44, 0.80, 0.26, 0.98) if enabled else Color(0.26, 0.24, 0.30, 0.94)
+	var bottom := Color(0.16, 0.46, 0.09, 0.98) if enabled else Color(0.12, 0.11, 0.15, 0.94)
 	if hover:
 		top = top.lightened(0.05)
 		bottom = bottom.lightened(0.05)
@@ -407,40 +517,84 @@ static func _switch_style(enabled: bool, hover: bool = false) -> StyleBox:
 	style.content_margin_bottom = 8.0
 	return style
 
+## Shared text treatment for every kit-backed button family.
+static func _configure_button_text(target_theme: Theme, theme_type: StringName, tint: Color = Color.WHITE) -> void:
+	target_theme.set_font("font", theme_type, heavy_font())
+	target_theme.set_font_size("font_size", theme_type, BUTTON_FONT_SIZE)
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		target_theme.set_color(state, theme_type, tint)
+	target_theme.set_color("font_disabled_color", theme_type, Color(0.86, 0.83, 0.92, 0.82))
+	target_theme.set_color("font_outline_color", theme_type, COLOR_TEXT_OUTLINE)
+	target_theme.set_constant("outline_size", theme_type, TEXT_OUTLINE_SIZE)
+	target_theme.set_stylebox("focus", theme_type, _focus_style())
+
+
+## One button family, five states, ONE silhouette. Godot swaps the stylebox on
+## hover/press, so if the states point at different textures the plate appears
+## to morph mid-interaction — an earlier pass had the plain pill sprouting gem
+## caps on hover and the settings gear turning into swap arrows, because
+## `btn_square_swap` has its glyph painted into the artwork. States therefore
+## differ only by tint, and press motion is carried by scale in
+## `_wire_button_motion`, never by a texture change.
+const STATE_HOVER := Color(1.14, 1.14, 1.14)
+const STATE_PRESSED := Color(0.80, 0.78, 0.86)
+## Secondary plates start recessed so the primary action still wins the page.
+const STATE_SECONDARY := Color(0.72, 0.68, 0.80)
+const STATE_SECONDARY_HOVER := Color(0.86, 0.82, 0.94)
+
+
+static func _kit_button(
+		target_theme: Theme,
+		theme_type: StringName,
+		key: String,
+		content: Vector4,
+		normal_tint: Color = Color.WHITE,
+		hover_tint: Color = STATE_HOVER,
+		disabled_key: String = "") -> void:
+	target_theme.set_stylebox("normal", theme_type, UiKitType.nine_patch_style(key, content, normal_tint))
+	target_theme.set_stylebox("hover", theme_type, UiKitType.nine_patch_style(key, content, hover_tint))
+	target_theme.set_stylebox("pressed", theme_type, UiKitType.nine_patch_style(key, content, STATE_PRESSED))
+	var off := disabled_key if not disabled_key.is_empty() else key
+	target_theme.set_stylebox("disabled", theme_type, UiKitType.nine_patch_style(off, content, COLOR_DISABLED_PLATE))
+
+
+## Primary actions wear the gem-capped pill from the supplied button sheet.
 static func _configure_primary_button(target_theme: Theme, theme_type: StringName) -> void:
-	target_theme.set_font("font", theme_type, font())
-	target_theme.set_font_size("font_size", theme_type, BUTTON_FONT_SIZE)
-	target_theme.set_color("font_color", theme_type, Color.WHITE)
-	target_theme.set_color("font_hover_color", theme_type, Color.WHITE)
-	target_theme.set_color("font_pressed_color", theme_type, Color.WHITE)
-	target_theme.set_color("font_focus_color", theme_type, Color.WHITE)
-	target_theme.set_color("font_disabled_color", theme_type, Color(1, 1, 1, 0.70))
-	target_theme.set_color("font_outline_color", theme_type, Color(0.07, 0.01, 0.13, 0.98))
-	target_theme.set_constant("outline_size", theme_type, 3)
-	target_theme.set_stylebox("normal", theme_type, _button_style(false, false))
-	target_theme.set_stylebox("hover", theme_type, _button_style(false, true))
-	target_theme.set_stylebox("pressed", theme_type, _button_style(true, false))
-	target_theme.set_stylebox("disabled", theme_type, _button_style(true, false))
-	target_theme.set_stylebox("focus", theme_type, _focus_style())
+	_configure_button_text(target_theme, theme_type)
+	_kit_button(target_theme, theme_type, "btn_pill_gem", Vector4(66.0, 20.0, 60.0, 22.0),
+		Color.WHITE, STATE_HOVER, "btn_pill_gem_off")
 
 
+## Secondary actions share the kit's material language but sit visually below
+## the primary action rather than competing with it.
 static func _configure_secondary_button(target_theme: Theme, theme_type: StringName) -> void:
-	# Secondary actions deliberately share the same glass language as primary
-	# buttons; only their fill is lighter so the modal hierarchy remains clear.
-	target_theme.set_font("font", theme_type, font())
-	target_theme.set_font_size("font_size", theme_type, BUTTON_FONT_SIZE)
-	target_theme.set_color("font_color", theme_type, COLOR_BLUE_DEEP)
-	target_theme.set_color("font_hover_color", theme_type, COLOR_BLUE_DEEP)
-	target_theme.set_color("font_pressed_color", theme_type, COLOR_BLUE_DEEP)
-	target_theme.set_color("font_focus_color", theme_type, COLOR_BLUE_DEEP)
-	target_theme.set_color("font_disabled_color", theme_type, COLOR_DISABLED)
-	target_theme.set_color("font_outline_color", theme_type, Color(0.07, 0.01, 0.13, 0.96))
-	target_theme.set_constant("outline_size", theme_type, 2)
-	target_theme.set_stylebox("normal", theme_type, _button_style(true, false))
-	target_theme.set_stylebox("hover", theme_type, _button_style(true, true))
-	target_theme.set_stylebox("pressed", theme_type, _button_style(false, false))
-	target_theme.set_stylebox("disabled", theme_type, _button_style(true, false))
-	target_theme.set_stylebox("focus", theme_type, _focus_style())
+	_configure_button_text(target_theme, theme_type, COLOR_LAVENDER_LIGHT)
+	_kit_button(target_theme, theme_type, "btn_pill_plain", Vector4(46.0, 20.0, 44.0, 22.0),
+		STATE_SECONDARY, STATE_SECONDARY_HOVER)
+
+
+## The single hero call to action (Home's PLAY). Deliberately one per screen.
+static func _configure_hero_button(target_theme: Theme, theme_type: StringName) -> void:
+	_configure_button_text(target_theme, theme_type)
+	target_theme.set_font_size("font_size", theme_type, TITLE_FONT_SIZE)
+	_kit_button(target_theme, theme_type, "btn_hero_bright", Vector4(88.0, 26.0, 88.0, 28.0))
+
+
+## Affirmative rewards (CLAIM, COLLECT, RETRY) use the kit's green plate so
+## "take the coins" never reads as one more navigation choice.
+static func _configure_green_button(target_theme: Theme, theme_type: StringName) -> void:
+	_configure_button_text(target_theme, theme_type)
+	# A tint cannot desaturate green, so the unavailable state uses a
+	# luma-desaturated derivative of the same plate: identical silhouette,
+	# unmistakably inert.
+	_kit_button(target_theme, theme_type, "btn_green", Vector4(54.0, 20.0, 54.0, 22.0),
+		Color.WHITE, STATE_HOVER, "btn_green_off")
+
+
+## Square icon affordances (settings gear).
+static func _configure_icon_button(target_theme: Theme, theme_type: StringName) -> void:
+	_configure_button_text(target_theme, theme_type)
+	_kit_button(target_theme, theme_type, "btn_square_small", Vector4(16.0, 14.0, 16.0, 16.0))
 
 
 static func _button_style(light: bool, hover: bool) -> StyleBox:
@@ -457,8 +611,11 @@ static func _button_style(light: bool, hover: bool) -> StyleBox:
 	return style
 
 
+## Touch-first UI: the kit buttons already carry their own rim, and a keyboard
+## focus ring drawn on top of that art reads as a rendering fault. Focus stays
+## non-drawing while remaining a real focus target for accessibility.
 static func _focus_style() -> StyleBoxFlat:
-	var style := _rounded_style(Color.TRANSPARENT, COLOR_BLUE_LIGHT, 4, BUTTON_CORNER_RADIUS + 2, 0, Color.TRANSPARENT)
+	var style := _rounded_style(Color.TRANSPARENT, Color.TRANSPARENT, 0, BUTTON_CORNER_RADIUS + 2, 0, Color.TRANSPARENT)
 	style.expand_margin_left = 4.0
 	style.expand_margin_top = 4.0
 	style.expand_margin_right = 4.0

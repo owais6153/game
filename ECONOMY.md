@@ -24,3 +24,9 @@ Coins are earned only from confirmed target results and the exactly-once rewarde
 - UI: Skip is absent from the live board and successful Level Complete. It appears only in Level Ready, Pause, and Failed overlays with its explicit 200-coin price and the curated @icons fast-forward glyph.
 
 No shop, IAP, coin pack, or booster catalog is part of V1. V1 now ships two coin sinks: Next Gem Reroll and Skip Level.
+
+## Retention Loop V1
+
+The centralized economy hierarchy is Switch Gem `100`, Extra Shots `300`, Continue `500`, and Skip Level `800`. Target rewards remain the primary earn rate (`10..1800`), while mission rewards are `45/90/140` with a `180`-coin daily chest. This keeps a low-cost tactical reroll available more often than recovery, while a full escape remains deliberately scarce. The prior 200-coin Skip cost is raised with this sprint so it remains the most expensive option.
+
+The loop is: Play Level -> Merge / Complete Target -> Earn Coins -> Complete Daily Missions -> Earn more Coins / Daily Chest -> use coins when stuck -> Switch Gem / Extra Shots / Continue -> Complete harder level -> return for new Daily Missions.

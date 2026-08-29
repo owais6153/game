@@ -12,6 +12,10 @@ const ProgressionSaveServiceType = preload("res://scripts/services/progression_s
 const GameSettingsServiceType = preload("res://scripts/services/game_settings_service.gd")
 const HomeOverlayType = preload("res://scripts/ui/home_overlay_layer.gd")
 const AdConfigType = preload("res://scripts/services/ad_config.gd")
+const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
+const DailyMissionsOverlayType = preload("res://scripts/ui/daily_missions_overlay_layer.gd")
+const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.gd")
+const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -89,6 +93,10 @@ var gameplay_ui: GameplayHudLayer
 var effects_layer: GameplayEffectsLayer
 var result_overlay: ResultOverlayLayer
 var home_overlay: HomeOverlayLayer
+var daily_overlay: DailyMissionsOverlayLayer
+var screen_transition: ScreenTransitionType
+var level_briefing: LevelBriefingType
+var seen_level_types: Array[String] = []
 var ad_manager: Node
 var level_reward_for_completion := 0
 var completion_action_pending := false
@@ -116,6 +124,13 @@ var analytics_shot_count := 0
 var reroll_count_for_level := 0
 var reroll_request_locked := false
 var skip_request_locked := false
+var daily_state: Dictionary = {}
+var shots_remaining := -1
+var out_of_shots_pending := false
+var out_of_shots_presented := false
+var extra_shots_request_locked := false
+var continue_request_locked := false
+var coin_continues_used := 0
 const PLATFORM_BACK_DEBOUNCE_MSEC := 350
 
 # A completed shot can pass through each state only once. This prevents the
@@ -140,8 +155,18 @@ func _ready() -> void:
 	level_number = int(saved.level_number)
 	level_seed = int(saved.seed)
 	coins = int(saved.total_coins)
+	var saved_daily: Dictionary = saved.get("daily_state", {}) as Dictionary
+	var rolled_new_day := DailyMissionServiceType.needs_new_day(saved_daily)
+	daily_state = DailyMissionServiceType.ensure_current_day(saved_daily)
+	seen_level_types = saved.get("seen_level_types", [] as Array[String])
+	if rolled_new_day:
+		# Persist the roll immediately. Without this the same day is reported as
+		# "generated" on every cold start until an unrelated save happens to run.
+		ProgressionSaveServiceType.save_progress(level_number, level_seed, coins, daily_state)
+		_log_analytics("daily_mission_generated", {"mission_date": String(daily_state.get("date", ""))})
 	level_start_coins = coins
 	_configure_generated_level(level_number, level_seed)
+	shots_remaining = int(level_config.get("shot_limit", 0)) if is_limited_shots_level() else -1
 	_setup_asset_presentation()
 	_on_privacy_options_availability_changed(
 		ad_manager != null and bool(ad_manager.call("is_privacy_options_available"))
@@ -206,7 +231,9 @@ func _process(delta: float) -> void:
 	_apply_confirmed_merge_events(result.presentation_events)
 	_update_merge_presentations(delta)
 	_update_target_collection(delta)
-	_update_danger_timers(delta)
+	if not out_of_shots_pending:
+		_update_danger_timers(delta)
+	_try_present_out_of_shots()
 	if win_qualified or failed:
 		_sync_gems_and_mark_visibility()
 		_refresh_hud()
@@ -309,6 +336,9 @@ func hud_snapshot() -> Dictionary:
 		"highest_level": highest_level,
 		"music_enabled": audio_feedback.music_enabled if audio_feedback != null else true,
 		"sound_enabled": audio_feedback.sfx_enabled if audio_feedback != null else true,
+		"limited_shots": is_limited_shots_level(),
+		"shots_remaining": shots_remaining,
+		"daily_state": daily_state.duplicate(true),
 	}
 
 
@@ -409,7 +439,13 @@ func move_active_to(x_position: float) -> void:
 func launch_active_piece() -> void:
 	var active := get_active_piece()
 	if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled():
+		if is_limited_shots_level() and shots_remaining <= 0:
+			return
 		analytics_shot_count += 1
+		if is_limited_shots_level():
+			shots_remaining = maxi(0, shots_remaining - 1)
+			if shots_remaining == 0:
+				out_of_shots_pending = true
 		bonus_spawn_budget_remaining = GameConfig.BONUS_GEM_BUDGET_PER_SHOT
 		active.velocity = Vector2(0.0, -GameConfig.LAUNCH_SPEED)
 		audio_feedback.emit_event("launch")
@@ -426,6 +462,8 @@ func launch_active_piece() -> void:
 func spawn_active_piece() -> bool:
 	# Idempotent for a lifecycle cycle: an existing launcher is never replaced.
 	if get_active_piece() != null:
+		return false
+	if is_limited_shots_level() and shots_remaining <= 0:
 		return false
 	var piece := GemPiece.new(next_piece_id, next_level, Vector2(GameConfig.table_center_x(), GameConfig.launch_y()), GameConfig.gem_collision_radius(next_level))
 	next_piece_id += 1
@@ -590,6 +628,12 @@ func restart() -> void:
 	merge_presentations.clear()
 	next_piece_id = 1
 	_configure_generated_level(level_number, level_seed)
+	shots_remaining = int(level_config.get("shot_limit", 0)) if is_limited_shots_level() else -1
+	out_of_shots_pending = false
+	out_of_shots_presented = false
+	extra_shots_request_locked = false
+	continue_request_locked = false
+	coin_continues_used = 0
 	active_piece_id = -1
 	score = level_start_coins
 	target_progress = 0
@@ -692,6 +736,9 @@ func _setup_asset_presentation() -> void:
 	result_overlay.double_coins_requested.connect(_on_double_coins_requested)
 	result_overlay.home_requested.connect(_on_result_home_requested)
 	result_overlay.skip_level_requested.connect(_on_skip_level_requested)
+	result_overlay.extra_shots_requested.connect(_on_extra_shots_requested)
+	result_overlay.extra_shots_declined.connect(_on_extra_shots_declined)
+	result_overlay.continue_requested.connect(_on_continue_requested)
 	result_overlay.reward_animation_finished.connect(_on_reward_animation_finished)
 	result_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	home_overlay = HomeOverlayType.new()
@@ -706,6 +753,59 @@ func _setup_asset_presentation() -> void:
 	home_overlay.privacy_options_requested.connect(_on_privacy_options_requested)
 	home_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	home_overlay.exit_requested.connect(_on_exit_requested)
+	home_overlay.daily_missions_requested.connect(_on_daily_missions_requested)
+	daily_overlay = DailyMissionsOverlayType.new()
+	add_child(daily_overlay)
+	daily_overlay.mission_claim_requested.connect(_on_daily_mission_claim_requested)
+	daily_overlay.chest_claim_requested.connect(_on_daily_chest_claim_requested)
+	daily_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
+	screen_transition = ScreenTransitionType.new()
+	add_child(screen_transition)
+	level_briefing = LevelBriefingType.new()
+	add_child(level_briefing)
+	level_briefing.ui_tap_requested.connect(_on_ui_tap_requested)
+
+func _on_daily_missions_requested() -> void:
+	if daily_overlay != null:
+		daily_overlay.present(daily_state, coins)
+
+func _on_daily_mission_claim_requested(index: int) -> void:
+	var claim := DailyMissionServiceType.claim_mission(daily_state, index)
+	if not bool(claim.get("ok", false)):
+		return
+	var reward := int(claim.get("reward", 0))
+	var updated: Dictionary = claim.get("state", {}) as Dictionary
+	if ProgressionSaveServiceType.save_progress(level_number, level_seed, coins + reward, updated) != OK:
+		return
+	daily_state = updated
+	coins += reward
+	_log_analytics("daily_mission_completed", {"level_number": level_number, "mission_reward": reward})
+	_log_analytics("daily_mission_reward_claimed", {"level_number": level_number, "mission_reward": reward, "coin_balance": coins})
+	if DailyMissionServiceType.all_missions_claimed(daily_state):
+		_log_analytics("daily_all_missions_completed", {"level_number": level_number})
+	_log_analytics("coin_earned", {"amount": reward, "reason": "daily_mission", "level_number": level_number, "resulting_balance": coins})
+	daily_overlay.present(daily_state, coins)
+	# Celebrate only after the claim is persisted and banked, so the feedback can
+	# never imply a reward the player did not actually receive.
+	daily_overlay.celebrate_claim(index, reward)
+	_refresh_hud()
+
+func _on_daily_chest_claim_requested() -> void:
+	var claim := DailyMissionServiceType.claim_chest(daily_state)
+	if not bool(claim.get("ok", false)):
+		return
+	var reward := int(claim.get("reward", 0))
+	var updated: Dictionary = claim.get("state", {}) as Dictionary
+	if ProgressionSaveServiceType.save_progress(level_number, level_seed, coins + reward, updated) != OK:
+		return
+	daily_state = updated
+	coins += reward
+	# daily_all_missions_completed already fired on the final mission claim; the
+	# chest is a separate act and reports only its own event.
+	_log_analytics("daily_chest_claimed", {"level_number": level_number, "mission_reward": reward, "coin_balance": coins})
+	_log_analytics("coin_earned", {"amount": reward, "reason": "daily_chest", "level_number": level_number, "resulting_balance": coins})
+	daily_overlay.present(daily_state, coins)
+	_refresh_hud()
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:
@@ -768,6 +868,9 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			"involved_target": completes_active_target,
 			"chain_depth": depth,
 		})
+		_record_daily_progress("merge")
+		if result_level >= 6:
+			_record_daily_progress("high_tier")
 		merge_event.target_objective_completed = false
 		merge_event.final_target_completed = false
 		# Authoritative target state advances first so the reward presentation can
@@ -798,6 +901,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			if gameplay_ui != null:
 				gameplay_ui.begin_coin_reward(awarded_coins)
 			coins += awarded_coins
+			_record_daily_progress("coins_earned", awarded_coins)
 			_log_analytics("coin_earned", {
 				"amount": awarded_coins,
 				"reason": "target_complete",
@@ -1159,6 +1263,19 @@ func _advance_target_state_authoritative(result_id: int, merge_event: Dictionary
 		_trace_presentation_event("final_target_confirmed", result_id)
 		_qualify_win_if_target_complete()
 
+func _record_daily_progress(event_type: String, amount: int = 1) -> void:
+	if amount <= 0:
+		return
+	# The service is pure, so "changed" is authoritative. Comparing the returned
+	# state against daily_state cannot work: an in-place service would hand back
+	# the very object being compared and every save would be skipped.
+	var update := DailyMissionServiceType.record(daily_state, event_type, amount)
+	if not bool(update.get("changed", false)):
+		return
+	daily_state = update.get("state", daily_state) as Dictionary
+	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins, daily_state)
+	_log_analytics("daily_mission_progress", {"level_number": level_number, "mission_type": event_type, "mission_progress": amount})
+
 func _configure_level_1() -> void:
 	_configure_generated_level(1, LevelConfigType.seed_for_level(1))
 
@@ -1191,6 +1308,58 @@ func active_target_tier() -> int:
 func active_target_quantity() -> int:
 	return int(active_target().get("quantity", 1))
 
+func is_limited_shots_level() -> bool:
+	return String(level_config.get("level_type", "normal")) == "limited_shots"
+
+func _is_attempt_settled_for_out_of_shots() -> bool:
+	return launcher_state != LauncherState.SHOT_IN_FLIGHT \
+		and merge_presentations.is_empty() \
+		and pending_target_presentations.is_empty() \
+		and target_collection_queue.is_empty() \
+		and not collection_in_progress \
+		and pending_bonus_spawns.is_empty() \
+		and not merge_service.has_pending_candidates() \
+		and pieces.all(func(piece: GemPiece) -> bool: return piece.consumed or piece.is_settled())
+
+func _try_present_out_of_shots() -> void:
+	if not out_of_shots_pending or out_of_shots_presented or win_qualified or failed or not _is_attempt_settled_for_out_of_shots():
+		return
+	out_of_shots_presented = true
+	launcher_state = LauncherState.RESOLVING
+	if result_overlay != null:
+		result_overlay.present_out_of_shots(coins, GameConfig.EXTRA_SHOTS_AMOUNT, GameConfig.EXTRA_SHOTS_COST)
+	_log_analytics("out_of_shots", {"level_number": level_number, "attempt_number": analytics_attempt_number, "shots_remaining": shots_remaining, "coin_balance": coins})
+	_log_analytics("extra_shots_offered", {"level_number": level_number, "coin_cost": GameConfig.EXTRA_SHOTS_COST, "coin_balance": coins})
+
+func _on_extra_shots_requested() -> void:
+	if not out_of_shots_presented or extra_shots_request_locked:
+		return
+	extra_shots_request_locked = true
+	if coins < GameConfig.EXTRA_SHOTS_COST:
+		extra_shots_request_locked = false
+		if result_overlay != null: result_overlay.show_purchase_feedback("NOT ENOUGH COINS")
+		return
+	var next_balance := coins - GameConfig.EXTRA_SHOTS_COST
+	if ProgressionSaveServiceType.save_progress(level_number, level_seed, next_balance, daily_state) != OK:
+		extra_shots_request_locked = false
+		return
+	coins = next_balance
+	level_start_coins -= GameConfig.EXTRA_SHOTS_COST
+	shots_remaining += GameConfig.EXTRA_SHOTS_AMOUNT
+	out_of_shots_pending = false
+	out_of_shots_presented = false
+	_log_analytics("coin_spent", {"amount": GameConfig.EXTRA_SHOTS_COST, "reason": "extra_shots", "level_number": level_number, "resulting_balance": coins})
+	_log_analytics("extra_shots_purchased", {"level_number": level_number, "shots_added": GameConfig.EXTRA_SHOTS_AMOUNT, "shots_remaining": shots_remaining, "coin_cost": GameConfig.EXTRA_SHOTS_COST, "coin_balance": coins})
+	if result_overlay != null: result_overlay.dismiss()
+	launcher_state = LauncherState.SPAWNING_NEXT
+	extra_shots_request_locked = false
+	_refresh_hud()
+
+func _on_extra_shots_declined() -> void:
+	_log_analytics("extra_shots_declined", {"level_number": level_number, "shots_remaining": shots_remaining})
+	out_of_shots_presented = false
+	_trigger_failure("out_of_shots")
+
 func _update_danger_timers(delta: float) -> void:
 	var live_ids: Dictionary = {}
 	for piece in pieces:
@@ -1209,13 +1378,13 @@ func _update_danger_timers(delta: float) -> void:
 		if not live_ids.has(id):
 			danger_timers.erase(id)
 
-func _trigger_failure() -> void:
+func _trigger_failure(fail_reason: String = "danger_line") -> void:
 	if failed:
 		return
 	failed = true
 	_emit_level_end_analytics_once("level_fail", {
 		"level_number": level_number,
-		"fail_reason": "danger_line",
+		"fail_reason": fail_reason,
 		"attempt_number": analytics_attempt_number,
 		"shots": analytics_shot_count,
 		"coin_balance": coins,
@@ -1237,7 +1406,37 @@ func _trigger_failure() -> void:
 	if effects_layer != null:
 		effects_layer.clear()
 	haptics_feedback.emit_event("fail")
-	result_overlay.present(false, score, level_number, active_target_tier(), 0, false, _can_skip_level(), GameConfig.SKIP_LEVEL_COST)
+	var continue_available := fail_reason == "danger_line" and coin_continues_used < GameConfig.MAX_COIN_CONTINUES_PER_ATTEMPT
+	result_overlay.present(false, score, level_number, active_target_tier(), 0, false, _can_skip_level(), GameConfig.SKIP_LEVEL_COST, continue_available, GameConfig.CONTINUE_COST, coins)
+	if continue_available:
+		_log_analytics("continue_offered", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": GameConfig.CONTINUE_COST, "coin_balance": coins})
+
+func _on_continue_requested() -> void:
+	if not failed or continue_request_locked or coin_continues_used >= GameConfig.MAX_COIN_CONTINUES_PER_ATTEMPT:
+		return
+	continue_request_locked = true
+	if coins < GameConfig.CONTINUE_COST:
+		continue_request_locked = false
+		if result_overlay != null: result_overlay.show_purchase_feedback("NOT ENOUGH COINS")
+		return
+	var next_balance := coins - GameConfig.CONTINUE_COST
+	if ProgressionSaveServiceType.save_progress(level_number, level_seed, next_balance, daily_state) != OK:
+		continue_request_locked = false
+		return
+	coins = next_balance
+	level_start_coins -= GameConfig.CONTINUE_COST
+	coin_continues_used += 1
+	# The smallest safe recovery is to remove only the settled bodies that were
+	# already beyond the danger line. No target/coin event is replayed and every
+	# remaining body retains its simulation state.
+	pieces = pieces.filter(func(piece: GemPiece) -> bool: return piece.is_active_launcher or piece.consumed or piece.position.y + piece.radius <= GameConfig.danger_line_y())
+	danger_timers.clear()
+	failed = false
+	launcher_state = LauncherState.SPAWNING_NEXT
+	if result_overlay != null: result_overlay.dismiss()
+	_log_analytics("coin_spent", {"amount": GameConfig.CONTINUE_COST, "reason": "continue", "level_number": level_number, "resulting_balance": coins})
+	_log_analytics("continue_purchased", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": GameConfig.CONTINUE_COST, "coin_balance": coins})
+	_refresh_hud()
 
 func _update_merge_presentations(delta: float) -> void:
 	var completed: Array[Dictionary] = []
@@ -1531,6 +1730,7 @@ func _qualify_win_if_target_complete() -> void:
 		"shots": analytics_shot_count,
 		"coin_balance": coins,
 	})
+	_record_daily_progress("level_complete")
 	win_qualified = true
 	win_presented = false
 	win_hold_elapsed = 0.0
@@ -1962,18 +2162,26 @@ func _on_result_home_requested() -> void:
 func _show_home() -> void:
 	if home_overlay == null:
 		return
-	if gameplay_ui != null:
-		gameplay_ui.hide_pause(false)
-		# Home owns the complete screen. Keeping the gameplay HUD visible beneath
-		# it made an Android-only Home dependency failure look like auto-started
-		# gameplay and left Back operating on a state the player could not see.
-		gameplay_ui.hide()
-	if result_overlay != null:
-		result_overlay.dismiss()
-	app_flow_state = AppFlowState.HOME
-	home_overlay.present(level_number, coins, hud_snapshot())
-	if is_inside_tree():
-		get_tree().paused = true
+	var enter_home := func() -> void:
+		if gameplay_ui != null:
+			gameplay_ui.hide_pause(false)
+			# Home owns the complete screen. Keeping the gameplay HUD visible
+			# beneath it made an Android-only Home dependency failure look like
+			# auto-started gameplay and left Back operating on a state the
+			# player could not see.
+			gameplay_ui.hide()
+		if result_overlay != null:
+			result_overlay.dismiss()
+		if daily_overlay != null:
+			daily_overlay.dismiss()
+		app_flow_state = AppFlowState.HOME
+		home_overlay.present(level_number, coins, hud_snapshot())
+		if is_inside_tree():
+			get_tree().paused = true
+	if screen_transition != null:
+		screen_transition.play(enter_home)
+	else:
+		enter_home.call()
 
 
 func _show_level_start() -> void:
@@ -2018,6 +2226,8 @@ func _emit_level_start_analytics_once() -> void:
 	if not pattern_family.is_empty():
 		parameters["pattern"] = "%s:%s" % [pattern_family, pattern_dominant]
 	_log_analytics("level_start", parameters)
+	if is_limited_shots_level():
+		_log_analytics("limited_shots_level_start", {"level_number": level_number, "attempt_number": analytics_attempt_number, "shots_remaining": shots_remaining})
 
 
 func _emit_level_end_analytics_once(event_name: String, parameters: Dictionary) -> void:
@@ -2029,14 +2239,56 @@ func _emit_level_end_analytics_once(event_name: String, parameters: Dictionary) 
 func _on_home_play_requested() -> void:
 	if app_flow_state != AppFlowState.LEVEL_READY:
 		return
-	if home_overlay != null:
-		home_overlay.dismiss()
-	if gameplay_ui != null:
-		gameplay_ui.show()
-	app_flow_state = AppFlowState.PLAYING
-	_emit_level_start_analytics_once()
-	if is_inside_tree():
-		get_tree().paused = false
+	# The Home-to-board hand-off runs behind the transition cover so the screen
+	# swap is never visible as a cut. State changes stay in one place and are
+	# applied at the covered midpoint.
+	var enter_board := func() -> void:
+		if home_overlay != null:
+			home_overlay.dismiss()
+		if gameplay_ui != null:
+			gameplay_ui.show()
+		app_flow_state = AppFlowState.PLAYING
+		_emit_level_start_analytics_once()
+		if is_inside_tree():
+			get_tree().paused = false
+	if screen_transition != null:
+		screen_transition.play(enter_board)
+	else:
+		enter_board.call()
+	_present_level_briefing_if_due()
+
+
+## Level types explain themselves once. The briefing is shown the first time a
+## type is started and recorded immediately, so a returning player is never
+## re-taught rules they already know.
+func _present_level_briefing_if_due() -> void:
+	if level_briefing == null:
+		return
+	var level_type := String(level_config.get("level_type", "normal"))
+	if seen_level_types.has(level_type):
+		return
+	seen_level_types.append(level_type)
+	# Recorded before presenting: if the player force-quits mid-briefing we would
+	# rather under-teach once than re-teach on every launch.
+	ProgressionSaveServiceType.mark_level_type_seen(level_type)
+	_log_analytics("level_briefing_shown", {"level_number": level_number, "level_type": level_type})
+	level_briefing.present(_briefing_for_level_type(level_type))
+
+
+func _briefing_for_level_type(level_type: String) -> Dictionary:
+	if level_type == "limited_shots":
+		return {
+			"title": "LIMITED SHOTS",
+			"badge": "timer",
+			"body": "This level gives you only %d shots.\n\nEvery gem you drop uses one. Merge matching gems to build the targets before your shots run out — leftover gems on the table do not count." % int(level_config.get("shot_limit", 0)),
+			"action": "START",
+		}
+	return {
+		"title": "HOW TO PLAY",
+		"badge": "gems",
+		"body": "Drop gems onto the table and merge matching pairs to grow them.\n\nBuild the target gems shown at the top before the table stacks past the danger line.",
+		"action": "START",
+	}
 
 
 func _on_home_level_intro_requested() -> void:

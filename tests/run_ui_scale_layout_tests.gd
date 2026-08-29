@@ -196,7 +196,11 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	_assert(progression_rect.size.y >= UiDesignSystemType.PROGRESSION_HEIGHT * layout_scale - 1.0, "%s merge path must retain its emphasized height" % viewport_size)
 	_assert(hud.root_control.find_child("LevelChip", true, false) == null, "%s Level box must be absent" % viewport_size)
 	_assert(hud.root_control.find_child("TargetName", true, false) == null, "%s gem names must not exist in the HUD tree" % viewport_size)
-	_assert(UiDesignSystemType.COLOR_GLASS_BORDER.b > UiDesignSystemType.COLOR_GLASS_BORDER.g and UiDesignSystemType.COLOR_GLASS_BORDER.r > UiDesignSystemType.COLOR_GLASS_BORDER.g, "%s HUD border must use the amethyst reference palette" % viewport_size)
+	# Framed surfaces are brass-rimmed to match the supplied art kit. The former
+	# violet rim (b > g) was replaced deliberately; this keeps guarding against an
+	# accidental palette reset, now in the direction the artwork actually uses.
+	var rim := UiDesignSystemType.COLOR_GLASS_BORDER
+	_assert(rim.r > rim.g and rim.g > rim.b, "%s HUD border must use the brass reference palette" % viewport_size)
 	_assert(UiDesignSystemType.COLOR_GLASS_WHITE.get_luminance() < 0.35, "%s HUD surfaces must remain dark purple glass" % viewport_size)
 	_assert(hud.target_icon.texture != null and hud.next_icon.texture != null, "%s Target and Next textures must resolve" % viewport_size)
 	var coin_value := hud.root_control.find_child("CoinValue", true, false) as Label

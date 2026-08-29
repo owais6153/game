@@ -1,3 +1,15 @@
+# Majestic UI Kit debug APK v1.0.15 (versionCode 17) - 2026-08-29
+
+- APK: `build/android/majestic-gems-ui-kit-v1.0.15-vc17-debug.apk`
+- Size: 99,153,624 bytes (94.6 MiB)
+- Built: 2026-08-29 08:08 local, Godot 4.6.3-stable, Gradle build, arm64-v8a + armeabi-v7a
+- Source commit: **uncommitted working tree** on `main` at `c62b388`. This build carries the supplied-art UI kit, typography, retention defect fixes, level briefings, and the nine-patch re-authoring, none of which are committed yet. Not reproducible from a commit hash until that work is committed.
+- Version decision: versionCode `17` / versionName `1.0.15`, strictly greater than every previously recorded identity (highest prior: 15/1.0.13; 16/1.0.14 was consumed by a superseded local APK during this task and must not be reused).
+- Export preset: new `[preset.1] "Android APK"` (`gradle_build/export_format=0`), added so the release AAB preset keeps its own settings. The AAB preset remains at 15/1.0.13 and its next export must use versionCode >= 18.
+- **Signing: DEBUG keystore** (`CN=Godot, OU=Godot Engine, O=Stichting Godot`), verified with `apksigner verify --print-certs`. This is a test build for device verification only. **It cannot be uploaded to Play**, and it is not a release candidate. A release build needs `majestic-gems-upload-key.jks` plus its password, which was not available in this task.
+- Validation performed: `aapt2 dump badging` confirms package `com.owais.majestygems`, versionCode 17, versionName 1.0.15, minSdk 24, targetSdk 36, and the unchanged AdMob/Firebase permission set. `apksigner verify` passes. All fifteen Godot regression suites pass.
+- Device status: **not installed or run on a device.** No Android device was available in this task. Firebase DebugView unverified. Animations, transitions, and touch feel are covered by tests and screenshots only and still need a real device pass.
+
 # Build Manifest
 
 ## Final Pre-Launch Production Candidate RELEASE AAB v1.0.13 (versionCode 15)

@@ -14,7 +14,11 @@ const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_lavender.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_lavender.svg")
 const ICON_REROLL = preload("res://assets/runtime/ui/icons/arrows_clockwise_white.svg")
 const ICON_SKIP = preload("res://assets/runtime/ui/icons/fast_forward_lavender.svg")
-const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "reroll_cost", "reroll_enabled", "skip_cost", "skip_enabled", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled"]
+const SHOTS_PANEL_SIZE := Vector2(300.0, 82.0)
+const SHOTS_PULSE_SCALE := 1.28
+const SHOTS_PULSE_DURATION := 0.26
+
+const SNAPSHOT_KEYS := ["level_number", "gem_identity_order", "current_level", "next_level", "coins", "score", "reroll_cost", "reroll_enabled", "skip_cost", "skip_enabled", "target_level", "target_progress", "target_quantity", "target_index", "target_total", "target_collecting", "target_completed", "highest_level", "music_enabled", "sound_enabled", "limited_shots", "shots_remaining"]
 
 signal settings_requested
 signal resume_requested
@@ -35,6 +39,11 @@ var progression_center: CenterContainer
 var target_anchor: CenterContainer
 var score_panel: Control
 var score_label: Label
+var shots_label: Label
+var shots_anchor: CenterContainer
+var shots_panel: PanelContainer
+var _shots_shown := -1
+var _shots_tween: Tween
 var coin_icon: CoinIcon
 var progression_frames: Array[Control] = []
 var progression_icons: Array[TextureRect] = []
@@ -193,6 +202,9 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		_apply_target_state(target_header, target_state, target_quantity, target_bar_value)
 
 	var level_number := int(snapshot.get("level_number", 1))
+	_apply_shots_state(
+		bool(snapshot.get("limited_shots", false)),
+		maxi(0, int(snapshot.get("shots_remaining", 0))))
 	if music_toggle != null:
 		music_toggle.set_pressed_no_signal(bool(snapshot.get("music_enabled", true)))
 	if sound_toggle != null:
@@ -630,6 +642,19 @@ func _build_hud() -> void:
 	objective_stack.add_theme_constant_override("separation", UiDesignSystemType.OBJECTIVE_STACK_GAP)
 	objective_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	objective_stack_anchor.add_child(objective_stack)
+	# Limited-shots levels put their counter at the top of the centred objective
+	# stack, in the same framed language as the Target panel. It previously lived
+	# as a 72px label wedged beside Coins, where the number was too small to read
+	# and shared nothing with the rest of the HUD.
+	shots_anchor = CenterContainer.new()
+	shots_anchor.name = "ShotsSlot"
+	shots_anchor.custom_minimum_size = Vector2(0.0, SHOTS_PANEL_SIZE.y)
+	shots_anchor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	shots_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shots_anchor.visible = false
+	objective_stack.add_child(shots_anchor)
+	shots_anchor.add_child(_build_shots_panel())
+
 	target_anchor = CenterContainer.new()
 	target_anchor.name = "TargetSlot"
 	target_anchor.custom_minimum_size = Vector2(0.0, UiDesignSystemType.TARGET_PANEL_SIZE.y)
@@ -860,6 +885,63 @@ func _build_progression_group() -> PanelContainer:
 			connector_center.add_child(connector)
 			strip.add_child(connector_center)
 	return panel
+
+
+## Limited-shots readout. Framed like the Target panel so the two objective
+## surfaces read as one system, with the count set large enough to be legible
+## at a glance and to register when it ticks down.
+func _build_shots_panel() -> Control:
+	shots_panel = PanelContainer.new()
+	shots_panel.name = "ShotsPanel"
+	shots_panel.custom_minimum_size = SHOTS_PANEL_SIZE
+	shots_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shots_panel.add_theme_stylebox_override("panel", UiDesignSystemType.target_panel_style())
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 16)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shots_panel.add_child(row)
+
+	var caption := _label("SHOTS LEFT", UiDesignSystemType.SMALL_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	caption.name = "ShotsCaption"
+	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(caption)
+
+	shots_label = _label("0", UiDesignSystemType.SCORE_FONT_SIZE, Color.WHITE)
+	shots_label.name = "ShotsRemainingLabel"
+	shots_label.add_theme_font_override("font", UiDesignSystemType.heavy_font())
+	shots_label.custom_minimum_size = Vector2(84.0, 0.0)
+	shots_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(shots_label)
+	return shots_panel
+
+
+## Pulses the count whenever it actually changes so a spent shot is noticed.
+func _apply_shots_state(limited: bool, remaining: int) -> void:
+	if shots_anchor == null or shots_label == null:
+		return
+	shots_anchor.visible = limited
+	if not limited:
+		_shots_shown = -1
+		return
+	if remaining == _shots_shown:
+		return
+	var had_previous := _shots_shown >= 0
+	_shots_shown = remaining
+	shots_label.text = "%d" % remaining
+	# Running low is a warning, not decoration; it shares the fail-state coral.
+	shots_label.add_theme_color_override("font_color",
+		UiDesignSystemType.COLOR_CORAL_LIGHT if remaining <= 3 else Color.WHITE)
+	if not had_previous:
+		return
+	if _shots_tween != null and _shots_tween.is_valid():
+		_shots_tween.kill()
+	shots_label.pivot_offset = shots_label.size * 0.5
+	shots_label.scale = Vector2(SHOTS_PULSE_SCALE, SHOTS_PULSE_SCALE)
+	_shots_tween = create_tween()
+	_shots_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_shots_tween.tween_property(shots_label, "scale", Vector2.ONE, SHOTS_PULSE_DURATION)
 
 
 func _build_target_panel() -> Control:

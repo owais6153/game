@@ -1,5 +1,9 @@
 # Reports Index
 
+- [Majestic UI Kit V1](MAJESTIC_UI_KIT_V1_REPORT.md) - supplied art kit and typefaces across every screen, the four retention V1 defect fixes, and the follow-up interaction-polish pass (button states, transitions, reward feedback).
+
+- [Retention, Coin Economy, and Daily Missions Sprint](RETENTION_COIN_DAILY_MISSIONS_V1_REPORT.md) - limited shots, coin rescues, daily missions, analytics, save compatibility, and validation status.
+
 - [Coin Sink Visibility and Next Spacing V2](COIN_SINK_VISIBILITY_NEXT_SPACING_V2_REPORT.md) - reference-matched swap control, compact Next card, Settings clearance, asset mapping, and focused validation.
 
 - [Coin Sink UI Polish V1](COIN_SINK_UI_POLISH_V1_REPORT.md) - professional circular Switch Gem control, overlay-only Skip placement, shared table lift, @icons provenance/export exclusion, and focused regressions.

@@ -8,6 +8,8 @@ const TweenComposerType = preload("res://tween_composer/tween_composer.gd")
 const TweenSequenceType = preload("res://tween_composer/ConfigurationResources/tween_sequence_resource.gd")
 const TweenStepCollectionType = preload("res://tween_composer/ConfigurationResources/tween_step_collection_resource.gd")
 const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/tween_step_item_resource.gd")
+const UiKitType = preload("res://scripts/ui/ui_kit.gd")
+const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
 const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_lavender_crisp.png")
 const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
 const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
@@ -26,6 +28,7 @@ signal privacy_policy_requested
 signal privacy_options_requested
 signal ui_tap_requested
 signal exit_requested
+signal daily_missions_requested
 
 var root_control: Control
 var home_backdrop: TextureRect
@@ -37,6 +40,9 @@ var logo_rect: TextureRect
 var level_label: Label
 var coins_label: Label
 var play_button: Button
+var daily_button: Button
+var daily_badges_row: HBoxContainer
+var daily_status_label: Label
 var tagline_label: Label
 var settings_button: Button
 var privacy_link_margin: MarginContainer
@@ -124,6 +130,7 @@ func present(level_number: int, coins: int, snapshot: Dictionary = {}) -> void:
 	play_button.tooltip_text = "Preview Level %d" % level_number
 	_sync_settings_from_snapshot()
 	_refresh_intro_content()
+	_refresh_daily_card()
 	_start_entrance()
 	if play_button.is_inside_tree():
 		play_button.grab_focus()
@@ -141,6 +148,7 @@ func update_snapshot(snapshot: Dictionary) -> void:
 	_snapshot = snapshot.duplicate(true)
 	_sync_settings_from_snapshot()
 	_refresh_intro_content()
+	_refresh_daily_card()
 
 func dismiss() -> void:
 	_kill_tween()
@@ -237,11 +245,16 @@ func _build() -> void:
 	hero.add_child(logo_rect)
 	_logo_motion_composer = _attach_scale_loop(logo_rect, "HomeLogoBreath", 1.018, 2.10)
 
-	tagline_label = _label("A Majestic World of Gems", 23, Color.WHITE)
-	tagline_label.custom_minimum_size = Vector2(0.0, 44.0)
-	tagline_label.add_theme_constant_override("outline_size", 6)
-	tagline_label.add_theme_color_override("font_outline_color", Color(0.02, 0.30, 0.34, 0.85))
+	# The brand line is the one place the serif display face appears on Home,
+	# matching the tagline treatment in the supplied mockup.
+	tagline_label = _label("A Majestic World of Gems", UiDesignSystemType.TAGLINE_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	tagline_label.add_theme_font_override("font", UiDesignSystemType.display_font())
+	tagline_label.custom_minimum_size = Vector2(0.0, 50.0)
+	tagline_label.add_theme_constant_override("outline_size", UiDesignSystemType.TEXT_OUTLINE_SIZE)
+	tagline_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_TEXT_OUTLINE)
 	column.add_child(tagline_label)
+
+	column.add_child(_build_daily_card())
 
 	var status_row := HBoxContainer.new()
 	status_row.name = "HomePlayerStatus"
@@ -256,9 +269,10 @@ func _build() -> void:
 	var level_col := VBoxContainer.new()
 	level_col.alignment = BoxContainer.ALIGNMENT_CENTER
 	level_card.add_child(level_col)
-	var level_caption := _label("CURRENT LEVEL", 13, UiDesignSystemType.COLOR_TEXT_MUTED)
+	var level_caption := _label("CURRENT LEVEL", UiDesignSystemType.CAPTION_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
 	level_col.add_child(level_caption)
-	level_label = _label("LEVEL 1", 28, UiDesignSystemType.COLOR_BLUE_DEEP)
+	level_label = _label("LEVEL 1", UiDesignSystemType.PANEL_TITLE_FONT_SIZE + 4, Color.WHITE)
+	level_label.add_theme_font_override("font", UiDesignSystemType.heavy_font())
 	level_col.add_child(level_label)
 
 	var coin_card := _home_status_card("CoinCard")
@@ -268,25 +282,21 @@ func _build() -> void:
 	coin_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	coin_row.add_theme_constant_override("separation", 10)
 	coin_card.add_child(coin_row)
-	var coin := TextureRect.new()
-	coin.texture = AssetCatalogType.COIN_REWARD
-	coin.custom_minimum_size = Vector2(42.0, 42.0)
-	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	coin_row.add_child(coin)
+	coin_row.add_child(UiKitType.texture_rect(UiKitType.ICON_COIN, 52.0))
 	var coin_col := VBoxContainer.new()
 	coin_col.alignment = BoxContainer.ALIGNMENT_CENTER
 	coin_row.add_child(coin_col)
-	coins_label = _label("0", 28, UiDesignSystemType.COLOR_BLUE_DEEP)
+	coins_label = _label("0", UiDesignSystemType.PANEL_TITLE_FONT_SIZE + 4, Color.WHITE)
+	coins_label.add_theme_font_override("font", UiDesignSystemType.heavy_font())
 	coin_col.add_child(coins_label)
 
 	play_button = Button.new()
 	play_button.name = "HomePlayButton"
 	play_button.text = "PLAY"
-	play_button.icon = ICON_PLAY
-	play_button.expand_icon = false
-	play_button.custom_minimum_size = Vector2(492.0, 94.0)
+	# The hero variation carries its own ornamented plate, so the old glyph icon
+	# would sit as a second, competing decoration inside the same button.
+	play_button.theme_type_variation = "HeroButton"
+	play_button.custom_minimum_size = Vector2(516.0, UiDesignSystemType.HERO_BUTTON_HEIGHT)
 	play_button.focus_mode = Control.FOCUS_ALL
 	play_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	play_button.pressed.connect(func() -> void: level_intro_requested.emit())
@@ -373,7 +383,7 @@ func _build_settings_popup() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	settings_panel = PanelContainer.new()
 	settings_panel.name = "HomeSettingsPanel"
-	settings_panel.custom_minimum_size = Vector2(500.0, 470.0)
+	settings_panel.custom_minimum_size = Vector2(520.0, 500.0)
 	settings_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	settings_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(settings_panel)
@@ -383,9 +393,17 @@ func _build_settings_popup() -> void:
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	column.add_theme_constant_override("separation", 16)
 	margin.add_child(column)
-	var title := _label("SETTINGS", 34, UiDesignSystemType.COLOR_BLUE_DEEP)
-	title.custom_minimum_size = Vector2(0, 58)
-	column.add_child(title)
+	# Settings was the only modal still announcing itself with a bare label while
+	# every other popup uses the gold ribbon.
+	var title_banner := PanelContainer.new()
+	title_banner.name = "SettingsTitleBanner"
+	title_banner.custom_minimum_size = Vector2(0.0, UiDesignSystemType.BANNER_HEIGHT)
+	title_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title_banner.add_theme_stylebox_override("panel", UiKitType.nine_patch_style("bar_gold_frame", Vector4(76.0, 12.0, 76.0, 14.0)))
+	column.add_child(title_banner)
+	var title := _label("SETTINGS", UiDesignSystemType.POPUP_TITLE_FONT_SIZE, Color.WHITE)
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title_banner.add_child(title)
 	settings_music_toggle = _setting_switch_row(column, "MUSIC", "HomeMusicToggle")
 	settings_music_toggle.toggled.connect(func(enabled: bool) -> void:
 		_sync_switch_label(settings_music_toggle)
@@ -396,11 +414,11 @@ func _build_settings_popup() -> void:
 		_sync_switch_label(settings_sound_toggle)
 		sound_toggled.emit(enabled)
 	)
-	settings_privacy_options_button = _button("HomePrivacyOptions", "PRIVACY OPTIONS", Vector2(400.0, 58.0), "SecondaryButton")
+	settings_privacy_options_button = _button("HomePrivacyOptions", "PRIVACY OPTIONS", Vector2(400.0, UiDesignSystemType.BUTTON_HEIGHT), "SecondaryButton")
 	settings_privacy_options_button.visible = false
 	settings_privacy_options_button.pressed.connect(func() -> void: privacy_options_requested.emit())
 	column.add_child(settings_privacy_options_button)
-	var done := _button("HomeSettingsDone", "DONE", Vector2(400.0, 82.0), "")
+	var done := _button("HomeSettingsDone", "DONE", Vector2(400.0, UiDesignSystemType.BUTTON_HEIGHT), "")
 	done.icon = ICON_CHECK
 	done.expand_icon = false
 	done.pressed.connect(_hide_settings)
@@ -414,7 +432,7 @@ func _build_level_intro_popup() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	level_intro_panel = PanelContainer.new()
 	level_intro_panel.name = "LevelIntroPanel"
-	level_intro_panel.custom_minimum_size = Vector2(520.0, 680.0)
+	level_intro_panel.custom_minimum_size = Vector2(540.0, 700.0)
 	level_intro_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	level_intro_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(level_intro_panel)
@@ -444,7 +462,7 @@ func _build_level_intro_popup() -> void:
 	intro_objective_label.custom_minimum_size = Vector2(400, 70)
 	intro_objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(intro_objective_label)
-	intro_start_button = _button("StartLevelButton", "START GAME", Vector2(400.0, 88.0), "")
+	intro_start_button = _button("StartLevelButton", "START GAME", Vector2(400.0, UiDesignSystemType.BUTTON_HEIGHT), "")
 	intro_start_button.icon = ICON_PLAY
 	intro_start_button.expand_icon = false
 	intro_start_button.tooltip_text = "Start Level"
@@ -453,7 +471,7 @@ func _build_level_intro_popup() -> void:
 		play_requested.emit()
 	)
 	column.add_child(intro_start_button)
-	intro_skip_button = _button("LevelIntroSkipButton", "SKIP LEVEL  ·  %d COINS" % GameConfig.SKIP_LEVEL_COST, Vector2(400.0, 70.0), "SecondaryButton")
+	intro_skip_button = _button("LevelIntroSkipButton", "SKIP LEVEL  ·  %d COINS" % GameConfig.SKIP_LEVEL_COST, Vector2(400.0, UiDesignSystemType.BUTTON_HEIGHT), "SecondaryButton")
 	intro_skip_button.icon = ICON_SKIP
 	intro_skip_button.expand_icon = false
 	intro_skip_button.tooltip_text = "Skip this level"
@@ -469,7 +487,7 @@ func _build_exit_confirmation_popup() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	exit_confirm_panel = PanelContainer.new()
 	exit_confirm_panel.name = "ExitConfirmationPanel"
-	exit_confirm_panel.custom_minimum_size = Vector2(480.0, 310.0)
+	exit_confirm_panel.custom_minimum_size = Vector2(520.0, 340.0)
 	exit_confirm_panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	exit_confirm_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(exit_confirm_panel)
@@ -489,10 +507,10 @@ func _build_exit_confirmation_popup() -> void:
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	actions.add_theme_constant_override("separation", 14)
 	column.add_child(actions)
-	exit_cancel_button = _button("ExitCancelButton", "CANCEL", Vector2(176.0, 74.0), "SecondaryButton")
+	exit_cancel_button = _button("ExitCancelButton", "CANCEL", Vector2(196.0, UiDesignSystemType.BUTTON_HEIGHT), "SecondaryButton")
 	exit_cancel_button.pressed.connect(_hide_exit_confirmation)
 	actions.add_child(exit_cancel_button)
-	exit_button = _button("ExitGameButton", "EXIT", Vector2(176.0, 74.0), "")
+	exit_button = _button("ExitGameButton", "EXIT", Vector2(196.0, UiDesignSystemType.BUTTON_HEIGHT), "")
 	exit_button.pressed.connect(func() -> void:
 		_hide_exit_confirmation()
 		exit_requested.emit()
@@ -503,6 +521,89 @@ func _set_home_stage_visible(visible: bool) -> void:
 	for node in [home_backdrop, home_wash, safe_margin, top_controls_margin, privacy_link_margin]:
 		if node != null:
 			node.visible = visible
+
+## Home's daily-missions section. It previews today's three objectives and their
+## progress, then opens the full popup for claiming. Claim rules deliberately
+## live in one place (the popup and controller), so this card only summarises.
+func _build_daily_card() -> Control:
+	daily_button = Button.new()
+	daily_button.name = "HomeDailyMissionsButton"
+	daily_button.flat = true
+	daily_button.custom_minimum_size = Vector2(516.0, 258.0)
+	daily_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	daily_button.pressed.connect(func() -> void: daily_missions_requested.emit())
+	_wire_button_motion(daily_button)
+
+	var frame := PanelContainer.new()
+	frame.name = "HomeDailyCardFrame"
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
+	daily_button.add_child(frame)
+
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 8)
+	frame.add_child(column)
+
+	var banner := PanelContainer.new()
+	banner.custom_minimum_size = Vector2(0.0, UiDesignSystemType.BANNER_HEIGHT)
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner.add_theme_stylebox_override("panel", UiKitType.nine_patch_style("bar_gold_frame", Vector4(76.0, 12.0, 76.0, 14.0)))
+	column.add_child(banner)
+	var heading := _label("DAILY MISSIONS", UiDesignSystemType.PANEL_TITLE_FONT_SIZE, Color.WHITE)
+	heading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	banner.add_child(heading)
+
+	daily_badges_row = HBoxContainer.new()
+	daily_badges_row.name = "HomeDailyBadges"
+	daily_badges_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	daily_badges_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	daily_badges_row.add_theme_constant_override("separation", 26)
+	column.add_child(daily_badges_row)
+
+	daily_status_label = _label("Tap to view today's missions", UiDesignSystemType.CAPTION_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	column.add_child(daily_status_label)
+	return daily_button
+
+
+## Rebuilds the badge strip from the snapshot the controller supplies.
+func _refresh_daily_card() -> void:
+	if daily_badges_row == null:
+		return
+	for child in daily_badges_row.get_children():
+		child.queue_free()
+	var state: Dictionary = _snapshot.get("daily_state", {}) as Dictionary
+	var missions: Array = state.get("missions", []) as Array
+	var claimable := 0
+	for entry in missions:
+		var mission: Dictionary = entry as Dictionary
+		var claimed := bool(mission.get("claimed", false))
+		var progress := mini(int(mission.get("progress", 0)), maxi(1, int(mission.get("target", 1))))
+		var target := maxi(1, int(mission.get("target", 1)))
+		if not claimed and progress >= target:
+			claimable += 1
+		var item := VBoxContainer.new()
+		item.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		item.add_theme_constant_override("separation", 0)
+		var badge := UiKitType.texture_rect(
+			UiKitType.badge("check" if claimed else String(mission.get("icon", "gems"))), 54.0)
+		badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		item.add_child(badge)
+		var caption := _label("%d/%d" % [progress, target], UiDesignSystemType.CAPTION_FONT_SIZE, Color.WHITE)
+		item.add_child(caption)
+		daily_badges_row.add_child(item)
+	if daily_status_label == null:
+		return
+	if missions.is_empty():
+		daily_status_label.text = "Tap to view today's missions"
+	elif claimable > 0:
+		daily_status_label.text = "%d reward%s ready to claim" % [claimable, "" if claimable == 1 else "s"]
+	elif DailyMissionServiceType.chest_ready(state):
+		daily_status_label.text = "Daily chest ready"
+	else:
+		daily_status_label.text = "Tap to view today's missions"
+
 
 func _home_status_card(node_name: String) -> PanelContainer:
 	var card := PanelContainer.new()

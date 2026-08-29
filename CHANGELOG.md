@@ -1,3 +1,51 @@
+# 2026-08-29 - Nine-patch distortion fix, kit plates re-authored, mission cards, padding
+
+- **Root-caused the "stretched assets" report.** Measuring each plate showed the safely stretchable *vertical* band is only 2-5px tall (`btn_pill_gem`: rows 68-70 of 137) - these plates are a continuous bevel with a specular highlight, not a body with a uniform middle. The old margins were squashing ~77px of that bevel into ~28px on every button, smearing the rim and highlight. That is the distortion, and no amount of margin tuning fixes it.
+- **Re-authored every kit plate at the exact height it is drawn at**, so the vertical nine-patch scale is exactly 1.0 and nothing stretches vertically. Introduced `BUTTON_HEIGHT` (96), `HERO_BUTTON_HEIGHT` (116), `BANNER_HEIGHT` (92), `ICON_BUTTON_SIZE` (76) as a contract, plus `UiKit.DRAWN_HEIGHT` recording each plate's authored height.
+- **Recomputed horizontal margins from silhouette shape rather than colour.** The first attempt compared columns for colour uniformity, which wrongly flagged the smooth horizontal gloss gradient (that stretches fine) and produced 196-232px caps on a 516px hero button. Margins now end where the ornamental cap stops changing the plate's outline.
+- Added a regression that walks every real button on every screen and fails when a control is shorter than its plate's caps. It immediately found **six more crushed buttons** that had been shipping distorted - Privacy Options, Settings Done, Start Game, Level Ready Skip, Exit Cancel, and Exit - none of which had been noticed by eye.
+- Rebuilt the daily-missions cards toward the reference: each card now carries its own jewel hue (magenta, blue, amber) with a brass rim instead of one flat purple block that read as an undifferentiated slab.
+- Fixed padding throughout: card contents were running into the artwork frame (10px -> 16px), panel margins, row separations, and every kit button's content padding rescaled to the new cap widths.
+- All fifteen Godot regression suites pass.
+
+# 2026-08-29 - Give Up fix, readable type, level briefings, shots counter rebuild
+
+- **Fixed GIVE UP doing nothing.** `present()` guards against presenting the same result twice, but rescue mode still counted as "already visible", so declining the out-of-shots offer called through to `_trigger_failure()` and the fail screen was swallowed by the guard. The level had already failed underneath while the screen still read OUT OF SHOTS - and because the rescue screen has no Skip button, this is also why Skip appeared unavailable on limited-shots levels. The guard now allows a genuine mode change out of rescue. Reproduced before fixing; covered by `run_retention_daily_missions_v2_tests`.
+- Fixed paragraph copy reading as a heavy, cramped block: the shared UI face was Nunito Sans **ExtraBold (800)**, applied to every label including running prose. It is now SemiBold (620), with weight reserved for numbers and headings via `heavy_font()`. Body 25 -> 27, small 21 -> 23, caption 19 -> 21.
+- Fixed congested buttons. Plate padding went up across the board (primary 78 -> 86, secondary 52 -> 70, hero 88 -> 100, green 46 -> 62), button face dropped 36 -> 32 so long captions such as "SKIP LEVEL · 800 COINS" clear the ornamental caps, and stacked modal actions grew from 68-72px slabs to 88-92px.
+- Rebuilt the limited-shots counter. It was a 72px label with 16px text wedged beside Coins; it is now a framed panel at the top of the centred objective stack, in the same language as the Target panel, with the count at score size and a pulse whenever it changes so a spent shot registers. Low counts turn coral.
+- Added first-run level briefings. Starting a level type for the first time opens an explainer (targets and the danger line for normal levels; the real shot limit and what a shot costs for limited-shots), recorded per type in a new `tutorial/seen_level_types` save section so it never re-teaches. Pre-existing saves read as "nothing seen yet" and coin/level saves preserve the record.
+- Added `tests/run_level_briefing_shots_v1_tests.gd` (briefing shown once per type, persistence, counter placement/centring/legibility/warning colour) and a viewport-overflow regression in `run_ui_kit_polish_v1_tests` - increasing shared button padding had twice pushed the mission card row past the screen edge, and only a screenshot had been catching it. Both verified to fail against the previous behaviour. All fifteen suites pass.
+
+# 2026-08-29 - UI interaction polish: button states, screen transitions, reward feedback
+
+- Fixed the interaction defect behind the "terrible hover" report. Godot swaps a button's stylebox on hover/press, and the first kit pass pointed those states at *different textures*, so plates morphed mid-interaction: the plain secondary pill sprouted gem caps on hover, and the settings gear turned into swap arrows because `btn_square_swap` has its glyph painted into the artwork. Every family now uses **one silhouette across normal/hover/pressed**, differing only by tint; press motion is carried by scale.
+- Fixed inverted hierarchy: secondary plates were rendering *brighter* than the primary action, so four buttons competed at equal weight. Secondary now starts recessed, affirmative actions are green, and paid actions keep the gem plate.
+- Fixed two rendering faults found in the proof sheet: `btn_green_off`/`btn_pill_gem_off` were generated but never imported, so `load()` returned null and disabled buttons drew **no plate at all**; and the capture harness reported PASS while the controller script had failed to load, leaving a bare `Node2D` and blank screenshots. The harness now fails loudly, and disabled plates are luma-desaturated derivatives of the same silhouette.
+- Removed leftover artifacts from the result overlay: a stray `HSeparator` hairline that read as a rendering glitch, and the empty bordered box with a bare "!" standing in for a fail badge (now real kit art). Applied the type scale to the reward copy, which was still using hardcoded 13-16px sizes.
+- Unified modal presentation: Level Complete, Try Again, Out of Shots, Daily Missions, and Settings all announce themselves with the same gold ribbon header. Settings was the last bare-label modal.
+- Added `ScreenTransitionLayer` (layer 90) so Home <-> gameplay is a reveal rather than an instant cut. **The swap is applied synchronously and only the reveal is animated** - a first version deferred the swap to a covered midpoint, which made navigation async and broke three suites because callers could no longer read `app_flow_state` after navigating.
+- Added popup motion and reward feedback: the daily-missions popup now has the same dim-leads/overshoot/settle entrance as the result overlay and an exit animation, and a confirmed claim kicks the card and floats its coin value. The celebration fires only after the claim is persisted, so it can never imply an unbanked reward.
+- Removed a redundant balance readout on the out-of-shots screen that repeated the coin card directly above it.
+- Added `tests/run_ui_kit_polish_v1_tests.gd` (6 cases: one-silhouette-per-family, no glyph-bearing plate as a state, every referenced plate importable, disabled plates actually desaturated, transition cover inert when idle, popup animates). Verified it fails against the previous behaviour. All fourteen suites pass.
+
+# 2026-08-29 - Majestic UI kit pass: supplied art + typefaces on every screen, retention V1 defects fixed
+
+- Fixed four defects in the previous retention/daily-missions implementation, each with a regression that fails against the old code (`tests/run_retention_daily_missions_v2_tests.gd`):
+  - `DailyMissionService` mutated the caller's Dictionary and returned that same object, so the controller's `daily_state != previous` change check was always false and **daily mission progress was never saved** — it reset on every app restart. The service is now pure and `record()` returns an explicit `changed` flag.
+  - `claim_mission()`/`claim_chest()` marked a mission claimed *before* the save was checked, so a failed save **consumed the mission and paid no coins**. The pure service leaves state untouched until the controller assigns the result, which happens only after a successful save.
+  - `DailyMissionsOverlayLayer` sat on layer 55 while its only entry point, Home, sits on layer 60 — the popup **opened behind Home and was never visible**. Moved to layer 65.
+  - `present_out_of_shots()` relabelled Home to "GIVE UP" and nothing restored it, so **every later win/fail screen showed "GIVE UP"** for the rest of the session.
+- Repaired `run_firebase_analytics_pipeline_tests`, left red by the earlier `SKIP_LEVEL_COST` 200 -> 800 change (seven assertions hardcoded the old cost). It now derives expectations from `GameConfig`.
+- Adopted the supplied art kit: six sheets sliced into 37 runtime assets under `assets/runtime/ui/kit/`, originals preserved in `assets/ui_kit_source/`, wrapped by the new `scripts/ui/ui_kit.gd`. Slicing used a Godot tool script (connected components with glow-gap bridging; grid slicing for the touching badge rows).
+- Adopted the supplied typefaces: Nunito Sans (weights 800/1000) for all UI copy and Cinzel Black for the brand tagline. `NunitoSans-Variable.ttf` defaults its `wght` axis to 200 (ExtraLight), so every variation sets the axis explicitly — loading it plain is why the face looked spindly.
+- Raised the type scale: body copy 18 -> 25 canvas units (about 9dp -> 12.5dp on a 360dp phone), with a theme-wide dark text outline so copy survives the jewel backgrounds.
+- Registered `HeroButton`, `GreenButton`, and `IconButton` theme variations alongside the restyled primary/secondary, so the kit reaches every screen and popup through the shared theme.
+- Rebuilt the daily-missions popup (ribbon header, badge/progress/reward cards, chest row), added a daily-missions summary card to Home, stacked the result-overlay actions (side-by-side kit plates overflowed 720px-wide screens), and made settings ON read green.
+- Moved the shared border token from violet to brass to match the artwork; `run_ui_scale_layout_tests` now asserts the brass direction instead of the old violet one.
+- All thirteen Godot regression suites pass. Visual proof: `tests/capture_majestic_ui_kit_v1.gd` -> `reports/majestic-ui-kit-v1/screenshots/`. See `reports/MAJESTIC_UI_KIT_V1_REPORT.md`.
+- No Android artifact was produced and no device was available in this task; the UI change is broad and warrants a device pass before a release candidate.
+
 # 2026-08-28 - UI polish pass: current-gem reroll, combo-style cost popups, Play Games removed
 
 - Matched the latest supplied gameplay reference: replaced the lavender dice with a bold white @icons clockwise-arrows glyph and changed Switch Gem to a bright-rimmed 112 px purple squircle seated across the lower table frame.
@@ -992,3 +1040,9 @@
 - Added persistent custom-template Firebase Analytics configuration and a desktop-safe GDScript/native Android bridge.
 - Routed the eight requested events only from confirmed gameplay and ad lifecycle boundaries; gameplay, package, signing, and AdMob IDs are unchanged.
 - Restored the user-confirmed Play release identity to versionCode 9 / versionName 1.0.7.
+# Retention, Coin Economy, and Daily Missions Sprint (unreleased)
+
+- Added data-driven `normal` and `limited_shots` level types. The first conservative limited-shot introduction is level 10; shots decrement only when the controller commits a valid launch and out-of-shots waits for all resolution/target work before offering rescue.
+- Added controller-owned +5 Shots and one-per-attempt Continue rescues, safe non-negative save-before-commit spending, and daily missions/chest persistence.
+- Added a compact Home Daily Missions surface, a gameplay shots indicator, Firebase retention events, and local-device-clock daily reset documentation.
+- Repriced Skip Level to retain the deliberate economy hierarchy: reroll 100, extra shots 300, continue 500, skip 800.

@@ -26,6 +26,8 @@ static func level_1() -> Dictionary:
 		# One L5 objective teaches the complete loop without an endurance spike.
 		"target_sequence": [{"tier": 6, "quantity": 1}, {"tier": 7, "quantity": 1}, {"tier": 8, "quantity": 1}],
 		"starting_board": [],
+		"level_type": "normal",
+		"shot_limit": 0,
 	}
 
 ## Generates one deterministic infinite-play level. Simulation continues to use
@@ -102,6 +104,10 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		var cycle: Array[int] = cycle_template.duplicate()
 		_fisher_yates(cycle, rng)
 		launcher_sequence.append_array(cycle)
+	var limited_shots := level_number >= 10 and (level_number == 10 or level_number % 4 == 2)
+	# Conservative initial limits: the first introduction is deliberately above
+	# the normal deterministic launcher cycle. Analytics can tune data later.
+	var shot_limit := 36 if level_number == 10 else 34
 	return {
 		"id": "level_%d" % level_number,
 		"name": "Level %d" % level_number,
@@ -122,6 +128,8 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		"background_index": rng.randi_range(0, AssetCatalogType.BACKGROUND_COUNT - 1),
 		"table_index": rng.randi_range(0, AssetCatalogType.TABLE_COUNT - 1),
 		"starting_board": [],
+		"level_type": "limited_shots" if limited_shots else "normal",
+		"shot_limit": shot_limit if limited_shots else 0,
 	}
 
 ## Pure, seeded block lookup: retries and save reloads reconstruct the same

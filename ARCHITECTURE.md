@@ -1,3 +1,13 @@
+# Architecture Addendum - Supplied UI Kit and Typography
+
+`scripts/ui/ui_kit.gd` (`UiKit`) is a new presentation-only module owning the supplied art kit: preloaded runtime textures plus `nine_patch_style()`, which builds a `StyleBoxTexture` from the margins recorded in `UiKit.NINE`. Only assets listed in `NINE` may stretch; fixed-composition art (a coin seated inside a plate, gems along a bar) is rejected by `assert` rather than smeared, and is drawn through `UiKit.texture_rect()` at its natural aspect. `UiKit` must never be consulted by simulation, merge-service, launcher, or collision code.
+
+`UiDesignSystem` consumes `UiKit` and remains the single source of theme truth. It now registers five button families as theme type variations — `Button` (gem pill), `SecondaryButton` (plain gold pill), `HeroButton`, `GreenButton`, and `IconButton` — so the kit reaches every screen and popup through the shared theme instead of per-screen overrides. It also owns three font accessors: `font()` (Nunito Sans 800), `heavy_font()` (Nunito Sans 1000), and `display_font()` (Cinzel Black), plus `style_label()` for the shared outlined-text treatment.
+
+`DailyMissionService` is a pure module: every entry point deep-duplicates the supplied state and returns a fresh Dictionary, and `record()` returns `{state, changed}`. This is what allows `GameController` to persist on an explicit change flag and to grant or deduct only after a successful save — an in-place service makes both impossible, because the caller's "previous" state is the same object it is comparing against.
+
+Overlay layer ordering is a real constraint, not a detail: `GameplayHudLayer` 40, `ResultOverlayLayer` 50, `HomeOverlayLayer` 60, `DailyMissionsOverlayLayer` 65. A popup must sit above whichever surface opens it.
+
 # Architecture Addendum - Skip Level Sink and Current Gem Reroll
 
 Reference refinement V2 changes presentation tokens only: the live Switch Gem control is a 112 px squircle using `arrows_clockwise_white.svg`, and the right utility stack reads compact `NEXT_PANEL_SIZE`/`NEXT_ICON_SIZE` plus an explicit 12 px container separation before Settings. Controller snapshots, input signals, economy authority, and table physics are unchanged.
@@ -781,3 +791,6 @@ Gameplay Settings is a direct `Button` styled through `utility_frame_style()`; H
 `scripts/services/analytics_service.gd` is the GDScript-facing, no-op-safe `Analytics` autoload. On Android it calls the `FirebaseAnalytics` Godot singleton. `android/build/src/main/java/com/owais/majestygems/analytics/FirebaseAnalyticsPlugin.java` parses flat JSON event payloads and sends them to Firebase; it cannot call gameplay code.
 
 `GameController` reports only confirmed level/target/merge/loss/win boundaries. `AdManager` reports only committed fullscreen shows and confirmed earned rewarded callbacks. Analytics remains observational and never gates simulation, scoring, rewards, progression, or ads.
+# Retention services (unreleased)
+
+`LevelConfig` declares `level_type` and `shot_limit`; `GameController` decrements only committed shots and evaluates out-of-shots after the merge/collection lifecycle settles. `DailyMissionService` is a deterministic, event-driven local-state transformer stored as `retention.daily_state` by `ProgressionSaveService`. `DailyMissionsOverlayLayer` and HUD read controller snapshots/signals only. Currency mutations remain controller save-before-commit transactions.

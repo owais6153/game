@@ -5,9 +5,16 @@ const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 ## V1 economy sink. The controller performs the deduction and save atomically;
 ## presentation reads this one value and never owns economy rules.
 const NEXT_GEM_REROLL_COST := 100
+## Retention/economy V1. Keep the relative hierarchy intentional: switching
+## is cheapest, extra shots is medium, one safe continuation is expensive, and
+## Skip remains the highest escape hatch.
+const EXTRA_SHOTS_AMOUNT := 5
+const EXTRA_SHOTS_COST := 300
+const CONTINUE_COST := 500
+const MAX_COIN_CONTINUES_PER_ATTEMPT := 1
 ## Second economy sink. Skipping jumps straight to the next level (no win
 ## screen, no interstitial, no level-complete reward) for a flat coin cost.
-const SKIP_LEVEL_COST := 200
+const SKIP_LEVEL_COST := 800
 ## Authoritative table layout. The supplied table is a trapezoid, so the same
 ## rail model is consumed by Sprite2D placement, collision containment, drag
 ## clamps, launcher spawn, and danger-line drawing.

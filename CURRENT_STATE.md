@@ -1,3 +1,43 @@
+# Nine-Patch Distortion Fix and Kit Re-Authoring - 2026-08-29
+
+The "stretched assets" defect is fixed at its source. Measurement showed the supplied plates have a safely-stretchable vertical band only 2-5px tall - they are a continuous bevel with a specular highlight, so the old margins were squashing ~77px of bevel into ~28px on every button. Every plate is now authored at the exact height it is drawn at, making the vertical nine-patch scale exactly 1.0, and horizontal margins are derived from silhouette shape rather than colour uniformity.
+
+Button geometry is now a contract: `UiDesignSystem.BUTTON_HEIGHT` (96), `HERO_BUTTON_HEIGHT` (116), `BANNER_HEIGHT` (92), backed by `UiKit.DRAWN_HEIGHT`. A regression walks every button on every screen and fails when a control is shorter than its plate's caps; it found six additional crushed buttons across the settings, level-intro, and exit dialogs that had been shipping distorted.
+
+Daily-mission cards now carry the reference's per-card jewel hues (magenta, blue, amber) with brass rims, and padding was corrected throughout - card contents had been running into their own artwork frame.
+
+All fifteen Godot regression suites pass.
+
+# Give Up Fix, Readable Type, Level Briefings, Shots Counter - 2026-08-29
+
+Declining the out-of-shots rescue now actually reaches the fail screen. `present()`'s double-presentation guard had been treating rescue mode as "already visible", so GIVE UP did nothing while the level had already failed underneath; because the rescue screen carries no Skip button, that also explains Skip appearing unavailable on limited-shots levels.
+
+Typography is readable: the shared UI face dropped from ExtraBold to SemiBold with weight reserved for numbers and headings, and the body/small/caption steps each moved up. Button plates gained padding and height while the button face dropped a step, so long captions clear the ornamental caps.
+
+The limited-shots counter is now a framed panel at the top of the centred objective stack, matching the Target panel, with a score-sized count that pulses on change and turns coral when low. Starting a level type for the first time opens a briefing explaining that type; it is recorded per type in a new `tutorial/seen_level_types` save section and never shown again.
+
+All fifteen Godot regression suites pass, including new coverage for the briefing rules, counter placement, and a viewport-overflow guard. Still no device pass and no Android artifact for this work.
+
+# UI Interaction Polish - 2026-08-29
+
+Button states now use one silhouette per family and vary only by tint, which removes the plate-morphing that made hover and press look broken (the secondary pill grew gem caps on hover; the settings gear became swap arrows). Hierarchy is explicit: green for affirmative, gem plate for primary and paid actions, recessed plain plate for navigation. Disabled controls keep their silhouette and use luma-desaturated derivatives.
+
+Every modal - Level Complete, Try Again, Out of Shots, Daily Missions, Settings - now announces itself with the same gold ribbon. The result overlay lost a stray separator hairline and its placeholder "!" fail badge, and its reward copy uses the shared type scale.
+
+`ScreenTransitionLayer` (layer 90) turns Home <-> gameplay into a reveal instead of a cut. Its state swap is synchronous by contract; only the reveal animates, so callers can still read `app_flow_state` immediately after navigating. The daily-missions popup has a real entrance and exit, and a confirmed claim kicks the card and floats its coin value - fired only after the reward is persisted.
+
+Two rendering faults were found and fixed via the proof sheet: disabled plates were referenced before being imported (drawing nothing at all), and the capture harness reported PASS over blank screenshots when the controller script failed to load. Both are now covered by `tests/run_ui_kit_polish_v1_tests.gd`. All fourteen Godot regression suites pass.
+
+# Majestic UI Kit V1 - 2026-08-29
+
+Every screen and popup now renders with the supplied art kit and typefaces. Nunito Sans (weights 800/1000) carries all UI copy and Cinzel Black carries the brand tagline; the type scale rose from 18 to 25 canvas units for body copy, with a theme-wide dark outline. The shared border token is brass rather than violet, matching the artwork's rims. Six supplied sheets were sliced into 37 runtime assets under `assets/runtime/ui/kit/`, wrapped by `scripts/ui/ui_kit.gd`, with originals preserved under `assets/ui_kit_source/`.
+
+Home gained a daily-missions summary card (today's three badges plus progress) and a hero PLAY plate. The daily-missions popup was rebuilt with a ribbon header, per-mission cards, and a chest row. Result overlay actions are stacked vertically because the kit's wide ornamental caps overflow a shared row at 720px. Settings ON now reads green.
+
+Four defects in the previous retention/daily-missions work are fixed: daily progress was never persisted (aliased service state defeated the change check), a failed save consumed a mission without paying it, the daily popup opened behind Home and was invisible, and the out-of-shots screen permanently relabelled Home to "GIVE UP". `tests/run_retention_daily_missions_v2_tests.gd` covers all four. `run_firebase_analytics_pipeline_tests`, left red by the earlier `SKIP_LEVEL_COST` 200 -> 800 change, is repaired and now cost-agnostic. All thirteen Godot regression suites pass. See `reports/MAJESTIC_UI_KIT_V1_REPORT.md`.
+
+No Android artifact was produced and no device was available in this task, so nothing is recorded in `BUILD_MANIFEST.md` for this pass; the UI change is broad and warrants device verification before a release candidate.
+
 # Skip Level and Current Gem Reroll Redesign - 2026-08-28
 
 Reference refinement V2 supersedes the earlier circular/dice treatment: Switch Gem is now a high-contrast 112 px purple squircle with a large white clockwise-arrows glyph, intentionally seated across the table's lower frame. Next is reduced from `141.075x172` to `128x150`, its gem from 54 to 48 px, and the Settings gap from 8 to 12 px so those controls remain visually separate. See `reports/COIN_SINK_VISIBILITY_NEXT_SPACING_V2_REPORT.md`.
@@ -674,3 +714,6 @@ Corrected TEST APK: `build/android/majestic-gems-last-aab-home-back-repair.apk` 
 # Current State Addendum - Firebase Analytics Android Integration v1.0.7
 
 Firebase Analytics is configured in the tracked Godot Android custom template using Google Services plugin 4.5.0, Firebase BoM 34.18.0, and `firebase-analytics`; its supplied configuration matches the unchanged `com.owais.majestygems` package. The `Analytics` autoload and Android plugin observe only confirmed level, target, merge, and ad events, with no gameplay or reward authority. The requested Play sequence is restored to versionCode 9 / versionName 1.0.7 because the user confirmed Play's highest upload is 8 / 1.0.6. See `reports/FIREBASE_ANALYTICS_ANDROID_V1.0.7_REPORT.md`.
+# Retention Sprint (unreleased)
+
+The active controller now owns limited-shots attempts, out-of-shots rescue, one safe danger-line continuation, and local daily mission state. The UI remains a snapshot consumer; physics, strict contact merges, target authority, and launch generation are unchanged. Daily missions are local-date based and therefore susceptible to device-clock manipulation until a future server-time implementation.
