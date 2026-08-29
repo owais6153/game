@@ -87,7 +87,9 @@ func present_ad_offer(power: String, ad_ready: bool, daily_cap_reached: bool) ->
 		body_label.text = "You have claimed every free %s for today. Come back tomorrow, or buy more with coins." % power_label
 		primary_button.visible = false
 	elif not ad_ready:
-		body_label.text = "No video is ready right now. Try again in a moment, or buy %s with coins." % power_label
+		# No video to offer, so the panel does not mention one. Dangling an ad the
+		# player cannot actually watch is worse than simply pointing at the shop.
+		body_label.text = "You have no %s left. You can buy more in the shop." % power_label
 		primary_button.visible = false
 	else:
 		body_label.text = "Watch a short video to get 1 %s." % power_label
@@ -158,7 +160,9 @@ func present_coin_offer(action: String, title: String, detail: String, cost: int
 		primary_button.visible = true
 		primary_button.text = "WATCH VIDEO"
 	else:
-		body_label.text = "%s\n\nYou have %d of the %d coins needed, and no video is ready right now." % [detail, coins, cost]
+		# No video to offer, so the panel states the price and stops there. Dangling
+		# an ad the player cannot watch is worse than simply naming the cost.
+		body_label.text = "%s\n\nIt costs %d coins and you have %d." % [detail, cost, coins]
 		primary_button.visible = false
 	secondary_button.text = "CLOSE"
 	_present()

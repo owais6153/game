@@ -22,6 +22,7 @@ func _run() -> void:
 	_test_opening_board_is_deterministic()
 	_test_opening_board_leaves_a_route_through()
 	await _test_controller_places_the_opening_board()
+	await _test_level_advance_starts_clean()
 	if failures.is_empty():
 		print("LEVEL_DIFFICULTY_V1_TESTS: PASS")
 		quit(0)
@@ -203,3 +204,47 @@ func _test_controller_places_the_opening_board() -> void:
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
 		failures.append(message)
+
+
+## Advancing a level must present the next level cleanly. A previous attempt
+## leaving gems, a magnet field, or a staged power effect behind would make the
+## new level start mid-state.
+func _test_level_advance_starts_clean() -> void:
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(720, 1280)
+	viewport.disable_3d = true
+	root.add_child(viewport)
+	var controller = GameScene.instantiate()
+	viewport.add_child(controller)
+	await process_frame
+	controller.level_number = 6
+	controller.level_seed = LevelConfigType.seed_for_level(6)
+	controller.restart()
+	controller.set_process(false)
+
+	# Dirty the level: extra gems, a live magnet field, and a staged effect.
+	var stray := GemPiece.new(31337, 2, Vector2(300.0, GameConfig.danger_line_y() - 60.0), GameConfig.gem_collision_radius(2))
+	controller.pieces.append(stray)
+	controller.magnet_armed_piece_id = stray.id
+	controller.magnet_remaining = 5.0
+	controller.pending_power_effect = {"power": "bomb", "origin": Vector2.ZERO, "ids": [stray.id]}
+	var dirty_count = controller.pieces.size()
+
+	controller.level_number = 7
+	controller.level_seed = LevelConfigType.seed_for_level(7)
+	controller.restart()
+
+	_assert(controller.magnet_armed_piece_id < 0, "a magnet field must not survive into the next level")
+	_assert(is_equal_approx(controller.magnet_remaining, 0.0), "a magnet timer must not survive into the next level")
+	_assert(controller.pending_power_effect.is_empty(), "a staged power effect must not survive into the next level")
+	for piece in controller.pieces:
+		_assert(piece.id != stray.id, "a gem from the previous level must not survive the transition")
+
+	var expected: Array = controller.level_config.get("starting_board", []) as Array
+	_assert(controller._targetable_pieces().size() == expected.size(),
+		"the new level must show exactly its own opening board (expected %d, found %d, previously %d)"
+			% [expected.size(), controller._targetable_pieces().size(), dirty_count])
+	_assert(int(controller.level_config.get("level_number", 0)) == 7,
+		"the controller must reconfigure to the level it advanced to")
+	viewport.queue_free()
+	await process_frame

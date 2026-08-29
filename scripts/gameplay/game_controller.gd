@@ -992,7 +992,7 @@ func _on_power_ad_confirmed(power: String) -> void:
 	# locals by value, so the dismissal callback below would always observe the
 	# initial false and report "No reward" even after a completed video.
 	power_ad_granted = false
-	ad_manager.call(
+	var shown := bool(ad_manager.call(
 		"show_rewarded",
 		func(_item = null) -> void:
 			power_ad_granted = _grant_power_from_ad(power),
@@ -1004,7 +1004,13 @@ func _on_power_ad_confirmed(power: String) -> void:
 			_report_power_ad_result(power, power_ad_granted)
 			_refresh_hud(),
 		{"placement": "power_grant", "power": power, "level_number": level_number}
-	)
+	))
+	if not shown:
+		# The video never opened, so neither callback will ever fire. Without this
+		# the offer popup sat on screen forever with no way forward.
+		power_ad_pending = ""
+		_log_analytics("power_ad_declined", {"power": power, "reason": "show_failed"})
+		_report_power_ad_result(power, false)
 
 
 func _report_power_ad_result(power: String, granted: bool) -> void:
@@ -1140,7 +1146,7 @@ func _on_coin_ad_confirmed(action: String) -> void:
 		_report_coin_action_result(action, false)
 		return
 	coin_action_granted = false
-	ad_manager.call(
+	var shown := bool(ad_manager.call(
 		"show_rewarded",
 		func(_item = null) -> void:
 			coin_action_granted = _perform_coin_action(action),
@@ -1151,7 +1157,11 @@ func _on_coin_ad_confirmed(action: String) -> void:
 			_report_coin_action_result(action, coin_action_granted)
 			_refresh_hud(),
 		{"placement": "coin_action", "action": action, "level_number": level_number}
-	)
+	))
+	if not shown:
+		# The video never opened, so neither callback will ever fire.
+		_log_analytics("coin_action_ad_declined", {"action": action, "reason": "show_failed"})
+		_report_coin_action_result(action, false)
 
 
 ## Runs the action for free. Only the rewarded callback may call this.

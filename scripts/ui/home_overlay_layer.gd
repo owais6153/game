@@ -14,6 +14,9 @@ const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_lavender_crisp.
 ## The Home shop entry point. A de-fringed derivative of the supplied stall art.
 
 const ICON_SHOP = preload("res://assets/runtime/ui/kit/icon_shop.png")
+## A compact brand mark rather than a hero panel. Home is a game screen, so the
+## logo identifies the game and then gets out of the way.
+const LOGO_SIZE := Vector2(360.0, 220.0)
 const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
 const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_lavender.svg")
@@ -235,35 +238,35 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 16)
 	margin.add_child(column)
 
+	# The logo is branding, not gameplay, so it is a compact mark at the top of
+	# the screen instead of a hero that owns half the layout. Every row below it
+	# is something the player can act on.
 	var hero := CenterContainer.new()
 	hero.name = "LogoHero"
-	hero.custom_minimum_size = Vector2(540.0, 470.0)
+	hero.custom_minimum_size = Vector2(LOGO_SIZE.x, LOGO_SIZE.y)
 	hero.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(hero)
 	logo_rect = TextureRect.new()
 	logo_rect.name = "MajesticGemsLogo"
 	logo_rect.texture = AssetCatalogType.BRAND_LOGO
-	logo_rect.custom_minimum_size = Vector2(540.0, 470.0)
+	logo_rect.custom_minimum_size = LOGO_SIZE
 	logo_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	logo_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	logo_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hero.add_child(logo_rect)
 	_logo_motion_composer = _attach_scale_loop(logo_rect, "HomeLogoBreath", 1.018, 2.10)
 
-	# The brand line is the one place the serif display face appears on Home,
-	# matching the tagline treatment in the supplied mockup.
+	# The tagline is retained as a hidden node so existing lookups keep working,
+	# but it no longer occupies a row: the space belongs to the game.
 	tagline_label = _label("A Majestic World of Gems", UiDesignSystemType.TAGLINE_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
-	tagline_label.add_theme_font_override("font", UiDesignSystemType.display_font())
-	tagline_label.custom_minimum_size = Vector2(0.0, 50.0)
-	tagline_label.add_theme_constant_override("outline_size", UiDesignSystemType.TEXT_OUTLINE_SIZE)
-	tagline_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_TEXT_OUTLINE)
+	tagline_label.visible = false
 	column.add_child(tagline_label)
 
 	column.add_child(_build_daily_card())
 
 	var status_row := HBoxContainer.new()
 	status_row.name = "HomePlayerStatus"
-	status_row.custom_minimum_size = Vector2(516.0, 94.0)
+	status_row.custom_minimum_size = Vector2(492.0, 94.0)
 	status_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	status_row.add_theme_constant_override("separation", 16)
 	column.add_child(status_row)
@@ -295,38 +298,6 @@ func _build() -> void:
 	coins_label.add_theme_font_override("font", UiDesignSystemType.heavy_font())
 	coin_col.add_child(coins_label)
 
-	# The shop sits in the status row rather than beside PLAY, which left the
-	# hero button visibly lopsided. It reads as a destination here without
-	# taking anything from the primary action below.
-	powers_button = Button.new()
-	powers_button.name = "HomePowersButton"
-	# Built as a card rather than an icon button: the stall art is detailed and
-	# a Button icon is shrunk by the plate padding until it reads as a smudge.
-	powers_button.custom_minimum_size = Vector2(132.0, 94.0)
-	for state in ["normal", "hover", "pressed", "focus"]:
-		powers_button.add_theme_stylebox_override(state, UiKitType.nine_patch_style("btn_square_small"))
-	powers_button.focus_mode = Control.FOCUS_ALL
-	powers_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	powers_button.tooltip_text = "Shop — buy powers"
-	powers_button.pressed.connect(func() -> void:
-		ui_tap_requested.emit()
-		power_shop_requested.emit()
-	)
-	_wire_button_motion(powers_button)
-	status_row.add_child(powers_button)
-	var shop_stack := VBoxContainer.new()
-	shop_stack.alignment = BoxContainer.ALIGNMENT_CENTER
-	shop_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	shop_stack.add_theme_constant_override("separation", 0)
-	powers_button.add_child(shop_stack)
-	shop_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var shop_icon := UiKitType.texture_rect(ICON_SHOP, 62.0)
-	shop_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	shop_stack.add_child(shop_icon)
-	var shop_caption := _label("SHOP", UiDesignSystemType.CAPTION_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
-	shop_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	shop_stack.add_child(shop_caption)
-
 	play_button = Button.new()
 	play_button.name = "HomePlayButton"
 	play_button.text = "PLAY"
@@ -340,6 +311,37 @@ func _build() -> void:
 	_wire_button_motion(play_button)
 
 	column.add_child(play_button)
+
+	# The shop sits below PLAY in the same decorative banner the Daily Missions
+	# header uses, so the two entry points read as one family and the hero button
+	# keeps its full width.
+	powers_button = Button.new()
+	powers_button.name = "HomePowersButton"
+	powers_button.custom_minimum_size = Vector2(516.0, UiDesignSystemType.BANNER_HEIGHT)
+	for state in ["normal", "hover", "pressed", "focus"]:
+		powers_button.add_theme_stylebox_override(
+			state, UiKitType.nine_patch_style("bar_gold_frame", Vector4(76.0, 12.0, 76.0, 14.0)))
+	powers_button.focus_mode = Control.FOCUS_ALL
+	powers_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	powers_button.tooltip_text = "Shop — buy powers"
+	powers_button.pressed.connect(func() -> void:
+		ui_tap_requested.emit()
+		power_shop_requested.emit()
+	)
+	_wire_button_motion(powers_button)
+	column.add_child(powers_button)
+
+	var shop_row := HBoxContainer.new()
+	shop_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	shop_row.add_theme_constant_override("separation", 12)
+	shop_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	powers_button.add_child(shop_row)
+	shop_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var shop_icon := UiKitType.texture_rect(ICON_SHOP, UiDesignSystemType.BANNER_HEIGHT - 16.0)
+	shop_row.add_child(shop_icon)
+	var shop_caption := _label("SHOP", UiDesignSystemType.PANEL_TITLE_FONT_SIZE, Color.WHITE)
+	shop_caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	shop_row.add_child(shop_caption)
 
 	_build_top_settings_control()
 	_build_privacy_policy_link()
@@ -619,10 +621,10 @@ const DAILY_MINI_BADGE_HEIGHT := 56.0
 const DAILY_MINI_GAP := 12
 
 
-const DAILY_STATUS_BADGE := 34.0
-## Negative inset pushes the badge outside the card corner, matching the count
-## badge on the gameplay power tiles.
-const DAILY_STATUS_OVERLAP := -11.0
+const DAILY_STATUS_BADGE := 52.0
+## Half the badge hangs outside the card corner, so the status reads at a glance
+## from across the screen rather than as a detail inside the tile.
+const DAILY_STATUS_OVERLAP := -DAILY_STATUS_BADGE * 0.5
 
 
 func _refresh_daily_card() -> void:
