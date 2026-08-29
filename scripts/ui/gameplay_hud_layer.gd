@@ -1115,7 +1115,12 @@ func _build_shots_panel() -> Control:
 func _apply_shots_state(limited: bool, remaining: int) -> void:
 	if shots_anchor == null or shots_label == null:
 		return
+	var visibility_changed := shots_anchor.visible != limited
 	shots_anchor.visible = limited
+	if visibility_changed:
+		# The stack is a different height with the counter in it, so the anchor has
+		# to be re-measured or the panels overlap the row above.
+		_refresh_safe_margins()
 	if not limited:
 		_shots_shown = -1
 		return
@@ -1636,7 +1641,12 @@ func _refresh_safe_margins() -> void:
 		objective_stack_anchor.offset_right = UiDesignSystemType.DESIGN_WIDTH
 		objective_stack_anchor.add_theme_constant_override("margin_left", left_margin)
 		objective_stack_anchor.add_theme_constant_override("margin_right", right_margin)
+		# The shots counter lives in this same stack on limited-shots levels. It was
+		# missing from the height, so the stack was taller than the space reserved
+		# for it and pushed up into the coins/Next/settings row.
 		var stack_height := UiDesignSystemType.TARGET_PANEL_SIZE.y + UiDesignSystemType.OBJECTIVE_STACK_GAP + UiDesignSystemType.PROGRESSION_HEIGHT
+		if shots_anchor != null and shots_anchor.visible:
+			stack_height += SHOTS_PANEL_SIZE.y + float(UiDesignSystemType.OBJECTIVE_STACK_GAP)
 		var tall_t := clampf((design_height - GameConfig.VIEWPORT_SIZE.y) / GameConfig.TABLE_TALL_SCALE_REFERENCE_EXTRA, 0.0, 1.0)
 		var table_gap := lerpf(UiDesignSystemType.OBJECTIVE_TABLE_GAP_MIN, UiDesignSystemType.OBJECTIVE_TABLE_GAP_MAX, tall_t)
 		var minimum_top := top_margin + UiDesignSystemType.TOP_HUD_HEIGHT + 12.0

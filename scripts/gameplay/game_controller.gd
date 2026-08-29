@@ -106,6 +106,8 @@ var seen_power_tutorials: Array[String] = []
 ## Set while a rewarded ad opened from the power popup is on screen, so the
 ## result can be reported back into the same popup when it returns.
 var power_ad_pending := ""
+## Whether the rewarded ad currently on screen has actually paid out.
+var power_ad_granted := false
 var screen_transition: ScreenTransitionType
 var level_briefing: LevelBriefingType
 var seen_level_types: Array[String] = []
@@ -142,6 +144,12 @@ var reroll_request_locked := false
 var power_state: Dictionary = {}
 var pending_power_target := ""
 var power_request_locked := false
+## Board change staged by a power, applied on the cinematic impact beat so the
+## strike lands on gems that are still there.
+var pending_power_effect: Dictionary = {}
+## The gem currently carrying the magnet field, and how long it has left.
+var magnet_armed_piece_id := -1
+var magnet_remaining := 0.0
 var skip_request_locked := false
 var daily_state: Dictionary = {}
 var shots_remaining := -1
@@ -232,6 +240,7 @@ func _process(delta: float) -> void:
 	if gem_sprite_layer != null:
 		gem_sprite_layer.update_reward_effects(delta)
 	_update_piece_visual_feedbacks(delta)
+	_update_magnet_field(delta)
 	if failed:
 		_sync_gems_and_mark_visibility()
 		_refresh_hud()
@@ -583,7 +592,7 @@ func _power_is_actionable(power: String) -> bool:
 			return (
 				launcher_state == LauncherState.READY_TO_AIM
 				and magnet_active != null
-				and not _magnet_targets(magnet_active).is_empty()
+				and not _magnet_matches(magnet_active.level).is_empty()
 			)
 		PowerInventoryServiceType.BOMB, PowerInventoryServiceType.HAMMER:
 			# Both are targeted: they need at least one settled gem to act on.
@@ -598,21 +607,6 @@ func _targetable_pieces() -> Array[GemPiece]:
 			continue
 		targets.append(piece)
 	return targets
-
-
-## Same-tier gems near the current gem, closest first. Magnet attracts only
-## matching tiers because its stated purpose is to help create one merge.
-func _magnet_targets(active: GemPiece) -> Array[GemPiece]:
-	var matches: Array[GemPiece] = []
-	for piece in pieces:
-		if piece.consumed or piece.is_active_launcher or piece.level != active.level:
-			continue
-		if piece.position.distance_to(active.position) <= GameConfig.POWER_MAGNET_RADIUS:
-			matches.append(piece)
-	matches.sort_custom(func(a: GemPiece, b: GemPiece) -> bool:
-		return a.position.distance_squared_to(active.position) < b.position.distance_squared_to(active.position)
-	)
-	return matches.slice(0, GameConfig.POWER_MAGNET_MAX_ATTRACTED)
 
 
 ## Spends one owned power, persisting before adopting the result so a failed
@@ -701,6 +695,51 @@ func _resolve_power_target(pointer: Vector2) -> bool:
 	return true
 
 
+## Every power now stages its board change instead of applying it immediately.
+## The change lands on the cinematic's impact beat, so a bomb or hammer strikes
+## gems that are still there — previously the gems vanished the moment the tile
+## was tapped and the sequence hit an empty table.
+##
+## The power is still spent up front, so a spend can never be lost if the
+## sequence is skipped or interrupted.
+func _stage_power_effect(power: String, origin: Vector2, payload: Dictionary) -> void:
+	pending_power_effect = payload.duplicate()
+	pending_power_effect["power"] = power
+	pending_power_effect["origin"] = origin
+	power_request_locked = true
+	_present_power_effect(power, origin)
+	_unlock_power_request_soon()
+
+
+## Applies whatever the cinematic was announcing. Called from the impact beat,
+## or immediately when there is no cinematic layer to wait for.
+func _apply_pending_power_effect() -> void:
+	if pending_power_effect.is_empty():
+		return
+	var effect := pending_power_effect
+	pending_power_effect = {}
+	var power := String(effect.get("power", ""))
+	var origin: Vector2 = effect.get("origin", Vector2.ZERO)
+	match power:
+		PowerInventoryServiceType.BOMB:
+			_apply_bomb_effect(origin, effect.get("ids", []) as Array)
+		PowerInventoryServiceType.HAMMER:
+			_apply_hammer_effect(int(effect.get("id", -1)))
+		PowerInventoryServiceType.SWITCH:
+			_apply_switch_effect(int(effect.get("id", -1)), int(effect.get("level", 1)))
+		PowerInventoryServiceType.MAGNET:
+			_apply_magnet_effect(int(effect.get("id", -1)))
+	_sync_gems_and_mark_visibility()
+	_refresh_hud()
+
+
+func _piece_by_id(piece_id: int) -> GemPiece:
+	for piece in pieces:
+		if piece.id == piece_id and not piece.consumed:
+			return piece
+	return null
+
+
 func _activate_switch_power() -> bool:
 	var active := get_active_piece()
 	if active == null:
@@ -708,40 +747,85 @@ func _activate_switch_power() -> bool:
 	var candidates := _reroll_candidates(active.level)
 	if candidates.is_empty() or not _consume_power(PowerInventoryServiceType.SWITCH):
 		return false
-	power_request_locked = true
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int((level_seed ^ ((next_queue_index + 1) * 1103515245) ^ ((reroll_count_for_level + 1) * 7919)) & 0x7fffffff)
 	var replacement := int(candidates[rng.randi_range(0, candidates.size() - 1)])
+	reroll_count_for_level += 1
+	_stage_power_effect(PowerInventoryServiceType.SWITCH, active.position, {"id": active.id, "level": replacement})
+	return true
+
+
+func _apply_switch_effect(piece_id: int, replacement: int) -> void:
+	var piece := _piece_by_id(piece_id)
+	if piece == null:
+		return
 	# GemSpriteLayer re-reads piece.level every sync pass and swaps texture,
 	# visual scale, and shadow automatically; only the model needs updating.
-	active.level = replacement
-	active.base_radius = GameConfig.gem_collision_radius(replacement)
-	active.apply_perspective_scale(active.perspective_scale)
-	reroll_count_for_level += 1
-	_present_power_effect(PowerInventoryServiceType.SWITCH, active.position)
-	_unlock_power_request_soon()
-	return true
+	piece.level = replacement
+	piece.base_radius = GameConfig.gem_collision_radius(replacement)
+	piece.apply_perspective_scale(piece.perspective_scale)
 
 
 func _activate_magnet_power() -> bool:
 	var active := get_active_piece()
-	if active == null:
+	if active == null or _magnet_matches(active.level).is_empty():
 		return false
-	var targets := _magnet_targets(active)
-	if targets.is_empty() or not _consume_power(PowerInventoryServiceType.MAGNET):
+	if not _consume_power(PowerInventoryServiceType.MAGNET):
 		return false
-	power_request_locked = true
-	for piece in targets:
-		var offset := active.position - piece.position
-		var distance := offset.length()
-		if distance <= 0.001:
-			continue
-		# Give velocity rather than teleporting, so pulled gems still collide,
-		# merge, and settle through the normal simulation.
-		piece.velocity = (offset / distance * GameConfig.POWER_MAGNET_PULL_SPEED).limit_length(GameConfig.MAX_PIECE_SPEED)
-	_present_power_effect(PowerInventoryServiceType.MAGNET, active.position)
-	_unlock_power_request_soon()
+	_stage_power_effect(PowerInventoryServiceType.MAGNET, active.position, {"id": active.id})
 	return true
+
+
+## Magnetises the current gem rather than yanking the board at the moment of
+## use. The launcher sits far below the settled cluster, so the old
+## pull-on-activation never had anything in range and the power read as broken.
+## Now the gem carries the field with it: matching gems are drawn in while it
+## travels and just after it lands, which is when a merge can actually happen.
+func _apply_magnet_effect(piece_id: int) -> void:
+	magnet_armed_piece_id = piece_id
+	magnet_remaining = GameConfig.POWER_MAGNET_DURATION
+
+
+## Same-tier gems anywhere on the board. Range is deliberately not part of this
+## check: the pull happens after the shot, so what matters at activation is
+## whether a match exists at all.
+func _magnet_matches(level: int) -> Array[GemPiece]:
+	var matches: Array[GemPiece] = []
+	for piece in pieces:
+		if not piece.consumed and not piece.is_active_launcher and piece.level == level:
+			matches.append(piece)
+	return matches
+
+
+## Runs while a magnetised gem is live. Attraction is applied as velocity, so
+## pulled gems still collide, merge, and settle through the normal simulation,
+## and it is capped so the board can never be dragged past the danger line.
+func _update_magnet_field(delta: float) -> void:
+	if magnet_armed_piece_id < 0:
+		return
+	var carrier := _piece_by_id(magnet_armed_piece_id)
+	if carrier == null or magnet_remaining <= 0.0:
+		_clear_magnet_field()
+		return
+	magnet_remaining -= delta
+	var pulled := 0
+	for piece in pieces:
+		if pulled >= GameConfig.POWER_MAGNET_MAX_ATTRACTED:
+			break
+		if piece.consumed or piece.id == carrier.id or piece.level != carrier.level:
+			continue
+		var offset := carrier.position - piece.position
+		var distance := offset.length()
+		if distance > GameConfig.POWER_MAGNET_RADIUS or distance <= 0.001:
+			continue
+		var strength := GameConfig.POWER_MAGNET_PULL_SPEED * delta * lerpf(1.0, 0.35, distance / GameConfig.POWER_MAGNET_RADIUS)
+		piece.velocity = (piece.velocity + offset / distance * strength).limit_length(GameConfig.MAX_PIECE_SPEED)
+		pulled += 1
+
+
+func _clear_magnet_field() -> void:
+	magnet_armed_piece_id = -1
+	magnet_remaining = 0.0
 
 
 func _activate_bomb_power(origin: Vector2) -> bool:
@@ -759,9 +843,18 @@ func _activate_bomb_power(origin: Vector2) -> bool:
 	cleared = cleared.slice(0, GameConfig.POWER_BOMB_MAX_CLEARED)
 	if not _consume_power(PowerInventoryServiceType.BOMB):
 		return false
-	power_request_locked = true
+	var ids: Array = []
 	for piece in cleared:
-		_destroy_piece(piece)
+		ids.append(piece.id)
+	_stage_power_effect(PowerInventoryServiceType.BOMB, origin, {"ids": ids})
+	return true
+
+
+func _apply_bomb_effect(origin: Vector2, ids: Array) -> void:
+	for id_value in ids:
+		var piece := _piece_by_id(int(id_value))
+		if piece != null:
+			_destroy_piece(piece)
 	# Shove the survivors just outside the blast so the hole reads as an
 	# explosion instead of gems silently vanishing.
 	for piece in _targetable_pieces():
@@ -772,9 +865,6 @@ func _activate_bomb_power(origin: Vector2) -> bool:
 		var direction := offset / distance if distance > 0.001 else Vector2.from_angle(float(posmod(piece.id * 97, 360)) * PI / 180.0)
 		var proximity := 1.0 - clampf(distance / GameConfig.POWER_BOMB_PUSH_RADIUS, 0.0, 1.0)
 		piece.velocity = (piece.velocity + direction * GameConfig.POWER_BOMB_PUSH_IMPULSE * proximity).limit_length(GameConfig.MAX_PIECE_SPEED)
-	_present_power_effect(PowerInventoryServiceType.BOMB, origin)
-	_unlock_power_request_soon()
-	return true
 
 
 func _activate_hammer_power(pointer: Vector2) -> bool:
@@ -789,13 +879,14 @@ func _activate_hammer_power(pointer: Vector2) -> bool:
 			best_distance = distance
 	if chosen == null or not _consume_power(PowerInventoryServiceType.HAMMER):
 		return false
-	power_request_locked = true
-	var destroyed_at := chosen.position
-	_destroy_piece(chosen)
-	_present_power_effect(PowerInventoryServiceType.HAMMER, destroyed_at)
-	_unlock_power_request_soon()
+	_stage_power_effect(PowerInventoryServiceType.HAMMER, chosen.position, {"id": chosen.id})
 	return true
 
+
+func _apply_hammer_effect(piece_id: int) -> void:
+	var piece := _piece_by_id(piece_id)
+	if piece != null:
+		_destroy_piece(piece)
 
 ## Removes one piece from the simulation using the same bookkeeping the merge
 ## path uses, so danger timers and visual feedback never outlive the gem.
@@ -836,7 +927,8 @@ func _present_power_effect(power: String, at_position: Vector2) -> void:
 	if power_cinematic != null:
 		power_cinematic.play(power, at_position, _viewport_centre())
 		return
-	# Without the cinematic layer the power still has to read as having fired.
+	# Without the cinematic layer there is no impact beat to wait for.
+	_apply_pending_power_effect()
 	_play_power_impact_feedback(power)
 
 
@@ -848,6 +940,7 @@ func _viewport_centre() -> Vector2:
 
 
 func _on_power_cinematic_impact(power: String) -> void:
+	_apply_pending_power_effect()
 	_play_power_impact_feedback(power)
 
 
@@ -891,23 +984,33 @@ func _on_power_ad_confirmed(power: String) -> void:
 		_report_power_ad_result(power, false)
 		return
 	power_ad_pending = power
-	var granted := false
+	# Tracked on the controller rather than in a local: GDScript lambdas capture
+	# locals by value, so the dismissal callback below would always observe the
+	# initial false and report "No reward" even after a completed video.
+	power_ad_granted = false
 	ad_manager.call(
 		"show_rewarded",
 		func(_item = null) -> void:
-			granted = _grant_power_from_ad(power),
+			power_ad_granted = _grant_power_from_ad(power),
 		func() -> void:
 			# Runs on dismissal for success, cancellation, and failure alike.
-			if not granted:
+			if not power_ad_granted:
 				_log_analytics("power_ad_declined", {"power": power, "reason": "not_completed"})
 			power_ad_pending = ""
-			_report_power_ad_result(power, granted)
+			_report_power_ad_result(power, power_ad_granted)
 			_refresh_hud(),
 		{"placement": "power_grant", "power": power, "level_number": level_number}
 	)
 
 
 func _report_power_ad_result(power: String, granted: bool) -> void:
+	if granted and audio_feedback != null:
+		# The reward beat gets the coin cue over the power charge, so returning
+		# from a video sounds like earning something rather than a panel opening.
+		audio_feedback.emit_event("power_charge")
+		audio_feedback.emit_event("coin_reward")
+	if granted and haptics_feedback != null:
+		haptics_feedback.emit_event("target_collect")
 	if power_overlay == null:
 		return
 	power_overlay.present_ad_result(power, granted, PowerInventoryServiceType.count(power_state, power))
@@ -1043,6 +1146,8 @@ func restart() -> void:
 		get_tree().paused = false
 	pieces.clear()
 	merge_service.clear()
+	_clear_magnet_field()
+	pending_power_effect = {}
 	merge_presentations.clear()
 	next_piece_id = 1
 	_configure_generated_level(level_number, level_seed)

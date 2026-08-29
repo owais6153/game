@@ -73,6 +73,14 @@ func _test_live_gameplay_hooks() -> void:
 	var prior_active_level := active_before_switch.level if active_before_switch != null else -1
 	controller._on_power_requested(PowerInventoryServiceType.SWITCH)
 	controller._on_power_requested(PowerInventoryServiceType.SWITCH)
+	# Powers apply on the cinematic impact beat now, so the sequence has to be
+	# advanced before the result can be observed.
+	if controller.power_cinematic != null and controller.power_cinematic.is_playing():
+		controller.power_cinematic.skip_to_impact()
+		for _step in range(10):
+			controller.power_cinematic._process(1.0 / 60.0)
+			if not controller.power_cinematic.is_playing():
+				break
 	_assert(controller.coins == seed_coins and controller.level_start_coins == seed_coins,
 		"Switch must no longer deduct coins now that it is an owned power")
 	_assert(PowerInventoryServiceType.count(controller.power_state, PowerInventoryServiceType.SWITCH) == owned_before - 1,

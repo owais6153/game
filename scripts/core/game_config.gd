@@ -30,9 +30,13 @@ const POWER_BOMB_PUSH_IMPULSE := 420.0
 ## Magnet pulls same-tier gems toward the current gem to set up one merge. The
 ## radius is wider than the bomb's because it only attracts; the speed is capped
 ## so pulled gems still collide and settle through the normal simulation.
-const POWER_MAGNET_RADIUS := 280.0 # safe readable range 240-320
+const POWER_MAGNET_RADIUS := 300.0 # safe readable range 240-340
 const POWER_MAGNET_MAX_ATTRACTED := 4
-const POWER_MAGNET_PULL_SPEED := 520.0
+const POWER_MAGNET_PULL_SPEED := 900.0
+## How long the magnetised gem keeps its field after the power is spent. Long
+## enough to cover the shot and the settle that follows it, short enough that
+## it cannot quietly reshape the board for the rest of the level.
+const POWER_MAGNET_DURATION := 2.6
 ## Hammer destroys exactly one tapped gem. The pick radius is generous because a
 ## thumb is imprecise, but it never exceeds one gem's spacing so the wrong gem
 ## is not destroyed by a near miss.

@@ -33,6 +33,7 @@ const ENTER_SETTLE := 0.12
 const EXIT_DURATION := 0.14
 const REWARD_POP_SCALE := 1.22
 const REWARD_POP_DURATION := 0.26
+const REWARD_RAY_COUNT := 12
 
 signal ad_confirmed(power: String)
 signal how_to_acknowledged(power: String)
@@ -111,7 +112,7 @@ func present_ad_result(power: String, granted: bool, owned: int) -> void:
 	secondary_button.text = "CONTINUE"
 	_present()
 	if granted:
-		_play_reward_pop()
+		_play_reward_celebration()
 
 
 ## Shown once per power, the first time a targeted power is armed, because
@@ -173,18 +174,6 @@ func _present() -> void:
 	_tween.tween_interval(ENTER_DELAY)
 	_tween.tween_property(panel, "scale", Vector2.ONE * ENTER_OVERSHOOT, ENTER_RISE).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_tween.tween_property(panel, "scale", Vector2.ONE, ENTER_SETTLE).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-
-
-## A short punch on the granted icon, so earning a power reads as a reward
-## rather than as a receipt.
-func _play_reward_pop() -> void:
-	if icon_rect == null:
-		return
-	icon_rect.pivot_offset = icon_rect.size * 0.5
-	icon_rect.scale = Vector2.ONE * 0.6
-	var pop := create_tween()
-	pop.tween_property(icon_rect, "scale", Vector2.ONE * REWARD_POP_SCALE, REWARD_POP_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	pop.tween_property(icon_rect, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func _set_visible(value: bool) -> void:
@@ -281,3 +270,64 @@ func _build() -> void:
 		close()
 	)
 	actions.add_child(secondary_button)
+
+
+## Earning a power has to read as a reward, not as a receipt. A plain scale pop
+## was not enough: the player has just watched a video and comes back needing to
+## see what they got.
+##
+## Rays bloom out behind the icon, the icon lands with an overshoot, and the
+## title punches in after it, so the reward arrives in stages rather than all at
+## once. Deliberately smaller than the gameplay power cinematic — this is a
+## popup, and the panel behind it still has to stay readable.
+func _play_reward_celebration() -> void:
+	if icon_rect == null or not icon_rect.is_inside_tree():
+		return
+	_spawn_reward_rays()
+	icon_rect.pivot_offset = icon_rect.size * 0.5
+	icon_rect.scale = Vector2.ONE * 0.45
+	icon_rect.rotation = -0.22
+	var pop := create_tween()
+	pop.tween_property(icon_rect, "scale", Vector2.ONE * REWARD_POP_SCALE, REWARD_POP_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	pop.parallel().tween_property(icon_rect, "rotation", 0.0, REWARD_POP_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	pop.tween_property(icon_rect, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	if title_label != null:
+		title_label.pivot_offset = title_label.size * 0.5
+		title_label.scale = Vector2.ONE * 0.7
+		title_label.modulate.a = 0.0
+		var title_tween := create_tween()
+		title_tween.tween_interval(REWARD_POP_DURATION * 0.6)
+		title_tween.tween_property(title_label, "modulate:a", 1.0, 0.12)
+		title_tween.parallel().tween_property(title_label, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## A short burst of gold rays behind the power icon. Drawn as rotating Line2D
+## spokes rather than particles so it stays crisp at any popup size and cannot
+## spill outside the panel.
+func _spawn_reward_rays() -> void:
+	var rays := Control.new()
+	rays.name = "RewardRays"
+	rays.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rays.z_index = -1
+	rays.set_anchors_preset(Control.PRESET_FULL_RECT)
+	icon_rect.add_child(rays)
+	var centre := icon_rect.size * 0.5
+	for index in range(REWARD_RAY_COUNT):
+		var spoke := Line2D.new()
+		var angle := TAU * float(index) / float(REWARD_RAY_COUNT)
+		spoke.add_point(centre + Vector2.from_angle(angle) * (ICON_SIZE * 0.34))
+		spoke.add_point(centre + Vector2.from_angle(angle) * (ICON_SIZE * 0.92))
+		spoke.width = 7.0
+		spoke.default_color = Color(1.0, 0.86, 0.42, 0.0)
+		rays.add_child(spoke)
+		var fade := create_tween()
+		fade.tween_property(spoke, "default_color:a", 0.75, 0.14).set_delay(float(index) * 0.012)
+		fade.tween_property(spoke, "default_color:a", 0.0, 0.42)
+	var spin := create_tween()
+	rays.pivot_offset = centre
+	spin.tween_property(rays, "rotation", 0.42, 0.62).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	spin.tween_callback(func() -> void:
+		if is_instance_valid(rays):
+			rays.queue_free()
+	)

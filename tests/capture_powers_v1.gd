@@ -37,6 +37,7 @@ func _run() -> void:
 	await _capture_shop()
 	await _capture_opening_boards()
 	await _capture_daily()
+	await _capture_limited_shots()
 	print("POWERS_V1_CAPTURE: PASS")
 	quit(0)
 
@@ -327,5 +328,37 @@ func _capture_daily() -> void:
 		var error := viewport.get_texture().get_image().save_png(OUTPUT_DIR + "daily-%s.png" % suffix)
 		if error != OK:
 			push_error("Unable to save daily capture (error %d)" % error)
+		viewport.queue_free()
+		await process_frame
+
+
+## A limited-shots level, where the shots counter joins the objective stack.
+## The stack is taller there, and the panels used to overlap the coins row.
+func _capture_limited_shots() -> void:
+	for resolution in [Vector2i(720, 1280), Vector2i(360, 640)]:
+		var viewport := SubViewport.new()
+		viewport.size = resolution
+		viewport.disable_3d = true
+		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		root.add_child(viewport)
+		var controller = GameScene.instantiate()
+		viewport.add_child(controller)
+		await process_frame
+		controller.level_number = 4
+		controller.level_seed = LevelConfigType.seed_for_level(4)
+		controller.restart()
+		controller._on_home_level_intro_requested()
+		controller._on_home_play_requested()
+		controller.set_process(false)
+		controller.coins = 650
+		controller._sync_gems_and_mark_visibility()
+		controller._refresh_hud()
+		await process_frame
+		await create_timer(0.4, true, false, true).timeout
+		await RenderingServer.frame_post_draw
+		var error := viewport.get_texture().get_image().save_png(
+			OUTPUT_DIR + "limited-shots-%dx%d.png" % [resolution.x, resolution.y])
+		if error != OK:
+			push_error("Unable to save limited shots capture (error %d)" % error)
 		viewport.queue_free()
 		await process_frame
