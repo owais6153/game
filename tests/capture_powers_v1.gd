@@ -7,6 +7,8 @@ extends SceneTree
 const GameScene = preload("res://scenes/Game.tscn")
 const LevelConfigType = preload("res://scripts/core/level_config.gd")
 const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
+const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
+const GameplayHudType = preload("res://scripts/ui/gameplay_hud_layer.gd")
 
 const OUTPUT_DIR := "res://reports/powers-v1/screenshots/"
 const RESOLUTIONS: Array[Vector2i] = [Vector2i(720, 1280), Vector2i(1080, 2340), Vector2i(720, 1600)]
@@ -38,6 +40,7 @@ func _run() -> void:
 	await _capture_opening_boards()
 	await _capture_daily()
 	await _capture_limited_shots()
+	await _capture_mission_toast()
 	print("POWERS_V1_CAPTURE: PASS")
 	quit(0)
 
@@ -360,5 +363,48 @@ func _capture_limited_shots() -> void:
 			OUTPUT_DIR + "limited-shots-%dx%d.png" % [resolution.x, resolution.y])
 		if error != OK:
 			push_error("Unable to save limited shots capture (error %d)" % error)
+		viewport.queue_free()
+		await process_frame
+
+
+## The in-play mission-complete banner, so it can be checked for clearance
+## above the board and legibility against the scenery.
+func _capture_mission_toast() -> void:
+	for resolution in [Vector2i(720, 1280), Vector2i(1080, 2340)]:
+		var viewport := SubViewport.new()
+		viewport.size = resolution
+		viewport.disable_3d = true
+		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		root.add_child(viewport)
+		var controller = GameScene.instantiate()
+		viewport.add_child(controller)
+		await process_frame
+		controller.level_number = 4
+		controller.level_seed = LevelConfigType.seed_for_level(4)
+		controller.restart()
+		controller._on_home_level_intro_requested()
+		controller._on_home_play_requested()
+		controller.coins = 1240
+		_populate_board(controller)
+		controller._sync_gems_and_mark_visibility()
+		controller._refresh_hud()
+		# A clean mission set, so the merge mission is not already complete from an
+		# earlier run - a stale user:// state would leave the banner unfired and the
+		# capture silently blank.
+		controller.daily_state = DailyMissionServiceType.ensure_current_day({})
+		var missions: Array = controller.daily_state.get("missions", []) as Array
+		var target := int((missions[0] as Dictionary).get("target", 15))
+		controller._record_daily_progress("merge", target)
+		controller.set_process(false)
+		# Step the banner by hand to its settled beat: the controller drives it from
+		# _process, which is now off, and the sample must be deterministic.
+		controller.gameplay_ui.update_mission_toast(GameplayHudType.MISSION_TOAST_IN)
+		await process_frame
+		await RenderingServer.frame_post_draw
+		var error := viewport.get_texture().get_image().save_png(
+			OUTPUT_DIR + "mission-toast-%dx%d.png" % [resolution.x, resolution.y]
+		)
+		if error != OK:
+			push_error("Unable to save mission toast capture (error %d)" % error)
 		viewport.queue_free()
 		await process_frame

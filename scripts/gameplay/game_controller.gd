@@ -234,6 +234,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	process_frame_index += 1
+	# Advanced before any state-dependent early return: the mission banner is
+	# non-blocking presentation and must finish its animation even if the board
+	# stops updating underneath it.
+	if gameplay_ui != null:
+		gameplay_ui.update_mission_toast(delta)
 	collision_visual_clock += delta
 	for marker in debug_contact_points:
 		marker.age = float(marker.get("age", 0.0)) + delta
@@ -1941,6 +1946,9 @@ func _advance_target_state_authoritative(result_id: int, merge_event: Dictionary
 func _record_daily_progress(event_type: String, amount: int = 1) -> void:
 	if amount <= 0:
 		return
+	# Captured before the update so the newly-completed missions can be
+	# identified. The service is pure, so the pre-update state stays intact.
+	var completed_before := _completed_mission_labels(daily_state)
 	# The service is pure, so "changed" is authoritative. Comparing the returned
 	# state against daily_state cannot work: an in-place service would hand back
 	# the very object being compared and every save would be skipped.
@@ -1950,6 +1958,7 @@ func _record_daily_progress(event_type: String, amount: int = 1) -> void:
 	daily_state = update.get("state", daily_state) as Dictionary
 	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins, daily_state)
 	_log_analytics("daily_mission_progress", {"level_number": level_number, "mission_type": event_type, "mission_progress": amount})
+	_announce_completed_missions(completed_before)
 
 func _configure_level_1() -> void:
 	_configure_generated_level(1, LevelConfigType.seed_for_level(1))
@@ -3225,3 +3234,39 @@ func _seed_starting_board() -> void:
 		var piece := GemPiece.new(next_piece_id, tier, Vector2(x_position, y_position), radius)
 		next_piece_id += 1
 		pieces.append(piece)
+
+
+## Labels of every mission whose progress has reached its target. Claiming is a
+## separate later step, so "complete" here means earned, not banked.
+func _completed_mission_labels(state: Dictionary) -> Array[String]:
+	var labels: Array[String] = []
+	for entry in (state.get("missions", []) as Array):
+		var mission: Dictionary = entry as Dictionary
+		if int(mission.get("progress", 0)) >= int(mission.get("target", 1)):
+			labels.append(String(mission.get("label", "")))
+	return labels
+
+
+## Announces any mission that crossed from incomplete to complete on this
+## update. Presentation only: it never blocks the shot that completed it, and a
+## missing HUD simply means no banner.
+func _announce_completed_missions(completed_before: Array[String]) -> void:
+	var newly_completed: Array[String] = []
+	for label in _completed_mission_labels(daily_state):
+		if not completed_before.has(label):
+			newly_completed.append(label)
+	if newly_completed.is_empty():
+		return
+	# Two missions can complete on the same merge. The banner replaces rather
+	# than stacks, so only the last is shown and one cue is played.
+	if gameplay_ui != null:
+		gameplay_ui.show_mission_complete(newly_completed.back())
+	if audio_feedback != null:
+		audio_feedback.emit_event("mission_complete")
+	if haptics_feedback != null:
+		haptics_feedback.emit_event("target_collect")
+	for label in newly_completed:
+		# Deliberately not "daily_mission_completed": that event already fires at
+		# claim time, and reusing the name would mix two different moments into
+		# one metric. This one marks the mission being earned during play.
+		_log_analytics("daily_mission_earned", {"level_number": level_number, "mission_label": label})

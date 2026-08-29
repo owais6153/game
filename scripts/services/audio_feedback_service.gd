@@ -150,6 +150,7 @@ func _build_stream_cache() -> void:
 		"merge_8": _build_crystal_stream(GameConfig.AUDIO_TONES.merge_8, 8),
 		"chain": _build_crystal_stream(GameConfig.AUDIO_TONES.chain, 9),
 		"target_collect": _build_reward_chime_stream(GameConfig.AUDIO_TONES.target_collect),
+		"mission_complete": _build_reward_chime_stream(GameConfig.AUDIO_TONES.mission_complete),
 		"target_complete": SuppliedTargetComplete,
 		"coin_tick": _build_crystal_stream(GameConfig.AUDIO_TONES.coin_tick, 11),
 		"power_charge": _build_crystal_stream(GameConfig.AUDIO_TONES.power_charge, 15),

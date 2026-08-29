@@ -13,7 +13,6 @@ const DailyMissionServiceType = preload("res://scripts/services/daily_mission_se
 const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_lavender_crisp.png")
 ## The Home shop entry point. A de-fringed derivative of the supplied stall art.
 
-const ICON_SHOP = preload("res://assets/runtime/ui/kit/icon_shop.png")
 ## A compact brand mark rather than a hero panel. Home is a game screen, so the
 ## logo identifies the game and then gets out of the way.
 const LOGO_SIZE := Vector2(360.0, 220.0)
@@ -331,17 +330,15 @@ func _build() -> void:
 	_wire_button_motion(powers_button)
 	column.add_child(powers_button)
 
-	var shop_row := HBoxContainer.new()
-	shop_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	shop_row.add_theme_constant_override("separation", 12)
-	shop_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	powers_button.add_child(shop_row)
-	shop_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var shop_icon := UiKitType.texture_rect(ICON_SHOP, UiDesignSystemType.BANNER_HEIGHT - 16.0)
-	shop_row.add_child(shop_icon)
+	# Caption only. The shop illustration read as a second competing focal point
+	# beside PLAY and against the plate art, so the button carries just its word.
 	var shop_caption := _label("SHOP", UiDesignSystemType.PANEL_TITLE_FONT_SIZE, Color.WHITE)
+	shop_caption.name = "HomeShopCaption"
+	shop_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	shop_caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	shop_row.add_child(shop_caption)
+	shop_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	powers_button.add_child(shop_caption)
+	shop_caption.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	_build_top_settings_control()
 	_build_privacy_policy_link()

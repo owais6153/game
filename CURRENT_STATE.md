@@ -1,3 +1,12 @@
+# Mission Notification and Shop Icon Removal - 2026-08-30
+
+- Completing a daily mission during play shows a non-blocking banner inside the top of the table, animated in and out over 2.6s and driven by an explicit delta timeline from the controller's `_process` (not a Tween, which does not advance inside a SubViewport).
+- The banner never covers the coin count, shots counter, target panel, NEXT card, or the power row; `run_mission_notification_v1_tests` asserts this by rect intersection.
+- `mission_complete` is now a real audio event sitting between combo and target-complete in both volume and voice priority, completing the reward hierarchy.
+- Completion during play logs `daily_mission_earned`; `daily_mission_completed` still means "claimed" and is unchanged.
+- The Home SHOP button is caption-only. `icon_shop.png` is removed from the runtime kit and the preparation script; the supplied original is preserved.
+- 19/19 regression suites pass with zero script errors.
+
 # Level Difficulty V1 - 2026-08-29
 
 - Generated levels no longer start on an empty table. From level 2 onward a seeded, staggered opening cluster is placed, so horizontal aiming matters and a level can no longer be cleared by pushing gems up one line. Rows cap at 4, only spawnable tiers are placed, and the lowest row stays 250px above the danger line.

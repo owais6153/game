@@ -623,6 +623,10 @@ const AUDIO_TONES := {
 	"merge_7": {"frequency": 1661.0, "duration": 0.27, "volume": 0.80, "brightness": 0.92, "fall": 1.34},
 	"merge_8": {"frequency": 1760.0, "duration": 0.30, "volume": 0.85, "brightness": 0.94, "fall": 1.36},
 	"chain": {"frequency": 1568.0, "duration": 0.13, "volume": 0.70, "brightness": 0.92, "fall": 1.24},
+	# The hierarchy is merge < combo < mission complete < target complete. This
+	# sits above chain (0.70) and below target_complete (0.78) so a claimed
+	# objective never sounds bigger than a met target.
+	"mission_complete": {"frequency": 880.0, "duration": 0.42, "volume": 0.74, "brightness": 0.54, "fall": 0.90},
 	"target_collect": {"frequency": 1046.0, "duration": 0.48, "volume": 0.82, "brightness": 0.46, "fall": 0.82},
 	"target_complete": {"volume": 0.78},
 	"coin_tick": {"frequency": 1244.0, "duration": 0.09, "volume": 0.38, "brightness": 0.34, "fall": 1.18},
@@ -659,6 +663,7 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"chain": 0.04,
 	"target_collect": 0.16,
 	"target_complete": 0.30,
+	"mission_complete": 0.40,
 	"coin_tick": 0.07,
 	"coin_reward": 0.20,
 	"win": 0.25,
@@ -689,6 +694,9 @@ const AUDIO_PRIORITY_BY_EVENT := {
 	"merge_7": 75,
 	"merge_8": 76,
 	"chain": 75,
+	# Above chain, below target_complete (85): a completed mission must cut
+	# through an incidental combo without ever masking a met target.
+	"mission_complete": 83,
 	# Between chain (75) and target_complete (85): a spent power must cut
 	# through an incidental combo without ever masking a met objective.
 	"power_switch": 78,

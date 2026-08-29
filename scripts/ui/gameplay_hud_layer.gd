@@ -64,6 +64,12 @@ var next_icon: TextureRect
 var power_tiles: Dictionary = {}
 var pause_skip_button: Button
 var sink_buttons_anchor: MarginContainer
+var mission_toast: PanelContainer
+var mission_toast_title: Label
+var mission_toast_label: Label
+var _mission_toast_elapsed := 0.0
+var _mission_toast_active := false
+var _mission_toast_settled := Vector2.ZERO
 var target_panel: Control
 var target_header_label: Label
 var target_icon: TextureRect
@@ -705,6 +711,7 @@ func _build_hud() -> void:
 	sink_row.add_theme_constant_override("separation", POWER_TILE_GAP)
 	for power in PowerInventoryServiceType.ALL:
 		sink_row.add_child(_build_power_tile(power))
+	_build_mission_toast()
 ## Four tiles plus their gaps and captions must fit the 720px design width.
 ## The earlier framed tile carried a built-in name pill and count slot that were
 ## too small for the text and numbers at this size, so the row now uses the
@@ -1706,3 +1713,137 @@ func _node_center(control: Control) -> Vector2:
 func _kill_tween(tween: Tween) -> void:
 	if tween != null and tween.is_valid():
 		tween.kill()
+
+
+## Non-blocking "mission complete" banner.
+##
+## Sits at the very top of the HUD canvas, above the coin card, and never
+## intercepts input: every node in it is MOUSE_FILTER_IGNORE, nothing pauses the
+## tree, and the board underneath stays fully playable while it is on screen.
+## Missions can complete back to back, so a second call replaces the first
+## rather than stacking banners down the screen.
+const MISSION_TOAST_SIZE := Vector2(560.0, 96.0)
+const MISSION_TOAST_ICON := 60.0
+const MISSION_TOAST_HOLD := 2.1
+const MISSION_TOAST_RISE := 26.0
+const MISSION_TOAST_IN := 0.26
+const MISSION_TOAST_OUT := 0.30
+const MISSION_TOAST_BOARD_INSET := 26.0
+
+func _build_mission_toast() -> void:
+	mission_toast = PanelContainer.new()
+	mission_toast.name = "MissionCompleteToast"
+	mission_toast.custom_minimum_size = MISSION_TOAST_SIZE
+	mission_toast.size = MISSION_TOAST_SIZE
+	mission_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mission_toast.add_theme_stylebox_override(
+		"panel", UiKit.nine_patch_style("bar_gold_frame", Vector4(76.0, 12.0, 76.0, 12.0)))
+	# Above the coin card and the objective stack, below the pause modal.
+	mission_toast.z_index = 40
+	mission_toast.modulate.a = 0.0
+	mission_toast.visible = false
+	hud_canvas.add_child(mission_toast)
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 14)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mission_toast.add_child(row)
+
+	# The same laurel check the daily-missions popup marks a claimed mission
+	# with, so the two read as one system.
+	var icon := UiKit.texture_rect(UiKit.badge("check"), MISSION_TOAST_ICON)
+	icon.name = "MissionToastIcon"
+	row.add_child(icon)
+
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 0)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(column)
+
+	mission_toast_title = _label("Daily Mission Complete!", UiDesignSystemType.SMALL_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	mission_toast_title.name = "MissionToastTitle"
+	mission_toast_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(mission_toast_title)
+
+	mission_toast_label = _label("", UiDesignSystemType.CAPTION_FONT_SIZE, Color.WHITE)
+	mission_toast_label.name = "MissionToastLabel"
+	mission_toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(mission_toast_label)
+
+
+## Shows the banner for one completed mission. Safe to call mid-shot: it only
+## animates its own node and never touches gameplay state.
+func show_mission_complete(mission_label: String) -> void:
+	if mission_toast == null or mission_toast_label == null:
+		return
+	mission_toast_label.text = mission_label
+	_position_mission_toast()
+	mission_toast.visible = true
+	mission_toast.pivot_offset = mission_toast.size * 0.5
+	# Restarting resets the clock, so a second completion replaces the first
+	# with a full entrance rather than inheriting a half-faded one.
+	_mission_toast_elapsed = 0.0
+	_mission_toast_active = true
+	_apply_mission_toast_frame()
+
+
+## Advances the banner. Driven by an explicit delta rather than a Tween so it
+## steps identically in play, in tests, and in offscreen captures - the same
+## reason GameplayEffectsLayer and the power cinematic own their own timelines.
+func update_mission_toast(delta: float) -> void:
+	if not _mission_toast_active:
+		return
+	_mission_toast_elapsed += delta
+	_apply_mission_toast_frame()
+
+
+func _apply_mission_toast_frame() -> void:
+	if mission_toast == null:
+		return
+	var rise_out := MISSION_TOAST_IN + MISSION_TOAST_HOLD
+	var total := rise_out + MISSION_TOAST_OUT
+	var settled := _mission_toast_settled
+	if _mission_toast_elapsed >= total:
+		_mission_toast_active = false
+		mission_toast.visible = false
+		mission_toast.modulate.a = 0.0
+		return
+	if _mission_toast_elapsed < MISSION_TOAST_IN:
+		# Overshoot on the way in, so it arrives with a little weight.
+		var t := _mission_toast_elapsed / MISSION_TOAST_IN
+		var eased := 1.0 - pow(1.0 - t, 3.0)
+		mission_toast.position = settled.lerp(settled - Vector2(0.0, MISSION_TOAST_RISE), 1.0 - eased)
+		mission_toast.scale = Vector2.ONE * lerpf(0.92, 1.0, eased)
+		mission_toast.modulate.a = clampf(t * 1.6, 0.0, 1.0)
+	elif _mission_toast_elapsed < rise_out:
+		mission_toast.position = settled
+		mission_toast.scale = Vector2.ONE
+		mission_toast.modulate.a = 1.0
+	else:
+		var out_t := (_mission_toast_elapsed - rise_out) / MISSION_TOAST_OUT
+		mission_toast.position = settled.lerp(settled - Vector2(0.0, MISSION_TOAST_RISE), out_t)
+		mission_toast.scale = Vector2.ONE
+		mission_toast.modulate.a = 1.0 - out_t
+
+
+func is_mission_toast_visible() -> bool:
+	return mission_toast != null and mission_toast.visible
+
+
+## Centred horizontally, and seated just inside the top of the table rather
+## than at the top of the screen.
+##
+## The screen top is where the coin count, the NEXT card, the shots counter and
+## the target panel live. A banner there covers the very readouts the player
+## needs mid-shot, so it is placed over the upper board instead - the least
+## information-dense region on screen, and one it only occupies for 2.6s.
+func _position_mission_toast() -> void:
+	if mission_toast == null:
+		return
+	_mission_toast_settled = Vector2(
+		(UiDesignSystemType.DESIGN_WIDTH - MISSION_TOAST_SIZE.x) * 0.5,
+		GameConfig.board_top() + MISSION_TOAST_BOARD_INSET
+	)
+	mission_toast.position = _mission_toast_settled
