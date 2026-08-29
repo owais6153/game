@@ -90,10 +90,14 @@ func _test_shot_limits_never_make_a_level_impossible() -> void:
 		# could run out before the sequence has offered the tiers a target needs.
 		_assert(limit >= sequence.size(),
 			"level %d must allow at least one full launcher cycle (%d shots for %d)" % [level, limit, sequence.size()])
-		var targets: Array = config.get("target_sequence", []) as Array
-		var required := 0
-		for entry in targets:
-			required += maxi(1, int((entry as Dictionary).get("quantity", 1)))
+		# Read the requirement from the generator itself, so a future change to
+		# target quantities cannot drift away from the floor that protects it.
+		var required := LevelConfigType.total_target_quantity(level)
+		var from_config := 0
+		for entry in (config.get("target_sequence", []) as Array):
+			from_config += maxi(1, int((entry as Dictionary).get("quantity", 1)))
+		_assert(required == from_config,
+			"level %d total_target_quantity (%d) must match its generated targets (%d)" % [level, required, from_config])
 		_assert(limit > required * 4,
 			"level %d must leave real room to build each target" % level)
 

@@ -1,3 +1,13 @@
+# Level Difficulty V1 - 2026-08-29
+
+- Generated levels no longer start on an empty table. From level 2 onward a seeded, staggered opening cluster is placed, so horizontal aiming matters and a level can no longer be cleared by pushing gems up one line. Rows cap at 4, only spawnable tiers are placed, and the lowest row stays 250px above the danger line.
+- Opening-board density keeps rising after the row cap: two gaps per row below level 12, one gap from 12 on. Layouts are seeded from the level seed, so a retry presents the identical puzzle.
+- Limited-shots levels now begin at level 4 (previously 10) and recur every 3 levels, never back to back. Shots tighten from 40 by 2 per limited level to a floor of 30 (raised from 26).
+- Target quantities scale with level to a cap of 3x tier 6 and 2x tier 7; the top tier stays at 1.
+- Solvability without powers is enforced by `run_level_difficulty_v1_tests` for every limited level from 4 to 60, including a check that `total_target_quantity()` matches the generated `target_sequence`.
+- `scripts/dev/print_level_curve.gd` prints the curve as data for balance review. Developer aid only; nothing loads it at runtime.
+- 18/18 regression suites pass with zero script errors. Device playtesting of the tightest levels (19+) is still outstanding.
+
 # Nine-Patch Distortion Fix and Kit Re-Authoring - 2026-08-29
 
 The "stretched assets" defect is fixed at its source. Measurement showed the supplied plates have a safely-stretchable vertical band only 2-5px tall - they are a continuous bevel with a specular highlight, so the old margins were squashing ~77px of bevel into ~28px on every button. Every plate is now authored at the exact height it is drawn at, making the vertical nine-patch scale exactly 1.0, and horizontal margins are derived from silhouette shape rather than colour uniformity.

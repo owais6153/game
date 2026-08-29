@@ -79,7 +79,7 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		mapping[index + 6] = target_identities[index]
 	var targets: Array[Dictionary] = []
 	for rank in [6, 7, 8]:
-		targets.append({"tier": rank, "quantity": 1})
+		targets.append({"tier": rank, "quantity": target_quantity(level_number, rank)})
 	var launcher_sequence: Array[int] = []
 	var cycle_template: Array[int]
 	var difficulty_band: String
@@ -206,7 +206,7 @@ static func is_limited_shots_level(level_number: int) -> bool:
 ## constructible from the sequence alone, so powers can be strongly encouraged
 ## but are never required.
 const SHOT_LIMIT_INTRO := 40
-const SHOT_LIMIT_FLOOR := 26
+const SHOT_LIMIT_FLOOR := 30
 const SHOT_LIMIT_STEP := 2
 
 static func shot_limit_for_level(level_number: int) -> int:
@@ -233,11 +233,13 @@ const STARTING_BOARD_ROW_SPACING := 78.0
 ## Distance above the danger line where the lowest seeded row sits. Generous, so
 ## an opening board is never itself close to failing the level.
 const STARTING_BOARD_DANGER_MARGIN := 250.0
+## From here on, opening rows leave a single gap instead of two.
+const STARTING_BOARD_DENSE_LEVEL := 12
 
 static func starting_board_rows(level_number: int) -> int:
 	if level_number < STARTING_BOARD_FIRST_LEVEL:
 		return 0
-	return mini(STARTING_BOARD_MAX_ROWS, 1 + (level_number - STARTING_BOARD_FIRST_LEVEL) / 2)
+	return mini(STARTING_BOARD_MAX_ROWS, 1 + (level_number - STARTING_BOARD_FIRST_LEVEL) / 3)
 
 
 ## Returns placement records rather than pieces, so the data boundary stays
@@ -258,9 +260,17 @@ static func starting_board_for_level(level_number: int, seed_value: int, mapping
 		# guarantees a route through for a player who aims well. Rolled once per
 		# row: rolling inside the column loop left some rows sealed and others
 		# missing several gems.
-		var gap_column := rng.randi_range(0, columns - 1)
+		# Early boards leave two gaps per row and later boards only one, so density
+		# keeps rising after the row count has capped out. Without this the board
+		# stopped changing at all around level 8 and levels blurred together.
+		var gaps := 2 if level_number < STARTING_BOARD_DENSE_LEVEL else 1
+		var gap_columns: Array[int] = []
+		while gap_columns.size() < mini(gaps, columns - 1):
+			var candidate := rng.randi_range(0, columns - 1)
+			if not gap_columns.has(candidate):
+				gap_columns.append(candidate)
 		for column in range(columns):
-			if column == gap_column:
+			if gap_columns.has(column):
 				continue
 			var tier := 1 + rng.randi_range(0, 3)
 			if not mapping.is_empty() and not mapping.has(tier):
@@ -272,3 +282,33 @@ static func starting_board_for_level(level_number: int, seed_value: int, mapping
 				"columns": STARTING_BOARD_COLUMNS,
 			})
 	return board
+
+
+## How many of a target tier a level asks for. Board density caps out around
+## level 11, so without this the objective stopped changing and later levels
+## became indistinguishable from one another.
+##
+## Only the two lower target tiers ever ask for more than one. The top tier is
+## the longest merge chain in the level, so repeating it would multiply the
+## hardest work rather than deepen the objective, and the totals stay inside the
+## margin the shot floor is sized against.
+const TARGET_QUANTITY_CAP := {6: 3, 7: 2, 8: 1}
+const TARGET_QUANTITY_STEP := {6: 7, 7: 13, 8: 0}
+
+static func target_quantity(level_number: int, tier: int) -> int:
+	var step := int(TARGET_QUANTITY_STEP.get(tier, 0))
+	var cap := int(TARGET_QUANTITY_CAP.get(tier, 1))
+	if step <= 0:
+		return 1
+	return clampi(1 + level_number / step, 1, cap)
+
+
+## Total gems a level asks the player to collect, summed across its three
+## target cards. The shot floor is sized against this, and
+## run_level_difficulty_v1_tests asserts the two stay in proportion so a
+## limited level can never ask for more than its shots can build.
+static func total_target_quantity(level_number: int) -> int:
+	var total := 0
+	for tier in [6, 7, 8]:
+		total += target_quantity(level_number, tier)
+	return total
