@@ -86,7 +86,7 @@ func _test_bomb_clears_a_bounded_cluster() -> void:
 	var controller = await _start({"bomb": 1, "hammer": 0, "magnet": 0, "switch": 0})
 	_populate(controller)
 	var before = controller.pieces.size()
-	var origin: Vector2 = controller.pieces[8].position
+	var origin: Vector2 = controller._targetable_pieces()[8].position
 
 	var expected_in_radius := 0
 	for piece in controller.pieces:
@@ -113,7 +113,9 @@ func _test_hammer_destroys_one_chosen_gem() -> void:
 	var controller = await _start({"bomb": 0, "hammer": 1, "magnet": 0, "switch": 0})
 	_populate(controller)
 	var before = controller.pieces.size()
-	var victim = controller.pieces[5]
+	# Pick from the targetable set rather than a raw index: levels now seed an
+	# opening board, so a fixed index can land on the active launcher.
+	var victim = controller._targetable_pieces()[5]
 	var victim_id: int = victim.id
 	var victim_position: Vector2 = victim.position
 

@@ -35,6 +35,7 @@ func _run() -> void:
 	await _capture_cinematics()
 	await _capture_home()
 	await _capture_shop()
+	await _capture_opening_boards()
 	print("POWERS_V1_CAPTURE: PASS")
 	quit(0)
 
@@ -260,3 +261,33 @@ func _capture_shop() -> void:
 		push_error("Unable to save shop capture (error %d)" % error)
 	viewport.queue_free()
 	await process_frame
+
+
+## Opening boards for a few levels, so the seeded layouts can be reviewed for
+## readability and for the gap that keeps a route through.
+func _capture_opening_boards() -> void:
+	for level in [1, 4, 8, 14]:
+		var viewport := SubViewport.new()
+		viewport.size = Vector2i(720, 1280)
+		viewport.disable_3d = true
+		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		root.add_child(viewport)
+		var controller = GameScene.instantiate()
+		viewport.add_child(controller)
+		await process_frame
+		controller.level_number = level
+		controller.level_seed = LevelConfigType.seed_for_level(level)
+		controller.restart()
+		controller._on_home_level_intro_requested()
+		controller._on_home_play_requested()
+		controller.set_process(false)
+		controller._sync_gems_and_mark_visibility()
+		controller._refresh_hud()
+		await process_frame
+		await create_timer(0.35, true, false, true).timeout
+		await RenderingServer.frame_post_draw
+		var error := viewport.get_texture().get_image().save_png(OUTPUT_DIR + "opening-level-%02d.png" % level)
+		if error != OK:
+			push_error("Unable to save opening board capture (error %d)" % error)
+		viewport.queue_free()
+		await process_frame

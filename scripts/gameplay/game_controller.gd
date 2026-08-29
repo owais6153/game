@@ -1046,6 +1046,7 @@ func restart() -> void:
 	merge_presentations.clear()
 	next_piece_id = 1
 	_configure_generated_level(level_number, level_seed)
+	_seed_starting_board()
 	shots_remaining = int(level_config.get("shot_limit", 0)) if is_limited_shots_level() else -1
 	out_of_shots_pending = false
 	out_of_shots_presented = false
@@ -2952,3 +2953,32 @@ func _on_power_purchase_requested(power: String) -> void:
 		power_shop.present(power_counts(), coins)
 	if home_overlay != null:
 		home_overlay.update_snapshot(hud_snapshot())
+
+
+## Places the level's seeded opening layout. Levels used to start on an empty
+## table, which is what allowed them to be cleared by pushing gems up the same
+## line: with nothing to aim around, horizontal position never mattered.
+##
+## The placement is deterministic for a given level seed, so a retry presents
+## the same puzzle, and it uses the same radii and perspective scale the
+## simulation applies to a launched gem — an opening gem is an ordinary piece in
+## every respect once it is on the table.
+func _seed_starting_board() -> void:
+	var board: Array = level_config.get("starting_board", []) as Array
+	if board.is_empty():
+		return
+	var lowest_row_y := GameConfig.danger_line_y() - LevelConfigType.STARTING_BOARD_DANGER_MARGIN
+	for entry_value in board:
+		var entry: Dictionary = entry_value as Dictionary
+		var tier := int(entry.get("tier", 1))
+		var row := int(entry.get("row", 0))
+		var columns := maxi(2, int(entry.get("columns", LevelConfigType.STARTING_BOARD_COLUMNS)))
+		var y_position := lowest_row_y - float(row) * LevelConfigType.STARTING_BOARD_ROW_SPACING
+		var radius := GameConfig.gem_collision_radius(tier)
+		var left := GameConfig.table_left_at(y_position) + radius
+		var right := GameConfig.table_right_at(y_position) - radius
+		var span := float(columns - 1)
+		var x_position := lerpf(left, right, clampf(float(entry.get("column", 0)) / span, 0.0, 1.0))
+		var piece := GemPiece.new(next_piece_id, tier, Vector2(x_position, y_position), radius)
+		next_piece_id += 1
+		pieces.append(piece)

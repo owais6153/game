@@ -104,10 +104,8 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		var cycle: Array[int] = cycle_template.duplicate()
 		_fisher_yates(cycle, rng)
 		launcher_sequence.append_array(cycle)
-	var limited_shots := level_number >= 10 and (level_number == 10 or level_number % 4 == 2)
-	# Conservative initial limits: the first introduction is deliberately above
-	# the normal deterministic launcher cycle. Analytics can tune data later.
-	var shot_limit := 36 if level_number == 10 else 34
+	var limited_shots := is_limited_shots_level(level_number)
+	var shot_limit := shot_limit_for_level(level_number)
 	return {
 		"id": "level_%d" % level_number,
 		"name": "Level %d" % level_number,
@@ -127,7 +125,7 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		"pattern_block_size": int(pattern.block_size),
 		"background_index": rng.randi_range(0, AssetCatalogType.BACKGROUND_COUNT - 1),
 		"table_index": rng.randi_range(0, AssetCatalogType.TABLE_COUNT - 1),
-		"starting_board": [],
+		"starting_board": starting_board_for_level(level_number, seed_value, mapping),
 		"level_type": "limited_shots" if limited_shots else "normal",
 		"shot_limit": shot_limit if limited_shots else 0,
 	}
@@ -186,3 +184,91 @@ static func initial_launcher_level(config: Dictionary) -> int:
 static func launcher_level_at(config: Dictionary, sequence_index: int) -> int:
 	var sequence: Array = config.get("launcher_sequence", [1])
 	return int(sequence[posmod(sequence_index, sequence.size())])
+
+
+## Limited-shots schedule. The first one lands immediately after the three
+## unlimited introduction levels, so the mechanic is taught while the board is
+## still simple, then recurs on a widening-then-tightening rhythm so it reads as
+## a recurring variant rather than a phase the player passes through.
+##
+## Levels 1-3 are never limited: they are where the merge loop itself is taught.
+const FIRST_LIMITED_SHOTS_LEVEL := 4
+const LIMITED_SHOTS_CYCLE := 3
+
+static func is_limited_shots_level(level_number: int) -> bool:
+	if level_number < FIRST_LIMITED_SHOTS_LEVEL:
+		return false
+	return (level_number - FIRST_LIMITED_SHOTS_LEVEL) % LIMITED_SHOTS_CYCLE == 0
+
+
+## Shots tighten with level and then hold at a floor. The floor is deliberately
+## well above the launcher cycle length: every L6-L8 objective must stay
+## constructible from the sequence alone, so powers can be strongly encouraged
+## but are never required.
+const SHOT_LIMIT_INTRO := 40
+const SHOT_LIMIT_FLOOR := 26
+const SHOT_LIMIT_STEP := 2
+
+static func shot_limit_for_level(level_number: int) -> int:
+	if not is_limited_shots_level(level_number):
+		return 0
+	var index := (level_number - FIRST_LIMITED_SHOTS_LEVEL) / LIMITED_SHOTS_CYCLE
+	return maxi(SHOT_LIMIT_FLOOR, SHOT_LIMIT_INTRO - index * SHOT_LIMIT_STEP)
+
+
+## Seeded opening layout. Levels used to start on an empty table, which is why
+## they could be cleared by pushing gems up the same line: with nothing to aim
+## around, horizontal position never mattered. A pre-placed cluster forces real
+## aiming, and the rows are staggered so the centre lane is never open.
+##
+## Constraints that keep every level solvable without powers:
+## - Only spawnable tiers appear, so every placed gem can still be merged into.
+## - The board stops well above the danger line, so it never starts near a loss.
+## - Row count grows with level but is capped, so the table never starts crowded
+##   enough to deny the launcher a landing spot.
+const STARTING_BOARD_FIRST_LEVEL := 2
+const STARTING_BOARD_MAX_ROWS := 4
+const STARTING_BOARD_COLUMNS := 5
+const STARTING_BOARD_ROW_SPACING := 78.0
+## Distance above the danger line where the lowest seeded row sits. Generous, so
+## an opening board is never itself close to failing the level.
+const STARTING_BOARD_DANGER_MARGIN := 250.0
+
+static func starting_board_rows(level_number: int) -> int:
+	if level_number < STARTING_BOARD_FIRST_LEVEL:
+		return 0
+	return mini(STARTING_BOARD_MAX_ROWS, 1 + (level_number - STARTING_BOARD_FIRST_LEVEL) / 2)
+
+
+## Returns placement records rather than pieces, so the data boundary stays
+## free of simulation types. The controller turns these into gems.
+static func starting_board_for_level(level_number: int, seed_value: int, mapping: Dictionary) -> Array:
+	var rows := starting_board_rows(level_number)
+	if rows <= 0:
+		return []
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int((seed_value ^ 0x5F3759DF) & 0x7fffffff)
+	var board: Array = []
+	for row in range(rows):
+		# Alternate rows are offset by half a column, so no straight vertical
+		# lane runs the height of the opening board.
+		var stagger := 0.5 if row % 2 == 1 else 0.0
+		var columns := STARTING_BOARD_COLUMNS - (1 if row % 2 == 1 else 0)
+		# One seeded gap per row keeps the layout from reading as a solid wall and
+		# guarantees a route through for a player who aims well. Rolled once per
+		# row: rolling inside the column loop left some rows sealed and others
+		# missing several gems.
+		var gap_column := rng.randi_range(0, columns - 1)
+		for column in range(columns):
+			if column == gap_column:
+				continue
+			var tier := 1 + rng.randi_range(0, 3)
+			if not mapping.is_empty() and not mapping.has(tier):
+				tier = 1
+			board.append({
+				"tier": tier,
+				"row": row,
+				"column": float(column) + stagger,
+				"columns": STARTING_BOARD_COLUMNS,
+			})
+	return board
