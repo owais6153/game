@@ -15,6 +15,7 @@ const AdConfigType = preload("res://scripts/services/ad_config.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
 const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 const DailyMissionsOverlayType = preload("res://scripts/ui/daily_missions_overlay_layer.gd")
+const PowerOverlayType = preload("res://scripts/ui/power_overlay_layer.gd")
 const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.gd")
 const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
 
@@ -95,6 +96,12 @@ var effects_layer: GameplayEffectsLayer
 var result_overlay: ResultOverlayLayer
 var home_overlay: HomeOverlayLayer
 var daily_overlay: DailyMissionsOverlayLayer
+var power_overlay: PowerOverlayLayer
+## Powers whose first-use tutorial has already been shown, loaded once at start.
+var seen_power_tutorials: Array[String] = []
+## Set while a rewarded ad opened from the power popup is on screen, so the
+## result can be reported back into the same popup when it returns.
+var power_ad_pending := ""
 var screen_transition: ScreenTransitionType
 var level_briefing: LevelBriefingType
 var seen_level_types: Array[String] = []
@@ -167,6 +174,7 @@ func _ready() -> void:
 	var rolled_new_day := DailyMissionServiceType.needs_new_day(saved_daily)
 	daily_state = DailyMissionServiceType.ensure_current_day(saved_daily)
 	seen_level_types = saved.get("seen_level_types", [] as Array[String])
+	seen_power_tutorials = ProgressionSaveServiceType.seen_power_tutorials()
 	var saved_powers: Dictionary = saved.get("power_state", {}) as Dictionary
 	var powers_need_save := PowerInventoryServiceType.needs_normalisation(saved_powers)
 	power_state = PowerInventoryServiceType.ensure_state(saved_powers)
@@ -411,6 +419,8 @@ func _handle_back_request(_allow_application_exit: bool = true) -> String:
 	# The app-flow owner decides Back. The previous gameplay-only callback could
 	# open Pause over Home, unpause a hidden run, and leave mutually inconsistent
 	# UI/process state behind.
+	if power_overlay != null and power_overlay.handle_back_request():
+		return "power_overlay"
 	if home_overlay != null and home_overlay.handle_back_request():
 		return "home_overlay"
 	if result_overlay != null and result_overlay.visible_result:
@@ -645,6 +655,9 @@ func _begin_power_targeting(power: String) -> void:
 	if gameplay_ui != null:
 		gameplay_ui.set_power_targeting(power)
 	_refresh_hud()
+	# First use only. The power stays armed underneath, so dismissing the
+	# tutorial leaves the player ready to act rather than starting over.
+	_maybe_show_power_how_to(power)
 
 
 func _cancel_power_targeting() -> void:
@@ -821,20 +834,35 @@ func _present_power_effect(power: String, at_position: Vector2) -> void:
 	})
 
 
-## Offers a rewarded ad for exactly one of the requested power. Nothing is
-## granted unless the ad reports a completed reward, so cancelling or failing
-## leaves the inventory and the daily allowance untouched.
+## Opens the rewarded-ad offer for one power. This never plays an ad directly:
+## the player sees an offer they can decline first, confirms it, and is then
+## shown what they earned in the same popup. Tapping the plus used to launch a
+## video immediately, which gave no way out and no confirmation of the reward.
 func _offer_power_ad(power: String) -> void:
+	if not PowerInventoryServiceType.is_power(power) or power_overlay == null:
+		return
+	var capped := not PowerInventoryServiceType.can_grant_from_ad(power_state, power)
+	var ready := ad_manager != null and bool(ad_manager.call("is_rewarded_ready"))
+	if capped:
+		_log_analytics("power_ad_declined", {"power": power, "reason": "daily_cap"})
+	elif not ready:
+		_log_analytics("power_ad_declined", {"power": power, "reason": "no_fill"})
+	power_overlay.present_ad_offer(power, ready, capped)
+
+
+## The player confirmed the offer. Nothing is granted unless the ad reports a
+## completed reward, so cancelling or failing leaves the inventory and the daily
+## allowance untouched — and the popup says so.
+func _on_power_ad_confirmed(power: String) -> void:
 	if not PowerInventoryServiceType.is_power(power):
 		return
 	if not PowerInventoryServiceType.can_grant_from_ad(power_state, power):
-		# The daily cap is reached. Purchasing with coins remains available, so
-		# this is a quiet no-op rather than an error the player cannot act on.
-		_log_analytics("power_ad_declined", {"power": power, "reason": "daily_cap"})
+		_report_power_ad_result(power, false)
 		return
 	if ad_manager == null or not bool(ad_manager.call("is_rewarded_ready")):
-		_log_analytics("power_ad_declined", {"power": power, "reason": "no_fill"})
+		_report_power_ad_result(power, false)
 		return
+	power_ad_pending = power
 	var granted := false
 	ad_manager.call(
 		"show_rewarded",
@@ -844,10 +872,37 @@ func _offer_power_ad(power: String) -> void:
 			# Runs on dismissal for success, cancellation, and failure alike.
 			if not granted:
 				_log_analytics("power_ad_declined", {"power": power, "reason": "not_completed"})
+			power_ad_pending = ""
+			_report_power_ad_result(power, granted)
 			_refresh_hud(),
 		{"placement": "power_grant", "power": power, "level_number": level_number}
 	)
 
+
+func _report_power_ad_result(power: String, granted: bool) -> void:
+	if power_overlay == null:
+		return
+	power_overlay.present_ad_result(power, granted, PowerInventoryServiceType.count(power_state, power))
+
+
+## The first time a targeted power is armed, explain that it needs a target.
+## Returns true when the tutorial was shown, so the caller can leave the power
+## armed underneath and let the player act once they dismiss it.
+func _maybe_show_power_how_to(power: String) -> bool:
+	if power_overlay == null or seen_power_tutorials.has(power):
+		return false
+	if power != PowerInventoryServiceType.BOMB and power != PowerInventoryServiceType.HAMMER:
+		# Switch and magnet act immediately; there is nothing to teach.
+		return false
+	power_overlay.present_how_to(power)
+	return true
+
+
+func _on_power_how_to_acknowledged(power: String) -> void:
+	if seen_power_tutorials.has(power):
+		return
+	seen_power_tutorials.append(power)
+	ProgressionSaveServiceType.mark_power_tutorial_seen(power)
 
 ## Grants exactly one power for a completed rewarded ad. Only the reward
 ## callback may call this, so a cancelled or failed ad grants nothing and
@@ -1095,6 +1150,11 @@ func _setup_asset_presentation() -> void:
 	daily_overlay.mission_claim_requested.connect(_on_daily_mission_claim_requested)
 	daily_overlay.chest_claim_requested.connect(_on_daily_chest_claim_requested)
 	daily_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
+	power_overlay = PowerOverlayType.new()
+	add_child(power_overlay)
+	power_overlay.ad_confirmed.connect(_on_power_ad_confirmed)
+	power_overlay.how_to_acknowledged.connect(_on_power_how_to_acknowledged)
+	power_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	screen_transition = ScreenTransitionType.new()
 	add_child(screen_transition)
 	level_briefing = LevelBriefingType.new()

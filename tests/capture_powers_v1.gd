@@ -31,6 +31,7 @@ func _run() -> void:
 			await _capture(resolution, state)
 	# One armed-targeting frame, to prove the selected tile reads as armed.
 	await _capture(Vector2i(720, 1280), STATES[0], PowerInventoryServiceType.BOMB)
+	await _capture_popups()
 	print("POWERS_V1_CAPTURE: PASS")
 	quit(0)
 
@@ -96,3 +97,55 @@ func _populate_board(controller) -> void:
 			var x_position := lerpf(left, right, float(column) / float(columns - 1))
 			controller.pieces.append(GemPiece.new(piece_id, level, Vector2(x_position, y_position), radius))
 			piece_id += 1
+
+
+## The three power popups, so the ad-offer path and the first-use tutorial can
+## be reviewed without a device.
+func _capture_popups() -> void:
+	var cases := [
+		{"name": "ad-offer", "power": PowerInventoryServiceType.BOMB, "mode": "offer_ready"},
+		{"name": "ad-offer-capped", "power": PowerInventoryServiceType.MAGNET, "mode": "offer_capped"},
+		{"name": "ad-result", "power": PowerInventoryServiceType.BOMB, "mode": "result"},
+		{"name": "how-to", "power": PowerInventoryServiceType.HAMMER, "mode": "how_to"},
+	]
+	for case in cases:
+		var viewport := SubViewport.new()
+		viewport.size = Vector2i(720, 1280)
+		viewport.disable_3d = true
+		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		root.add_child(viewport)
+		var controller = GameScene.instantiate()
+		viewport.add_child(controller)
+		await process_frame
+		controller.level_number = 4
+		controller.level_seed = LevelConfigType.seed_for_level(4)
+		controller.restart()
+		controller._on_home_level_intro_requested()
+		controller._on_home_play_requested()
+		controller.set_process(false)
+		controller.coins = 1240
+		_populate_board(controller)
+		controller.power_state = PowerInventoryServiceType.ensure_state({
+			"counts": {"bomb": 0, "magnet": 0, "switch": 2, "hammer": 1},
+			"granted_starter": true,
+		})
+		controller._refresh_hud()
+		var power := String(case.power)
+		match String(case.mode):
+			"offer_ready":
+				controller.power_overlay.present_ad_offer(power, true, false)
+			"offer_capped":
+				controller.power_overlay.present_ad_offer(power, false, true)
+			"result":
+				controller.power_state = PowerInventoryServiceType.grant_from_ad(controller.power_state, power).state
+				controller.power_overlay.present_ad_result(power, true, PowerInventoryServiceType.count(controller.power_state, power))
+			"how_to":
+				controller.power_overlay.present_how_to(power)
+		await process_frame
+		await create_timer(0.6, true, false, true).timeout
+		await RenderingServer.frame_post_draw
+		var error := viewport.get_texture().get_image().save_png(OUTPUT_DIR + "popup-%s.png" % case.name)
+		if error != OK:
+			push_error("Unable to save popup capture %s (error %d)" % [case.name, error])
+		viewport.queue_free()
+		await process_frame

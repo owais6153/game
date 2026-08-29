@@ -81,3 +81,26 @@ static func clear_progress() -> Error:
 	if not FileAccess.file_exists(SAVE_PATH):
 		return OK
 	return DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+
+
+## Powers whose first-use tutorial has already been shown. Absent on every
+## pre-existing save, which correctly reads as "nothing seen yet".
+static func seen_power_tutorials() -> Array[String]:
+	var config := ConfigFile.new()
+	config.load(SAVE_PATH)
+	return _string_array(config.get_value("tutorial", "seen_power_tutorials", []))
+
+
+## Separate from save_progress() so showing a tutorial is never coupled to a
+## coin or inventory transaction.
+static func mark_power_tutorial_seen(power: String) -> Error:
+	if power.is_empty():
+		return OK
+	var config := ConfigFile.new()
+	config.load(SAVE_PATH)
+	var seen := _string_array(config.get_value("tutorial", "seen_power_tutorials", []))
+	if seen.has(power):
+		return OK
+	seen.append(power)
+	config.set_value("tutorial", "seen_power_tutorials", seen)
+	return config.save(SAVE_PATH)

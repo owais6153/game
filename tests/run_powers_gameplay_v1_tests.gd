@@ -25,6 +25,8 @@ func _run() -> void:
 	await _test_switch_changes_the_current_gem_without_coins()
 	await _test_empty_power_offers_an_ad_and_never_disables()
 	await _test_failed_spend_leaves_the_board_untouched()
+	await _test_ad_offer_is_confirmed_before_any_video()
+	await _test_how_to_shows_once_per_targeted_power()
 	if failures.is_empty():
 		print("POWERS_GAMEPLAY_V1_TESTS: PASS")
 		quit(0)
@@ -273,3 +275,71 @@ func _populate(controller) -> void:
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
 		failures.append(message)
+
+
+## Tapping "+" must open an offer the player can decline, never launch a video
+## straight away, and must report the outcome back into the same popup.
+func _test_ad_offer_is_confirmed_before_any_video() -> void:
+	var controller = await _start({"bomb": 0, "hammer": 0, "magnet": 0, "switch": 0})
+	_populate(controller)
+	var overlay = controller.power_overlay
+	_assert(overlay != null and not overlay.is_open(), "no power popup may be open before the plus is tapped")
+
+	controller._offer_power_ad(PowerInventoryServiceType.BOMB)
+	_assert(overlay.is_open(), "tapping the plus must open the offer popup")
+	_assert(overlay.mode == overlay.Mode.AD_OFFER, "the plus must open the offer, not the result")
+	_assert(overlay.active_power == PowerInventoryServiceType.BOMB, "the offer must name the power that was tapped")
+	_assert(PowerInventoryServiceType.count(controller.power_state, PowerInventoryServiceType.BOMB) == 0,
+		"merely opening the offer must grant nothing")
+	_assert(overlay.secondary_button != null and not overlay.secondary_button.text.is_empty(),
+		"the offer must always expose a way to close it")
+
+	# Declining must leave the inventory untouched and close cleanly.
+	overlay.close()
+	_assert(not overlay.is_open(), "closing the offer must dismiss the popup")
+	_assert(PowerInventoryServiceType.count(controller.power_state, PowerInventoryServiceType.BOMB) == 0,
+		"declining the offer must grant nothing")
+
+	# Confirming with no ad available must report a no-reward result rather than
+	# silently doing nothing or granting the power anyway.
+	controller._offer_power_ad(PowerInventoryServiceType.BOMB)
+	controller._on_power_ad_confirmed(PowerInventoryServiceType.BOMB)
+	_assert(overlay.mode == overlay.Mode.AD_RESULT, "confirming must always land on a result the player can read")
+	_assert(PowerInventoryServiceType.count(controller.power_state, PowerInventoryServiceType.BOMB) == 0,
+		"a video that never played must grant nothing")
+
+	# A completed reward reports the granted power and the new total.
+	controller._grant_power_from_ad(PowerInventoryServiceType.BOMB)
+	controller._report_power_ad_result(PowerInventoryServiceType.BOMB, true)
+	_assert(overlay.mode == overlay.Mode.AD_RESULT and overlay.is_open(),
+		"a completed ad must return to the same popup")
+	_assert(overlay.body_label != null and overlay.body_label.text.contains("1"),
+		"the result must tell the player how many they now own")
+	_free(controller)
+
+
+## The targeting tutorial must appear once per targeted power and never for the
+## powers that fire immediately.
+func _test_how_to_shows_once_per_targeted_power() -> void:
+	var controller = await _start({"bomb": 2, "hammer": 2, "magnet": 2, "switch": 2})
+	_populate(controller)
+	controller.seen_power_tutorials.clear()
+	var overlay = controller.power_overlay
+
+	controller._on_power_requested(PowerInventoryServiceType.BOMB)
+	_assert(overlay.is_open() and overlay.mode == overlay.Mode.HOW_TO,
+		"the first use of a targeted power must explain how to aim it")
+	_assert(controller.pending_power_target == PowerInventoryServiceType.BOMB,
+		"the power must stay armed under the tutorial so dismissing it is enough")
+	overlay.close()
+	_assert(controller.seen_power_tutorials.has(PowerInventoryServiceType.BOMB),
+		"dismissing the tutorial must record it as seen")
+
+	controller._cancel_power_targeting()
+	controller._on_power_requested(PowerInventoryServiceType.BOMB)
+	_assert(not overlay.is_open(), "the tutorial must not repeat for a power already seen")
+
+	# Switch fires immediately, so there is nothing to teach.
+	controller._on_power_requested(PowerInventoryServiceType.SWITCH)
+	_assert(not overlay.is_open(), "an instant power must not open a targeting tutorial")
+	_free(controller)
