@@ -17,6 +17,7 @@ const PowerInventoryServiceType = preload("res://scripts/services/power_inventor
 const DailyMissionsOverlayType = preload("res://scripts/ui/daily_missions_overlay_layer.gd")
 const PowerOverlayType = preload("res://scripts/ui/power_overlay_layer.gd")
 const PowerCinematicType = preload("res://scripts/presentation/power_cinematic_layer.gd")
+const PowerShopOverlayType = preload("res://scripts/ui/power_shop_overlay_layer.gd")
 const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.gd")
 const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
 
@@ -99,6 +100,7 @@ var home_overlay: HomeOverlayLayer
 var daily_overlay: DailyMissionsOverlayLayer
 var power_overlay: PowerOverlayLayer
 var power_cinematic: PowerCinematicLayer
+var power_shop: PowerShopOverlayLayer
 ## Powers whose first-use tutorial has already been shown, loaded once at start.
 var seen_power_tutorials: Array[String] = []
 ## Set while a rewarded ad opened from the power popup is on screen, so the
@@ -421,6 +423,8 @@ func _handle_back_request(_allow_application_exit: bool = true) -> String:
 	# The app-flow owner decides Back. The previous gameplay-only callback could
 	# open Pause over Home, unpause a hidden run, and leave mutually inconsistent
 	# UI/process state behind.
+	if power_shop != null and power_shop.handle_back_request():
+		return "power_shop"
 	if power_overlay != null and power_overlay.handle_back_request():
 		return "power_overlay"
 	if home_overlay != null and home_overlay.handle_back_request():
@@ -1172,6 +1176,7 @@ func _setup_asset_presentation() -> void:
 	home_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	home_overlay.exit_requested.connect(_on_exit_requested)
 	home_overlay.daily_missions_requested.connect(_on_daily_missions_requested)
+	home_overlay.power_shop_requested.connect(_on_power_shop_requested)
 	daily_overlay = DailyMissionsOverlayType.new()
 	add_child(daily_overlay)
 	daily_overlay.mission_claim_requested.connect(_on_daily_mission_claim_requested)
@@ -1182,6 +1187,11 @@ func _setup_asset_presentation() -> void:
 	power_overlay.ad_confirmed.connect(_on_power_ad_confirmed)
 	power_overlay.how_to_acknowledged.connect(_on_power_how_to_acknowledged)
 	power_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
+	power_shop = PowerShopOverlayType.new()
+	add_child(power_shop)
+	power_shop.purchase_requested.connect(_on_power_purchase_requested)
+	power_shop.ad_requested.connect(_offer_power_ad)
+	power_shop.ui_tap_requested.connect(_on_ui_tap_requested)
 	screen_transition = ScreenTransitionType.new()
 	add_child(screen_transition)
 	level_briefing = LevelBriefingType.new()
@@ -2923,3 +2933,22 @@ func _draw_merge_presentation(presentation: Dictionary) -> void:
 		draw_set_transform(result_position, float(result_transform.rotation), Vector2(base_scale * proxy_scale.x, base_scale * proxy_scale.y))
 		draw_texture_rect(result_texture, Rect2(-result_texture.get_size() * 0.5, result_texture.get_size()), false)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _on_power_shop_requested() -> void:
+	if power_shop == null:
+		return
+	power_shop.present(power_counts(), coins)
+
+
+## Buying re-presents the shop so the new balance and count are visible without
+## replaying the popup entrance. A failed purchase leaves both untouched.
+func _on_power_purchase_requested(power: String) -> void:
+	if not _purchase_power(power):
+		return
+	if audio_feedback != null:
+		audio_feedback.emit_event("coin_reward")
+	if power_shop != null:
+		power_shop.present(power_counts(), coins)
+	if home_overlay != null:
+		home_overlay.update_snapshot(hud_snapshot())

@@ -11,6 +11,9 @@ const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/t
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
 const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_lavender_crisp.png")
+## The shop entry point reuses the bomb art, which is the most recognisable of
+## the four powers at icon size.
+const ICON_POWERS = preload("res://assets/runtime/ui/kit/power_icon_bomb.png")
 const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
 const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_lavender.svg")
@@ -29,6 +32,7 @@ signal privacy_options_requested
 signal ui_tap_requested
 signal exit_requested
 signal daily_missions_requested
+signal power_shop_requested
 
 var root_control: Control
 var home_backdrop: TextureRect
@@ -45,6 +49,7 @@ var daily_badges_row: HBoxContainer
 var daily_status_label: Label
 var tagline_label: Label
 var settings_button: Button
+var powers_button: Button
 var privacy_link_margin: MarginContainer
 var privacy_policy_link: LinkButton
 
@@ -316,7 +321,7 @@ func _build_top_settings_control() -> void:
 	root_control.add_child(top_controls_margin)
 	# Historical placement: the literal top-right of the Home screen.
 	top_controls_margin.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	top_controls_margin.offset_left = -96.0
+	top_controls_margin.offset_left = -186.0
 	top_controls_margin.offset_top = 24.0
 	top_controls_margin.offset_right = -18.0
 	top_controls_margin.offset_bottom = 102.0
@@ -332,9 +337,31 @@ func _build_top_settings_control() -> void:
 	settings_button.focus_mode = Control.FOCUS_ALL
 	settings_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	settings_button.tooltip_text = "Settings"
+	var top_row := HBoxContainer.new()
+	top_row.name = "HomeTopButtons"
+	top_row.alignment = BoxContainer.ALIGNMENT_END
+	top_row.add_theme_constant_override("separation", 12)
+	top_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top_controls_margin.add_child(top_row)
+	powers_button = Button.new()
+	powers_button.name = "HomePowersButton"
+	powers_button.icon = ICON_POWERS
+	powers_button.expand_icon = true
+	powers_button.custom_minimum_size = Vector2(78.0, 78.0)
+	for state in ["normal", "hover", "pressed"]:
+		powers_button.add_theme_stylebox_override(state, UiDesignSystemType.utility_frame_style())
+	powers_button.focus_mode = Control.FOCUS_ALL
+	powers_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	powers_button.tooltip_text = "Powers"
+	powers_button.pressed.connect(func() -> void:
+		ui_tap_requested.emit()
+		power_shop_requested.emit()
+	)
+	_wire_button_motion(powers_button)
+	top_row.add_child(powers_button)
 	settings_button.pressed.connect(_show_settings)
 	_wire_button_motion(settings_button)
-	top_controls_margin.add_child(settings_button)
+	top_row.add_child(settings_button)
 
 func _build_privacy_policy_link() -> void:
 	privacy_link_margin = MarginContainer.new()
@@ -529,7 +556,8 @@ func _build_daily_card() -> Control:
 	daily_button = Button.new()
 	daily_button.name = "HomeDailyMissionsButton"
 	daily_button.flat = true
-	daily_button.custom_minimum_size = Vector2(516.0, 258.0)
+	# Taller than the old badge strip: each mission now carries its own card.
+	daily_button.custom_minimum_size = Vector2(516.0, 296.0)
 	daily_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	daily_button.pressed.connect(func() -> void: daily_missions_requested.emit())
 	_wire_button_motion(daily_button)
@@ -559,7 +587,8 @@ func _build_daily_card() -> Control:
 	daily_badges_row.name = "HomeDailyBadges"
 	daily_badges_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	daily_badges_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	daily_badges_row.add_theme_constant_override("separation", 26)
+	daily_badges_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	daily_badges_row.add_theme_constant_override("separation", DAILY_MINI_GAP)
 	column.add_child(daily_badges_row)
 
 	daily_status_label = _label("Tap to view today's missions", UiDesignSystemType.CAPTION_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
@@ -567,7 +596,16 @@ func _build_daily_card() -> Control:
 	return daily_button
 
 
-## Rebuilds the badge strip from the snapshot the controller supplies.
+## Home's daily-missions preview. Each mission gets its own colourful mini-card
+## in the same visual language as the popup this widget opens, so the two read
+## as one feature rather than a bare badge strip next to a designed panel.
+## Claim rules deliberately stay in the popup and controller; this only
+## summarises.
+const DAILY_MINI_CARD_SIZE := Vector2(0.0, 122.0)
+const DAILY_MINI_BADGE_HEIGHT := 56.0
+const DAILY_MINI_GAP := 12
+
+
 func _refresh_daily_card() -> void:
 	if daily_badges_row == null:
 		return
@@ -576,23 +614,14 @@ func _refresh_daily_card() -> void:
 	var state: Dictionary = _snapshot.get("daily_state", {}) as Dictionary
 	var missions: Array = state.get("missions", []) as Array
 	var claimable := 0
-	for entry in missions:
-		var mission: Dictionary = entry as Dictionary
+	for index in range(missions.size()):
+		var mission: Dictionary = missions[index] as Dictionary
 		var claimed := bool(mission.get("claimed", false))
-		var progress := mini(int(mission.get("progress", 0)), maxi(1, int(mission.get("target", 1))))
 		var target := maxi(1, int(mission.get("target", 1)))
+		var progress := mini(int(mission.get("progress", 0)), target)
 		if not claimed and progress >= target:
 			claimable += 1
-		var item := VBoxContainer.new()
-		item.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		item.add_theme_constant_override("separation", 0)
-		var badge := UiKitType.texture_rect(
-			UiKitType.badge("check" if claimed else String(mission.get("icon", "gems"))), 54.0)
-		badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		item.add_child(badge)
-		var caption := _label("%d/%d" % [progress, target], UiDesignSystemType.CAPTION_FONT_SIZE, Color.WHITE)
-		item.add_child(caption)
-		daily_badges_row.add_child(item)
+		daily_badges_row.add_child(_daily_mini_card(mission, index, progress, target, claimed))
 	if daily_status_label == null:
 		return
 	if missions.is_empty():
@@ -603,6 +632,49 @@ func _refresh_daily_card() -> void:
 		daily_status_label.text = "Daily chest ready"
 	else:
 		daily_status_label.text = "Tap to view today's missions"
+
+
+## One compact mission tile: the same tinted plate and gold rim the popup cards
+## use, with the badge and progress only. The popup owns the full detail, so
+## crowding the label and a claim button in here would just make it unreadable.
+func _daily_mini_card(mission: Dictionary, index: int, progress: int, target: int, claimed: bool) -> Control:
+	var card := PanelContainer.new()
+	card.name = "HomeDailyCard%d" % index
+	card.custom_minimum_size = DAILY_MINI_CARD_SIZE
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_theme_stylebox_override("panel", UiDesignSystemType.mission_card_style(index))
+
+	var pad := MarginContainer.new()
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side in ["left", "right"]:
+		pad.add_theme_constant_override("margin_%s" % side, 10)
+	pad.add_theme_constant_override("margin_top", 12)
+	pad.add_theme_constant_override("margin_bottom", 12)
+	card.add_child(pad)
+
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 6)
+	pad.add_child(column)
+
+	var badge := UiKitType.texture_rect(
+		UiKitType.badge("check" if claimed else String(mission.get("icon", "gems"))),
+		DAILY_MINI_BADGE_HEIGHT
+	)
+	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	column.add_child(badge)
+
+	# A completed-but-unclaimed mission is the one state worth calling out here,
+	# because it is the reason to open the popup at all.
+	var complete := progress >= target
+	var progress_color := UiDesignSystemType.COLOR_GOLD_LIGHT if complete and not claimed else Color.WHITE
+	var caption := _label("%d/%d" % [progress, target], UiDesignSystemType.CAPTION_FONT_SIZE, progress_color)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_child(caption)
+	return card
 
 
 func _home_status_card(node_name: String) -> PanelContainer:

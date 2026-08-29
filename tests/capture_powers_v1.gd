@@ -33,6 +33,8 @@ func _run() -> void:
 	await _capture(Vector2i(720, 1280), STATES[0], PowerInventoryServiceType.BOMB)
 	await _capture_popups()
 	await _capture_cinematics()
+	await _capture_home()
+	await _capture_shop()
 	print("POWERS_V1_CAPTURE: PASS")
 	quit(0)
 
@@ -197,3 +199,64 @@ func _capture_cinematics() -> void:
 				push_error("Unable to save cinematic capture %s %s (error %d)" % [power, beat_name, error])
 		viewport.queue_free()
 		await process_frame
+
+
+## The Home screen, so the daily-missions widget and the power shop can be
+## reviewed against the popup they sit alongside.
+func _capture_home() -> void:
+	for resolution in [Vector2i(720, 1280), Vector2i(1080, 2340)]:
+		var viewport := SubViewport.new()
+		viewport.size = resolution
+		viewport.disable_3d = true
+		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		root.add_child(viewport)
+		var controller = GameScene.instantiate()
+		viewport.add_child(controller)
+		await process_frame
+		controller.coins = 1240
+		controller.power_state = PowerInventoryServiceType.ensure_state({
+			"counts": {"bomb": 0, "magnet": 2, "switch": 5, "hammer": 1},
+			"granted_starter": true,
+		})
+		controller._show_home()
+		controller.set_process(false)
+		await process_frame
+		await create_timer(0.7, true, false, true).timeout
+		await RenderingServer.frame_post_draw
+		var error := viewport.get_texture().get_image().save_png(
+			OUTPUT_DIR + "home-%dx%d.png" % [resolution.x, resolution.y]
+		)
+		if error != OK:
+			push_error("Unable to save home capture (error %d)" % error)
+		viewport.queue_free()
+		await process_frame
+
+
+## The Home power shop, including a row the player cannot afford so the "+"
+## fallback is visible alongside the priced rows.
+func _capture_shop() -> void:
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(720, 1280)
+	viewport.disable_3d = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(viewport)
+	var controller = GameScene.instantiate()
+	viewport.add_child(controller)
+	await process_frame
+	# Enough for switch and magnet, short of hammer and bomb.
+	controller.coins = 240
+	controller.power_state = PowerInventoryServiceType.ensure_state({
+		"counts": {"bomb": 0, "magnet": 2, "switch": 5, "hammer": 1},
+		"granted_starter": true,
+	})
+	controller._show_home()
+	controller.set_process(false)
+	controller._on_power_shop_requested()
+	await process_frame
+	await create_timer(0.7, true, false, true).timeout
+	await RenderingServer.frame_post_draw
+	var error := viewport.get_texture().get_image().save_png(OUTPUT_DIR + "power-shop.png")
+	if error != OK:
+		push_error("Unable to save shop capture (error %d)" % error)
+	viewport.queue_free()
+	await process_frame

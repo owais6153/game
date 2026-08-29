@@ -656,3 +656,52 @@ static func _rounded_style(background: Color, border: Color, border_width: int, 
 	style.shadow_size = 0
 	style.shadow_offset = Vector2.ZERO
 	return style
+
+
+## Height of the decorative popup title plate. The banner overlaps the panel by
+## half of this, so the panel's own top margin has to clear the remainder.
+const POPUP_TITLE_HEIGHT := 84.0
+
+
+## Builds the shared popup header: a decorative gold plate that sits half above
+## and half inside the panel it titles.
+##
+## The overlap is produced by a negative separation on the returned VBox rather
+## than by positioning the plate at a fixed pixel offset. Godot containers honour
+## negative separation, so the plate stays welded to the panel's top edge at
+## every portrait size and through any content-driven resize — which a hardcoded
+## offset would not survive.
+##
+## Callers add the panel to the returned container after the plate. Small
+## confirmation and tooltip popups deliberately do not use this: the plate would
+## be more chrome than content.
+static func popup_title_column(title: String) -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.name = "PopupTitleColumn"
+	column.alignment = BoxContainer.ALIGNMENT_BEGIN
+	column.add_theme_constant_override("separation", int(-POPUP_TITLE_HEIGHT * 0.5))
+
+	var banner := PanelContainer.new()
+	banner.name = "PopupTitleBanner"
+	banner.custom_minimum_size = Vector2(0.0, POPUP_TITLE_HEIGHT)
+	banner.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# The same plate the Daily Missions header uses, so every titled popup in
+	# the game reads as part of one system.
+	banner.add_theme_stylebox_override(
+		"panel", UiKit.nine_patch_style("bar_gold_frame", Vector4(72.0, 14.0, 72.0, 16.0)))
+	# Drawn after the panel would put the panel over the plate; the plate has to
+	# win the overlap or the header looks clipped.
+	banner.z_index = 1
+	column.add_child(banner)
+
+	var label := style_label(Label.new(), POPUP_TITLE_FONT_SIZE, Color.WHITE, true)
+	label.name = "PopupTitleLabel"
+	label.text = title
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_constant_override("outline_size", TEXT_OUTLINE_SIZE)
+	label.add_theme_color_override("font_outline_color", COLOR_TEXT_OUTLINE)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner.add_child(label)
+	return column
