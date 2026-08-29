@@ -75,6 +75,21 @@
 				280,
 				293
 			]
+		},
+		{
+			"runtime": "res://assets/runtime/ui/kit/icon_shop.png",
+			"runtime_sha256": "bff73705c864cf4f7f88c9b047c10da887f4424991c8cd05706eef51356f1c63",
+			"runtime_size": [
+				172,
+				192
+			],
+			"source": "res://assets/ui/shop/shop_stall.png",
+			"source_rect": [
+				0,
+				0,
+				1254,
+				1254
+			]
 		}
 	],
 	"version": 1

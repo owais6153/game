@@ -452,3 +452,12 @@ Caveats recorded at intake, to be resolved before any runtime use:
   and for shop/popup power artwork.
 - The rocket, freeze, and target icons in `sheet_power_icons.png` have no corresponding
   power in the current design and are unused.
+
+# Shop stall intake - 2026-08-29
+
+| Organized path | Runtime derivative | Processing |
+| --- | --- | --- |
+| `assets/ui/shop/shop_stall.png` | `assets/runtime/ui/kit/icon_shop.png` | Same alpha hard-cut, one-pixel erosion, trim, and Lanczos downscale to 192px as the power derivatives, via `scripts/dev/prepare_power_kit_art.gd` |
+
+Replaces the bomb icon that stood in as the Home shop entry point. The original
+is preserved and is never loaded at runtime.

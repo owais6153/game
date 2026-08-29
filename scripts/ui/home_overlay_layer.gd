@@ -11,9 +11,9 @@ const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/t
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
 const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_lavender_crisp.png")
-## The shop entry point reuses the bomb art, which is the most recognisable of
-## the four powers at icon size.
-const ICON_POWERS = preload("res://assets/runtime/ui/kit/power_icon_bomb.png")
+## The Home shop entry point. A de-fringed derivative of the supplied stall art.
+
+const ICON_SHOP = preload("res://assets/runtime/ui/kit/icon_shop.png")
 const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
 const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_lavender.svg")
@@ -301,12 +301,39 @@ func _build() -> void:
 	# The hero variation carries its own ornamented plate, so the old glyph icon
 	# would sit as a second, competing decoration inside the same button.
 	play_button.theme_type_variation = "HeroButton"
-	play_button.custom_minimum_size = Vector2(516.0, UiDesignSystemType.HERO_BUTTON_HEIGHT)
+	play_button.custom_minimum_size = Vector2(0.0, UiDesignSystemType.HERO_BUTTON_HEIGHT)
+	play_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	play_button.focus_mode = Control.FOCUS_ALL
 	play_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	play_button.pressed.connect(func() -> void: level_intro_requested.emit())
 	_wire_button_motion(play_button)
-	column.add_child(play_button)
+
+	# The shop sits beside PLAY rather than in the top corner: buying powers is a
+	# primary destination, and a small utility glyph next to the settings cog
+	# read as neither important nor obviously a shop.
+	var play_row := HBoxContainer.new()
+	play_row.name = "HomePlayRow"
+	play_row.custom_minimum_size = Vector2(516.0, 0.0)
+	play_row.add_theme_constant_override("separation", 14)
+	column.add_child(play_row)
+	play_row.add_child(play_button)
+
+	powers_button = Button.new()
+	powers_button.name = "HomePowersButton"
+	powers_button.icon = ICON_SHOP
+	powers_button.expand_icon = true
+	powers_button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.HERO_BUTTON_HEIGHT
+	for state in ["normal", "hover", "pressed", "focus"]:
+		powers_button.add_theme_stylebox_override(state, UiKitType.nine_patch_style("btn_square_small"))
+	powers_button.focus_mode = Control.FOCUS_ALL
+	powers_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	powers_button.tooltip_text = "Shop — buy powers"
+	powers_button.pressed.connect(func() -> void:
+		ui_tap_requested.emit()
+		power_shop_requested.emit()
+	)
+	_wire_button_motion(powers_button)
+	play_row.add_child(powers_button)
 
 	_build_top_settings_control()
 	_build_privacy_policy_link()
@@ -321,7 +348,7 @@ func _build_top_settings_control() -> void:
 	root_control.add_child(top_controls_margin)
 	# Historical placement: the literal top-right of the Home screen.
 	top_controls_margin.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	top_controls_margin.offset_left = -186.0
+	top_controls_margin.offset_left = -96.0
 	top_controls_margin.offset_top = 24.0
 	top_controls_margin.offset_right = -18.0
 	top_controls_margin.offset_bottom = 102.0
@@ -337,31 +364,9 @@ func _build_top_settings_control() -> void:
 	settings_button.focus_mode = Control.FOCUS_ALL
 	settings_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	settings_button.tooltip_text = "Settings"
-	var top_row := HBoxContainer.new()
-	top_row.name = "HomeTopButtons"
-	top_row.alignment = BoxContainer.ALIGNMENT_END
-	top_row.add_theme_constant_override("separation", 12)
-	top_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	top_controls_margin.add_child(top_row)
-	powers_button = Button.new()
-	powers_button.name = "HomePowersButton"
-	powers_button.icon = ICON_POWERS
-	powers_button.expand_icon = true
-	powers_button.custom_minimum_size = Vector2(78.0, 78.0)
-	for state in ["normal", "hover", "pressed"]:
-		powers_button.add_theme_stylebox_override(state, UiDesignSystemType.utility_frame_style())
-	powers_button.focus_mode = Control.FOCUS_ALL
-	powers_button.mouse_filter = Control.MOUSE_FILTER_STOP
-	powers_button.tooltip_text = "Powers"
-	powers_button.pressed.connect(func() -> void:
-		ui_tap_requested.emit()
-		power_shop_requested.emit()
-	)
-	_wire_button_motion(powers_button)
-	top_row.add_child(powers_button)
 	settings_button.pressed.connect(_show_settings)
 	_wire_button_motion(settings_button)
-	top_row.add_child(settings_button)
+	top_controls_margin.add_child(settings_button)
 
 func _build_privacy_policy_link() -> void:
 	privacy_link_margin = MarginContainer.new()
@@ -562,17 +567,19 @@ func _build_daily_card() -> Control:
 	daily_button.pressed.connect(func() -> void: daily_missions_requested.emit())
 	_wire_button_motion(daily_button)
 
-	var frame := PanelContainer.new()
+	# No plate behind the widget. The mission cards carry their own colour, so a
+	# second panel behind them only muddies the screen.
+	var frame := Control.new()
 	frame.name = "HomeDailyCardFrame"
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
 	daily_button.add_child(frame)
 
 	var column := VBoxContainer.new()
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_theme_constant_override("separation", 8)
 	frame.add_child(column)
+	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	var banner := PanelContainer.new()
 	banner.custom_minimum_size = Vector2(0.0, UiDesignSystemType.BANNER_HEIGHT)
@@ -604,6 +611,10 @@ func _build_daily_card() -> Control:
 const DAILY_MINI_CARD_SIZE := Vector2(0.0, 122.0)
 const DAILY_MINI_BADGE_HEIGHT := 56.0
 const DAILY_MINI_GAP := 12
+## Corner status badge, inset slightly so it reads as part of the card rather
+## than a sticker hanging off it.
+const DAILY_STATUS_BADGE := 34.0
+const DAILY_STATUS_OVERLAP := 4.0
 
 
 func _refresh_daily_card() -> void:
@@ -653,16 +664,23 @@ func _daily_mini_card(mission: Dictionary, index: int, progress: int, target: in
 	pad.add_theme_constant_override("margin_bottom", 12)
 	card.add_child(pad)
 
+	# One stack so the corner badge can overlay the content. A PanelContainer
+	# stretches every direct child, so the badge cannot hang off the card itself.
+	var stack := Control.new()
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pad.add_child(stack)
+
 	var column := VBoxContainer.new()
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_theme_constant_override("separation", 6)
-	pad.add_child(column)
+	stack.add_child(column)
+	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	# The mission keeps its own identity badge at every stage; the corner badge
+	# is the only thing that reports status, so the card never shows two checks.
 	var badge := UiKitType.texture_rect(
-		UiKitType.badge("check" if claimed else String(mission.get("icon", "gems"))),
-		DAILY_MINI_BADGE_HEIGHT
-	)
+		UiKitType.badge(String(mission.get("icon", "gems"))), DAILY_MINI_BADGE_HEIGHT)
 	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	column.add_child(badge)
 
@@ -674,6 +692,22 @@ func _daily_mini_card(mission: Dictionary, index: int, progress: int, target: in
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(caption)
+
+	# A corner status badge, matching the power tiles: "+" while there is still
+	# progress to make, and the circular check once the mission is done.
+	var status := Control.new()
+	status.name = "Status"
+	status.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	status.offset_left = -DAILY_STATUS_BADGE - DAILY_STATUS_OVERLAP
+	status.offset_right = -DAILY_STATUS_OVERLAP
+	status.offset_top = DAILY_STATUS_OVERLAP
+	status.offset_bottom = DAILY_STATUS_BADGE + DAILY_STATUS_OVERLAP
+	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_child(status)
+	var status_icon := UiKitType.texture_rect(
+		UiKitType.ICON_CHECK if complete else UiKitType.ICON_PLUS, DAILY_STATUS_BADGE)
+	status_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	status.add_child(status_icon)
 	return card
 
 

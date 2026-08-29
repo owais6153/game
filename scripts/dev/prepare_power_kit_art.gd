@@ -19,6 +19,10 @@ extends SceneTree
 
 const BUTTONS_SHEET := "res://assets/ui_kit_source/sheet_power_buttons.png"
 const ICONS_SHEET := "res://assets/ui_kit_source/sheet_power_icons.png"
+## Single supplied illustration rather than a sheet, so it needs no measured
+## rect — only the same de-fringing and trim every other derivative gets.
+const SHOP_SOURCE := "res://assets/ui/shop/shop_stall.png"
+const SHOP_OUTPUT_EDGE := 192
 const OUTPUT_DIR := "res://assets/runtime/ui/kit"
 
 const BUTTONS_SHEET_SIZE := Vector2i(1448, 1086)
@@ -61,6 +65,14 @@ func _init() -> void:
 			var rect: Rect2i = ICON_RECTS[power]
 			var icon := _prepare(icons, rect, ICON_OUTPUT_EDGE)
 			_save(icon, "%s/power_icon_%s.png" % [OUTPUT_DIR, power], ICONS_SHEET, rect, manifest.entries)
+
+	var shop := Image.load_from_file(SHOP_SOURCE)
+	if shop == null or shop.is_empty():
+		failures.append("Unable to load %s" % SHOP_SOURCE)
+	else:
+		var shop_rect := Rect2i(Vector2i.ZERO, shop.get_size())
+		var prepared := _prepare(shop, shop_rect, SHOP_OUTPUT_EDGE)
+		_save(prepared, "%s/icon_shop.png" % OUTPUT_DIR, SHOP_SOURCE, shop_rect, manifest.entries)
 
 	if failures.is_empty():
 		var file := FileAccess.open("%s/power_kit_manifest.json" % OUTPUT_DIR, FileAccess.WRITE)
