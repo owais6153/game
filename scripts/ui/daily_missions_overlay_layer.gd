@@ -9,6 +9,7 @@ extends CanvasLayer
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
+const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 
 ## Home sits on layer 60 and is the only entry point to this popup, so the
 ## popup has to sit above it or it opens behind the screen that launched it.
@@ -16,6 +17,15 @@ const OVERLAY_LAYER := 65
 
 const CARD_SIZE := Vector2(0.0, 330.0)
 const BADGE_HEIGHT := 96.0
+const CHEST_ICON_SIZE := 88.0
+## Claim sequence: the closed chest shakes, swells, swaps to the open art on a
+## flash, then settles. Never an instant image swap.
+const CHEST_SHAKE_STEPS := 6
+const CHEST_SHAKE_DURATION := 0.055
+const CHEST_SHAKE_ANGLE := 0.13
+const CHEST_BURST_SCALE := 1.34
+const CHEST_BURST_DURATION := 0.20
+const CHEST_SETTLE_DURATION := 0.22
 
 ## Entrance mirrors the result overlay so every popup in the game moves the
 ## same way: the dim leads, then the panel overshoots once and settles.
@@ -42,10 +52,12 @@ var panel: PanelContainer
 var cards_row: HBoxContainer
 var chest_button: Button
 var chest_caption: Label
+var chest_icon: TextureRect
 var coins_label: Label
 var close_button: Button
 var dim_rect: ColorRect
 var _tween: Tween
+var _chest_opening := false
 
 
 func _ready() -> void:
@@ -172,12 +184,17 @@ func _build() -> void:
 	panel.custom_minimum_size = Vector2(688.0, 0.0)
 	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
-	center.add_child(panel)
+	# The header now straddles the panel edge instead of sitting inside it, using
+	# the shared treatment so every titled popup in the game reads the same way.
+	var title_column := UiDesignSystemType.popup_title_column("DAILY MISSIONS")
+	center.add_child(title_column)
+	title_column.add_child(panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
 	margin.add_theme_constant_override("margin_right", 24)
-	margin.add_theme_constant_override("margin_top", 22)
+	# Clears the half of the title plate that overlaps into the panel.
+	margin.add_theme_constant_override("margin_top", 54)
 	margin.add_theme_constant_override("margin_bottom", 26)
 	panel.add_child(margin)
 
@@ -185,7 +202,6 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 16)
 	margin.add_child(column)
 
-	column.add_child(_title_banner("DAILY MISSIONS"))
 
 	var subtitle := UiDesignSystemType.style_label(
 		Label.new(), UiDesignSystemType.SMALL_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
@@ -233,7 +249,9 @@ func _chest_section() -> Control:
 	row.add_theme_constant_override("separation", 18)
 	frame.add_child(row)
 
-	row.add_child(UiKitType.texture_rect(UiKitType.BADGE_CHEST, 88.0))
+	chest_icon = UiKitType.texture_rect(UiKitType.BADGE_CHEST, CHEST_ICON_SIZE)
+	chest_icon.name = "DailyChestIcon"
+	row.add_child(chest_icon)
 
 	var copy := VBoxContainer.new()
 	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -248,7 +266,10 @@ func _chest_section() -> Control:
 
 	chest_caption = UiDesignSystemType.style_label(
 		Label.new(), UiDesignSystemType.SMALL_FONT_SIZE, UiDesignSystemType.COLOR_TEXT_MUTED)
-	chest_caption.text = "+%d coins" % DailyMissionServiceType.CHEST_REWARD
+	# The power payout is longer than the old coin amount, so it wraps rather
+	# than forcing the popup past the 720px design width.
+	chest_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	chest_caption.text = _chest_reward_caption()
 	copy.add_child(chest_caption)
 
 	chest_button = Button.new()
@@ -275,7 +296,12 @@ func _refresh(state: Dictionary, coins: int) -> void:
 	var ready := DailyMissionServiceType.chest_ready(state)
 	chest_button.text = "CLAIM" if ready else ("DONE" if bool(state.get("chest_claimed", false)) else "LOCKED")
 	chest_button.disabled = not ready
-	chest_caption.text = "+%d coins" % DailyMissionServiceType.CHEST_REWARD if not bool(state.get("chest_claimed", false)) else "Collected today"
+	var claimed := bool(state.get("chest_claimed", false))
+	chest_caption.text = "Collected today" if claimed else _chest_reward_caption()
+	if chest_icon != null and not _chest_opening:
+		# The claim animation owns the texture while it runs; outside it the icon
+		# simply reflects whether the chest for today is still closed.
+		chest_icon.texture = UiKitType.BADGE_CHEST_OPEN if claimed else UiKitType.BADGE_CHEST
 	if coins_label != null:
 		coins_label.text = "%d" % coins
 
@@ -379,3 +405,74 @@ func _progress_row(progress: int, target: int) -> Control:
 	layers.add_child(caption)
 	caption.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	return track
+
+
+## Describes the chest payout from the service table rather than a hardcoded
+## string, so retuning the reward cannot leave the caption lying.
+func _chest_reward_caption() -> String:
+	var parts: PackedStringArray = []
+	for power in DailyMissionServiceType.CHEST_POWER_REWARD.keys():
+		var count := int(DailyMissionServiceType.CHEST_POWER_REWARD[power])
+		if count <= 0:
+			continue
+		parts.append("%d %s" % [count, PowerInventoryServiceType.label(String(power))])
+	if parts.is_empty():
+		return "Complete all three to unlock the chest"
+	return "+ " + ", ".join(parts)
+
+
+## The chest claim sequence. The controller calls this after the grant has been
+## persisted, so the animation reports something that already happened and can
+## never be mistaken for the reward itself.
+##
+## Beats: the closed chest rattles, swells as the lid gives, swaps to the open
+## art at the peak under a gold flash, then settles back. An instant texture
+## swap read as a bug rather than as opening a chest.
+func play_chest_open() -> void:
+	if chest_icon == null or _chest_opening:
+		return
+	_chest_opening = true
+	chest_icon.texture = UiKitType.BADGE_CHEST
+	chest_icon.pivot_offset = chest_icon.size * 0.5
+	chest_icon.rotation = 0.0
+	chest_icon.scale = Vector2.ONE
+	var sequence := create_tween()
+	for step in range(CHEST_SHAKE_STEPS):
+		var angle := CHEST_SHAKE_ANGLE * (1.0 if step % 2 == 0 else -1.0)
+		sequence.tween_property(chest_icon, "rotation", angle, CHEST_SHAKE_DURATION).set_trans(Tween.TRANS_SINE)
+	sequence.tween_property(chest_icon, "rotation", 0.0, CHEST_SHAKE_DURATION)
+	sequence.tween_property(chest_icon, "scale", Vector2.ONE * CHEST_BURST_SCALE, CHEST_BURST_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	sequence.tween_callback(func() -> void:
+		if chest_icon != null:
+			chest_icon.texture = UiKitType.BADGE_CHEST_OPEN
+		_flash_chest()
+	)
+	sequence.tween_property(chest_icon, "scale", Vector2.ONE, CHEST_SETTLE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	sequence.tween_callback(func() -> void:
+		_chest_opening = false
+	)
+
+
+## A short gold bloom behind the chest at the moment the lid opens. Deliberately
+## a single expanding disc rather than a particle burst: this sits inside a
+## popup, where a full effect would compete with the reward text beside it.
+func _flash_chest() -> void:
+	if chest_icon == null or not chest_icon.is_inside_tree():
+		return
+	var flash := ColorRect.new()
+	flash.color = Color(1.0, 0.88, 0.46, 0.0)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.size = Vector2.ONE * CHEST_ICON_SIZE * 1.6
+	flash.pivot_offset = flash.size * 0.5
+	flash.z_index = -1
+	chest_icon.add_child(flash)
+	flash.position = (chest_icon.size - flash.size) * 0.5
+	flash.scale = Vector2.ONE * 0.4
+	var bloom := create_tween()
+	bloom.tween_property(flash, "color:a", 0.55, 0.10)
+	bloom.parallel().tween_property(flash, "scale", Vector2.ONE * 1.25, 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	bloom.tween_property(flash, "color:a", 0.0, 0.24)
+	bloom.tween_callback(func() -> void:
+		if is_instance_valid(flash):
+			flash.queue_free()
+	)

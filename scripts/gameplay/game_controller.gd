@@ -1228,18 +1228,58 @@ func _on_daily_chest_claim_requested() -> void:
 	var claim := DailyMissionServiceType.claim_chest(daily_state)
 	if not bool(claim.get("ok", false)):
 		return
-	var reward := int(claim.get("reward", 0))
 	var updated: Dictionary = claim.get("state", {}) as Dictionary
-	if ProgressionSaveServiceType.save_progress(level_number, level_seed, coins + reward, updated) != OK:
+	var granted: Dictionary = claim.get("powers", {}) as Dictionary
+	# Build the whole resulting inventory before persisting, so the chest is
+	# granted atomically: a failed save can never hand out part of it.
+	var next_powers := power_state
+	for power in granted.keys():
+		for _index in range(maxi(0, int(granted[power]))):
+			next_powers = _granted_inventory(next_powers, String(power))
+	if ProgressionSaveServiceType.save_progress(level_number, level_seed, coins, updated) != OK:
+		return
+	if ProgressionSaveServiceType.save_power_state(next_powers, level_start_coins) != OK:
 		return
 	daily_state = updated
-	coins += reward
+	power_state = next_powers
 	# daily_all_missions_completed already fired on the final mission claim; the
 	# chest is a separate act and reports only its own event.
-	_log_analytics("daily_chest_claimed", {"level_number": level_number, "mission_reward": reward, "coin_balance": coins})
-	_log_analytics("coin_earned", {"amount": reward, "reason": "daily_chest", "level_number": level_number, "resulting_balance": coins})
+	_log_analytics("daily_chest_claimed", {"level_number": level_number, "powers": JSON.stringify(granted)})
+	for power in granted.keys():
+		_log_analytics("power_granted", {
+			"power": String(power),
+			"source": "daily_chest",
+			"level_number": level_number,
+			"owned": PowerInventoryServiceType.count(power_state, String(power)),
+		})
 	daily_overlay.present(daily_state, coins)
+	# Presented after the grant is persisted, so the animation reports something
+	# that already happened rather than standing in for the reward.
+	daily_overlay.play_chest_open()
+	if audio_feedback != null:
+		# The chest is the daily loop peak, so it lands on the strongest short cue
+		# the service owns, with the coin reward layered under it.
+		audio_feedback.emit_event("power_charge")
+		audio_feedback.emit_event("coin_reward")
+	if haptics_feedback != null:
+		haptics_feedback.emit_event("win")
+	if power_shop != null and power_shop.is_open():
+		power_shop.present(power_counts(), coins)
 	_refresh_hud()
+
+
+## Adds one power without a price. The shop path goes through
+## PowerInventoryService.purchase() because it must also spend coins; the chest
+## and the rewarded ad are free grants and only move the count.
+func _granted_inventory(state: Dictionary, power: String) -> Dictionary:
+	var result := PowerInventoryServiceType.ensure_state(state)
+	if not PowerInventoryServiceType.is_power(power):
+		return result
+	var counts: Dictionary = (result.get("counts", {}) as Dictionary).duplicate()
+	counts[power] = int(counts.get(power, 0)) + 1
+	result["counts"] = counts
+	return result
+
 
 func _refresh_background_fill() -> void:
 	if background_sprite == null or background_sprite.texture == null:

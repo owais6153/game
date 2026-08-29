@@ -23,6 +23,10 @@ const ICONS_SHEET := "res://assets/ui_kit_source/sheet_power_icons.png"
 ## rect — only the same de-fringing and trim every other derivative gets.
 const SHOP_SOURCE := "res://assets/ui/shop/shop_stall.png"
 const SHOP_OUTPUT_EDGE := 192
+## The open state of the daily chest. The closed state is the existing
+## badge_chest derivative, so both are trimmed the same way and swap cleanly.
+const TREASURE_SOURCE := "res://assets/ui/treasure/treasure_open.png"
+const TREASURE_OUTPUT_EDGE := 192
 const OUTPUT_DIR := "res://assets/runtime/ui/kit"
 
 const BUTTONS_SHEET_SIZE := Vector2i(1448, 1086)
@@ -73,6 +77,14 @@ func _init() -> void:
 		var shop_rect := Rect2i(Vector2i.ZERO, shop.get_size())
 		var prepared := _prepare(shop, shop_rect, SHOP_OUTPUT_EDGE)
 		_save(prepared, "%s/icon_shop.png" % OUTPUT_DIR, SHOP_SOURCE, shop_rect, manifest.entries)
+
+	var treasure := Image.load_from_file(TREASURE_SOURCE)
+	if treasure == null or treasure.is_empty():
+		failures.append("Unable to load %s" % TREASURE_SOURCE)
+	else:
+		var treasure_rect := Rect2i(Vector2i.ZERO, treasure.get_size())
+		var opened := _prepare(treasure, treasure_rect, TREASURE_OUTPUT_EDGE)
+		_save(opened, "%s/badge_chest_open.png" % OUTPUT_DIR, TREASURE_SOURCE, treasure_rect, manifest.entries)
 
 	if failures.is_empty():
 		var file := FileAccess.open("%s/power_kit_manifest.json" % OUTPUT_DIR, FileAccess.WRITE)

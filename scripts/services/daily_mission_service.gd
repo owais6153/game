@@ -12,7 +12,16 @@ extends RefCounted
 ## "deduct or grant only after persistence" rule in the controller possible.
 
 const MISSION_COUNT := 3
-const CHEST_REWARD := 180
+## The daily chest pays powers rather than coins. Coins already arrive from every
+## level win and every mission claim, so another coin payout added nothing the
+## player could not already get; powers are the one reward the daily loop can
+## grant that is not otherwise purchasable without spending.
+##
+## Two of the cheaper powers plus one premium power: enough to be worth the
+## three missions, well short of removing the reason to buy any.
+const CHEST_POWER_REWARD := {"switch": 2, "magnet": 1, "hammer": 1}
+## Retained so an in-flight save or an older analytics row still resolves.
+const CHEST_REWARD := 0
 
 static func ensure_current_day(state: Dictionary, date_key: String = "") -> Dictionary:
 	var today := date_key if not date_key.is_empty() else Time.get_date_string_from_system()
@@ -69,7 +78,7 @@ static func claim_chest(state: Dictionary) -> Dictionary:
 	if bool(result.get("chest_claimed", false)) or not all_missions_claimed(result):
 		return {"state": result, "reward": 0, "ok": false}
 	result["chest_claimed"] = true
-	return {"state": result, "reward": CHEST_REWARD, "ok": true}
+	return {"state": result, "reward": CHEST_REWARD, "powers": CHEST_POWER_REWARD.duplicate(), "ok": true}
 
 static func all_missions_claimed(state: Dictionary) -> bool:
 	var missions: Array = state.get("missions", []) as Array

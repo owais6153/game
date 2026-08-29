@@ -90,6 +90,21 @@
 				1254,
 				1254
 			]
+		},
+		{
+			"runtime": "res://assets/runtime/ui/kit/badge_chest_open.png",
+			"runtime_sha256": "df3210cfc9ef46c929dbef5906f00ab65f881f9035be67b4beadd273536bfb21",
+			"runtime_size": [
+				175,
+				192
+			],
+			"source": "res://assets/ui/treasure/treasure_open.png",
+			"source_rect": [
+				0,
+				0,
+				1254,
+				1254
+			]
 		}
 	],
 	"version": 1

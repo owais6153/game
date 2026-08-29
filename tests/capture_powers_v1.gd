@@ -36,6 +36,7 @@ func _run() -> void:
 	await _capture_home()
 	await _capture_shop()
 	await _capture_opening_boards()
+	await _capture_daily()
 	print("POWERS_V1_CAPTURE: PASS")
 	quit(0)
 
@@ -289,5 +290,42 @@ func _capture_opening_boards() -> void:
 		var error := viewport.get_texture().get_image().save_png(OUTPUT_DIR + "opening-level-%02d.png" % level)
 		if error != OK:
 			push_error("Unable to save opening board capture (error %d)" % error)
+		viewport.queue_free()
+		await process_frame
+
+
+## The daily missions popup, so the chest reward and its open state can be
+## reviewed alongside the mission cards.
+func _capture_daily() -> void:
+	for claimed in [false, true]:
+		var viewport := SubViewport.new()
+		viewport.size = Vector2i(720, 1280)
+		viewport.disable_3d = true
+		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		root.add_child(viewport)
+		var controller = GameScene.instantiate()
+		viewport.add_child(controller)
+		await process_frame
+		controller.coins = 1240
+		controller._show_home()
+		controller.set_process(false)
+		var state: Dictionary = controller.daily_state.duplicate(true)
+		var missions: Array = state.get("missions", []) as Array
+		for index in range(missions.size()):
+			var mission: Dictionary = missions[index] as Dictionary
+			mission["progress"] = int(mission.get("target", 1))
+			mission["claimed"] = true
+			missions[index] = mission
+		state["missions"] = missions
+		state["chest_claimed"] = claimed
+		controller.daily_state = state
+		controller._on_daily_missions_requested()
+		await process_frame
+		await create_timer(0.7, true, false, true).timeout
+		await RenderingServer.frame_post_draw
+		var suffix := "claimed" if claimed else "ready"
+		var error := viewport.get_texture().get_image().save_png(OUTPUT_DIR + "daily-%s.png" % suffix)
+		if error != OK:
+			push_error("Unable to save daily capture (error %d)" % error)
 		viewport.queue_free()
 		await process_frame
