@@ -280,7 +280,7 @@ static func _frosted_glass_style(top: Color, bottom: Color, radius: int, border_
 
 
 static func secondary_hud_panel_style() -> StyleBox:
-	var style := _frosted_glass_style(Color(0.28, 0.08, 0.44, 0.90), Color(0.12, 0.03, 0.22, 0.88), 26, 2, false, true)
+	var style := hud_shine_style(Color(0.34, 0.10, 0.52, 0.92), Color(0.14, 0.035, 0.26, 0.90), 26, 2)
 	style.content_margin_left = 14.0
 	style.content_margin_top = 7.0
 	style.content_margin_right = 14.0
@@ -298,7 +298,7 @@ static func hud_shell_style() -> StyleBox:
 
 
 static func progression_inset_style() -> StyleBox:
-	var style := _frosted_glass_style(Color(0.34, 0.10, 0.50, 0.78), Color(0.11, 0.03, 0.21, 0.80), 26, 1, false, false)
+	var style := hud_shine_style(Color(0.40, 0.12, 0.56, 0.82), Color(0.13, 0.035, 0.24, 0.84), 26, 2)
 	style.content_margin_left = 10.0
 	style.content_margin_top = 3.0
 	style.content_margin_right = 10.0
@@ -314,7 +314,7 @@ static func card_header_style() -> StyleBox:
 
 
 static func target_panel_style() -> StyleBox:
-	var style := _frosted_glass_style(Color(0.32, 0.09, 0.48, 0.91), Color(0.11, 0.025, 0.21, 0.90), 30, 3, true, true)
+	var style := hud_shine_style(Color(0.40, 0.12, 0.58, 0.93), Color(0.13, 0.03, 0.24, 0.92), 30, 3)
 	style.content_margin_left = 0.0
 	style.content_margin_top = 0.0
 	style.content_margin_right = 0.0
@@ -705,3 +705,30 @@ static func popup_title_column(title: String) -> VBoxContainer:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	banner.add_child(label)
 	return column
+
+
+## Gameplay-HUD surface treatment. The flat amber rim and dark field read as
+## dull next to the gems, the table, and the power tiles, all of which carry
+## strong speculars. This keeps the same restrained shape and contrast but adds
+## the two things that make the rest of the art look lit: a brighter gold rim,
+## and a pale inner bevel that catches light along the top edge.
+##
+## It is deliberately a rim-and-bevel change rather than added ornament: the HUD
+## still has to sit behind the gems and never compete with them.
+static func hud_shine_style(top: Color, bottom: Color, radius: int, rim_width: int = 3) -> StyleBox:
+	var style := _frosted_glass_style(top, bottom, radius, rim_width, false, true) as StyleBoxFancy
+	if style == null:
+		return style
+	if not style.borders.is_empty():
+		# The brighter of the two rim golds, matching the plates on the buttons
+		# and power tiles rather than the muted panel amber.
+		style.borders[0].color = COLOR_GOLD_RIM
+	var bevel := StyleBorder.new()
+	bevel.color = Color(1.0, 0.94, 0.78, 0.22)
+	bevel.blend = true
+	bevel.width_left = 1
+	bevel.width_top = 2
+	bevel.width_right = 1
+	bevel.width_bottom = 0
+	style.borders.append(bevel)
+	return style

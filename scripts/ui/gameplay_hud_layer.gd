@@ -166,8 +166,9 @@ func update_snapshot(snapshot: Dictionary) -> void:
 			_animate_next_swap()
 	_refresh_power_tiles(snapshot)
 	if pause_skip_button != null:
-		var skip_enabled := bool(snapshot.get("skip_enabled", false))
-		pause_skip_button.disabled = not skip_enabled
+		# Never disabled: when the player cannot afford it, the tap opens the
+		# watch-a-video offer instead of doing nothing.
+		pause_skip_button.disabled = false
 		pause_skip_button.tooltip_text = "Skip this level for %d coins" % int(snapshot.get("skip_cost", GameConfig.SKIP_LEVEL_COST))
 
 	var current_level := int(snapshot.get("current_level", 1))

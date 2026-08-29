@@ -36,11 +36,13 @@ const REWARD_POP_DURATION := 0.26
 const REWARD_RAY_COUNT := 12
 
 signal ad_confirmed(power: String)
+## Emitted when the player confirms a video in place of a coin cost.
+signal coin_ad_confirmed(action: String)
 signal how_to_acknowledged(power: String)
 signal closed
 signal ui_tap_requested
 
-enum Mode { NONE, AD_OFFER, AD_RESULT, HOW_TO }
+enum Mode { NONE, AD_OFFER, AD_RESULT, HOW_TO, COIN_OFFER, COIN_RESULT }
 
 var root: Control
 var dim_rect: ColorRect
@@ -52,6 +54,9 @@ var primary_button: Button
 var secondary_button: Button
 var mode: int = Mode.NONE
 var active_power := ""
+## Identifier for a coin action being offered, echoed back on confirmation so
+## one popup can serve skip, extra shots, and continue.
+var active_action := ""
 var _tween: Tween
 
 
@@ -133,11 +138,53 @@ func present_how_to(power: String) -> void:
 	_present()
 
 
+
+
+## A coin action the player cannot currently afford. Same rule as the powers:
+## the button is never disabled, and tapping it opens an offer that explains the
+## price and lets the player earn the action from a video instead.
+##
+## `action` is the controller-side identifier, echoed back on confirmation so
+## one popup can serve skip, extra shots, and continue.
+func present_coin_offer(action: String, title: String, detail: String, cost: int, coins: int, ad_ready: bool) -> void:
+	_build()
+	mode = Mode.COIN_OFFER
+	active_power = ""
+	active_action = action
+	icon_rect.texture = UiKitType.ICON_COIN
+	title_label.text = title
+	if ad_ready:
+		body_label.text = "%s\n\nYou have %d of the %d coins needed. Watch a short video to do it for free." % [detail, coins, cost]
+		primary_button.visible = true
+		primary_button.text = "WATCH VIDEO"
+	else:
+		body_label.text = "%s\n\nYou have %d of the %d coins needed, and no video is ready right now." % [detail, coins, cost]
+		primary_button.visible = false
+	secondary_button.text = "CLOSE"
+	_present()
+
+
+## Reports whether the video paid for the action, in the same panel that offered
+## it, so the player is never left guessing after returning from a video.
+func present_coin_result(action: String, granted: bool, detail: String) -> void:
+	_build()
+	mode = Mode.COIN_RESULT
+	active_action = action
+	icon_rect.texture = UiKitType.ICON_COIN
+	title_label.text = detail if granted else "No reward"
+	body_label.text = "" if granted else "The video did not finish, so nothing was used."
+	primary_button.visible = false
+	secondary_button.text = "CONTINUE"
+	_present()
+	if granted:
+		_play_reward_celebration()
+
 func close() -> void:
 	if mode == Mode.NONE:
 		return
 	var finished_mode := mode
 	var finished_power := active_power
+	active_action = ""
 	mode = Mode.NONE
 	active_power = ""
 	if _tween != null and _tween.is_valid():
@@ -258,7 +305,10 @@ func _build() -> void:
 		ui_tap_requested.emit()
 		# The controller owns the ad call; the popup stays open underneath so it
 		# can report the result into the same panel when the ad returns.
-		ad_confirmed.emit(active_power)
+		if mode == Mode.COIN_OFFER:
+			coin_ad_confirmed.emit(active_action)
+		else:
+			ad_confirmed.emit(active_power)
 	)
 	actions.add_child(primary_button)
 

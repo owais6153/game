@@ -551,7 +551,9 @@ func _refresh_action_state() -> void:
 	double_button.disabled = _actions_pending or not _rewarded_available or _reward_resolved
 	double_button.visible = result_won and not _reward_resolved
 	skip_button.visible = not result_won
-	skip_button.disabled = _actions_pending or not _skip_available
+	# Affordability no longer disables Skip; the controller offers a video when
+	# the player cannot pay.
+	skip_button.disabled = _actions_pending
 	continue_button.visible = not result_won and _continue_available
 	continue_button.disabled = _actions_pending
 	if _reward_resolved:

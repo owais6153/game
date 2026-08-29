@@ -108,6 +108,10 @@ var seen_power_tutorials: Array[String] = []
 var power_ad_pending := ""
 ## Whether the rewarded ad currently on screen has actually paid out.
 var power_ad_granted := false
+## Whether the rewarded ad currently on screen has paid for a coin action.
+var coin_action_granted := false
+## Identifiers for the coin actions a video can pay for.
+const COIN_ACTION_SKIP := "skip_level"
 var screen_transition: ScreenTransitionType
 var level_briefing: LevelBriefingType
 var seen_level_types: Array[String] = []
@@ -1084,22 +1088,96 @@ func _purchase_power(power: String) -> bool:
 	return true
 
 
-func _can_skip_level() -> bool:
+
+## Whether the action itself is allowed right now, ignoring affordability.
+## Affordability is deliberately separate: a coin action the player cannot pay
+## for is offered as a video rather than presented as a dead button.
+func _skip_is_available() -> bool:
 	return (
 		app_flow_state in [AppFlowState.PLAYING, AppFlowState.LEVEL_READY]
 		and not won
 		and not win_qualified
 		and not skip_request_locked
-		# Spend only banked coins, matching the reroll sink's rollback-safe contract.
-		and level_start_coins >= GameConfig.SKIP_LEVEL_COST
 	)
 
 
+func _can_skip_level() -> bool:
+	# Spend only banked coins, matching the power sink's rollback-safe contract.
+	return _skip_is_available() and level_start_coins >= GameConfig.SKIP_LEVEL_COST
+
+
+## Entry point for every Skip control. When the player can pay, it skips. When
+## they cannot, it opens the offer instead of doing nothing — which is what a
+## disabled Skip button amounted to.
 func _on_skip_level_requested() -> void:
-	if not _can_skip_level():
+	if not _skip_is_available():
 		return
+	if _can_skip_level():
+		_perform_skip_level()
+		return
+	_offer_coin_action(
+		COIN_ACTION_SKIP,
+		"Skip this level?",
+		"Jump straight to the next level.",
+		GameConfig.SKIP_LEVEL_COST
+	)
+
+
+## Opens the watch-a-video offer for a coin action the player cannot afford.
+func _offer_coin_action(action: String, title: String, detail: String, cost: int) -> void:
+	if power_overlay == null:
+		return
+	var ready := ad_manager != null and bool(ad_manager.call("is_rewarded_ready"))
+	if not ready:
+		_log_analytics("coin_action_ad_declined", {"action": action, "reason": "no_fill"})
+	power_overlay.present_coin_offer(action, title, detail, cost, level_start_coins, ready)
+
+
+## The player confirmed a video in place of the coin cost. The action only runs
+## from the reward callback, so a cancelled or failed video does nothing at all.
+func _on_coin_ad_confirmed(action: String) -> void:
+	if ad_manager == null or not bool(ad_manager.call("is_rewarded_ready")):
+		_report_coin_action_result(action, false)
+		return
+	coin_action_granted = false
+	ad_manager.call(
+		"show_rewarded",
+		func(_item = null) -> void:
+			coin_action_granted = _perform_coin_action(action),
+		func() -> void:
+			# Runs on dismissal for success, cancellation, and failure alike.
+			if not coin_action_granted:
+				_log_analytics("coin_action_ad_declined", {"action": action, "reason": "not_completed"})
+			_report_coin_action_result(action, coin_action_granted)
+			_refresh_hud(),
+		{"placement": "coin_action", "action": action, "level_number": level_number}
+	)
+
+
+## Runs the action for free. Only the rewarded callback may call this.
+func _perform_coin_action(action: String) -> bool:
+	match action:
+		COIN_ACTION_SKIP:
+			if not _skip_is_available():
+				return false
+			_log_analytics("coin_action_granted", {"action": action, "source": "rewarded_ad", "level_number": level_number})
+			_perform_skip_level(0)
+			return true
+	return false
+
+
+func _report_coin_action_result(action: String, granted: bool) -> void:
+	if power_overlay == null:
+		return
+	var detail := "Level skipped" if action == COIN_ACTION_SKIP else "Done"
+	power_overlay.present_coin_result(action, granted, detail)
+	if granted and audio_feedback != null:
+		audio_feedback.emit_event("coin_reward")
+
+## Advances one level. `cost` is 0 when a rewarded video paid for the skip.
+func _perform_skip_level(cost: int = GameConfig.SKIP_LEVEL_COST) -> void:
 	skip_request_locked = true
-	var resulting_balance := coins - GameConfig.SKIP_LEVEL_COST
+	var resulting_balance := coins - cost
 	var skipped_level := level_number
 	var next_level_number := level_number + 1
 	var next_seed := LevelConfigType.seed_for_level(next_level_number)
@@ -1109,12 +1187,13 @@ func _on_skip_level_requested() -> void:
 		push_warning("Skip Level cancelled because coin persistence failed (%d)" % save_error)
 		_refresh_hud()
 		return
-	_log_analytics("coin_spent", {
-		"amount": GameConfig.SKIP_LEVEL_COST,
-		"reason": "skip_level",
-		"level_number": skipped_level,
-		"resulting_balance": resulting_balance,
-	})
+	if cost > 0:
+		_log_analytics("coin_spent", {
+			"amount": cost,
+			"reason": "skip_level",
+			"level_number": skipped_level,
+			"resulting_balance": resulting_balance,
+		})
 	_log_analytics("level_skipped", {
 		"level_number": skipped_level,
 		"resulting_balance": resulting_balance,
@@ -1291,6 +1370,7 @@ func _setup_asset_presentation() -> void:
 	power_overlay = PowerOverlayType.new()
 	add_child(power_overlay)
 	power_overlay.ad_confirmed.connect(_on_power_ad_confirmed)
+	power_overlay.coin_ad_confirmed.connect(_on_coin_ad_confirmed)
 	power_overlay.how_to_acknowledged.connect(_on_power_how_to_acknowledged)
 	power_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	power_shop = PowerShopOverlayType.new()
@@ -1316,6 +1396,12 @@ func _on_daily_mission_claim_requested(index: int) -> void:
 	var updated: Dictionary = claim.get("state", {}) as Dictionary
 	if ProgressionSaveServiceType.save_progress(level_number, level_seed, coins + reward, updated) != OK:
 		return
+	# Claiming is the smallest of the reward beats, so it gets the coin cue on its
+	# own rather than the layered treatment the chest and level completion use.
+	if audio_feedback != null:
+		audio_feedback.emit_event("coin_reward")
+	if haptics_feedback != null:
+		haptics_feedback.emit_event("target_collect")
 	daily_state = updated
 	coins += reward
 	_log_analytics("daily_mission_completed", {"level_number": level_number, "mission_reward": reward})
@@ -3094,6 +3180,8 @@ func _on_power_purchase_requested(power: String) -> void:
 		return
 	if audio_feedback != null:
 		audio_feedback.emit_event("coin_reward")
+	if haptics_feedback != null:
+		haptics_feedback.emit_event("target_collect")
 	if power_shop != null:
 		power_shop.present(power_counts(), coins)
 	if home_overlay != null:

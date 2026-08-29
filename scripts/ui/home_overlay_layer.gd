@@ -263,7 +263,7 @@ func _build() -> void:
 
 	var status_row := HBoxContainer.new()
 	status_row.name = "HomePlayerStatus"
-	status_row.custom_minimum_size = Vector2(492.0, 94.0)
+	status_row.custom_minimum_size = Vector2(516.0, 94.0)
 	status_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	status_row.add_theme_constant_override("separation", 16)
 	column.add_child(status_row)
@@ -295,34 +295,14 @@ func _build() -> void:
 	coins_label.add_theme_font_override("font", UiDesignSystemType.heavy_font())
 	coin_col.add_child(coins_label)
 
-	play_button = Button.new()
-	play_button.name = "HomePlayButton"
-	play_button.text = "PLAY"
-	# The hero variation carries its own ornamented plate, so the old glyph icon
-	# would sit as a second, competing decoration inside the same button.
-	play_button.theme_type_variation = "HeroButton"
-	play_button.custom_minimum_size = Vector2(0.0, UiDesignSystemType.HERO_BUTTON_HEIGHT)
-	play_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	play_button.focus_mode = Control.FOCUS_ALL
-	play_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	play_button.pressed.connect(func() -> void: level_intro_requested.emit())
-	_wire_button_motion(play_button)
-
-	# The shop sits beside PLAY rather than in the top corner: buying powers is a
-	# primary destination, and a small utility glyph next to the settings cog
-	# read as neither important nor obviously a shop.
-	var play_row := HBoxContainer.new()
-	play_row.name = "HomePlayRow"
-	play_row.custom_minimum_size = Vector2(516.0, 0.0)
-	play_row.add_theme_constant_override("separation", 14)
-	column.add_child(play_row)
-	play_row.add_child(play_button)
-
+	# The shop sits in the status row rather than beside PLAY, which left the
+	# hero button visibly lopsided. It reads as a destination here without
+	# taking anything from the primary action below.
 	powers_button = Button.new()
 	powers_button.name = "HomePowersButton"
-	powers_button.icon = ICON_SHOP
-	powers_button.expand_icon = true
-	powers_button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.HERO_BUTTON_HEIGHT
+	# Built as a card rather than an icon button: the stall art is detailed and
+	# a Button icon is shrunk by the plate padding until it reads as a smudge.
+	powers_button.custom_minimum_size = Vector2(132.0, 94.0)
 	for state in ["normal", "hover", "pressed", "focus"]:
 		powers_button.add_theme_stylebox_override(state, UiKitType.nine_patch_style("btn_square_small"))
 	powers_button.focus_mode = Control.FOCUS_ALL
@@ -333,7 +313,33 @@ func _build() -> void:
 		power_shop_requested.emit()
 	)
 	_wire_button_motion(powers_button)
-	play_row.add_child(powers_button)
+	status_row.add_child(powers_button)
+	var shop_stack := VBoxContainer.new()
+	shop_stack.alignment = BoxContainer.ALIGNMENT_CENTER
+	shop_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shop_stack.add_theme_constant_override("separation", 0)
+	powers_button.add_child(shop_stack)
+	shop_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var shop_icon := UiKitType.texture_rect(ICON_SHOP, 62.0)
+	shop_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	shop_stack.add_child(shop_icon)
+	var shop_caption := _label("SHOP", UiDesignSystemType.CAPTION_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	shop_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	shop_stack.add_child(shop_caption)
+
+	play_button = Button.new()
+	play_button.name = "HomePlayButton"
+	play_button.text = "PLAY"
+	# The hero variation carries its own ornamented plate, so the old glyph icon
+	# would sit as a second, competing decoration inside the same button.
+	play_button.theme_type_variation = "HeroButton"
+	play_button.custom_minimum_size = Vector2(516.0, UiDesignSystemType.HERO_BUTTON_HEIGHT)
+	play_button.focus_mode = Control.FOCUS_ALL
+	play_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	play_button.pressed.connect(func() -> void: level_intro_requested.emit())
+	_wire_button_motion(play_button)
+
+	column.add_child(play_button)
 
 	_build_top_settings_control()
 	_build_privacy_policy_link()
@@ -611,10 +617,12 @@ func _build_daily_card() -> Control:
 const DAILY_MINI_CARD_SIZE := Vector2(0.0, 122.0)
 const DAILY_MINI_BADGE_HEIGHT := 56.0
 const DAILY_MINI_GAP := 12
-## Corner status badge, inset slightly so it reads as part of the card rather
-## than a sticker hanging off it.
+
+
 const DAILY_STATUS_BADGE := 34.0
-const DAILY_STATUS_OVERLAP := 4.0
+## Negative inset pushes the badge outside the card corner, matching the count
+## badge on the gameplay power tiles.
+const DAILY_STATUS_OVERLAP := -11.0
 
 
 func _refresh_daily_card() -> void:
@@ -703,6 +711,7 @@ func _daily_mini_card(mission: Dictionary, index: int, progress: int, target: in
 	status.offset_top = DAILY_STATUS_OVERLAP
 	status.offset_bottom = DAILY_STATUS_BADGE + DAILY_STATUS_OVERLAP
 	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status.z_index = 1
 	stack.add_child(status)
 	var status_icon := UiKitType.texture_rect(
 		UiKitType.ICON_CHECK if complete else UiKitType.ICON_PLUS, DAILY_STATUS_BADGE)
@@ -819,7 +828,8 @@ func _refresh_intro_content() -> void:
 	if intro_skip_button != null:
 		var skip_cost := int(_snapshot.get("skip_cost", GameConfig.SKIP_LEVEL_COST))
 		intro_skip_button.text = "SKIP LEVEL  ·  %d COINS" % skip_cost
-		intro_skip_button.disabled = not bool(_snapshot.get("skip_enabled", false))
+		# Never disabled: an unaffordable tap opens the watch-a-video offer.
+		intro_skip_button.disabled = false
 		intro_skip_button.tooltip_text = "Skip Level %d for %d coins" % [_current_level, skip_cost]
 
 func _show_settings() -> void:
