@@ -6,13 +6,16 @@ const SAVE_PATH := "user://infinite_progression.cfg"
 static func load_progress() -> Dictionary:
 	var config := ConfigFile.new()
 	if config.load(SAVE_PATH) != OK:
-		return {"level_number": 1, "seed": LevelConfig.seed_for_level(1), "total_coins": 0, "daily_state": {}}
+		return {"level_number": 1, "seed": LevelConfig.seed_for_level(1), "total_coins": 0, "daily_state": {}, "power_state": {}}
 	var level_number := maxi(1, int(config.get_value("progress", "level_number", 1)))
 	return {
 		"level_number": level_number,
 		"seed": int(config.get_value("progress", "seed", LevelConfig.seed_for_level(level_number))),
 		"total_coins": maxi(0, int(config.get_value("progress", "total_coins", 0))),
 		"daily_state": config.get_value("retention", "daily_state", {}),
+		# Absent on every pre-existing save, which PowerInventoryService.ensure_state
+		# correctly reads as "no inventory yet" and resolves into the starter grant.
+		"power_state": _dictionary(config.get_value("powers", "power_state", {})),
 		# Level types whose briefing the player has already been shown. Absent on
 		# every pre-existing save, which correctly reads as "nothing seen yet".
 		"seen_level_types": _string_array(config.get_value("tutorial", "seen_level_types", [])),
@@ -27,6 +30,25 @@ static func _string_array(value: Variant) -> Array[String]:
 		for entry in (value as Array):
 			result.append(String(entry))
 	return result
+
+
+## ConfigFile hands back whatever was stored, so a hand-edited or older save can
+## yield a non-dictionary where an inventory is expected.
+static func _dictionary(value: Variant) -> Dictionary:
+	return value if value is Dictionary else {}
+
+
+## Persists power ownership alongside the coin balance in one write, because
+## every power transaction moves both: a purchase spends coins for a power, and
+## a rewarded grant leaves coins untouched but must not lose a concurrent coin
+## change. Callers adopt the new inventory only after this returns OK.
+static func save_power_state(power_state: Dictionary, total_coins: int) -> Error:
+	var config := ConfigFile.new()
+	# Preserve every other section; this write owns only powers and the balance.
+	config.load(SAVE_PATH)
+	config.set_value("powers", "power_state", power_state)
+	config.set_value("progress", "total_coins", maxi(0, total_coins))
+	return config.save(SAVE_PATH)
 
 
 ## Records that a level type's briefing has been shown. Separate from
