@@ -1,3 +1,10 @@
+# Power Motion and Level Entry Polish - 2026-08-31
+
+- Power cinematics remain 1.65 seconds and tap-skippable, but all icons now arrive by 32% of the sequence. Bomb/Hammer actively brace; Magnet/Switch orbit and tighten at the destination rather than drifting across the screen.
+- The authoritative impact signal starts a 160ms, 1.8-4.0px table/gem sprite response before applying the staged board effect and existing audio/haptic feedback. Simulation coordinates are never offset.
+- Entering play from Level Ready runs a 520ms table/gem fade, 28px rise, and 96.5%-to-100% table settle beneath the existing screen reveal.
+- Focused motion, powers, game-flow, player-feedback, merge-physics, and level-difficulty suites reach PASS. Android install and device acceptance are recorded with the APK delivery entry after export.
+
 # Player Feedback and Limited-Shots Repair - 2026-08-31
 
 - Try Again now uses the controller's fail reason: giving up after an exhausted shot budget says `YOU RAN OUT OF SHOTS`; danger-line failures retain the danger copy.

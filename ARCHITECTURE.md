@@ -30,6 +30,12 @@ Collision telemetry remains simulation output. `GameController._route_collision_
 
 Overlay layer ordering is a real constraint, not a detail: `GameplayHudLayer` 40, `ResultOverlayLayer` 50, `HomeOverlayLayer` 60, `DailyMissionsOverlayLayer` 65. A popup must sit above whichever surface opens it.
 
+# Architecture Addendum - Power and Level-Entry Presentation
+
+`PowerCinematicLayer` still owns only icon/backdrop/impact drawing and emits the existing `impact_reached` signal. Its timing now separates fast shared travel from power-specific local anticipation; it never reads or mutates pieces.
+
+`GameController` composes two transient presentation offsets after `GameConfig.table_texture_center()` and `table_texture_render_scale()`: level-entry rise/scale and power-impact shake. Only `table_sprite` and `GemSpriteLayer` receive these offsets. `GemPiece.position`, `BoardSimulation`, rail geometry, drag clamps, launcher coordinates, and HUD snapshots remain authoritative and untouched. Every transient ends by restoring the exact centralized transform.
+
 # Architecture Addendum - Skip Level Sink and Current Gem Reroll
 
 Reference refinement V2 changes presentation tokens only: the live Switch Gem control is a 112 px squircle using `arrows_clockwise_white.svg`, and the right utility stack reads compact `NEXT_PANEL_SIZE`/`NEXT_ICON_SIZE` plus an explicit 12 px container separation before Settings. Controller snapshots, input signals, economy authority, and table physics are unchanged.

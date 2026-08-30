@@ -96,6 +96,15 @@ var background_sprite: Sprite2D
 var table_sprite: Sprite2D
 var applied_table_offset_x := 0.0
 var applied_table_offset_y := 0.0
+## Presentation offsets are composed after authoritative table geometry. They
+## never change piece positions, physics borders, input coordinates, or HUD data.
+var table_impact_elapsed := 0.0
+var table_impact_amplitude := 0.0
+var table_impact_offset := Vector2.ZERO
+var level_entry_active := false
+var level_entry_elapsed := 0.0
+var level_entry_offset := Vector2.ZERO
+var level_entry_table_scale := 1.0
 var ready_delay_elapsed := 0.0
 var launcher_handoff_elapsed := 0.0
 var audio_feedback: Node
@@ -252,6 +261,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	process_frame_index += 1
+	_update_level_entry_presentation(delta)
+	_update_table_impact_feedback(delta)
 	# Advanced before any state-dependent early return: the mission banner is
 	# non-blocking presentation and must finish its animation even if the board
 	# stops updating underneath it.
@@ -981,8 +992,77 @@ func _viewport_centre() -> Vector2:
 
 
 func _on_power_cinematic_impact(power: String) -> void:
+	_start_table_impact_feedback(power)
 	_apply_pending_power_effect()
 	_play_power_impact_feedback(power)
+
+
+func _start_table_impact_feedback(power: String) -> void:
+	table_impact_elapsed = 0.0
+	table_impact_amplitude = float(GameConfig.POWER_TABLE_SHAKE_AMPLITUDE.get(power, 1.6))
+	table_impact_offset = Vector2.ZERO
+	_apply_table_presentation_transform()
+
+
+func _update_table_impact_feedback(delta: float) -> void:
+	if table_impact_amplitude <= 0.0:
+		return
+	table_impact_elapsed += delta
+	var progress := clampf(table_impact_elapsed / GameConfig.POWER_TABLE_SHAKE_DURATION, 0.0, 1.0)
+	var envelope := pow(1.0 - progress, 2.0)
+	# Deterministic opposing axes give a crisp, subtle table response without
+	# random jitter or any coupling to the simulation step.
+	table_impact_offset = Vector2(
+		sin(table_impact_elapsed * 112.0),
+		cos(table_impact_elapsed * 91.0) * 0.55
+	) * table_impact_amplitude * envelope
+	if progress >= 1.0:
+		table_impact_amplitude = 0.0
+		table_impact_offset = Vector2.ZERO
+	_apply_table_presentation_transform()
+
+
+func _start_level_entry_presentation() -> void:
+	level_entry_active = true
+	level_entry_elapsed = 0.0
+	level_entry_offset = Vector2(0.0, GameConfig.LEVEL_ENTRY_TABLE_SLIDE)
+	level_entry_table_scale = GameConfig.LEVEL_ENTRY_TABLE_START_SCALE
+	_apply_table_presentation_transform()
+	_apply_level_entry_alpha(0.0)
+
+
+func _update_level_entry_presentation(delta: float) -> void:
+	if not level_entry_active:
+		return
+	level_entry_elapsed += delta
+	var progress := clampf(level_entry_elapsed / GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION, 0.0, 1.0)
+	var eased := 1.0 - pow(1.0 - progress, 3.0)
+	level_entry_offset = Vector2(0.0, lerpf(GameConfig.LEVEL_ENTRY_TABLE_SLIDE, 0.0, eased))
+	level_entry_table_scale = lerpf(GameConfig.LEVEL_ENTRY_TABLE_START_SCALE, 1.0, eased)
+	_apply_level_entry_alpha(eased)
+	if progress >= 1.0:
+		level_entry_active = false
+		level_entry_offset = Vector2.ZERO
+		level_entry_table_scale = 1.0
+		_apply_level_entry_alpha(1.0)
+	_apply_table_presentation_transform()
+
+
+func _apply_level_entry_alpha(alpha: float) -> void:
+	if table_sprite != null:
+		var calm := GameConfig.TABLE_ART_CALM_MODULATE
+		table_sprite.modulate = Color(calm.r, calm.g, calm.b, calm.a * alpha)
+	if gem_sprite_layer != null:
+		gem_sprite_layer.modulate.a = alpha
+
+
+func _apply_table_presentation_transform() -> void:
+	var combined_offset := level_entry_offset + table_impact_offset
+	if table_sprite != null:
+		table_sprite.position = GameConfig.table_texture_center() + combined_offset
+		table_sprite.scale = GameConfig.table_texture_render_scale() * level_entry_table_scale
+	if gem_sprite_layer != null:
+		gem_sprite_layer.position = combined_offset
 
 
 ## Fires on the cinematic's impact beat rather than at activation, so the sound
@@ -1295,6 +1375,13 @@ func restart() -> void:
 	merge_service.clear()
 	_clear_magnet_field()
 	pending_power_effect = {}
+	table_impact_elapsed = 0.0
+	table_impact_amplitude = 0.0
+	table_impact_offset = Vector2.ZERO
+	level_entry_active = false
+	level_entry_elapsed = 0.0
+	level_entry_offset = Vector2.ZERO
+	level_entry_table_scale = 1.0
 	merge_presentations.clear()
 	next_piece_id = 1
 	_configure_generated_level(level_number, level_seed)
@@ -1357,6 +1444,8 @@ func restart() -> void:
 	if effects_layer != null:
 		effects_layer.clear()
 	if gem_sprite_layer != null:
+		gem_sprite_layer.position = Vector2.ZERO
+		gem_sprite_layer.modulate = Color.WHITE
 		gem_sprite_layer.clear_presentation_scales()
 	_advance_launcher_lifecycle()
 	if gem_sprite_layer != null:
@@ -1579,9 +1668,8 @@ func _refresh_background_fill() -> void:
 		applied_table_offset_x = new_offset.x
 		applied_table_offset_y = new_offset.y
 	if table_sprite != null:
-		table_sprite.position = GameConfig.table_texture_center()
-		table_sprite.scale = GameConfig.table_texture_render_scale()
-		table_sprite.modulate = GameConfig.TABLE_ART_CALM_MODULATE
+		_apply_table_presentation_transform()
+		_apply_level_entry_alpha(1.0 if not level_entry_active else clampf(level_entry_elapsed / GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION, 0.0, 1.0))
 	var source_size := background_sprite.texture.get_size()
 	var cover_scale := maxf(viewport_size.x / source_size.x, viewport_size.y / source_size.y)
 	background_sprite.position = viewport_size * 0.5
@@ -3021,6 +3109,7 @@ func _on_home_play_requested() -> void:
 		if gameplay_ui != null:
 			gameplay_ui.show()
 		app_flow_state = AppFlowState.PLAYING
+		_start_level_entry_presentation()
 		_emit_level_start_analytics_once()
 		if is_inside_tree():
 			get_tree().paused = false

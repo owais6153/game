@@ -1,3 +1,10 @@
+# 2026-08-31 - Power motion and level-entry guardrails
+
+- Do not lengthen a cinematic by stretching its travel. Power travel ends at 32% of the 1.65-second timeline; use local anticipation/orbit motion for the remaining pre-impact beat.
+- Table feedback is a composed sprite offset only. Never move `GemPiece.position`, physics borders, input coordinates, or the gameplay root to create camera/table shake.
+- Level-entry presentation must restore exact `GameConfig` table center, render scale, calm modulation, and `GemSpriteLayer` origin/opacity. Reset it on restart before a new attempt is configured.
+- Power impact sound, haptic, staged gameplay effect, and table shake share the existing authoritative `impact_reached` beat; no presentation frame may duplicate that event.
+
 # 2026-08-31 - Player-facing feedback guardrails
 
 - Result copy must consume the authoritative `fail_reason`; never use one generic failure sentence for danger and exhausted-shot outcomes.

@@ -951,6 +951,19 @@ static func target_step_pitch(index: int) -> float:
 ## reading the same authoritative layout values.
 const TABLE_ART_CALM_MODULATE := Color(0.82, 0.84, 0.90, 1.0)
 
+## Presentation-only motion used at power impact and when a playable level is
+## revealed. These values never feed simulation coordinates or input clamps.
+const POWER_TABLE_SHAKE_DURATION := 0.16
+const POWER_TABLE_SHAKE_AMPLITUDE := {
+	"bomb": 4.0,
+	"hammer": 3.4,
+	"magnet": 1.8,
+	"switch": 1.8,
+}
+const LEVEL_ENTRY_PRESENTATION_DURATION := 0.52
+const LEVEL_ENTRY_TABLE_SLIDE := 28.0
+const LEVEL_ENTRY_TABLE_START_SCALE := 0.965
+
 ## Extra reach used ONLY when looking for a chain after a merge resolves.
 ##
 ## The primary merge stays strictly contact-only: two gems must actually touch,

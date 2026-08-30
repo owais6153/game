@@ -1,5 +1,11 @@
 # Sound + Haptics v1 Report
 
+## Power motion and level-entry note - 2026-08-31
+
+- Faster icon travel and the level-entry table reveal are visual-only and add no sound or haptic event.
+- The subtle table response starts from the same authoritative `impact_reached` callback as the staged board effect. Existing `power_bomb` / `power_hammer` / `power_magnet` / `power_switch` audio and `major_merge` / `merge` haptics still fire exactly once on that beat.
+- No feedback-service cache, priority, cooldown, concurrency, gain, toggle, or platform-vibration mapping changed.
+
 ## Player feedback repair routing note - 2026-08-31
 
 - The longer Bomb/Hammer target wind-up adds no new audio or haptic event. Existing `power_charge` still begins the cinematic; `power_bomb` / `power_hammer` and `major_merge` haptics still fire only on the authoritative impact beat.
