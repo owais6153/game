@@ -259,6 +259,10 @@ func _process(delta: float) -> void:
 	# stops updating underneath it.
 	if gameplay_ui != null:
 		gameplay_ui.update_mission_toast(delta)
+	# Same reasoning: the armed-power instruction must keep repeating even while
+	# the board is paused behind a modal, or the player is left in a targeting
+	# mode with nothing on screen explaining it.
+	_update_target_prompt(delta)
 	collision_visual_clock += delta
 	for marker in debug_contact_points:
 		marker.age = float(marker.get("age", 0.0)) + delta
@@ -694,9 +698,10 @@ func _begin_power_targeting(power: String) -> void:
 	dragging = false
 	# Told in the same language as a combo: same font, colour, rise and duration,
 	# so "what do I do now" is answered where the player is already looking
-	# rather than in a separate panel.
-	if effects_layer != null:
-		effects_layer.show_board_prompt("TAP ON GEM", Vector2(GameConfig.table_center_x(), GameConfig.danger_line_y() - 120.0))
+	# rather than in a separate panel. Restarted here and then repeated by
+	# _update_target_prompt for as long as the power stays armed.
+	_target_prompt_elapsed = 0.0
+	_show_target_prompt()
 	if gameplay_ui != null:
 		gameplay_ui.set_power_targeting(power)
 	_refresh_hud()

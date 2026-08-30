@@ -18,6 +18,9 @@ signal level_reward_finished
 
 var score_popups: Array[Dictionary] = []
 var merge_impacts: Array[Dictionary] = []
+## Coloured fragments thrown outward by a merge. Presentation only.
+var merge_shards: Array[Dictionary] = []
+const MERGE_SHARD_LIMIT := 90
 var coin_rewards: Array[Dictionary] = []
 var launch_impacts: Array[Dictionary] = []
 var combo_labels: Array[Dictionary] = []
@@ -83,6 +86,7 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 			"elapsed": -delay,
 			"duration": GameConfig.TARGET_ACHIEVED_LABEL_DURATION,
 		})
+	_spawn_merge_shards(midpoint, result_level, major_reward or target_merge or final_target, delay)
 	_cap_effects()
 	queue_redraw()
 
@@ -354,6 +358,7 @@ func update_effects(delta: float) -> void:
 		popup.elapsed = float(popup.get("elapsed", 0.0)) + delta
 	for impact in merge_impacts:
 		impact.elapsed = float(impact.get("elapsed", 0.0)) + delta
+	_update_merge_shards(delta)
 	for coin in coin_rewards:
 		coin.elapsed = float(coin.get("elapsed", 0.0)) + delta
 		var flight_start := GameConfig.target_coin_flight_start(int(coin.flight_rank), int(coin.count))
@@ -390,6 +395,7 @@ func update_effects(delta: float) -> void:
 func clear() -> void:
 	score_popups.clear()
 	merge_impacts.clear()
+	merge_shards.clear()
 	coin_rewards.clear()
 	launch_impacts.clear()
 	combo_labels.clear()
@@ -458,6 +464,9 @@ func _draw() -> void:
 	_draw_hero_effect()
 	for impact in merge_impacts:
 		_draw_merge_impact(impact)
+	# After the ring so fragments read as thrown out of it, before the coins and
+	# labels so reward text is never obscured.
+	_draw_merge_shards()
 	for coin in level_reward_coins:
 		_draw_level_reward_coin(coin)
 	for coin in coin_rewards:
@@ -725,6 +734,10 @@ func _cap_effects() -> void:
 		score_popups.pop_front()
 	while merge_impacts.size() > 12:
 		merge_impacts.pop_front()
+	# Bounded like every other pool. A deep chain can spawn several bursts at
+	# once, and shards are the highest-count effect on screen.
+	while merge_shards.size() > MERGE_SHARD_LIMIT:
+		merge_shards.pop_front()
 	while combo_labels.size() > 4:
 		combo_labels.pop_front()
 	while panel_sparkles.size() > 12:
@@ -751,3 +764,71 @@ func show_board_prompt(text: String, at_position: Vector2) -> void:
 	})
 	_cap_effects()
 	queue_redraw()
+
+
+## Coloured fragments thrown outward by a merge, falling under gravity.
+##
+## Spawned from the merged gem's own colour so the burst always reads as "that
+## gem broke apart" rather than as a generic effect. Purely presentational: the
+## shards never touch simulation, contact, or merge eligibility.
+func _spawn_merge_shards(at_position: Vector2, level: int, major: bool, delay: float) -> void:
+	var count := GameConfig.MERGE_SHARD_COUNT_MAJOR if major else GameConfig.MERGE_SHARD_COUNT_NORMAL
+	var tint := GameConfig.gem_color(level)
+	for index in range(count):
+		# Spread evenly with a deterministic jitter, so a burst never clumps to
+		# one side and never needs a random seed to look organic.
+		var angle := TAU * (float(index) + 0.37 * float(index * index % 7)) / float(count)
+		var speed := lerpf(GameConfig.MERGE_SHARD_SPEED.x, GameConfig.MERGE_SHARD_SPEED.y,
+			float((index * 53) % 11) / 10.0)
+		merge_shards.append({
+			"position": at_position,
+			"velocity": Vector2.from_angle(angle - PI * 0.5) * speed,
+			"rotation": angle,
+			"spin": GameConfig.MERGE_SHARD_SPIN * (1.0 if index % 2 == 0 else -1.0),
+			"elapsed": -delay,
+			"duration": GameConfig.MERGE_SHARD_DURATION,
+			"tint": tint,
+			"scale": 1.25 if major else 1.0,
+		})
+
+
+func _update_merge_shards(delta: float) -> void:
+	for shard in merge_shards:
+		shard.elapsed = float(shard.elapsed) + delta
+		if float(shard.elapsed) < 0.0:
+			continue
+		var velocity: Vector2 = shard.velocity
+		velocity.y += GameConfig.MERGE_SHARD_GRAVITY * delta
+		shard.velocity = velocity
+		shard.position = (shard.position as Vector2) + velocity * delta
+		shard.rotation = float(shard.rotation) + float(shard.spin) * delta
+	merge_shards = merge_shards.filter(func(shard: Dictionary) -> bool:
+		return float(shard.elapsed) < float(shard.duration)
+	)
+
+
+func _draw_merge_shards() -> void:
+	for shard in merge_shards:
+		var elapsed := float(shard.elapsed)
+		if elapsed < 0.0:
+			continue
+		var life := clampf(elapsed / maxf(0.001, float(shard.duration)), 0.0, 1.0)
+		var tint: Color = shard.tint
+		# Hold full opacity briefly so the burst registers, then fade out.
+		tint.a = 1.0 - smoothstep(0.45, 1.0, life)
+		var size: Vector2 = GameConfig.MERGE_SHARD_SIZE * float(shard.scale) * (1.0 - life * 0.35)
+		var centre: Vector2 = shard.position
+		var basis := Transform2D(float(shard.rotation), centre)
+		# A four-point sliver reads as a chip of gem at this size; a quad reads
+		# as a rectangle and a circle reads as a bubble.
+		var points := PackedVector2Array([
+			basis * Vector2(0.0, -size.y),
+			basis * Vector2(size.x, 0.0),
+			basis * Vector2(0.0, size.y),
+			basis * Vector2(-size.x, 0.0),
+		])
+		draw_colored_polygon(points, tint)
+
+
+func active_merge_shard_count() -> int:
+	return merge_shards.size()

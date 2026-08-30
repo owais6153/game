@@ -723,10 +723,13 @@ func _build_hud() -> void:
 ## too small for the text and numbers at this size, so the row now uses the
 ## plain square plate: the icon gets the whole tile, the name sits under it, and
 ## the count rides the corner where it always has room.
-const POWER_TILE_SIZE := 124.0
+## Sized so the whole row fits below the table rather than overlapping it.
+## The table ends at ~1454 in design space and the screen at 1600, so the row
+## plus its caption and margins must stay inside ~146px.
+const POWER_TILE_SIZE := 92.0
 const POWER_TILE_GAP := 18
 const POWER_CAPTION_GAP := 4
-const POWER_CAPTION_HEIGHT := 24.0
+const POWER_CAPTION_HEIGHT := 14.0
 ## The icon fills the plate, inset only enough to clear the bevelled border.
 const POWER_ICON_INSET := 14.0
 ## The count badge overlaps the plate's top-right corner rather than sitting
@@ -737,7 +740,7 @@ const POWER_BADGE_OVERLAP := 12.0
 ## captions on a 360x640 screen, which read as clipped text against the screen
 ## edge. Sized so the captions keep visible breathing room at every portrait
 ## size, including aspects shorter than 16:9.
-const POWER_ROW_BOTTOM_PADDING := 40.0
+const POWER_ROW_BOTTOM_PADDING := 12.0
 const POWER_TILE_ARMED_SCALE := 1.14
 const POWER_TILE_ARMED_MODULATE := Color(1.34, 1.24, 0.94, 1.0)
 ## A power that cannot act right now is dimmed but never disabled.
@@ -1691,10 +1694,11 @@ func _refresh_safe_margins() -> void:
 		# their name and count inside the frame, so the row needs real clearance
 		# from the screen edge rather than the bare safe-area minimum.
 		var sink_bottom_margin := maxf(base_margin + POWER_ROW_BOTTOM_PADDING, insets.w * inverse_scale + UiDesignSystemType.SAFE_INSET_PADDING)
-		# Match the approved reference by seating the control across the lower
-		# table frame while retaining the safe-area clamp for short screens.
+		# Strictly below the table, not across its lower frame. Overlapping the
+		# table put four buttons inside the area the player drags across to aim,
+		# so shots were being turned into accidental power taps.
 		var sink_top := clampf(
-			GameConfig.table_outer_bottom() - 36.0,
+			GameConfig.table_outer_bottom() + 6.0,
 			GameConfig.board_bottom() + 4.0,
 			design_height - sink_row_height - sink_bottom_margin
 		)

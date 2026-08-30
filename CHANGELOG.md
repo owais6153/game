@@ -1,3 +1,11 @@
+# 2026-08-30 - ffmpeg installed, power row moved off the table, gem shards, prompt fixed
+
+- **Installed ffmpeg** and extracted the reference video rather than continuing to work from description. What it actually shows: powers live in a dedicated bar **well below** the board, the HUD is a compact top strip, and every routine match throws **coloured fragments** outward plus white star sparkles - localised to the match, never screen-wide.
+- **Moved the power row off the table.** It was anchored across the table's lower frame, starting at y1384 while the table ends at y1454 - seventy pixels *inside* the area the player drags across to aim, which is why shots were turning into accidental power taps. The row now sits strictly below the table and was resized (tile 124 -> 92, caption 24 -> 14) so it still fits on screen. A regression asserts no power button ever overlaps the playable board, at four portrait sizes.
+- **Added gem shards to merges**, the main thing the reference does that we did not. Every merge now throws coloured fragments from the merged gem's own colour, falling under gravity and fading. Seven on an ordinary merge, eleven on a target merge, pool-capped at ninety and cleared with the layer.
+- **Fixed the "TAP ON GEM" prompt, properly this time.** Two of my previous edits had silently failed to apply: the repeat was never wired into `_process` and the arm-time call was never replaced. The prompt therefore fired once for under a second and was effectively invisible. Both are now applied and verified - headless, the prompt is visible in 325 of 400 frames while a power stays armed, and it is confirmed on the device.
+- All thirty-one suites pass.
+
 # 2026-08-30 - Merge grace, cluster overlap, chain reach, repeating power prompt
 
 - **Found the "touching but didn't merge" cause: `BONUS_MERGE_GRACE_MS` was 650.** A fresh bonus gem cannot merge during that window, and bonus gems spawn on *every* merge - so there were almost always gems visibly touching a match and refusing to combine for two thirds of a second. Cut to 180ms, enough to keep the spawn pop readable. This also feeds directly into chains, because bonus gems can now join one instead of sitting it out.

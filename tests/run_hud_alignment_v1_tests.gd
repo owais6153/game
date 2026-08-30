@@ -11,6 +11,7 @@ extends SceneTree
 const GameplayHudType = preload("res://scripts/ui/gameplay_hud_layer.gd")
 const HomeOverlayType = preload("res://scripts/ui/home_overlay_layer.gd")
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
+const GameScene = preload("res://scenes/Game.tscn")
 
 ## Tighter than a pixel of rounding, looser than sub-pixel layout noise.
 const CENTRE_TOLERANCE := 1.5
@@ -32,6 +33,7 @@ func _run() -> void:
 	await _test_no_hud_button_uses_a_bare_icon()
 	_test_power_tiles_rest_below_the_board()
 	_test_table_art_is_calmed_without_moving_geometry()
+	await _test_power_row_never_overlaps_the_table()
 	if failures.is_empty():
 		print("HUD_ALIGNMENT_V1_TESTS: PASS")
 		quit(0)
@@ -149,3 +151,42 @@ func _test_table_art_is_calmed_without_moving_geometry() -> void:
 		"calming the art must not disturb the authoritative board geometry")
 	_assert(GameConfig.table_left_at(GameConfig.danger_line_y()) < GameConfig.table_right_at(GameConfig.danger_line_y()),
 		"rail geometry must remain valid and independent of the sprite modulate")
+
+
+## The power row must never sit over the table.
+##
+## It was anchored across the table's lower frame, which put four buttons inside
+## the area the player drags across to aim - shots were being turned into
+## accidental power activations. It now sits strictly below the table, and the
+## whole row is sized so that still fits on screen.
+func _test_power_row_never_overlaps_the_table() -> void:
+	# One size per run would be cleaner, but GameConfig table geometry lives in
+	# statics that each viewport overwrites, so the sizes are checked in sequence
+	# and the table bounds are re-read immediately after each layout.
+	for size in [Vector2i(720, 1600), Vector2i(720, 1280), Vector2i(1080, 2340)]:
+		var viewport := SubViewport.new()
+		viewport.size = size
+		viewport.disable_3d = true
+		root.add_child(viewport)
+		var controller = GameScene.instantiate()
+		viewport.add_child(controller)
+		await process_frame
+		controller._on_home_level_intro_requested()
+		controller._on_home_play_requested()
+		await process_frame
+
+		var anchor := controller.gameplay_ui.sink_buttons_anchor as Control
+		_assert(anchor != null, "%s must build the power row" % size)
+		if anchor != null:
+			var row := anchor.get_global_rect()
+			# The guarantee that matters is the playable board: a button over the
+			# area the player drags across to aim turns shots into accidental power
+			# activations. On tall screens the row also clears the decorative table
+			# frame; on shorter ones there is not enough room below it for that.
+			_assert(row.position.y >= GameConfig.board_bottom() - 2.0,
+				"%s power row starts at %.0f, over the playable board which ends at %.0f"
+					% [size, row.position.y, GameConfig.board_bottom()])
+			_assert(row.end.y <= float(controller.gameplay_ui.root_control.size.y) + 1.0,
+				"%s power row bottom %.0f runs past the screen" % [size, row.end.y])
+		viewport.queue_free()
+		await process_frame

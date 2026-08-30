@@ -958,3 +958,21 @@ const CHAIN_CONTACT_TOLERANCE := 30.0 # safe readable range 12-30
 ## itself, so there is a visible beat between repeats rather than a solid block
 ## of text sitting over the board.
 const TARGET_PROMPT_REPEAT_INTERVAL := 1.35
+
+## Gem shards thrown outward when a merge resolves.
+##
+## The merge previously read as a ring plus abstract sparks. The reference this
+## was compared against breaks the matched pieces into coloured fragments that
+## fly outward and fall, which is what makes an ordinary match feel physical
+## rather than like a swap. These are drawn shapes tinted from the merged gem,
+## so they cost nothing to load and stay on-theme automatically.
+##
+## Counts stay small and scale with the reward tier, so an ordinary merge is
+## lively without the board becoming confetti.
+const MERGE_SHARD_COUNT_NORMAL := 7
+const MERGE_SHARD_COUNT_MAJOR := 11
+const MERGE_SHARD_SPEED := Vector2(120.0, 260.0)
+const MERGE_SHARD_GRAVITY := 900.0
+const MERGE_SHARD_DURATION := 0.46
+const MERGE_SHARD_SIZE := Vector2(5.0, 11.0)
+const MERGE_SHARD_SPIN := 7.0

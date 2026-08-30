@@ -20,6 +20,7 @@ func _run() -> void:
 	_test_touching_matches_always_merge()
 	_test_fresh_bonus_gems_rejoin_quickly()
 	_test_chains_can_reach_combo_two()
+	_test_merges_throw_coloured_shards()
 	if failures.is_empty():
 		print("MERGE_PHYSICS_V1_TESTS: PASS")
 		quit(0)
@@ -131,3 +132,46 @@ func _test_chains_can_reach_combo_two() -> void:
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
 		failures.append(message)
+
+
+## An ordinary merge should read as the gem breaking apart, not as a swap.
+## The reference this was compared against throws coloured fragments outward on
+## every routine match; ours had only a ring and abstract sparks.
+func _test_merges_throw_coloured_shards() -> void:
+	var effects = preload("res://scripts/presentation/gameplay_effects_layer.gd").new()
+	root.add_child(effects)
+	effects.begin_merge_feedback({
+		"result_id": 1, "midpoint": Vector2(360.0, 800.0), "level": 4, "depth": 0,
+		"timeline": GameConfig.MERGE_TIMELINE_NORMAL,
+	})
+	_assert(effects.active_merge_shard_count() > 0,
+		"an ordinary merge must throw shards")
+	_assert(effects.active_merge_shard_count() == GameConfig.MERGE_SHARD_COUNT_NORMAL,
+		"an ordinary merge must throw its configured count")
+
+	# A target merge is a bigger moment and must throw more.
+	effects.clear()
+	effects.begin_merge_feedback({
+		"result_id": 2, "midpoint": Vector2(360.0, 800.0), "level": 8, "depth": 0,
+		"target_objective_completed": true,
+		"timeline": GameConfig.MERGE_TIMELINE_TARGET,
+	})
+	_assert(effects.active_merge_shard_count() == GameConfig.MERGE_SHARD_COUNT_MAJOR,
+		"a target merge must throw the larger burst")
+
+	# Bounded, self-expiring, and cleared with the rest of the layer.
+	effects.clear()
+	for index in range(40):
+		effects.begin_merge_feedback({
+			"result_id": index, "midpoint": Vector2(360.0, 800.0), "level": 7, "depth": 2,
+			"timeline": GameConfig.MERGE_TIMELINE_COMBO_2,
+		})
+	_assert(effects.active_merge_shard_count() <= effects.MERGE_SHARD_LIMIT,
+		"shards must stay bounded under repeated bursts (%d)" % effects.active_merge_shard_count())
+	for _frame in range(90):
+		effects.update_effects(1.0 / 60.0)
+	_assert(effects.active_merge_shard_count() == 0,
+		"shards must expire on their own rather than accumulating")
+	effects.clear()
+	_assert(effects.active_merge_shard_count() == 0, "clear() must drop every shard")
+	effects.queue_free()
