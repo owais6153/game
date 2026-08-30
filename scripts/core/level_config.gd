@@ -228,12 +228,19 @@ const STARTING_BOARD_ROW_SPACING := 78.0
 ## an opening board is never itself close to failing the level.
 const STARTING_BOARD_DANGER_MARGIN := 250.0
 ## From here on, opening rows leave a single gap instead of two.
-const STARTING_BOARD_DENSE_LEVEL := 12
+const STARTING_BOARD_DENSE_LEVEL := 2
+## Minimum normalised horizontal separation between one row's gap and the next's.
+## Below roughly a fifth of the row width the two openings overlap enough to
+## leave a gem-width channel straight through the board.
+const STARTING_BOARD_GAP_SEPARATION := 0.30
 
 static func starting_board_rows(level_number: int) -> int:
 	if level_number < STARTING_BOARD_FIRST_LEVEL:
 		return 0
-	return mini(STARTING_BOARD_MAX_ROWS, 1 + (level_number - STARTING_BOARD_FIRST_LEVEL) / 3)
+	# Two rows minimum. A single-row board cannot block a straight lane - its gap
+	# is open top to bottom by definition - so the very first seeded levels were
+	# still one-lineable however the gaps were chosen.
+	return mini(STARTING_BOARD_MAX_ROWS, 2 + (level_number - STARTING_BOARD_FIRST_LEVEL) / 3)
 
 
 ## Returns placement records rather than pieces, so the data boundary stays
@@ -245,6 +252,7 @@ static func starting_board_for_level(level_number: int, seed_value: int, mapping
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int((seed_value ^ 0x5F3759DF) & 0x7fffffff)
 	var board: Array = []
+	var previous_gap_positions: Array[float] = []
 	for row in range(rows):
 		# Alternate rows are offset by half a column, so no straight vertical
 		# lane runs the height of the opening board.
@@ -258,11 +266,41 @@ static func starting_board_for_level(level_number: int, seed_value: int, mapping
 		# keeps rising after the row count has capped out. Without this the board
 		# stopped changing at all around level 8 and levels blurred together.
 		var gaps := 2 if level_number < STARTING_BOARD_DENSE_LEVEL else 1
+		# Gaps must not line up between rows. Rolled independently they often did,
+		# leaving a column empty in every row - a straight lane the player could
+		# shoot up all level without ever aiming, which is exactly the "push gems
+		# through one line" complaint. Excluding the previous row's gaps means no
+		# column is ever open in two consecutive rows, so no full-height lane can
+		# exist on any board with more than one row.
 		var gap_columns: Array[int] = []
-		while gap_columns.size() < mini(gaps, columns - 1):
-			var candidate := rng.randi_range(0, columns - 1)
-			if not gap_columns.has(candidate):
-				gap_columns.append(candidate)
+		# Excluded by normalised position, not by column index. Rows alternate five
+		# and four columns, so the same index sits at a different x in adjacent
+		# rows - and two different indices can line up almost exactly. Comparing
+		# where the gap actually falls across the row is what stops the openings
+		# stacking into a lane.
+		var available: Array[int] = []
+		for column in range(columns):
+			var t := float(column) / float(maxi(1, columns - 1))
+			var clear := true
+			for previous_t in previous_gap_positions:
+				if absf(t - float(previous_t)) < STARTING_BOARD_GAP_SEPARATION:
+					clear = false
+					break
+			if clear:
+				available.append(column)
+		# Guard: with enough gaps per row the exclusion could starve the pool, so
+		# fall back to every column rather than emit a sealed row.
+		if available.size() < mini(gaps, columns - 1):
+			available.clear()
+			for column in range(columns):
+				available.append(column)
+		while gap_columns.size() < mini(gaps, columns - 1) and not available.is_empty():
+			var picked := rng.randi_range(0, available.size() - 1)
+			gap_columns.append(available[picked])
+			available.remove_at(picked)
+		previous_gap_positions.clear()
+		for column in gap_columns:
+			previous_gap_positions.append(float(column) / float(maxi(1, columns - 1)))
 		for column in range(columns):
 			if gap_columns.has(column):
 				continue

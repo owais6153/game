@@ -688,6 +688,11 @@ func _on_power_requested(power: String) -> void:
 func _begin_power_targeting(power: String) -> void:
 	pending_power_target = power
 	dragging = false
+	# Told in the same language as a combo: same font, colour, rise and duration,
+	# so "what do I do now" is answered where the player is already looking
+	# rather than in a separate panel.
+	if effects_layer != null:
+		effects_layer.show_board_prompt("TAP ON GEM", Vector2(GameConfig.table_center_x(), GameConfig.danger_line_y() - 120.0))
 	if gameplay_ui != null:
 		gameplay_ui.set_power_targeting(power)
 	_refresh_hud()

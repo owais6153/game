@@ -108,9 +108,16 @@ func _test_chain_requires_each_contact() -> void:
 	var touching: Array[GemPiece] = [_piece(1, 1, Vector2(300 - r1, 700)), _piece(2, 1, Vector2(300 + r1, 700)), _piece(3, 2, Vector2(300, 700))]
 	var chain := _resolve(touching)
 	_assert(chain.merge_count == 2, "A chain may continue only when the created result physically touches its next match")
-	var separated: Array[GemPiece] = [_piece(11, 1, Vector2(300 - r1, 700)), _piece(12, 1, Vector2(300 + r1, 700)), _piece(13, 2, Vector2(300, 700 - r2 * 2.0 - 4.0))]
+	# Chains now reach slightly beyond touching, by CHAIN_CONTACT_TOLERANCE, so a
+	# combo is a reward for good placement rather than a coincidence. The reach
+	# is bounded, and that bound is the contract: a gem just past touching must
+	# chain, one clearly beyond the tolerance must not.
+	var within: Array[GemPiece] = [_piece(21, 1, Vector2(300 - r1, 700)), _piece(22, 1, Vector2(300 + r1, 700)), _piece(23, 2, Vector2(300, 700 - r2 * 2.0 - GameConfig.CHAIN_CONTACT_TOLERANCE * 0.5))]
+	_assert(_resolve(within).merge_count == 2,
+		"a follow-up gem inside the chain tolerance must continue the chain")
+	var separated: Array[GemPiece] = [_piece(11, 1, Vector2(300 - r1, 700)), _piece(12, 1, Vector2(300 + r1, 700)), _piece(13, 2, Vector2(300, 700 - r2 * 2.0 - GameConfig.CHAIN_CONTACT_TOLERANCE - 12.0))]
 	var no_chain := _resolve(separated)
-	_assert(no_chain.merge_count == 1, "A separated follow-up gem must not proximity-chain")
+	_assert(no_chain.merge_count == 1, "A gem beyond the chain tolerance must not proximity-chain")
 
 func _test_feedback_contracts() -> void:
 	# Reward feedback v3 replaces the 270 ms window with the approved 420 ms merge

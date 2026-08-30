@@ -78,7 +78,10 @@ func _resolve_cycle(pieces: Array[GemPiece], candidates: Array[ContactPair], nex
 	for upgraded in spawned:
 		for other in remaining:
 			if other.id == upgraded.id or other.level != upgraded.level: continue
-			if upgraded.position.distance_to(other.position) <= upgraded.radius + other.radius + GameConfig.CONTACT_EPSILON:
+			# Chain search only. The primary merge above still requires real contact
+			# within CONTACT_EPSILON; this wider window exists so a near-adjacent
+			# same-tier gem can continue the chain.
+			if upgraded.position.distance_to(other.position) <= upgraded.radius + other.radius + GameConfig.CHAIN_CONTACT_TOLERANCE:
 				chain_contacts.append(ContactPair.new(upgraded.id, other.id))
 	return {"pieces": remaining, "next_id": id_cursor, "merge_count": spawned.size(), "presentation_events": events, "chain_contacts": chain_contacts}
 

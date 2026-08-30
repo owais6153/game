@@ -96,9 +96,9 @@ func _test_normal_merge_scale_timeline() -> void:
 	_assert(is_equal_approx(controller._merge_result_transform_for(0.0, timeline).uniform_scale, 0.0), "The result gem must stay hidden through the hit-stop and source pull")
 	_assert(is_equal_approx(controller._merge_result_transform_for(0.119, timeline).uniform_scale, 0.0), "The result gem must appear only at the 120 ms impact frame")
 	_assert(is_equal_approx(controller._merge_result_transform_for(0.12, timeline).uniform_scale, 0.65), "The result gem must be revealed at 0.65 scale")
-	_assert(is_equal_approx(controller._merge_result_transform_for(0.21, timeline).uniform_scale, 1.24), "The normal merge pop must peak at 1.24")
-	_assert(is_equal_approx(controller._merge_result_transform_for(0.29, timeline).uniform_scale, 0.93), "The merge must recoil to 0.93")
-	_assert(is_equal_approx(controller._merge_result_transform_for(0.365, timeline).uniform_scale, 1.05), "The secondary settle must reach 1.05")
+	_assert(is_equal_approx(controller._merge_result_transform_for(0.21, timeline).uniform_scale, 1.30), "The normal merge pop must peak at 1.30")
+	_assert(is_equal_approx(controller._merge_result_transform_for(0.29, timeline).uniform_scale, 0.90), "The merge must recoil to 0.90")
+	_assert(is_equal_approx(controller._merge_result_transform_for(0.365, timeline).uniform_scale, 1.07), "The secondary settle must reach 1.07")
 	_assert(is_equal_approx(controller._merge_result_transform_for(0.42, timeline).uniform_scale, 1.0), "The merge must return to 1.0 by 420 ms")
 	var hero: Dictionary = GameConfig.MERGE_TIMELINE_FINAL_TARGET
 	_assert(is_equal_approx(controller._merge_result_transform_for(0.10, hero).uniform_scale, 0.60), "Final-target Phase A must reveal at 0.60")

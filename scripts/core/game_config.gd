@@ -176,9 +176,13 @@ const TARGET_HITSTOP_DURATION := 0.05
 const MERGE_RADIAL_DURATION := 0.18
 const MERGE_RADIAL_START_SCALE := 0.30
 const MERGE_RADIAL_END_SCALE := 1.30
-const MERGE_RADIAL_INTENSITY_NORMAL := 0.35
-const MERGE_RADIAL_INTENSITY_COMBO_1 := 0.45
-const MERGE_RADIAL_INTENSITY_COMBO_2 := 0.60
+## Raised from 0.35. An ordinary merge is the action the player performs most,
+## and it was the quietest thing on screen - the reference this was compared
+## against gives every routine match real visible feedback. Still ordered below
+## COMBO_1 so the hierarchy is unchanged; only the floor moved up.
+const MERGE_RADIAL_INTENSITY_NORMAL := 0.52
+const MERGE_RADIAL_INTENSITY_COMBO_1 := 0.60
+const MERGE_RADIAL_INTENSITY_COMBO_2 := 0.68
 const MERGE_RADIAL_INTENSITY_COMBO_3 := 0.80
 const MERGE_RADIAL_INTENSITY_COMBO_4 := 0.92
 const MERGE_RADIAL_INTENSITY_TARGET := 0.90
@@ -196,7 +200,8 @@ const MERGE_TIMELINE_NORMAL := {
 	"ring_scale": 1.0,
 	"radial_intensity": MERGE_RADIAL_INTENSITY_NORMAL,
 	"start_scale": MERGE_RESULT_START_SCALE,
-	"scale_keys": [[0.21, 1.24], [0.29, 0.93], [0.365, 1.05], [0.42, 1.0]],
+	# Slightly deeper overshoot and rebound than before, so the pop has weight.
+	"scale_keys": [[0.21, 1.30], [0.29, 0.90], [0.365, 1.07], [0.42, 1.0]],
 	"pitch": 1.0,
 }
 const MERGE_TIMELINE_COMBO_1 := {
@@ -926,3 +931,17 @@ static func target_step_pitch(index: int) -> float:
 ## containment, collision, drag clamps, or the danger line, all of which keep
 ## reading the same authoritative layout values.
 const TABLE_ART_CALM_MODULATE := Color(0.82, 0.84, 0.90, 1.0)
+
+## Extra reach used ONLY when looking for a chain after a merge resolves.
+##
+## The primary merge stays strictly contact-only: two gems must actually touch,
+## within CONTACT_EPSILON (2px), and that rule is untouched.
+##
+## Chains used the same 2px window, which meant a combo required the freshly
+## merged gem to be already touching another gem of its new tier to within two
+## pixels. Higher tiers are scarcer, so that almost never happened and players
+## effectively only ever saw Combo 1. This gives the chain search a wider but
+## bounded window - roughly half a small gem - so a near-adjacent same-tier gem
+## also chains. Combos become a regular reward for good placement rather than a
+## coincidence, without firing on every shot.
+const CHAIN_CONTACT_TOLERANCE := 22.0 # safe readable range 12-30

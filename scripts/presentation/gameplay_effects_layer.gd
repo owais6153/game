@@ -58,7 +58,9 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 		"ring_at": float(timeline.get("ring_at", 0.15)),
 		"duration": float(timeline.get("duration", GameConfig.MERGE_PRESENTATION_DURATION)),
 		"effect_scale": ring_scale,
-		"spark_count": 14 if target_merge else (GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 8),
+		# An ordinary merge went from 8 sparks to 12: enough to read as an event
+		# rather than a swap, still below the 14 a target merge throws.
+		"spark_count": 14 if target_merge else (GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 12),
 		"ring_layers": int(timeline.get("ring_layers", 1)),
 		"ring_segments": int(timeline.get("ring_segments", 30)),
 		"target_merge": target_merge,
@@ -734,3 +736,18 @@ func _cap_effects() -> void:
 			coin_arrived.emit(int(removed.get("result_id", -1)), int(removed.get("value", 0)), final_coin)
 			if final_coin:
 				_coin_flights_started.erase(int(removed.get("result_id", -1)))
+
+
+## One-off prompt drawn in exactly the combo-label style: same font, colour,
+## rise, duration and pop timing. Used to tell the player a targeted power is
+## armed and waiting for a board tap, so the instruction reads as part of the
+## same feedback language as Combo 1 rather than as a separate UI element.
+func show_board_prompt(text: String, at_position: Vector2) -> void:
+	combo_labels.append({
+		"position": at_position + Vector2(0.0, GameConfig.COMBO_LABEL_OFFSET_Y),
+		"text": text,
+		"elapsed": 0.0,
+		"duration": GameConfig.COMBO_LABEL_DURATION,
+	})
+	_cap_effects()
+	queue_redraw()

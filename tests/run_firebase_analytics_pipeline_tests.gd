@@ -111,23 +111,31 @@ func _test_live_gameplay_hooks() -> void:
 	_assert(_event_count("level_complete") == 0 and _event_count("level_start") == 1, "Skip Level must never emit level_complete and must not itself emit a new level_start")
 	_assert(int(ProgressionSaveServiceType.load_progress().total_coins) == seed_coins - skip_cost, "Skip Level must persist the resulting banked balance and advanced level atomically")
 
-	for tier_value in [6, 7, 8]:
-		var tier: int = int(tier_value)
-		var event_id: int = 1000 + tier
-		var confirmed_events: Array[Dictionary] = [{
-			"first_position": Vector2(300.0, 600.0),
-			"second_position": Vector2(360.0, 600.0),
-			"midpoint": Vector2(330.0, 600.0),
-			"level": tier,
-			"depth": 0,
-			"source_ids": [event_id - 2, event_id - 1],
-			"result_id": event_id,
-		}]
-		controller._apply_confirmed_merge_events(confirmed_events)
-	_assert(_event_count("merge") == 3, "Each accepted confirmed merge result must emit one merge event")
-	_assert(_event_count("target_complete") == 3, "Each completed target must emit target_complete exactly once")
+	# Driven by the level's actual requirement rather than assuming one gem per
+	# target. Target quantities scale with level, so a fixed one-merge-per-tier
+	# loop silently stopped completing anything once the saved level reached a
+	# band where the first target asks for two.
+	var required_merges := 0
+	var synthetic_id := 1000
+	for target_value in controller.target_sequence():
+		var target: Dictionary = target_value as Dictionary
+		var tier: int = int(target.get("tier", 6))
+		for _repeat in range(maxi(1, int(target.get("quantity", 1)))):
+			synthetic_id += 1
+			required_merges += 1
+			controller._apply_confirmed_merge_events([{
+				"first_position": Vector2(300.0, 600.0),
+				"second_position": Vector2(360.0, 600.0),
+				"midpoint": Vector2(330.0, 600.0),
+				"level": tier,
+				"depth": 0,
+				"source_ids": [synthetic_id - 2, synthetic_id - 1],
+				"result_id": synthetic_id,
+			}] as Array[Dictionary])
+	_assert(_event_count("merge") == required_merges, "Each accepted confirmed merge result must emit one merge event")
+	_assert(_event_count("target_complete") == controller.target_sequence().size(), "Each completed target must emit target_complete exactly once")
 	_assert(_event_count("level_complete") == 1, "The final target must emit level_complete exactly once")
-	_assert(_event_count("coin_earned") == 3, "Each confirmed target reward must emit one bounded coin_earned event")
+	_assert(_event_count("coin_earned") == required_merges, "Each confirmed target reward must emit one bounded coin_earned event")
 	var merge_parameters := _first_parameters("merge")
 	_assert(merge_parameters.has("level_number") and merge_parameters.has("merged_gem_id") and merge_parameters.has("merged_gem_type") and bool(merge_parameters.get("involved_target", false)), "merge must carry level, gem identity/type, and target involvement")
 	var target_parameters := _first_parameters("target_complete")

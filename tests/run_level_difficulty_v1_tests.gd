@@ -22,6 +22,7 @@ func _run() -> void:
 	_test_opening_board_grows_and_is_bounded()
 	_test_opening_board_is_deterministic()
 	_test_opening_board_leaves_a_route_through()
+	_test_no_opening_board_leaves_a_straight_lane()
 	await _test_controller_places_the_opening_board()
 	await _test_level_advance_starts_clean()
 	await _test_opening_board_survives_the_real_entry_flow()
@@ -304,3 +305,69 @@ func _test_opening_board_survives_the_real_entry_flow() -> void:
 			% [expected.size(), controller._targetable_pieces().size()])
 	viewport.queue_free()
 	await process_frame
+
+
+## No seeded board may contain a straight open lane.
+##
+## Gaps were rolled independently per row, so they frequently lined up and left
+## a column empty in every row. That column could be shot up all level without
+## ever aiming horizontally - the "push gems through one line" complaint. Rows
+## now exclude the previous row's gaps, and boards start at two rows because a
+## single-row board's gap is open top to bottom by definition.
+func _test_no_opening_board_leaves_a_straight_lane() -> void:
+	for level in range(LevelConfigType.STARTING_BOARD_FIRST_LEVEL, 61):
+		var config := LevelConfigType.generated(level, LevelConfigType.seed_for_level(level))
+		var board: Array = config.get("starting_board", []) as Array
+		if board.is_empty():
+			continue
+		# Checked against real x spans, not column indices. Rows alternate five and
+		# four columns with a half-gem offset, so a column index missing from a
+		# staggered row is not necessarily an opening - the neighbouring gem covers
+		# that ground. Only actual geometry answers whether a lane exists.
+		var spans_by_row := {}
+		var interior_left := -INF
+		var interior_right := INF
+		var lowest_row_y := GameConfig.danger_line_y() - LevelConfigType.STARTING_BOARD_DANGER_MARGIN
+		for entry_value in board:
+			var entry: Dictionary = entry_value as Dictionary
+			var row := int(entry.get("row", 0))
+			var tier := int(entry.get("tier", 1))
+			var row_columns := maxi(2, int(entry.get("columns", LevelConfigType.STARTING_BOARD_COLUMNS)))
+			var y_position := lowest_row_y - float(row) * LevelConfigType.STARTING_BOARD_ROW_SPACING
+			var radius := GameConfig.gem_collision_radius(tier)
+			var left := GameConfig.table_left_at(y_position) + radius
+			var right := GameConfig.table_right_at(y_position) - radius
+			var x_position := lerpf(left, right, clampf(float(entry.get("column", 0)) / float(row_columns - 1), 0.0, 1.0))
+			if not spans_by_row.has(row):
+				spans_by_row[row] = []
+			(spans_by_row[row] as Array).append(Vector2(x_position - radius, x_position + radius))
+			# The aimable corridor is the table interior, not the full 0-720 board
+			# rect. Sampling outside the rails reported the scenery either side of
+			# the table as a lane.
+			interior_left = maxf(interior_left, GameConfig.table_left_at(y_position))
+			interior_right = minf(interior_right, GameConfig.table_right_at(y_position))
+		_assert(spans_by_row.size() >= 2,
+			"level %d must seed at least two rows, or its gap is a lane by definition" % level)
+		# A lane only matters if a gem can actually travel it, so the corridor has
+		# to be at least a small gem wide - a zero-width sample would flag the
+		# ordinary spacing between neighbouring gems as an exploit.
+		var lane_width := GameConfig.gem_collision_radius(1) * 2.0
+		var samples := 240
+		var widest_free := 0.0
+		var run := 0.0
+		var step := (interior_right - interior_left) / float(samples)
+		for index in range(samples + 1):
+			var x := interior_left + step * float(index)
+			var free_in_all := true
+			for row in spans_by_row.keys():
+				for span in (spans_by_row[row] as Array):
+					if x >= (span as Vector2).x and x <= (span as Vector2).y:
+						free_in_all = false
+						break
+				if not free_in_all:
+					break
+			run = run + step if free_in_all else 0.0
+			widest_free = maxf(widest_free, run)
+		_assert(widest_free < lane_width,
+			"level %d leaves a %.0fpx straight lane through every seeded row (a gem is %.0fpx)"
+				% [level, widest_free, lane_width])
