@@ -1,3 +1,14 @@
+# Final HUD, VFX, Power, and Audio Test Candidate - 2026-08-30
+
+- The reported limited-shots composition is corrected: Counter/Target/merge path now ends above the table at 720x1280, 720x1600, and 1080x2340; the counter moves upward into unused centre-top space rather than dragging the objective stack onto the board.
+- The temporary mission/ad-grant banner now floats just inside the upper table, input-transparent, because the persistent limited-shots readouts occupy the centre-top band; it no longer covers Shots or Target.
+- Four 92px power tiles remain below the playable table. Their buttons no longer intercept aiming/pushing gestures, including the 720x1280 limited-shots layout captured in `reports/powers-v1/screenshots/limited-shots-720x1280.png`.
+- Merge feedback now changes continuously with result tier and exact gem color. L1-L8 scale from 0.92x to 1.34x, spark/shard counts rise within hard caps, and high tiers receive a bounded white-hot core. The existing simulation, contact eligibility, result tier, and timing remain unchanged.
+- Power cinematics are 1.08s and skippable. Bomb/Hammer flashes and debris are brighter than Magnet/Switch; supplied per-power cues replace procedural placeholders. The incomplete Claude edit that removed repeating targeted-power guidance was reconciled, so `TAP ON GEM` repeats every 1.35s while armed.
+- FFmpeg 9.0.1 is installed. Runtime power/result cues are trimmed, audio-only stereo 48kHz Vorbis: Bomb 1.70s, Hammer 1.05s, Magnet 0.56s, Switch 1.76s, Level Complete 2.85s. Originals and source hashes are preserved.
+- Collision sound uses strongest-first selection (maximum three candidates per frame) plus a maximum of three simultaneous contact voices inside the existing five-voice priority pool. Merge pairs remain suppressed and reward/power/result cues retain priority.
+- FFmpeg installation, complete regressions, APK packaging, and final artifact metadata are recorded in the task report and `BUILD_MANIFEST.md`.
+
 # Ad Popup Removal, Top Banner, HUD Decorators - 2026-08-30
 
 - A completed rewarded ad no longer opens a result popup. The offer closes and the grant is announced in the shared top banner. The popup remains only for a failed or cancelled video.

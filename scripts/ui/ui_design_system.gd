@@ -82,8 +82,8 @@ const UTILITY_ROW_HEIGHT := 116.0
 const TOP_HUD_HEIGHT := 122.0
 const TOP_SETTINGS_SIZE := 64.0
 const OBJECTIVE_STACK_GAP := 14.0
-const OBJECTIVE_TABLE_GAP_MIN := 20.0
-const OBJECTIVE_TABLE_GAP_MAX := 76.0
+const OBJECTIVE_TABLE_GAP_MIN := 28.0
+const OBJECTIVE_TABLE_GAP_MAX := 84.0
 const PROGRESSION_HEIGHT := 78.0
 ## Coins retains the approved larger footprint. Next stays deliberately
 ## compact so the Settings control beneath it has a clean independent gap.

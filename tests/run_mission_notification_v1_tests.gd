@@ -117,9 +117,9 @@ func _test_notification_never_blocks_gameplay() -> void:
 	# The banner must not cover the readouts the player needs mid-shot. Screen
 	# rects, because the panels live under different parents.
 	var toast_rect := Rect2(toast.position, toast.size)
-	# The banner sits at the top of the screen by request, so it does briefly
-	# overlay the coin card and the NEXT card for its 2.6s life. What must stay
-	# clear is anything the player reads or acts on mid-shot.
+	# The banner floats over the upper table because the limited-shots objective
+	# stack now uses the centre-top band. It must stay clear of every persistent
+	# readout and action while continuing to ignore board input.
 	var guarded := {
 		"shots counter": controller.gameplay_ui.shots_anchor,
 		"target panel": controller.gameplay_ui.target_anchor,

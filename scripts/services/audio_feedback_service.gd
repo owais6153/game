@@ -12,6 +12,17 @@ const SuppliedBasicMerge: AudioStream = preload("res://assets/runtime/audio/merg
 const SuppliedTargetMerge: AudioStream = preload("res://assets/runtime/audio/merge-target-immediate.ogg")
 const SuppliedUiTap: AudioStream = preload("res://assets/runtime/audio/mixkit-on-or-off-light-switch-tap-2585.wav")
 const SuppliedTargetComplete: AudioStream = preload("res://assets/runtime/audio/target_complete_soft_v1.ogg")
+## Supplied power cues. These replace the procedural crystal placeholders: each
+## power now has an authored identity rather than a tone that only differed by
+## seed, which is what made three of the four sound alike in play.
+const SuppliedPowerBomb: AudioStream = preload("res://assets/runtime/audio/power_bomb_v1.ogg")
+const SuppliedPowerHammer: AudioStream = preload("res://assets/runtime/audio/power_hammer_v1.ogg")
+const SuppliedPowerMagnet: AudioStream = preload("res://assets/runtime/audio/power_magnet_v1.ogg")
+const SuppliedPowerSwitch: AudioStream = preload("res://assets/runtime/audio/power_switch_v1.ogg")
+## The new level-complete fanfare. The cue it replaces now plays when the daily
+## treasure opens, so that moment gets a real payoff instead of borrowing the
+## generic coin sound.
+const SuppliedLevelComplete: AudioStream = preload("res://assets/runtime/audio/level_complete_v1.ogg")
 
 ## Confirmed controller events use cached one-shots. Independently supplied
 ## music owns one continuous player whose gain is intentionally below merge
@@ -50,6 +61,7 @@ func _ready() -> void:
 		player.process_mode = Node.PROCESS_MODE_ALWAYS
 		player.set_meta("audio_priority", 0)
 		player.set_meta("play_serial", 0)
+		player.set_meta("audio_event", "")
 		add_child(player)
 		_players.append(player)
 	_music_player = AudioStreamPlayer.new()
@@ -87,6 +99,12 @@ func clear_trace() -> void:
 func _play_event(event_name: String, intensity: float, pitch_scale: float = 1.0) -> bool:
 	if _players.is_empty() or not _stream_cache.has(event_name):
 		return false
+	if event_name == "gem_contact" or event_name == "wall_contact":
+		var active_contacts := _players.filter(func(candidate: AudioStreamPlayer) -> bool:
+			return candidate.playing and String(candidate.get_meta("audio_event", "")) in ["gem_contact", "wall_contact"]
+		).size()
+		if active_contacts >= GameConfig.AUDIO_MAX_CONCURRENT_CONTACTS:
+			return false
 	var available := _players.filter(func(candidate: AudioStreamPlayer) -> bool: return not candidate.playing)
 	var event_priority := int(GameConfig.AUDIO_PRIORITY_BY_EVENT.get(event_name, 0))
 	var player: AudioStreamPlayer
@@ -113,6 +131,7 @@ func _play_event(event_name: String, intensity: float, pitch_scale: float = 1.0)
 	_play_serial += 1
 	player.set_meta("audio_priority", event_priority)
 	player.set_meta("play_serial", _play_serial)
+	player.set_meta("audio_event", event_name)
 	player.play()
 	return true
 
@@ -154,12 +173,14 @@ func _build_stream_cache() -> void:
 		"target_complete": SuppliedTargetComplete,
 		"coin_tick": _build_crystal_stream(GameConfig.AUDIO_TONES.coin_tick, 11),
 		"power_charge": _build_crystal_stream(GameConfig.AUDIO_TONES.power_charge, 15),
-		"power_switch": _build_crystal_stream(GameConfig.AUDIO_TONES.power_switch, 12),
-		"power_magnet": _build_reward_chime_stream(GameConfig.AUDIO_TONES.power_magnet),
-		"power_hammer": _build_crystal_stream(GameConfig.AUDIO_TONES.power_hammer, 13),
-		"power_bomb": _build_crystal_stream(GameConfig.AUDIO_TONES.power_bomb, 14),
+		"power_switch": SuppliedPowerSwitch,
+		"power_magnet": SuppliedPowerMagnet,
+		"power_hammer": SuppliedPowerHammer,
+		"power_bomb": SuppliedPowerBomb,
 		"coin_reward": SuppliedCoinReward,
-		"win": SuppliedBasicMerge,
+		"win": SuppliedLevelComplete,
+		# The previous level-complete cue, reused where it now belongs.
+		"treasure_open": SuppliedBasicMerge,
 		"button": SuppliedUiTap,
 	}
 

@@ -1,5 +1,10 @@
 # Production Polish V1 - milestones 1-3
 
+> Superseding status (2026-08-30): the later merge/combo/target, onboarding,
+> analytics, performance, HUD-hierarchy, power, and audio passes are complete.
+> The remaining-work statement below describes this historical milestone only.
+> Current evidence is in `FINAL_HUD_VFX_AUDIO_TEST_CANDIDATE.md`.
+
 Scope delivered in this pass: HUD alignment, ad-unavailability robustness, and
 limited-shot feasibility. Milestones 4+ (merge/combo/target feedback, onboarding
 audit, analytics audit, performance pass) are **not** started.

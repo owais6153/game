@@ -52,7 +52,8 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 	var target_merge := bool(merge_event.get("target_objective_completed", false))
 	var timeline: Dictionary = merge_event.get("timeline", GameConfig.merge_timeline(depth, final_target, target_merge))
 	var major_reward := result_level >= GameConfig.MAJOR_REWARD_TIER
-	var ring_scale := float(timeline.get("ring_scale", 1.0)) * (GameConfig.MAJOR_MERGE_EFFECT_SCALE if major_reward else 1.0)
+	var tier_scale := GameConfig.merge_vfx_tier_scale(result_level)
+	var ring_scale := float(timeline.get("ring_scale", 1.0)) * tier_scale
 	merge_impacts.append({
 		"result_id": result_id,
 		"position": midpoint,
@@ -61,9 +62,8 @@ func begin_merge_feedback(merge_event: Dictionary) -> void:
 		"ring_at": float(timeline.get("ring_at", 0.15)),
 		"duration": float(timeline.get("duration", GameConfig.MERGE_PRESENTATION_DURATION)),
 		"effect_scale": ring_scale,
-		# An ordinary merge went from 8 sparks to 12: enough to read as an event
-		# rather than a swap, still below the 14 a target merge throws.
-		"spark_count": 14 if target_merge else (GameConfig.MAJOR_MERGE_SPARK_COUNT if major_reward else 12),
+		"tier_scale": tier_scale,
+		"spark_count": GameConfig.merge_vfx_spark_count(result_level, target_merge),
 		"ring_layers": int(timeline.get("ring_layers", 1)),
 		"ring_segments": int(timeline.get("ring_segments", 30)),
 		"target_merge": target_merge,
@@ -494,6 +494,7 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	var spark_count := int(effect.get("spark_count", 6))
 	var major_reward := bool(effect.get("major_reward", false))
 	var target_merge := bool(effect.get("target_merge", false))
+	var tier_scale := float(effect.get("tier_scale", 1.0))
 	var ring_layers := int(effect.get("ring_layers", 1))
 	var ring_segments := int(effect.get("ring_segments", 30))
 	var ring_span := maxf(0.12, duration - ring_at)
@@ -501,7 +502,8 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	var expand := 1.0 - pow(1.0 - t, 2.4)
 	var fade := 1.0 - t
 	var center: Vector2 = effect.position
-	var color := GameConfig.gem_color(int(effect.level)).lightened(0.28)
+	var base_color := GameConfig.gem_color(int(effect.level))
+	var color := base_color.lightened(lerpf(0.18, 0.42, inverse_lerp(GameConfig.MERGE_VFX_MIN_SCALE, GameConfig.MERGE_VFX_MAX_SCALE, tier_scale)))
 	color.a = fade
 	var gem_radius := GameConfig.gem_collision_radius(int(effect.level))
 	var ring_radius := (gem_radius * 0.62 + 46.0 * expand) * effect_scale
@@ -514,8 +516,13 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 			layer_color = Color(1.0, 0.88, 0.38, fade * layer_alpha)
 		else:
 			layer_color.a *= layer_alpha
-		var width := lerpf(4.8 if target_merge or major_reward else 3.8, 1.0, t) * (1.0 - float(layer_index) * 0.12)
+		var width := lerpf((4.8 if target_merge or major_reward else 3.5) * tier_scale, 1.0, t) * (1.0 - float(layer_index) * 0.12)
 		draw_arc(center, ring_radius * layer_scale, 0.0, TAU, ring_segments, layer_color, width)
+	# High tiers gain a white-hot jewel core. It is one draw call, scales smoothly,
+	# and makes a large result visibly shinier without adding particle nodes.
+	var core_alpha := maxf(0.0, tier_scale - 1.0) * (1.0 - t) * 0.72
+	if core_alpha > 0.01:
+		draw_circle(center, gem_radius * lerpf(0.34, 0.72, expand), Color(1.0, 0.97, 0.82, core_alpha))
 	# A short, low-count spark ring keeps ordinary merges from reading as a burst.
 	var spark_fade := maxf(0.0, 1.0 - t * 2.6)
 	if spark_fade <= 0.0:
@@ -772,7 +779,7 @@ func show_board_prompt(text: String, at_position: Vector2) -> void:
 ## gem broke apart" rather than as a generic effect. Purely presentational: the
 ## shards never touch simulation, contact, or merge eligibility.
 func _spawn_merge_shards(at_position: Vector2, level: int, major: bool, delay: float) -> void:
-	var count := GameConfig.MERGE_SHARD_COUNT_MAJOR if major else GameConfig.MERGE_SHARD_COUNT_NORMAL
+	var count := GameConfig.merge_vfx_shard_count(level, major)
 	var tint := GameConfig.gem_color(level)
 	for index in range(count):
 		# Spread evenly with a deterministic jitter, so a burst never clumps to
@@ -788,7 +795,7 @@ func _spawn_merge_shards(at_position: Vector2, level: int, major: bool, delay: f
 			"elapsed": -delay,
 			"duration": GameConfig.MERGE_SHARD_DURATION,
 			"tint": tint,
-			"scale": 1.25 if major else 1.0,
+			"scale": GameConfig.merge_vfx_tier_scale(level) * (1.10 if major else 1.0),
 		})
 
 

@@ -146,7 +146,7 @@ func _test_merges_throw_coloured_shards() -> void:
 	})
 	_assert(effects.active_merge_shard_count() > 0,
 		"an ordinary merge must throw shards")
-	_assert(effects.active_merge_shard_count() == GameConfig.MERGE_SHARD_COUNT_NORMAL,
+	_assert(effects.active_merge_shard_count() == GameConfig.merge_vfx_shard_count(4, false),
 		"an ordinary merge must throw its configured count")
 
 	# A target merge is a bigger moment and must throw more.
@@ -156,8 +156,13 @@ func _test_merges_throw_coloured_shards() -> void:
 		"target_objective_completed": true,
 		"timeline": GameConfig.MERGE_TIMELINE_TARGET,
 	})
-	_assert(effects.active_merge_shard_count() == GameConfig.MERGE_SHARD_COUNT_MAJOR,
+	_assert(effects.active_merge_shard_count() == GameConfig.merge_vfx_shard_count(8, true),
 		"a target merge must throw the larger burst")
+	_assert(GameConfig.merge_vfx_tier_scale(8) > GameConfig.merge_vfx_tier_scale(4)
+		and GameConfig.merge_vfx_spark_count(8) > GameConfig.merge_vfx_spark_count(4),
+		"larger result tiers must map to a bolder, shinier VFX tier")
+	_assert(GameConfig.gem_color(4) != GameConfig.gem_color(8),
+		"merge VFX must retain the exact result gem's colour identity")
 
 	# Bounded, self-expiring, and cleared with the rest of the layer.
 	effects.clear()

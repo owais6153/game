@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Final HUD, Tiered VFX, Power Cinematic, and Audio Test Candidate](FINAL_HUD_VFX_AUDIO_TEST_CANDIDATE.md) - Claude-change reconciliation, table/HUD clearance, tier-scaled merge effects, power identities, collision concurrency, asset provenance, visual proofs, regression evidence, and APK delivery.
+
 - [Production Polish V1](PRODUCTION_POLISH_V1_REPORT.md) - settings-icon centring root cause, ad-unavailability robustness, and the limited-shot feasibility solver that found every limited level unwinnable.
 
 - [Level Difficulty V1](LEVEL_DIFFICULTY_V1_REPORT.md) - seeded opening boards, limited shots from level 4, target-quantity scaling, the resulting difficulty curve, and the solvability bound that keeps powers optional.

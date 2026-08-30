@@ -630,6 +630,12 @@ const MERGE_SCORE_BY_RESULT_LEVEL := TARGET_COIN_REWARD_BY_RESULT_LEVEL
 ## normal-merge, UI, and win events use supplied replacements; all other event
 ## identities retain the established procedural or approved supplied cues.
 const AUDIO_MAX_CONCURRENT_PLAYERS := 5
+## Collision chatter has its own tighter budget inside the shared five-voice
+## pool. Reward, power, and result cues can still use or replace other voices.
+const AUDIO_MAX_CONCURRENT_CONTACTS := 3
+## A dense simulation step can report many valid impacts. Only the strongest
+## three are offered to audio; all still receive physics and visual response.
+const COLLISION_SFX_PER_FRAME := 3
 const AUDIO_SAMPLE_RATE := 22050.0
 ## Slightly raised from 0.06 while remaining below the original 0.10 service
 ## gain and clearly below gameplay feedback.
@@ -667,6 +673,7 @@ const AUDIO_TONES := {
 	"power_bomb": {"frequency": 392.0, "duration": 0.34, "volume": 0.86, "brightness": 0.30, "fall": 1.48},
 	"coin_reward": {"volume": 0.72},
 	"win": {"volume": 0.92},
+	"treasure_open": {"volume": 0.86},
 	"button": {"volume": 0.32},
 }
 const GEM_CONTACT_SOUND_THRESHOLD := 170.0
@@ -691,6 +698,7 @@ const AUDIO_COOLDOWN_BY_EVENT := {
 	"coin_tick": 0.07,
 	"coin_reward": 0.20,
 	"win": 0.25,
+	"treasure_open": 0.40,
 	"button": 0.08,
 	"power_switch": 0.12,
 	"power_magnet": 0.12,
@@ -730,6 +738,9 @@ const AUDIO_PRIORITY_BY_EVENT := {
 	# The charge cue leads the cinematic, so it must not outrank the impact it
 	# is announcing.
 	"power_charge": 77,
+	# Just under level completion: opening the chest is a big moment, but a
+	# level win is still the strongest cue in the game.
+	"treasure_open": 95,
 	"win": 100,
 }
 ## Compatibility only for the retired extracted-event service. Production
@@ -954,9 +965,8 @@ const TABLE_ART_CALM_MODULATE := Color(0.82, 0.84, 0.90, 1.0)
 ## coincidence, without firing on every shot.
 const CHAIN_CONTACT_TOLERANCE := 30.0 # safe readable range 12-30
 
-## How often the armed-power instruction repeats. Slightly longer than the label
-## itself, so there is a visible beat between repeats rather than a solid block
-## of text sitting over the board.
+## A targeted power stays armed until a valid gem is tapped. Repeat the short
+## board label with a visible pause so that state can never become unexplained.
 const TARGET_PROMPT_REPEAT_INTERVAL := 1.35
 
 ## Gem shards thrown outward when a merge resolves.
@@ -971,8 +981,25 @@ const TARGET_PROMPT_REPEAT_INTERVAL := 1.35
 ## lively without the board becoming confetti.
 const MERGE_SHARD_COUNT_NORMAL := 7
 const MERGE_SHARD_COUNT_MAJOR := 11
+const MERGE_VFX_MIN_SCALE := 0.92
+const MERGE_VFX_MAX_SCALE := 1.34
 const MERGE_SHARD_SPEED := Vector2(120.0, 260.0)
 const MERGE_SHARD_GRAVITY := 900.0
 const MERGE_SHARD_DURATION := 0.46
 const MERGE_SHARD_SIZE := Vector2(5.0, 11.0)
 const MERGE_SHARD_SPIN := 7.0
+
+## Exact result tier drives a smooth VFX ladder instead of the old binary
+## normal/major split. Art colour still comes from the authoritative tier map.
+static func merge_vfx_tier_scale(level: int) -> float:
+	var t := float(clampi(level, 1, 8) - 1) / 7.0
+	return lerpf(MERGE_VFX_MIN_SCALE, MERGE_VFX_MAX_SCALE, t)
+
+
+static func merge_vfx_spark_count(level: int, target_merge: bool = false) -> int:
+	return clampi(7 + clampi(level, 1, 8) + (3 if target_merge else 0), 8, 18)
+
+
+static func merge_vfx_shard_count(level: int, major: bool = false) -> int:
+	var tier_count := 5 + int(ceil(float(clampi(level, 1, 8)) * 0.75))
+	return clampi(tier_count + (2 if major else 0), MERGE_SHARD_COUNT_NORMAL, 14)

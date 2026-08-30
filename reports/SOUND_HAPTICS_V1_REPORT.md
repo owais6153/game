@@ -1,5 +1,14 @@
 # Sound + Haptics v1 Report
 
+## Final supplied power audio and collision concurrency update - 2026-08-30
+
+- Bomb, Hammer, Magnet, Switch, and Level Complete use the five supplied runtime Ogg derivatives documented in `ASSET_INVENTORY.md`; originals remain untouched and export-excluded.
+- Daily Treasure uses the previous Level Complete cue (`merge-basic.mp3`), establishing a separate chest identity without adding another source.
+- Confirmed non-merge impacts are sorted strongest-first and capped at three audio candidates per simulation frame. `AudioFeedbackService` independently caps active gem/wall contact voices at three inside the shared five-player priority pool.
+- Every contact still receives physics and eligible visual compression. Exact merge pairs remain silent on the collision channel, and higher-priority merge, target, power, treasure, and result events may replace lower voices.
+- Haptic ownership and values are unchanged. Bomb/Hammer retain the established `major_merge` haptic; Magnet/Switch use `merge`.
+- FFmpeg 9.0.1 analysis found Bomb active for 3.5s, Switch carrying 0.73s trailing silence, Hammer 0.54s trailing silence plus embedded cover-art video, Magnet a 0.10s lead-in, and Level Complete a 0.16s lead-in plus 0.91s tail. Runtime derivatives are now bounded to 1.70/1.05/0.56/1.76/2.85s respectively, audio-only stereo 48kHz Vorbis; exact processing/hashes are in `ASSET_INVENTORY.md`.
+
 ## Simultaneous reward reveal and immediate physics v6 routing note - 2026-08-23
 
 - Removing reward extraction and the physics hold adds no audio or haptic event. Existing confirmed merge/chain cues still fire from the confirmed merge timeline, and first-frame physical contact continues through the existing threshold/cooldown/concurrency telemetry path.

@@ -174,6 +174,11 @@ func _test_power_row_never_overlaps_the_table() -> void:
 		controller._on_home_level_intro_requested()
 		controller._on_home_play_requested()
 		await process_frame
+		# Reproduce the densest objective stack from the reported limited-shots
+		# screen, then force the layout pass used by a live snapshot update.
+		controller.gameplay_ui.shots_anchor.visible = true
+		controller.gameplay_ui._refresh_safe_margins()
+		await process_frame
 
 		var anchor := controller.gameplay_ui.sink_buttons_anchor as Control
 		_assert(anchor != null, "%s must build the power row" % size)
@@ -188,5 +193,9 @@ func _test_power_row_never_overlaps_the_table() -> void:
 					% [size, row.position.y, GameConfig.board_bottom()])
 			_assert(row.end.y <= float(controller.gameplay_ui.root_control.size.y) + 1.0,
 				"%s power row bottom %.0f runs past the screen" % [size, row.end.y])
+		var objective := controller.gameplay_ui.objective_stack_anchor as Control
+		_assert(objective != null and objective.offset_bottom <= GameConfig.table_outer_top() - UiDesignSystemType.OBJECTIVE_TABLE_GAP_MIN + 1.0,
+			"%s limited-shots objective stack must end above the table (bottom %.0f, table %.0f)"
+				% [size, objective.offset_bottom if objective != null else -1.0, GameConfig.table_outer_top()])
 		viewport.queue_free()
 		await process_frame

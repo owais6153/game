@@ -1,3 +1,15 @@
+# 2026-08-30 - Final HUD clearance, tiered VFX, power/audio production pass
+
+- Moved the dense limited-shots objective stack upward into unused centre-top space. Counter, Target, and merge path now clear the table instead of overlapping its top frame; focused layout coverage forces the limited-shots state at three portrait sizes.
+- Repositioned the input-transparent mission/ad-grant banner to the upper table during its short display, keeping the newly raised Shots and Target panels readable without shifting any HUD or simulation geometry.
+- Kept all four 92px power actions in the bottom band outside the playable board and retained the armed-state highlight plus repeating `TAP ON GEM` prompt. This reconciles a partial audio change that had accidentally deleted the prompt cadence.
+- Replaced the binary normal/major merge burst with a bounded exact-tier ladder. Result color, ring size/weight, spark count, shard count/scale, and high-tier jewel core now escalate monotonically from L1 through L8 without adding nodes or changing the 420ms merge timeline.
+- Extended the skippable power cinematic from 0.92s to 1.08s. Bomb and Hammer now carry stronger flash/ring/debris multipliers than Magnet and Switch.
+- Integrated five supplied runtime cues: Bomb, Hammer, Magnet, Switch, and Level Complete. Daily Treasure now uses the previous completion cue. Preserved sources are editor-ignored and export-excluded; runtime Ogg files are the only packaged derivatives.
+- Installed FFmpeg 9.0.1 and used it to remove 0.17-0.91s silent tails, shorten Bomb's overlong 3.5s active tail to a 1.70s bounded cue, tighten attack lead-ins, add clean destructive-power fade-outs, and strip Hammer's embedded cover-art video/metadata. Final runtime files are audio-only stereo 48kHz Vorbis.
+- Added strongest-first collision-SFX arbitration: at most three impacts per frame and three simultaneous contact voices in the existing five-voice priority pool. Physics and collision visuals still process every confirmed impact.
+- Added/updated regressions for limited-shots HUD/table clearance, monotonic tier-to-VFX mapping, cinematic hierarchy, new audio mapping, and collision concurrency.
+
 # 2026-08-30 - ffmpeg installed, power row moved off the table, gem shards, prompt fixed
 
 - **Installed ffmpeg** and extracted the reference video rather than continuing to work from description. What it actually shows: powers live in a dedicated bar **well below** the board, the HUD is a compact top strip, and every routine match throws **coloured fragments** outward plus white star sparkles - localised to the match, never screen-wide.

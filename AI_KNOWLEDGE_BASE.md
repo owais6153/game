@@ -1,3 +1,12 @@
+# 2026-08-30 - Final HUD/VFX/audio guardrails
+
+- On 720x1280, `TOP_HUD_HEIGHT` cannot be reserved above a limited-shots objective stack: Shots + gaps + Target + progression is 272px tall. The centred stack must use the open space between Coins and Next. Assert its anchor bottom against `table_outer_top()`, not just each child's configured size.
+- A power row can visually touch decorative lower trim only if every interactive button rect remains outside `board_bottom()`. Count badges and captions are mouse-ignore; buttons are the hit targets that matter for accidental aiming/pushing taps.
+- Merge VFX escalation must be continuous by exact result tier, not a single `major_reward` branch. Keep mappings in `GameConfig`, colors in `gem_color()`, rendering in `GameplayEffectsLayer`, and hard pool caps in the layer.
+- Dense-contact sound needs two bounds: strongest-first per-frame selection in the controller and an active-contact cap in the audio service. A shared five-voice pool alone prevents leaks but still permits an unpleasant wall of collision transients.
+- Preserved source audio may use codecs Godot cannot import even when the filename ends in `.wav`. Keep source/provenance under editor-ignored `assets/sound/` and load only validated runtime derivatives from `assets/runtime/audio/`.
+- Never delete the repeating targeted-power prompt while integrating unrelated audio. Bomb/Hammer can stay armed indefinitely; one sub-second label is not sufficient state communication.
+
 # 2026-08-29 - Nine-patch authoring rules for the supplied plates
 
 - **These plates cannot be stretched vertically.** Their safely-stretchable vertical band measures 2-5px; the rest is a continuous bevel plus a specular highlight. Author each plate at the exact design height it is drawn at (`UiKit.DRAWN_HEIGHT`) so the vertical scale is 1.0, and set vertical margins to ~half the height. Do not try to fix vertical distortion by tuning margins - there is no correct margin.

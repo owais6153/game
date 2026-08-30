@@ -21,9 +21,8 @@ const PowerInventoryServiceType = preload("res://scripts/services/power_inventor
 const ANNOUNCE_END := 0.34
 const TRAVEL_END := 0.63
 
-## A cinematic on every use would become a toll between the player and their
-## next shot, so the whole sequence is under a second and can be skipped.
-const DURATION := 0.92
+## Long enough to read as a deliberate spend, still skippable on any press.
+const DURATION := 1.08
 const SKIP_TO_IMPACT_AT := TRAVEL_END
 
 const HERO_SCREEN_SCALE := 0.62
@@ -42,6 +41,8 @@ const STYLE := {
 		"rays": "shards",
 		"ring_scale": 1.0,
 		"shake": 7.0,
+		"brightness": 1.30,
+		"debris_scale": 1.24,
 	},
 	"hammer": {
 		"tint": Color(0.72, 0.86, 1.0, 1.0),
@@ -51,6 +52,8 @@ const STYLE := {
 		"rays": "lightning",
 		"ring_scale": 0.82,
 		"shake": 9.0,
+		"brightness": 1.24,
+		"debris_scale": 1.16,
 	},
 	"magnet": {
 		"tint": Color(1.0, 0.36, 0.44, 1.0),
@@ -60,6 +63,8 @@ const STYLE := {
 		"rays": "inrush",
 		"ring_scale": 0.7,
 		"shake": 0.0,
+		"brightness": 1.0,
+		"debris_scale": 1.0,
 	},
 	"switch": {
 		"tint": Color(0.86, 0.44, 1.0, 1.0),
@@ -69,6 +74,8 @@ const STYLE := {
 		"rays": "swirl",
 		"ring_scale": 0.66,
 		"shake": 0.0,
+		"brightness": 1.0,
+		"debris_scale": 1.0,
 	},
 }
 
@@ -249,6 +256,8 @@ func _draw_backdrop(progress: float, style: Dictionary) -> void:
 	var tint: Color = style.tint
 	var centre := screen_centre
 	var kind := String(style.rays)
+	var brightness := float(style.get("brightness", 1.0))
+	fade = minf(1.0, fade * brightness)
 	var spin := elapsed * 1.6
 	match kind:
 		"lightning":
@@ -320,9 +329,11 @@ func _draw_impact(t: float, style: Dictionary) -> void:
 	var tint: Color = style.tint
 	var flash: Color = style.flash
 	var ring_scale := float(style.ring_scale)
+	var brightness := float(style.get("brightness", 1.0))
+	var debris_scale := float(style.get("debris_scale", 1.0))
 
 	# A brief white-hot flash that decays fast, so it punctuates rather than blinds.
-	var flash_alpha := pow(1.0 - t, 2.6) * 0.92
+	var flash_alpha := minf(1.0, pow(1.0 - t, 2.6) * 0.92 * brightness)
 	if flash_alpha > 0.01:
 		draw_circle(origin, lerpf(44.0, 168.0, t) * ring_scale, Color(flash.r, flash.g, flash.b, flash_alpha * 0.5))
 		draw_circle(origin, lerpf(24.0, 92.0, t) * ring_scale, Color(flash.r, flash.g, flash.b, flash_alpha))
@@ -331,8 +342,8 @@ func _draw_impact(t: float, style: Dictionary) -> void:
 	var ring_radius := lerpf(20.0, 250.0 * ring_scale, 1.0 - pow(1.0 - t, 2.5))
 	var ring_alpha := 1.0 - t
 	if ring_alpha > 0.01:
-		draw_arc(origin, ring_radius, 0.0, TAU, 48, Color(tint.r, tint.g, tint.b, ring_alpha), lerpf(20.0, 3.0, t), true)
-		draw_arc(origin, ring_radius * 0.72, 0.0, TAU, 40, Color(flash.r, flash.g, flash.b, ring_alpha * 0.55), lerpf(11.0, 2.0, t), true)
+		draw_arc(origin, ring_radius, 0.0, TAU, 48, Color(tint.r, tint.g, tint.b, minf(1.0, ring_alpha * brightness)), lerpf(20.0 * brightness, 3.0, t), true)
+		draw_arc(origin, ring_radius * 0.72, 0.0, TAU, 40, Color(flash.r, flash.g, flash.b, minf(1.0, ring_alpha * 0.55 * brightness)), lerpf(11.0 * brightness, 2.0, t), true)
 
 	# Magnet reverses its debris: fragments rush inward and vanish at the gem.
 	var inward := String(style.rays) == "inrush"
@@ -340,7 +351,7 @@ func _draw_impact(t: float, style: Dictionary) -> void:
 		var travel := float(fragment.distance) * (1.0 - pow(1.0 - t, 2.0))
 		var distance := float(fragment.distance) - travel if inward else travel
 		var point := origin + Vector2.from_angle(float(fragment.angle)) * distance
-		var size := float(fragment.size) * (t if inward else 1.0 - t * 0.65)
+		var size := float(fragment.size) * debris_scale * (t if inward else 1.0 - t * 0.65)
 		var alpha := (t if inward else 1.0 - t) * 0.95
 		if alpha <= 0.01 or size <= 0.3:
 			continue

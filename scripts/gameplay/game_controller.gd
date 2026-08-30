@@ -62,9 +62,7 @@ var shot_produced_merge := false
 ## True once any power has been spent in the current level attempt. Drives the
 ## "finish a level without using a power" mission.
 var level_used_power := false
-## Re-shows the "TAP ON GEM" prompt while a targeted power waits. One combo-
-## style label lasts under a second, which was easy to miss entirely, while the
-## power stays armed until the player acts.
+## Re-shows the targeting instruction while a targeted power remains armed.
 var _target_prompt_elapsed := 0.0
 var danger_timers: Dictionary = {}
 var won := false
@@ -259,9 +257,6 @@ func _process(delta: float) -> void:
 	# stops updating underneath it.
 	if gameplay_ui != null:
 		gameplay_ui.update_mission_toast(delta)
-	# Same reasoning: the armed-power instruction must keep repeating even while
-	# the board is paused behind a modal, or the player is left in a targeting
-	# mode with nothing on screen explaining it.
 	_update_target_prompt(delta)
 	collision_visual_clock += delta
 	for marker in debug_contact_points:
@@ -1526,9 +1521,10 @@ func _on_daily_chest_claim_requested() -> void:
 	# that already happened rather than standing in for the reward.
 	daily_overlay.play_chest_open()
 	if audio_feedback != null:
-		# The chest is the daily loop peak, so it lands on the strongest short cue
-		# the service owns, with the coin reward layered under it.
-		audio_feedback.emit_event("power_charge")
+		# The chest is the daily loop peak and now owns a real fanfare - the cue
+		# that used to announce level completion - instead of borrowing the
+		# power charge. Coins stay layered underneath.
+		audio_feedback.emit_event("treasure_open")
 		audio_feedback.emit_event("coin_reward")
 	if haptics_feedback != null:
 		haptics_feedback.emit_event("win")
@@ -3092,6 +3088,7 @@ func _on_coin_arrived(_result_id: int, value: int, final_coin: bool) -> void:
 
 func _route_collision_feedback(impacts: Array[Dictionary], merge_events: Array[Dictionary] = []) -> void:
 	var merged_pairs: Dictionary = {}
+	var audio_candidates: Array[Dictionary] = []
 	for merge_event in merge_events:
 		var source_ids: Array = merge_event.get("source_ids", [])
 		if source_ids.size() == 2:
@@ -3105,7 +3102,11 @@ func _route_collision_feedback(impacts: Array[Dictionary], merge_events: Array[D
 		var strength := float(impact.get("strength", 0.0))
 		if kind == "wall":
 			if strength >= GameConfig.WALL_CONTACT_SOUND_THRESHOLD:
-				audio_feedback.emit_event("wall_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75))
+				audio_candidates.append({
+					"event": "wall_contact",
+					"strength": strength,
+					"intensity": clampf(strength / GameConfig.LAUNCH_SPEED, 0.30, 0.75),
+				})
 				_begin_collision_visual(int(impact.get("piece_id", -1)), impact.get("normal", Vector2.RIGHT), strength)
 		elif strength >= GameConfig.GEM_CONTACT_SOUND_THRESHOLD:
 			var first_id := int(impact.get("first_id", -1))
@@ -3113,10 +3114,22 @@ func _route_collision_feedback(impacts: Array[Dictionary], merge_events: Array[D
 			var pair_key := "%d:%d" % [mini(first_id, second_id), maxi(first_id, second_id)]
 			if merged_pairs.has(pair_key):
 				continue
-			audio_feedback.emit_event("gem_contact", clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0))
+			audio_candidates.append({
+				"event": "gem_contact",
+				"strength": strength,
+				"intensity": clampf(strength / GameConfig.LAUNCH_SPEED, 0.35, 1.0),
+			})
 			var normal: Vector2 = impact.get("normal", Vector2.RIGHT)
 			_begin_collision_visual(first_id, -normal, strength)
 			_begin_collision_visual(second_id, normal, strength)
+	# Dense pile-ups can report many real contacts in one simulation step. Keep
+	# their visuals, then offer only the strongest three to the audio service.
+	audio_candidates.sort_custom(func(first: Dictionary, second: Dictionary) -> bool:
+		return float(first.strength) > float(second.strength)
+	)
+	for index in range(mini(GameConfig.COLLISION_SFX_PER_FRAME, audio_candidates.size())):
+		var candidate: Dictionary = audio_candidates[index]
+		audio_feedback.emit_event(String(candidate.event), float(candidate.intensity))
 
 
 func _begin_collision_visual(piece_id: int, normal: Vector2, strength: float) -> void:
@@ -3406,9 +3419,6 @@ func _show_target_prompt() -> void:
 	)
 
 
-## Repeats the prompt on a cadence for as long as the power is armed. Without
-## this the single label expired in under a second and the player was left in a
-## targeting mode with nothing on screen explaining it.
 func _update_target_prompt(delta: float) -> void:
 	if pending_power_target.is_empty():
 		_target_prompt_elapsed = 0.0

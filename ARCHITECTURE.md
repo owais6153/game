@@ -1,3 +1,13 @@
+# Architecture Addendum - Final HUD/VFX/Audio Boundaries
+
+`GameplayHudLayer` still consumes controller snapshots only. Its centred objective anchor is allowed to occupy the unused horizontal gap between corner utilities, which prevents the optional Shots panel from forcing the progression path onto table art. `GameConfig` table geometry remains authoritative and is read only as a presentation landmark; HUD layout never changes simulation coordinates.
+
+`GameplayEffectsLayer` owns the tiered merge ladder. `GameConfig.merge_vfx_tier_scale()`, `merge_vfx_spark_count()`, and `merge_vfx_shard_count()` map the already-authoritative result tier to bounded drawing parameters. Exact color comes from `GameConfig.gem_color()`. The layer creates no gameplay bodies and caps shards at 90.
+
+`PowerCinematicLayer` owns a single procedural, node-bounded timeline with per-power style multipliers. `GameController` stages the authoritative effect first, applies it only from `impact_reached`, and lets a skip jump to that same signal; presentation length or frame rate cannot change the outcome.
+
+Collision telemetry remains simulation output. `GameController._route_collision_feedback()` removes merge pairs, preserves visual response for every confirmed impact, sorts remaining audio candidates by strength, and forwards at most three. `AudioFeedbackService` separately caps active contact voices at three inside its five-player priority pool, leaving two voices available for higher-priority merge/reward/power/result cues.
+
 # Architecture Addendum - Supplied UI Kit and Typography
 
 `scripts/ui/ui_kit.gd` (`UiKit`) is a new presentation-only module owning the supplied art kit: preloaded runtime textures plus `nine_patch_style()`, which builds a `StyleBoxTexture` from the margins recorded in `UiKit.NINE`. Only assets listed in `NINE` may stretch; fixed-composition art (a coin seated inside a plate, gems along a bar) is rejected by `assert` rather than smeared, and is drawn through `UiKit.texture_rect()` at its natural aspect. `UiKit` must never be consulted by simulation, merge-service, launcher, or collision code.

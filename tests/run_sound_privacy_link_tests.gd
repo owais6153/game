@@ -33,8 +33,10 @@ func _test_audio_service() -> void:
 	# that leads every power cinematic, and the mission-complete rung of the
 	# reward hierarchy. The bound still matters: it is
 	# what stops the cache growing an unbounded stream per gameplay event.
-	_assert(service.cached_stream_count() == 24, "Audio service must cache the bounded contact, merge, target, coin, power, result, and UI identities")
+	_assert(service.cached_stream_count() == 25, "Audio service must cache the bounded contact, merge, target, coin, power, treasure, result, and UI identities")
 	_assert(service._players.size() == GameConfig.AUDIO_MAX_CONCURRENT_PLAYERS, "Audio service must use the bounded shared voice pool")
+	_assert(GameConfig.AUDIO_MAX_CONCURRENT_CONTACTS == 3 and GameConfig.COLLISION_SFX_PER_FRAME == 3,
+		"collision audio must keep only the strongest three impacts")
 	_assert(AudioServer.get_bus_index("Music") >= 0 and AudioServer.get_bus_index("SFX") >= 0, "Dedicated Music and SFX buses must load")
 	var sfx_bus := AudioServer.get_bus_index("SFX")
 	_assert(sfx_bus >= 0 and AudioServer.get_bus_effect_count(sfx_bus) == 1 and AudioServer.get_bus_effect(sfx_bus, 0) is AudioEffectLimiter, "SFX bus must own the clipping limiter")
@@ -51,7 +53,12 @@ func _test_audio_service() -> void:
 		"normal_merge": "res://assets/runtime/audio/merge-target-immediate.ogg",
 		"coin_reward": "res://assets/runtime/audio/supplied_coin_reward_v4.ogg",
 		"target_complete": "res://assets/runtime/audio/target_complete_soft_v1.ogg",
-		"win": "res://assets/runtime/audio/merge-basic.mp3",
+		"win": "res://assets/runtime/audio/level_complete_v1.ogg",
+		"treasure_open": "res://assets/runtime/audio/merge-basic.mp3",
+		"power_bomb": "res://assets/runtime/audio/power_bomb_v1.ogg",
+		"power_hammer": "res://assets/runtime/audio/power_hammer_v1.ogg",
+		"power_magnet": "res://assets/runtime/audio/power_magnet_v1.ogg",
+		"power_switch": "res://assets/runtime/audio/power_switch_v1.ogg",
 		"button": "res://assets/runtime/audio/mixkit-on-or-off-light-switch-tap-2585.wav",
 	}
 	for event_name in expected_paths:
@@ -65,6 +72,14 @@ func _test_audio_service() -> void:
 	for event_name in ["launch", "merge_2", "merge_8", "chain", "target_collect", "coin_tick"]:
 		_assert(service.stream_for_event(event_name) is AudioStreamWAV, "%s must retain its original procedural identity" % event_name)
 	_assert(service.stream_for_event("target_complete") != null and service.stream_for_event("target_merge") == null, "Target completion must own one distinct richer cue")
+	for player in service._players:
+		player.stop()
+	_assert(service._play_event("gem_contact", 1.0) and service._play_event("wall_contact", 1.0) and service._play_event("gem_contact", 1.0),
+		"the strongest three collision voices must be admitted")
+	_assert(not service._play_event("wall_contact", 1.0),
+		"a fourth simultaneous collision voice must be suppressed")
+	for player in service._players:
+		player.stop()
 	service.clear_trace()
 	service._clock = 1.0
 	_assert(service.emit_event("gem_contact"), "First confirmed gem contact must play")

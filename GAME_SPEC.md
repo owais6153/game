@@ -1,3 +1,12 @@
+# Final HUD, Tiered Merge VFX, Power Cinematic, and Audio Polish - 2026-08-30
+
+- Limited-shots Counter, Target, and the complete merge path form one centred stack that may use the empty horizontal space between Coins and Next. Its bottom must remain at least 28 design pixels above table art on supported portrait viewports.
+- The four live power actions remain in the bottom band outside the playable board. Their hit targets may not overlap launcher aiming/pushing space or table physics.
+- Every confirmed merge uses the exact result tier's color and a monotonic L1-L8 VFX ladder: higher tiers add bounded scale, spark count, shard count, rim weight, and a brighter jewel core. Effects remain drawing-only and pool-capped.
+- Power cinematics last 1.08 seconds and remain tap-skippable. Bomb and Hammer own brighter flashes/debris than Magnet and Switch; all gameplay changes still occur only on the cinematic impact signal.
+- Dense contact audio sorts confirmed non-merge impacts by strength, offers at most the strongest three per simulation frame, and admits no more than three simultaneous contact voices inside the shared five-voice priority pool.
+- Supplied power and level-complete sources are preserved under `assets/sound/`; runtime Ogg derivatives live under `assets/runtime/audio/`. Level Complete owns the new fanfare and the previous completion cue now identifies Daily Treasure opening.
+
 # Final Pre-Launch Production Readiness Candidate - 2026-08-28
 
 - Reference refinement V2: Switch Gem uses a large white two-arrow glyph inside a bright-rimmed purple 112 px squircle seated across the table's lower frame. Next is compacted to `128x150` with a 48 px gem and a 12 px gap before the independent Settings control.

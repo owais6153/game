@@ -9,6 +9,7 @@ const LevelConfigType = preload("res://scripts/core/level_config.gd")
 const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 const ProgressionSaveServiceType = preload("res://scripts/services/progression_save_service.gd")
 const GameplayHudType = preload("res://scripts/ui/gameplay_hud_layer.gd")
+const PowerCinematicType = preload("res://scripts/presentation/power_cinematic_layer.gd")
 
 var failures: Array[String] = []
 
@@ -28,6 +29,7 @@ func _run() -> void:
 	await _test_ad_offer_is_confirmed_before_any_video()
 	await _test_how_to_shows_once_per_targeted_power()
 	await _test_completed_ad_reports_the_reward()
+	_test_power_cinematic_hierarchy()
 	if failures.is_empty():
 		print("POWERS_GAMEPLAY_V1_TESTS: PASS")
 		quit(0)
@@ -393,6 +395,15 @@ func _advance_to_impact(controller) -> void:
 		cinematic._process(1.0 / 60.0)
 		if not cinematic.is_playing():
 			break
+
+
+func _test_power_cinematic_hierarchy() -> void:
+	_assert(PowerCinematicType.DURATION >= 1.0 and PowerCinematicType.DURATION <= 1.2,
+		"power cinematics must hold a readable but still fast one-second beat")
+	_assert(float(PowerCinematicType.STYLE.bomb.brightness) > float(PowerCinematicType.STYLE.magnet.brightness),
+		"bomb must flash brighter than the non-destructive magnet")
+	_assert(float(PowerCinematicType.STYLE.hammer.brightness) > float(PowerCinematicType.STYLE.switch.brightness),
+		"hammer must flash brighter than the non-destructive switch")
 
 
 ## A completed video used to report "No reward": the dismissal callback captured

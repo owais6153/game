@@ -1,3 +1,24 @@
+# Final supplied power and completion audio - 2026-08-30
+
+All originals are preserved under editor-ignored/export-excluded `assets/sound/`.
+Production loads only prepared Ogg derivatives under `assets/runtime/audio/`.
+The supplied WAV codec variants that Godot cannot decode as PCM remain valid
+preserved sources and no longer generate import errors because the source folder
+owns a `.gdignore` boundary.
+
+| Event | Preserved source (bytes / SHA-256) | Active runtime derivative (bytes / SHA-256) |
+| --- | --- | --- |
+| Bomb | `assets/sound/bomp-power.wav` (705,644 / `4D9C68705BCD669377A98C194C45C8AC7FA272EC4420E6B15AAC0ADA45925584`) | `assets/runtime/audio/power_bomb_v1.ogg` (27,849 / 1.70s / `13EF4AAE21A2CBBAD5F9F80DAA2F4E9F5EC84C78814A72FDC42D4FA630D07E43`) |
+| Hammer | `assets/sound/hammer-power.wav` (395,670 / `1144A015449C5FB0A34D75D496C76F05AFFBF733550BFC1D34D278166511A3A4`) | `assets/runtime/audio/power_hammer_v1.ogg` (17,285 / 1.05s / `B722FC81797816DF3C3D4D2EC68B6FF245BB43210BCF8B816D39405EF0D73098`) |
+| Magnet | `assets/sound/magnet power.wav` (184,244 / `54C192B29A4ACD8DDBCD68AA9C34184885CDC52CEC011C7C21947B278D12A4C4`) | `assets/runtime/audio/power_magnet_v1.ogg` (13,852 / 0.56s / `B947891AC4B3642AA74E0E79DBB6428DFDD43231A92FE00C6B628FE3116FFD66`) |
+| Switch | `assets/sound/switch power.wav` (614,126 / `FDC4F87EB2C6D29EC3567B299FDC3B2AEEA2432AFE27801DB80C496BDA084499`) | `assets/runtime/audio/power_switch_v1.ogg` (29,400 / 1.76s / `93C120A704EAB1F97CC1C48108FC4F766F077D353022111A1A333B3F6370EBEA`) |
+| Level complete | `assets/sound/level complete.mp3` (118,272 / `BA5A00C3FE0407A7638E1406901A7870FB227A14BF8BB2AB9DA88D7C89B38551`) | `assets/runtime/audio/level_complete_v1.ogg` (54,389 / 2.85s / `01F7C06E827A83599C817905ABEB4F78C634D60BEA57DB985CE4C5A7322C164A`) |
+
+FFmpeg 9.0.1 trimmed only runtime silence/tails, added short Bomb/Hammer fade-outs,
+and stripped metadata plus the Hammer source's embedded 500x500 cover-art video.
+Every delivered derivative is audio-only Vorbis, stereo 48kHz. The source files
+and their hashes above are unchanged.
+
 # Kit plate re-authoring - 2026-08-29
 
 The runtime button/banner plates under `assets/runtime/ui/kit/` were regenerated from the same preserved slices at the exact design height each is drawn at, because these plates have no meaningful uniform vertical band (measured 2-5px) and therefore cannot be stretched vertically without smearing the rim and specular highlight.

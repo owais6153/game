@@ -1,0 +1,3 @@
+# Preserved source/provenance audio only. Runtime-ready derivatives live under
+# assets/runtime/audio; skipping source import also avoids unsupported WAV codec
+# variants generating editor errors.

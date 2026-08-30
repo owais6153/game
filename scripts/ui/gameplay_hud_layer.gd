@@ -649,8 +649,9 @@ func _build_hud() -> void:
 	settings_button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE
 	settings_row.add_child(settings_button)
 
-	# Target -> complete merge path -> table matches the supplied reference's
-	# attention flow and keeps progression inside the active gameplay sightline.
+	# Counter -> Target -> complete merge path -> table. The centred stack may
+	# use the empty space between the corner utilities; reserving the full top-HUD
+	# height pushed the path down over the table on short portrait screens.
 	objective_stack_anchor = MarginContainer.new()
 	objective_stack_anchor.name = "TableObjectiveAnchor"
 	objective_stack_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1677,7 +1678,11 @@ func _refresh_safe_margins() -> void:
 			stack_height += SHOTS_PANEL_SIZE.y + float(UiDesignSystemType.OBJECTIVE_STACK_GAP)
 		var tall_t := clampf((design_height - GameConfig.VIEWPORT_SIZE.y) / GameConfig.TABLE_TALL_SCALE_REFERENCE_EXTRA, 0.0, 1.0)
 		var table_gap := lerpf(UiDesignSystemType.OBJECTIVE_TABLE_GAP_MIN, UiDesignSystemType.OBJECTIVE_TABLE_GAP_MAX, tall_t)
-		var minimum_top := top_margin + UiDesignSystemType.TOP_HUD_HEIGHT + 12.0
+		# The stack is narrow enough to sit between Coins and Next. Requiring it to
+		# begin below the complete utility row made the shots card force Target and
+		# the merge path onto the table at 16:9. Keep only a small safe-top floor;
+		# measured intersection tests protect the corner controls.
+		var minimum_top := top_margin + 32.0
 		var objective_top := maxf(minimum_top, GameConfig.table_outer_top() - table_gap - stack_height)
 		objective_stack_anchor.offset_top = objective_top
 		objective_stack_anchor.offset_bottom = objective_top + stack_height
@@ -1863,18 +1868,16 @@ func is_mission_toast_visible() -> bool:
 	return mission_toast != null and mission_toast.visible
 
 
-## Seated at the top of the screen, per the requested placement, and kept clear
-## of the safe-area inset so a notch never clips it.
-##
-## It briefly overlays the coin card for its 2.6s life. The gameplay-critical
-## readouts - shots, target, and the power row - stay clear, and a regression
-## enforces that.
+## Floats just inside the upper table for its short life. The limited-shots
+## objective stack now uses the centre-top band, so a full-width top banner
+## would cover Shots and Target. This surface ignores input and never moves HUD
+## or simulation geometry.
 func _position_mission_toast() -> void:
 	if mission_toast == null:
 		return
 	_mission_toast_settled = Vector2(
 		(UiDesignSystemType.DESIGN_WIDTH - MISSION_TOAST_SIZE.x) * 0.5,
-		MISSION_TOAST_TOP_INSET
+		GameConfig.table_outer_top() + MISSION_TOAST_TOP_INSET
 	)
 	mission_toast.position = _mission_toast_settled
 
