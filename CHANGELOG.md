@@ -1,3 +1,14 @@
+# 2026-08-30 - No popup after a successful ad, top banner, HUD decorators, Home sizing
+
+- **Removed the popup that appears after watching a rewarded ad.** A completed video now closes the offer and announces the reward in the top banner instead. The player already watched the video; making them dismiss a panel afterwards was a tap for information the count badge and banner already carry. The panel is kept only for genuine failure, where the player must be told plainly that nothing was granted and no daily allowance was spent.
+- Worth knowing for debug testing: **in the Godot editor there is no ad fill**, so `is_rewarded_ready()` is always false and every attempt takes the failure path. That is the correct branch, not a bug - real fill only exists on device.
+- **Hardened popup dismissal.** `close()` released input immediately rather than at the end of the fade, and hiding is now scheduled unconditionally instead of only from `Tween.finished`. A tween is presentation, not the source of truth for whether a modal is up; if it were killed or failed to advance, the popup would have stayed on screen with no way to dismiss it.
+- **Moved the mission banner to the top of the screen** as requested, slimmed it (536x84), and generalised it into one reusable top banner that both mission completions and ad grants use, so an earned thing is announced the same way wherever it came from. It briefly overlays the coin card; the shots counter, target panel, and power row stay clear and a regression enforces that.
+- **Added decorative diamonds to the Target, gem-sequence, and NEXT panels**, extracted from `sheet_panels_v2`. Two 30px marks per panel straddling the border, so they read as part of the frame rather than as content.
+- **Fixed the decorators landing in the middle of each panel** on top of the target text and the gem strip. `PanelContainer` is a Container: it lays out every direct child to fill its content rect and overrides their anchors. One plain `Control` now absorbs that layout and the diamonds anchor freely inside it.
+- Home: logo enlarged 360x220 -> 424x259; **SHOP reduced to 360xBUTTON_HEIGHT on the plain secondary pill** so it reads as clearly subordinate to PLAY rather than a second hero action; settings cog switched from the recoloured generic icon to the kit's own `icon_gear` on both Home and the gameplay HUD.
+- All nineteen suites pass with zero script errors.
+
 # 2026-08-30 - In-play mission notification, mission-complete cue, shop icon removed
 
 - Added the **in-play daily-mission notification**. Completing a mission mid-level now shows a non-blocking banner ("✓ Daily Mission Complete!" over the mission's own label) using the same laurel-check badge the missions popup marks a claimed mission with. Previously completion during play was invisible: it only wrote an analytics event.

@@ -1,3 +1,13 @@
+# Ad Popup Removal, Top Banner, HUD Decorators - 2026-08-30
+
+- A completed rewarded ad no longer opens a result popup. The offer closes and the grant is announced in the shared top banner. The popup remains only for a failed or cancelled video.
+- `PowerOverlayLayer.close()` releases input immediately and schedules hiding unconditionally, so a killed or stalled tween can no longer leave a modal stuck on screen.
+- The mission/reward banner sits at the top of the screen, is 536x84, and is shared by mission completions and ad grants. It clears the shots counter, target panel, and power row; it briefly overlays the coin card by design.
+- Target, gem-sequence, and NEXT panels carry two 30px kit diamonds straddling their left and right borders, added through a plain `Control` overlay because `PanelContainer` overrides direct children's anchors.
+- Home: larger logo, smaller secondary-pill SHOP button beneath PLAY, and the kit `icon_gear` for settings on Home and the HUD.
+- In the Godot editor there is no ad fill, so rewarded attempts always take the failure path; this is expected and not a defect.
+- 19/19 regression suites pass with zero script errors.
+
 # Mission Notification and Shop Icon Removal - 2026-08-30
 
 - Completing a daily mission during play shows a non-blocking banner inside the top of the table, animated in and out over 2.6s and driven by an explicit delta timeline from the controller's `_process` (not a Tween, which does not advance inside a SubViewport).

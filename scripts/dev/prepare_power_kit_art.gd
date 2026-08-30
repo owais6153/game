@@ -44,6 +44,17 @@ const ICON_RECTS := {
 }
 const ICON_OUTPUT_EDGE := 128
 
+## Decorative diamonds from the panel sheet. Used sparingly as small accents on
+## HUD panels; the wing, gear tile, and plain circle on the same sheet are not
+## extracted because nothing needs them.
+const PANELS_SHEET := "res://assets/ui_kit_source/sheet_panels_v2.png"
+const PANELS_SHEET_SIZE := Vector2i(1448, 1086)
+const DECOR_RECTS := {
+	"diamond": Rect2i(670, 828, 204, 190),
+	"diamond_small": Rect2i(1181, 885, 116, 117),
+}
+const DECOR_OUTPUT_EDGE := 64
+
 const ALPHA_CUT := 0.5
 const ALPHA_CLEAR := 0.01
 
@@ -65,6 +76,13 @@ func _init() -> void:
 			var rect: Rect2i = ICON_RECTS[power]
 			var icon := _prepare(icons, rect, ICON_OUTPUT_EDGE)
 			_save(icon, "%s/power_icon_%s.png" % [OUTPUT_DIR, power], ICONS_SHEET, rect, manifest.entries)
+
+	var panels := _load(PANELS_SHEET, PANELS_SHEET_SIZE)
+	if panels != null:
+		for name in DECOR_RECTS.keys():
+			var decor_rect: Rect2i = DECOR_RECTS[name]
+			var decor := _prepare(panels, decor_rect, DECOR_OUTPUT_EDGE)
+			_save(decor, "%s/decor_%s.png" % [OUTPUT_DIR, name], PANELS_SHEET, decor_rect, manifest.entries)
 
 	var treasure := Image.load_from_file(TREASURE_SOURCE)
 	if treasure == null or treasure.is_empty():

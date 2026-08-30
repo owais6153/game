@@ -339,13 +339,19 @@ func _test_ad_offer_is_confirmed_before_any_video() -> void:
 	_assert(PowerInventoryServiceType.count(controller.power_state, PowerInventoryServiceType.BOMB) == 0,
 		"a video that never played must grant nothing")
 
-	# A completed reward reports the granted power and the new total.
+	# A completed reward needs no popup at all: the player already watched a
+	# video, and making them dismiss a panel afterwards is a tap for information
+	# the banner and the count badge already carry. The offer closes instead.
 	controller._grant_power_from_ad(PowerInventoryServiceType.BOMB)
 	controller._report_power_ad_result(PowerInventoryServiceType.BOMB, true)
-	_assert(overlay.mode == overlay.Mode.AD_RESULT and overlay.is_open(),
-		"a completed ad must return to the same popup")
-	_assert(overlay.body_label != null and overlay.body_label.text.contains("1"),
-		"the result must tell the player how many they now own")
+	_assert(not overlay.is_open(),
+		"a completed ad must close the popup rather than asking for another tap")
+	_assert(controller.gameplay_ui.is_mission_toast_visible(),
+		"a completed ad must announce the reward in the top banner")
+	_assert(controller.gameplay_ui.mission_toast_title.text.contains("BOMB"),
+		"the banner must name the power that was granted")
+	_assert(controller.gameplay_ui.mission_toast_label.text.contains("1"),
+		"the banner must tell the player how many they now own")
 	_free(controller)
 
 
@@ -406,7 +412,7 @@ func _test_completed_ad_reports_the_reward() -> void:
 	_assert(controller.power_ad_granted, "a completed reward callback must grant the power")
 	controller._report_power_ad_result(PowerInventoryServiceType.BOMB, controller.power_ad_granted)
 
-	_assert(overlay.mode == overlay.Mode.AD_RESULT, "the dismissal must land on the result panel")
+	_assert(not overlay.is_open(), "a granted dismissal must close the popup, not open a result panel")
 	_assert(overlay.title_label != null and overlay.title_label.text.contains("BOMB"),
 		"a granted reward must name the power the player earned")
 	_assert(overlay.title_label != null and not overlay.title_label.text.begins_with("No"),

@@ -10,12 +10,12 @@ const TweenStepCollectionType = preload("res://tween_composer/ConfigurationResou
 const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/tween_step_item_resource.gd")
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
-const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_lavender_crisp.png")
+const ICON_SETTINGS = preload("res://assets/runtime/ui/kit/icon_gear.png")
 ## The Home shop entry point. A de-fringed derivative of the supplied stall art.
 
 ## A compact brand mark rather than a hero panel. Home is a game screen, so the
 ## logo identifies the game and then gets out of the way.
-const LOGO_SIZE := Vector2(360.0, 220.0)
+const LOGO_SIZE := Vector2(424.0, 259.0)
 const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
 const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_lavender.svg")
@@ -316,10 +316,14 @@ func _build() -> void:
 	# keeps its full width.
 	powers_button = Button.new()
 	powers_button.name = "HomePowersButton"
-	powers_button.custom_minimum_size = Vector2(516.0, UiDesignSystemType.BANNER_HEIGHT)
+	# Deliberately narrower and shorter than PLAY, on the plain secondary pill
+	# rather than the ornamental gold frame: PLAY is the one hero action on this
+	# screen and the shop must read as clearly subordinate to it.
+	powers_button.custom_minimum_size = Vector2(360.0, UiDesignSystemType.BUTTON_HEIGHT)
+	powers_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	for state in ["normal", "hover", "pressed", "focus"]:
 		powers_button.add_theme_stylebox_override(
-			state, UiKitType.nine_patch_style("bar_gold_frame", Vector4(76.0, 12.0, 76.0, 14.0)))
+			state, UiKitType.nine_patch_style("btn_pill_plain", Vector4(46.0, 10.0, 46.0, 12.0)))
 	powers_button.focus_mode = Control.FOCUS_ALL
 	powers_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	powers_button.tooltip_text = "Shop — buy powers"
@@ -332,7 +336,7 @@ func _build() -> void:
 
 	# Caption only. The shop illustration read as a second competing focal point
 	# beside PLAY and against the plate art, so the button carries just its word.
-	var shop_caption := _label("SHOP", UiDesignSystemType.PANEL_TITLE_FONT_SIZE, Color.WHITE)
+	var shop_caption := _label("SHOP", UiDesignSystemType.BODY_FONT_SIZE, Color.WHITE)
 	shop_caption.name = "HomeShopCaption"
 	shop_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	shop_caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

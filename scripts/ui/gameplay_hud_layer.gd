@@ -6,7 +6,7 @@ const ScoreFormatterType = preload("res://scripts/core/score_formatter.gd")
 const CoinIconType = preload("res://scripts/presentation/coin_icon.gd")
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
 const TargetRewardOverlayType = preload("res://scripts/presentation/target_reward_overlay.gd")
-const ICON_SETTINGS = preload("res://assets/runtime/ui/icons/cog_lavender_crisp.png")
+const ICON_SETTINGS = preload("res://assets/runtime/ui/kit/icon_gear.png")
 const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
 const ICON_RESTART = preload("res://assets/runtime/ui/icons/restart_lavender.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_lavender.svg")
@@ -14,6 +14,7 @@ const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_lavender.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_lavender.svg")
 const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 const POWER_TILE = preload("res://assets/runtime/ui/kit/power_tile.png")
+const DECOR_DIAMOND = preload("res://assets/runtime/ui/kit/decor_diamond.png")
 const POWER_ICONS := {
 	"bomb": preload("res://assets/runtime/ui/kit/power_icon_bomb.png"),
 	"magnet": preload("res://assets/runtime/ui/kit/power_icon_magnet.png"),
@@ -67,6 +68,7 @@ var sink_buttons_anchor: MarginContainer
 var mission_toast: PanelContainer
 var mission_toast_title: Label
 var mission_toast_label: Label
+var mission_toast_icon: TextureRect
 var _mission_toast_elapsed := 0.0
 var _mission_toast_active := false
 var _mission_toast_settled := Vector2.ZERO
@@ -1024,6 +1026,7 @@ func _build_next_panel() -> Control:
 	panel.custom_minimum_size = UiDesignSystemType.NEXT_PANEL_SIZE
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.secondary_hud_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_decorate_panel_ends(panel)
 	var column := VBoxContainer.new()
 	column.name = "NextContent"
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1056,6 +1059,7 @@ func _build_progression_group() -> PanelContainer:
 	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.progression_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_decorate_panel_ends(panel)
 	var strip := HBoxContainer.new()
 	strip.name = "ProgressionStrip"
 	strip.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1157,6 +1161,7 @@ func _build_target_panel() -> Control:
 	panel.custom_minimum_size = UiDesignSystemType.TARGET_PANEL_SIZE
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.target_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_decorate_panel_ends(panel)
 	var content_margin := MarginContainer.new()
 	content_margin.add_theme_constant_override("margin_left", 16)
 	content_margin.add_theme_constant_override("margin_top", 10)
@@ -1722,13 +1727,13 @@ func _kill_tween(tween: Tween) -> void:
 ## tree, and the board underneath stays fully playable while it is on screen.
 ## Missions can complete back to back, so a second call replaces the first
 ## rather than stacking banners down the screen.
-const MISSION_TOAST_SIZE := Vector2(560.0, 96.0)
-const MISSION_TOAST_ICON := 60.0
+const MISSION_TOAST_SIZE := Vector2(536.0, 84.0)
+const MISSION_TOAST_ICON := 54.0
 const MISSION_TOAST_HOLD := 2.1
 const MISSION_TOAST_RISE := 26.0
 const MISSION_TOAST_IN := 0.26
 const MISSION_TOAST_OUT := 0.30
-const MISSION_TOAST_BOARD_INSET := 26.0
+const MISSION_TOAST_TOP_INSET := 10.0
 
 func _build_mission_toast() -> void:
 	mission_toast = PanelContainer.new()
@@ -1752,9 +1757,9 @@ func _build_mission_toast() -> void:
 
 	# The same laurel check the daily-missions popup marks a claimed mission
 	# with, so the two read as one system.
-	var icon := UiKit.texture_rect(UiKit.badge("check"), MISSION_TOAST_ICON)
-	icon.name = "MissionToastIcon"
-	row.add_child(icon)
+	mission_toast_icon = UiKit.texture_rect(UiKit.badge("check"), MISSION_TOAST_ICON)
+	mission_toast_icon.name = "MissionToastIcon"
+	row.add_child(mission_toast_icon)
 
 	var column := VBoxContainer.new()
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1775,10 +1780,16 @@ func _build_mission_toast() -> void:
 
 ## Shows the banner for one completed mission. Safe to call mid-shot: it only
 ## animates its own node and never touches gameplay state.
-func show_mission_complete(mission_label: String) -> void:
+## One reusable top banner. Daily-mission completions and rewarded-ad grants
+## both use it, so an earned thing is announced the same way wherever it came
+## from, and neither needs a popup the player has to dismiss.
+func show_banner(title: String, subtitle: String, icon: Texture2D = null) -> void:
 	if mission_toast == null or mission_toast_label == null:
 		return
-	mission_toast_label.text = mission_label
+	mission_toast_title.text = title
+	mission_toast_label.text = subtitle
+	if mission_toast_icon != null:
+		mission_toast_icon.texture = icon if icon != null else UiKit.badge("check")
 	_position_mission_toast()
 	mission_toast.visible = true
 	mission_toast.pivot_offset = mission_toast.size * 0.5
@@ -1828,22 +1839,68 @@ func _apply_mission_toast_frame() -> void:
 		mission_toast.modulate.a = 1.0 - out_t
 
 
+func show_mission_complete(mission_label: String) -> void:
+	show_banner("Daily Mission Complete!", mission_label, UiKit.badge("check"))
+
+
 func is_mission_toast_visible() -> bool:
 	return mission_toast != null and mission_toast.visible
 
 
-## Centred horizontally, and seated just inside the top of the table rather
-## than at the top of the screen.
+## Seated at the top of the screen, per the requested placement, and kept clear
+## of the safe-area inset so a notch never clips it.
 ##
-## The screen top is where the coin count, the NEXT card, the shots counter and
-## the target panel live. A banner there covers the very readouts the player
-## needs mid-shot, so it is placed over the upper board instead - the least
-## information-dense region on screen, and one it only occupies for 2.6s.
+## It briefly overlays the coin card for its 2.6s life. The gameplay-critical
+## readouts - shots, target, and the power row - stay clear, and a regression
+## enforces that.
 func _position_mission_toast() -> void:
 	if mission_toast == null:
 		return
 	_mission_toast_settled = Vector2(
 		(UiDesignSystemType.DESIGN_WIDTH - MISSION_TOAST_SIZE.x) * 0.5,
-		GameConfig.board_top() + MISSION_TOAST_BOARD_INSET
+		MISSION_TOAST_TOP_INSET
 	)
 	mission_toast.position = _mission_toast_settled
+
+
+## The tile artwork for one power, so other layers can reuse it without
+## duplicating the preload table.
+func power_icon_texture(power: String) -> Texture2D:
+	return POWER_ICONS.get(power, null)
+
+
+## A pair of small kit diamonds pinned to a panel's left and right edges.
+##
+## Deliberately restrained: two 30px marks per panel, straddling the border so
+## they read as part of the frame rather than as content competing with the gem,
+## the count, or the target readout inside. Purely decorative and input-inert.
+const PANEL_DECOR_SIZE := 30.0
+
+func _decorate_panel_ends(panel: Control) -> void:
+	if panel == null:
+		return
+	# PanelContainer is a Container: it lays out every direct child to fill its
+	# content rect and overrides their anchors, which is why anchoring the
+	# diamonds directly to it dropped both of them in the middle of the panel,
+	# on top of the target text and the gem strip. One plain Control absorbs that
+	# layout, and the diamonds anchor freely inside it.
+	var overlay := Control.new()
+	overlay.name = "PanelDecor"
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(overlay)
+	var half := PANEL_DECOR_SIZE * 0.5
+	for side in [-1, 1]:
+		var diamond := TextureRect.new()
+		diamond.name = "PanelDecorLeft" if side < 0 else "PanelDecorRight"
+		diamond.texture = DECOR_DIAMOND
+		diamond.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		diamond.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		diamond.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# Straddling the border, so the pair reads as part of the frame rather
+		# than as content sitting inside the panel.
+		diamond.set_anchors_preset(Control.PRESET_CENTER_LEFT if side < 0 else Control.PRESET_CENTER_RIGHT)
+		diamond.offset_top = -half
+		diamond.offset_bottom = half
+		diamond.offset_left = -half
+		diamond.offset_right = half
+		overlay.add_child(diamond)

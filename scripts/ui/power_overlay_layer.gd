@@ -196,8 +196,19 @@ func close() -> void:
 	_tween = create_tween()
 	_tween.tween_property(panel, "modulate:a", 0.0, EXIT_DURATION)
 	_tween.parallel().tween_property(dim_rect, "color:a", 0.0, EXIT_DURATION)
+	# Input is released immediately rather than at the end of the fade, so the
+	# board is never blocked by a panel that is already on its way out.
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tween.finished.connect(func() -> void:
 		_set_visible(false)
+	)
+	# A tween is presentation, not the source of truth for whether a modal is
+	# up. If it is killed or never advances, the popup would otherwise stay on
+	# screen forever with no way to dismiss it, so hiding is also scheduled
+	# unconditionally.
+	get_tree().create_timer(EXIT_DURATION + 0.05, true, false, true).timeout.connect(func() -> void:
+		if mode == Mode.NONE:
+			_set_visible(false)
 	)
 	if finished_mode == Mode.HOW_TO:
 		how_to_acknowledged.emit(finished_power)

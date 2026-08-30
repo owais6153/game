@@ -77,6 +77,36 @@
 			]
 		},
 		{
+			"runtime": "res://assets/runtime/ui/kit/decor_diamond.png",
+			"runtime_sha256": "3f35dd8b68b5fac80f3b19cdeafbcf324fe87d943805f85b8d5e3e5f58b0aed6",
+			"runtime_size": [
+				64,
+				60
+			],
+			"source": "res://assets/ui_kit_source/sheet_panels_v2.png",
+			"source_rect": [
+				670,
+				828,
+				204,
+				190
+			]
+		},
+		{
+			"runtime": "res://assets/runtime/ui/kit/decor_diamond_small.png",
+			"runtime_sha256": "1dfdff342738bee291f1545819a1610a422a849d5e2c0f6f155e41331def537d",
+			"runtime_size": [
+				63,
+				64
+			],
+			"source": "res://assets/ui_kit_source/sheet_panels_v2.png",
+			"source_rect": [
+				1181,
+				885,
+				116,
+				117
+			]
+		},
+		{
 			"runtime": "res://assets/runtime/ui/kit/badge_chest_open.png",
 			"runtime_sha256": "df3210cfc9ef46c929dbef5906f00ab65f881f9035be67b4beadd273536bfb21",
 			"runtime_size": [
