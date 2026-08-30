@@ -1,3 +1,11 @@
+# 2026-08-30 - Coin economy rebalanced: one level paid eight powers
+
+- **Found the economy was broken by roughly 10x.** A single level paid **2,950 coins** (350 + 800 + 1,800 for its three targets) while the most expensive sink in the game was Skip Level at 800 and the priciest power was 350. A player owned every power several times over before finishing level 1, and coins never meant anything again. Every sink price and mission reward had been tuned against an income about ten times smaller than the one actually being paid.
+- Nothing caught this because **every number was only ever asserted on its own** - the reward table had an "explicit and auditable" test that checked the literals, and the prices had their own ordering test, but nothing compared the two.
+- **Rebalanced the target reward table** (tier 6/7/8: 350/800/1800 -> 55/120/260). A level now pays 435-665, so a power costs roughly one level of play, Skip Level costs about one and a half, and a full day of missions (~295) is worth about two thirds of a level. Buying anything is a decision again.
+- Added `tests/run_coin_economy_v1_tests.gd`, which asserts the economy in **proportion** rather than in literals: a power must cost between 0.2 and 2.0 levels of income, Skip must cost more than the priciest power and at least a level's income while staying reachable within a few, rewards must rise with tier and with level, and a day of missions must be worth returning for without dwarfing play. Verified it fails against the old table.
+- All twenty-eight suites pass.
+
 # 2026-08-30 - Daily mission variety, gated objectives, four new mission events
 
 - **Missions were a fixed triple.** Every day rolled the same three objectives, so the daily loop read as static grind counters. They are now drawn from an easy/medium/challenging pool with real day-to-day variety.

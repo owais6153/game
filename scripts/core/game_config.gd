@@ -589,14 +589,25 @@ const MAX_GEM_LEVEL := 20
 const DANGER_GRACE_DURATION := 0.75 # default 0.75 s; safe 0.65–0.90
 ## These values are awarded only when a confirmed result fulfills the active
 ## target. Ordinary merges advance the board without changing run coins.
+## Rebalanced against the measured sinks. The previous table paid 2,950 coins
+## for a single level while the most expensive sink in the game was Skip at 800
+## and the priciest power was 350 - so one level bought eight powers and the
+## player was permanently rich before finishing the tutorial. Coins had no
+## meaning, and every sink and mission reward in the game had been tuned against
+## an income roughly ten times smaller than the one actually being paid.
+##
+## These values put one level at roughly 435-665 coins, so a power costs about a
+## level of play, Skip costs about one and a half, and the ~295 a full day of
+## missions pays is worth about two thirds of a level. Buying anything is now a
+## real decision instead of a rounding error.
 const TARGET_COIN_REWARD_BY_RESULT_LEVEL := {
-	2: 10,
-	3: 25,
-	4: 60,
-	5: 150,
-	6: 350,
-	7: 800,
-	8: 1800,
+	2: 2,
+	3: 6,
+	4: 14,
+	5: 30,
+	6: 55,
+	7: 120,
+	8: 260,
 }
 ## Compatibility aliases for older tools. Production calls the target-named
 ## accessor so reward ownership stays explicit.
