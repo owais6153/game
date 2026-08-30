@@ -1450,3 +1450,16 @@ Every APK record includes its filename, path, size, modified timestamp, source c
 - Package validation: AAPT package `com.owais.majestygems`, versionCode 4, versionName 1.0.2, min SDK 24, target/compile SDK 36 and game category; primary DEX and both Godot ARM libraries present; APK Signature Scheme v2 PASS with one RSA-2048 signer.
 - Tests: game-flow/Home/Back, sound/privacy, AdMob/shutdown, responsive layout, reference game-feel/contact, scene-variety, and branding/input suites reached PASS. The Windows runner returned its known post-sentinel teardown access violation; no assertion failed.
 - Device status: `adb devices -l` found no connected device. Installation, physical Home/Level Ready visibility, OEM Back behavior, and prolonged idle acceptance are not claimed.
+
+# Final HUD, Tiered VFX, Power Cinematic, and Audio Test Candidate APK - 2026-08-30
+
+- Filename: `build/android/majestic-gems-final-vfx-hud-audio-test-v1.0.15-vc17.apk`
+- Size: 114,502,601 bytes
+- Timestamp: 2026-08-30 16:20:55 +05:00
+- SHA-256: `A5A64EF346E5869A61B95AE124E7F355002ED68E1BC5DF6F6AA48343E03B5444`
+- Export-source commit/tag: `3637090` / `final-hud-vfx-audio-test-candidate-source`.
+- Delivery tag: `final-hud-vfx-audio-test-candidate-apk` on the manifest/provenance follow-up commit.
+- Export: Godot 4.6.3 debug APK, Gradle format, both `arm64-v8a` and `armeabi-v7a`, Godot debug signing. No AAB was generated.
+- Validation: AAPT package `com.owais.majestygems`, versionCode 17, versionName 1.0.15, min SDK 24, target/compile SDK 36; manifest and primary DEX present; APK Signature Scheme v2 PASS with one Godot debug signer. All five runtime audio imports are packaged; preserved source audio, reports, and tests are excluded.
+- Tests: corrected-state full regression passed 29/29 suites (`FINAL2_REGRESSION passed=29 failed=0 total=29`); post-FFmpeg Godot re-import and `SOUND_PRIVACY_LINK_TESTS` also passed. Visual capture reached `POWERS_V1_CAPTURE: PASS`; the Windows runner's known teardown access violation occurred after the sentinel.
+- Device status: `adb devices -l` found connected V2149 `34385676890001M`. The APK was not installed or launched; on-device visual, listening, haptic, and performance acceptance are not claimed.

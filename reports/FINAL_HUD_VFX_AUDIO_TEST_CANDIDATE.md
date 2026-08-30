@@ -2,6 +2,8 @@
 
 Date: 2026-08-30
 
+Source commit/tag: `3637090` / `final-hud-vfx-audio-test-candidate-source`
+
 ## Scope and Claude reconciliation
 
 Baseline `fadbeb1` already moved the power buttons off the playable board, added
