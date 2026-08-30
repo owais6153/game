@@ -1,3 +1,15 @@
+# 2026-08-30 - Opening board never placed in play, frame calmed, target escalation
+
+- **Found and fixed the biggest defect of this pass: the opening board was never placed in the real game flow.** Only `restart()` seeded it, and the actual sequence - Home -> Level Ready -> Start Game - never calls `restart()`. Every level of every session opened on a completely empty table, so the entire seeded-layout feature added for the difficulty work was silently absent in play. Caught by looking at the device, not by the tests.
+- **The existing coverage passed because it tested a path the game does not take.** `_test_controller_places_the_opening_board` called `restart()` directly. Added `_test_opening_board_survives_the_real_entry_flow`, which never calls `restart()` and walks the real sequence instead. Verified it reproduces the empty board.
+- **Confirmed the Settings icon fix on the physical device.** The gear is now optically centred with an even ring of plate on all four sides; previously it sat ~16px left and clipped the border.
+- **Calmed the table artwork.** Several supplied table variants carry a bright neon rail that was the loudest element on screen, inverting the intended hierarchy of gems first, frame last. The sprite is now modulated to 0.82/0.84/0.90. Presentation only: rail geometry, containment, drag clamps and the danger line all keep reading the same authoritative `GameConfig` values, asserted by test.
+- **Power tiles now rest below full brightness.** Four framed gold tiles at full white competed with the gems they sit under. An owned, usable power rests at 0.88 alpha; the armed one stays unmistakably brighter; a zero-count tile stays at the same resting weight because the green "+" already carries that affordance.
+- **Targets now escalate across the sequence.** Only the final target had a distinct cue, so completing target 1 and target 2 felt identical and the objective run read flat until the end. Each successive target lands slightly harder, bounded so the top of the range stays under the level-completion cue.
+- Fixed three more brittle source-text probes in `run_sound_privacy_link_tests` that matched whole single-line calls and failed purely because emits were reformatted across lines. They now match the event identity, which is the contract that actually matters.
+- Made `run_level_difficulty_v1_tests` state-independent by seeding the save, after it proved order-dependent on a shared `user://`.
+- All twenty-six suites pass.
+
 # 2026-08-30 - Consecutive-merge escalation, analytics gaps, hierarchy pinned
 
 - **Added consecutive-merge escalation.** The combo pitch in `MERGE_TIMELINE_*` only escalated *within a single chain*, so a player merging steadily shot after shot heard the same flat cue every time and the moment-to-moment loop read as static. A streak now counts shots that produced at least one merge and applies a small pitch and intensity lift on top of the chain pitch. It caps at 6, resets when a shot produces no merge, and clears on restart and level change so a new level never opens already escalated.

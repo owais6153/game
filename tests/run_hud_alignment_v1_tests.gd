@@ -30,6 +30,8 @@ func _run() -> void:
 	await _test_gameplay_settings_icon_is_centred()
 	await _test_home_settings_icon_is_centred()
 	await _test_no_hud_button_uses_a_bare_icon()
+	_test_power_tiles_rest_below_the_board()
+	_test_table_art_is_calmed_without_moving_geometry()
 	if failures.is_empty():
 		print("HUD_ALIGNMENT_V1_TESTS: PASS")
 		quit(0)
@@ -115,3 +117,35 @@ func _assert_centred(button: Button, label: String) -> void:
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
 		failures.append(message)
+
+
+## Visual hierarchy: the board is the subject. Four framed gold tiles at full
+## brightness competed with the gems, so an owned-but-unused power now rests
+## below full white while the armed one is unmistakably above it.
+func _test_power_tiles_rest_below_the_board() -> void:
+	var resting := GameplayHudType.POWER_TILE_RESTING_MODULATE
+	var armed := GameplayHudType.POWER_TILE_ARMED_MODULATE
+	var idle := GameplayHudType.POWER_TILE_IDLE_MODULATE
+	_assert(resting.a < 1.0, "an unused power must rest below full opacity (got %.2f)" % resting.a)
+	_assert(resting.a > idle.a, "a usable power must read brighter than an unusable one")
+	_assert(armed.r > resting.r and armed.a >= resting.a,
+		"the armed power must be unmistakably brighter than a resting one")
+	# Still legible, not ghosted away.
+	_assert(resting.a >= 0.8, "a usable power must not fade to near-invisible (got %.2f)" % resting.a)
+
+
+## The table art frames the gems; it must not outshine them. Presentation only -
+## the rail geometry, containment and danger line are untouched.
+func _test_table_art_is_calmed_without_moving_geometry() -> void:
+	var calm := GameConfig.TABLE_ART_CALM_MODULATE
+	_assert(calm.r < 1.0 and calm.g < 1.0 and calm.b < 1.0,
+		"the table sprite must be dimmed below full brightness")
+	_assert(calm.r >= 0.7 and calm.b >= 0.7,
+		"the table must stay clearly visible, not washed out (%.2f)" % calm.r)
+	_assert(is_equal_approx(calm.a, 1.0),
+		"the table must stay fully opaque; only its brightness is reduced")
+	# Geometry is read from GameConfig and must be unaffected by any art change.
+	_assert(GameConfig.board_top() < GameConfig.danger_line_y(),
+		"calming the art must not disturb the authoritative board geometry")
+	_assert(GameConfig.table_left_at(GameConfig.danger_line_y()) < GameConfig.table_right_at(GameConfig.danger_line_y()),
+		"rail geometry must remain valid and independent of the sprite modulate")

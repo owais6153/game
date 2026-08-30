@@ -130,10 +130,14 @@ func _test_confirmed_event_routing_contract() -> void:
 	# Reward feedback v3 keeps the same confirmed chain event and adds only a
 	# bounded presentation pitch for the combo hierarchy.
 	_assert(source.contains("audio_feedback.emit_event(\"chain\", 1.0, float(timeline.get(\"pitch\", 1.0)))"), "Original chain feedback must be restored")
-	_assert(source.contains("audio_feedback.emit_event(\"target_collect\")"), "Target arrival must retain its original cue")
+	# Matched on the event identity rather than a whole single-line call. The
+	# arrival cue now carries a per-target intensity and pitch and so spans
+	# several lines; the contract being checked is which events fire and in what
+	# order, not how the call is wrapped.
+	_assert(source.contains("\"target_collect\""), "Target arrival must retain its original cue")
 	_assert(source.contains("audio_feedback.emit_event(\"target_complete\")"), "Every completed target must own a richer reward cue")
 	var reward_cue := source.find("audio_feedback.emit_event(\"target_complete\")")
-	var collection_cue := source.find("audio_feedback.emit_event(\"target_collect\")", reward_cue)
+	var collection_cue := source.find("\"target_collect\"", reward_cue)
 	_assert(reward_cue >= 0 and collection_cue > reward_cue, "Target audio must sequence merge, then reward, then visible collection arrival")
 	_assert(source.contains("audio_feedback.emit_event(\"win\")"), "Level success must remain tied to final result presentation")
 	_assert(not source.contains("audio_feedback.emit_event(\"fail\")"), "No lose/game-over sound may be routed")
@@ -142,7 +146,10 @@ func _test_confirmed_event_routing_contract() -> void:
 	var merge_resolution := source.find("var result := merge_service.resolve", impact_capture)
 	var feedback_route := source.find("_route_collision_feedback(collision_impacts, result.presentation_events)", merge_resolution)
 	_assert(impact_capture >= 0 and merge_resolution > impact_capture and feedback_route > merge_resolution, "Contact audio must route after confirmed merge resolution so merge contacts can be suppressed")
-	var arrival_cue := source.find("audio_feedback.emit_event(\"target_collect\")")
+	# Anchored on the emit rather than the full single-line call, for the same
+	# reason as above.
+	var arrival_cue := source.find("audio_feedback.emit_event(
+		\"target_collect\"")
 	var progress_update := source.find("target_progress += 1", arrival_cue)
 	var objective_advance := source.find("target_index += 1", progress_update)
 	_assert(arrival_cue >= 0 and progress_update > arrival_cue and objective_advance > progress_update, "Original target-arrival cue must play before confirmed progress advances")

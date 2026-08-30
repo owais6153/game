@@ -880,3 +880,38 @@ static func merge_streak_pitch(streak: int) -> float:
 
 static func merge_streak_intensity(streak: int) -> float:
 	return 1.0 + float(clampi(streak - 1, 0, MERGE_STREAK_MAX - 1)) * MERGE_STREAK_INTENSITY_STEP
+
+## Escalation across the level's target sequence.
+##
+## Only the final target had a distinct cue; completing target 1 and target 2
+## sounded and felt identical, so the objective sequence read as flat until the
+## very end. Each successive target now lands a little harder, while the final
+## one keeps its separate hero sequence and remains clearly the strongest.
+##
+## Bounded deliberately: the top of this range still sits under the level-
+## completion cue, so the hierarchy target < level complete is preserved.
+const TARGET_STEP_INTENSITY := 0.10
+const TARGET_STEP_PITCH := 0.05
+const TARGET_STEP_MAX := 2
+
+static func target_step(index: int) -> int:
+	return clampi(index, 0, TARGET_STEP_MAX)
+
+static func target_step_intensity(index: int) -> float:
+	return 1.0 + float(target_step(index)) * TARGET_STEP_INTENSITY
+
+static func target_step_pitch(index: int) -> float:
+	return 1.0 + float(target_step(index)) * TARGET_STEP_PITCH
+
+## Presentation-only calming of the table artwork.
+##
+## Several supplied table variants carry a bright neon rail. On device that rail
+## was the loudest element on the whole screen, pulling focus off the gems it
+## frames - the exact inversion the HUD hierarchy is supposed to avoid. Dimming
+## the sprite slightly lets the frame read as a boundary rather than as the
+## subject.
+##
+## This is a modulate on the sprite only. It never touches rail geometry,
+## containment, collision, drag clamps, or the danger line, all of which keep
+## reading the same authoritative layout values.
+const TABLE_ART_CALM_MODULATE := Color(0.82, 0.84, 0.90, 1.0)

@@ -211,6 +211,11 @@ func _ready() -> void:
 		_log_analytics("daily_mission_generated", {"mission_date": String(daily_state.get("date", ""))})
 	level_start_coins = coins
 	_configure_generated_level(level_number, level_seed)
+	# The opening board has to be seeded on the startup path too, not only on
+	# restart(). The real flow is Home -> Level Ready -> Start, none of which
+	# calls restart(), so the very first level of a session opened on an empty
+	# table and every seeded layout was silently missing.
+	_seed_starting_board()
 	shots_remaining = int(level_config.get("shot_limit", 0)) if is_limited_shots_level() else -1
 	_setup_asset_presentation()
 	_on_privacy_options_availability_changed(
@@ -1558,6 +1563,7 @@ func _refresh_background_fill() -> void:
 	if table_sprite != null:
 		table_sprite.position = GameConfig.table_texture_center()
 		table_sprite.scale = GameConfig.table_texture_render_scale()
+		table_sprite.modulate = GameConfig.TABLE_ART_CALM_MODULATE
 	var source_size := background_sprite.texture.get_size()
 	var cover_scale := maxf(viewport_size.x / source_size.x, viewport_size.y / source_size.y)
 	background_sprite.position = viewport_size * 0.5
@@ -2012,6 +2018,7 @@ func _configure_generated_level(requested_level: int, requested_seed: int) -> vo
 		background_sprite.texture = AssetCatalogType.background_texture(int(level_config.get("background_index", 0)))
 	if table_sprite != null:
 		table_sprite.texture = AssetCatalogType.table_texture(int(level_config.get("table_index", 0)))
+		table_sprite.modulate = GameConfig.TABLE_ART_CALM_MODULATE
 	_refresh_background_fill()
 
 func target_sequence() -> Array:
@@ -2429,7 +2436,13 @@ func _finish_target_collection() -> void:
 			gameplay_ui.impact_target_panel()
 		else:
 			gameplay_ui.pulse_target()
-	audio_feedback.emit_event("target_collect")
+	# Each target in the sequence lands a little harder than the last, so the
+	# objective run builds instead of reading flat until the final one.
+	audio_feedback.emit_event(
+		"target_collect",
+		minf(1.0, GameConfig.target_step_intensity(presented_target_index)),
+		GameConfig.target_step_pitch(presented_target_index)
+	)
 	haptics_feedback.emit_event("target_collect")
 	_trace_presentation_event("collection_animation_completed", result_id)
 	presented_target_progress += 1

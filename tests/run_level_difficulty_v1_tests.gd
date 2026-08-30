@@ -6,6 +6,7 @@ extends SceneTree
 
 const LevelConfigType = preload("res://scripts/core/level_config.gd")
 const GameScene = preload("res://scenes/Game.tscn")
+const ProgressionSaveServiceType = preload("res://scripts/services/progression_save_service.gd")
 
 var failures: Array[String] = []
 
@@ -23,6 +24,7 @@ func _run() -> void:
 	_test_opening_board_leaves_a_route_through()
 	await _test_controller_places_the_opening_board()
 	await _test_level_advance_starts_clean()
+	await _test_opening_board_survives_the_real_entry_flow()
 	if failures.is_empty():
 		print("LEVEL_DIFFICULTY_V1_TESTS: PASS")
 		quit(0)
@@ -252,5 +254,53 @@ func _test_level_advance_starts_clean() -> void:
 			% [expected.size(), controller._targetable_pieces().size(), dirty_count])
 	_assert(int(controller.level_config.get("level_number", 0)) == 7,
 		"the controller must reconfigure to the level it advanced to")
+	viewport.queue_free()
+	await process_frame
+
+
+## The opening board must be present on the path the player actually takes.
+##
+## The existing coverage called restart() directly and passed, while the real
+## flow - Home -> Level Ready -> Start Game - never calls restart(). Only
+## restart() seeded the board, so the first level of every session opened on an
+## empty table and the whole seeded-layout feature was silently absent in play.
+## This test drives the real sequence and never calls restart().
+func _test_opening_board_survives_the_real_entry_flow() -> void:
+	# Seed the save first: _ready() reads it, and this suite shares user:// with
+	# the others, so a save sitting on level 1 (which has no opening board by
+	# design) would make the test vacuous rather than meaningful.
+	const SEEDED_LEVEL := 6
+	ProgressionSaveServiceType.save_progress(SEEDED_LEVEL, LevelConfigType.seed_for_level(SEEDED_LEVEL), 500)
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(720, 1600)
+	viewport.disable_3d = true
+	root.add_child(viewport)
+	var controller = GameScene.instantiate()
+	viewport.add_child(controller)
+	await process_frame
+
+	_assert(controller.level_number == SEEDED_LEVEL,
+		"the controller must start on the seeded level (got %d)" % controller.level_number)
+	var expected: Array = controller.level_config.get("starting_board", []) as Array
+	_assert(not expected.is_empty(),
+		"level %d must define an opening board for this test to mean anything" % SEEDED_LEVEL)
+	_assert(controller._targetable_pieces().size() == expected.size(),
+		"the board must be seeded at startup, before any restart (expected %d, found %d)"
+			% [expected.size(), controller._targetable_pieces().size()])
+
+	# Walk the real entry sequence; none of these may drop the seeded gems.
+	controller._show_home()
+	await process_frame
+	_assert(controller._targetable_pieces().size() == expected.size(),
+		"opening Home must not clear the opening board")
+	controller._on_home_level_intro_requested()
+	await process_frame
+	_assert(controller._targetable_pieces().size() == expected.size(),
+		"the Level Ready screen must not clear the opening board")
+	controller._on_home_play_requested()
+	await process_frame
+	_assert(controller._targetable_pieces().size() == expected.size(),
+		"starting the level must not clear the opening board (expected %d, found %d)"
+			% [expected.size(), controller._targetable_pieces().size()])
 	viewport.queue_free()
 	await process_frame

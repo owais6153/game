@@ -742,6 +742,10 @@ const POWER_TILE_ARMED_SCALE := 1.14
 const POWER_TILE_ARMED_MODULATE := Color(1.34, 1.24, 0.94, 1.0)
 ## A power that cannot act right now is dimmed but never disabled.
 const POWER_TILE_IDLE_MODULATE := Color(1.0, 1.0, 1.0, 0.5)
+## An owned, usable power at rest. Previously full white, which put four framed
+## gold tiles at the same visual weight as the gems they sit under and pulled
+## focus off the board. Calm enough to recede, bright enough to read as live.
+const POWER_TILE_RESTING_MODULATE := Color(0.94, 0.94, 0.98, 0.88)
 
 
 ## One power tile: the plain square plate, a large power icon, a caption beneath
@@ -893,9 +897,10 @@ func _refresh_power_tiles(snapshot: Dictionary) -> void:
 		if power == armed:
 			column.modulate = POWER_TILE_ARMED_MODULATE
 		elif can_act or owned <= 0:
-			# At zero owned the tile stays fully lit: the tap still opens the
-			# rewarded-ad offer, so it must read as available rather than dead.
-			column.modulate = Color.WHITE
+			# Live but unused. At zero owned the tile stays at the same resting
+			# weight rather than going dead: the tap still opens the rewarded-ad
+			# offer, and the green "+" already carries that affordance.
+			column.modulate = POWER_TILE_RESTING_MODULATE
 		else:
 			column.modulate = POWER_TILE_IDLE_MODULATE
 		# Scaling the whole column keeps the caption locked to its plate.
