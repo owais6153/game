@@ -17,7 +17,12 @@ const PowerInventoryServiceType = preload("res://scripts/services/power_inventor
 
 ## Above the gameplay HUD but below the result overlay, which owns the screen
 ## whenever a level has actually ended.
-const OVERLAY_LAYER := 55
+## Above every screen this popup can be opened from: the gameplay HUD (40),
+## Home (60), daily missions (65), and the power shop (66). It used to sit at
+## 55, which put the ad offer and the reward result *behind* the shop and Home -
+## so tapping GET looked like it did nothing, and the reward popup after a
+## completed video was never visible.
+const OVERLAY_LAYER := 80
 
 const PANEL_WIDTH := 560.0
 const ICON_SIZE := 168.0

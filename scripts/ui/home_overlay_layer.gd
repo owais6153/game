@@ -57,6 +57,8 @@ var privacy_policy_link: LinkButton
 
 var settings_blocker: Control
 var settings_panel: PanelContainer
+## Any modal must outrank every content z_index on the same canvas layer.
+const MODAL_Z_INDEX := 100
 var settings_music_toggle: Button
 var settings_sound_toggle: Button
 var settings_privacy_options_button: Button
@@ -364,7 +366,8 @@ func _build_top_settings_control() -> void:
 	settings_button = Button.new()
 	settings_button.name = "HomeSettingsButton"
 	settings_button.icon = ICON_SETTINGS
-	settings_button.expand_icon = true
+	# Capped rather than expanded, so the gear keeps padding inside its plate.
+	settings_button.add_theme_constant_override("icon_max_width", 40)
 	settings_button.custom_minimum_size = Vector2(78.0, 78.0)
 	settings_button.add_theme_stylebox_override("normal", UiDesignSystemType.utility_frame_style())
 	settings_button.add_theme_stylebox_override("hover", UiDesignSystemType.utility_frame_style())
@@ -734,6 +737,11 @@ func _home_status_card(node_name: String) -> PanelContainer:
 func _popup_blocker(node_name: String) -> Control:
 	var blocker := Control.new()
 	blocker.name = node_name
+	# Above any content z_index. The daily-mission status badges raise their own
+	# z_index so half the badge can hang outside its card, and z_index sorts
+	# across the whole canvas layer - so without this they drew straight through
+	# the Settings modal.
+	blocker.z_index = MODAL_Z_INDEX
 	blocker.process_mode = Node.PROCESS_MODE_ALWAYS
 	blocker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	blocker.visible = false

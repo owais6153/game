@@ -14,6 +14,8 @@ const ICON_MUSIC = preload("res://assets/runtime/ui/icons/note_lavender.svg")
 const ICON_SOUND = preload("res://assets/runtime/ui/icons/speaker_lavender.svg")
 const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 const POWER_TILE = preload("res://assets/runtime/ui/kit/power_tile.png")
+## Any modal must outrank every content z_index on the same canvas layer.
+const MODAL_Z_INDEX := 100
 const DECOR_DIAMOND = preload("res://assets/runtime/ui/kit/decor_diamond.png")
 const POWER_ICONS := {
 	"bomb": preload("res://assets/runtime/ui/kit/power_icon_bomb.png"),
@@ -557,7 +559,9 @@ func _build_once() -> void:
 	root_control.add_child(target_reward_overlay)
 	target_reward_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_pause_popup()
-	pause_blocker.z_index = 30
+	# Must outrank every content z_index on this layer, including the mission
+	# banner at 40, which would otherwise draw straight through the pause modal.
+	pause_blocker.z_index = MODAL_Z_INDEX
 
 
 func _build_reward_foreground() -> void:
@@ -729,7 +733,11 @@ const POWER_ICON_INSET := 14.0
 ## inside it, so a two-digit count never collides with the artwork.
 const POWER_BADGE_SIZE := 46.0
 const POWER_BADGE_OVERLAP := 12.0
-const POWER_ROW_BOTTOM_PADDING := 18.0
+## Clearance below the power row. 18 left only ~16 real pixels under the
+## captions on a 360x640 screen, which read as clipped text against the screen
+## edge. Sized so the captions keep visible breathing room at every portrait
+## size, including aspects shorter than 16:9.
+const POWER_ROW_BOTTOM_PADDING := 40.0
 const POWER_TILE_ARMED_SCALE := 1.14
 const POWER_TILE_ARMED_MODULATE := Color(1.34, 1.24, 0.94, 1.0)
 ## A power that cannot act right now is dimmed but never disabled.
@@ -1211,7 +1219,10 @@ func _build_settings_button() -> Button:
 	button.name = "SettingsButton"
 	button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE
 	button.icon = ICON_SETTINGS
-	button.expand_icon = true
+	# Not expand_icon: that stretches the gear to the full button and leaves it
+	# jammed against the frame with no padding. A capped width keeps a ring of
+	# plate visible around the glyph.
+	button.add_theme_constant_override("icon_max_width", int(UiDesignSystemType.TOP_SETTINGS_SIZE * 0.52))
 	button.add_theme_stylebox_override("normal", UiDesignSystemType.utility_frame_style())
 	button.add_theme_stylebox_override("hover", UiDesignSystemType.utility_frame_style())
 	button.add_theme_stylebox_override("pressed", UiDesignSystemType.utility_frame_style())
@@ -1889,6 +1900,12 @@ func _decorate_panel_ends(panel: Control) -> void:
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(overlay)
 	var half := PANEL_DECOR_SIZE * 0.5
+	# PanelContainer sizes the overlay to its *content* rect, which is inset by
+	# the stylebox margin. Without compensating for that inset the diamonds sat
+	# fully inside the panel instead of straddling its visible border.
+	var style := panel.get_theme_stylebox("panel")
+	var inset_left := style.get_margin(SIDE_LEFT) if style != null else 0.0
+	var inset_right := style.get_margin(SIDE_RIGHT) if style != null else 0.0
 	for side in [-1, 1]:
 		var diamond := TextureRect.new()
 		diamond.name = "PanelDecorLeft" if side < 0 else "PanelDecorRight"
@@ -1901,6 +1918,8 @@ func _decorate_panel_ends(panel: Control) -> void:
 		diamond.set_anchors_preset(Control.PRESET_CENTER_LEFT if side < 0 else Control.PRESET_CENTER_RIGHT)
 		diamond.offset_top = -half
 		diamond.offset_bottom = half
-		diamond.offset_left = -half
-		diamond.offset_right = half
+		var outset := inset_left if side < 0 else inset_right
+		var centre := -outset if side < 0 else outset
+		diamond.offset_left = centre - half
+		diamond.offset_right = centre + half
 		overlay.add_child(diamond)

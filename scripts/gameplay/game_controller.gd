@@ -1028,22 +1028,10 @@ func _report_power_ad_result(power: String, granted: bool) -> void:
 		haptics_feedback.emit_event("target_collect")
 	if power_overlay == null:
 		return
-	if granted:
-		# A successful grant needs no popup. The player already watched a video;
-		# making them dismiss a panel afterwards is one more tap for information
-		# the count badge and the banner already carry. The offer popup closes and
-		# the reward is announced in the same top banner a completed mission uses.
-		power_overlay.close()
-		if gameplay_ui != null:
-			gameplay_ui.show_banner(
-				"+1 %s" % PowerInventoryServiceType.label(power).to_upper(),
-				"You now have %d." % PowerInventoryServiceType.count(power_state, power),
-				gameplay_ui.power_icon_texture(power)
-			)
-		return
-	# Failure still needs the panel: the player must be told plainly that nothing
-	# was granted and no daily allowance was spent.
-	power_overlay.present_ad_result(power, false, PowerInventoryServiceType.count(power_state, power))
+	# Both outcomes get the panel. A successful grant was briefly banner-only,
+	# but the confirmation after a video is the moment the player is looking for
+	# and it must be unmissable; the banner alone was too easy to miss.
+	power_overlay.present_ad_result(power, granted, PowerInventoryServiceType.count(power_state, power))
 
 
 ## The first time a targeted power is armed, explain that it needs a target.
