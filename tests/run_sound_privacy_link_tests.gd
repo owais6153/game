@@ -123,7 +123,9 @@ func _test_confirmed_event_routing_contract() -> void:
 	var merge_classified := source.find("var completes_active_target := result_level == active_target_tier()")
 	var merge_identity := source.find("merge_event.merge_sound_event =", merge_classified)
 	var reveal_guard := source.find("GameConfig.MERGE_REVEAL_SOUND_AT", merge_identity)
-	var merge_cue := source.find("audio_feedback.emit_event(String(presentation.get(\"merge_sound_event\"", reveal_guard)
+	# Matched on the argument rather than the whole call, so reformatting the
+	# emit across lines cannot fail a contract that is still satisfied.
+	var merge_cue := source.find("String(presentation.get(\"merge_sound_event\"", reveal_guard)
 	_assert(merge_classified >= 0 and merge_identity > merge_classified and reveal_guard > merge_identity and merge_cue > reveal_guard, "Merge sound must align once with the restored 200 ms result reveal")
 	# Reward feedback v3 keeps the same confirmed chain event and adds only a
 	# bounded presentation pitch for the combo hierarchy.

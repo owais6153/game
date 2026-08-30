@@ -56,6 +56,9 @@ var score: int:
 	set(value):
 		coins = value
 var chain_multiplier := 1
+## Shots in a row that produced at least one merge. Presentation only.
+var merge_streak := 0
+var shot_produced_merge := false
 var danger_timers: Dictionary = {}
 var won := false
 var win_qualified := false
@@ -344,6 +347,11 @@ func _advance_launcher_lifecycle(delta: float = 0.0) -> void:
 				active_piece_id = -1
 			if spawn_active_piece():
 				launcher_state = LauncherState.READY_TO_AIM
+				# Resolve the finished shot into the streak before the next one
+				# starts. A shot that merged extends the run; one that did not ends
+				# it, so the escalation tracks sustained play rather than one chain.
+				merge_streak = mini(merge_streak + 1, GameConfig.MERGE_STREAK_MAX) if shot_produced_merge else 0
+				shot_produced_merge = false
 				chain_multiplier = 1
 				ready_delay_elapsed = 0.0
 				launcher_handoff_elapsed = 0.0
@@ -1055,6 +1063,7 @@ func _maybe_show_power_how_to(power: String) -> bool:
 		# Switch and magnet act immediately; there is nothing to teach.
 		return false
 	power_overlay.present_how_to(power)
+	_log_analytics("power_tutorial_shown", {"power": power, "level_number": level_number})
 	return true
 
 
@@ -1063,6 +1072,9 @@ func _on_power_how_to_acknowledged(power: String) -> void:
 		return
 	seen_power_tutorials.append(power)
 	ProgressionSaveServiceType.mark_power_tutorial_seen(power)
+	# Guarded by the seen list above, so a tutorial reports completion once per
+	# save rather than on every dismissal.
+	_log_analytics("power_tutorial_completed", {"power": power, "level_number": level_number})
 
 ## Grants exactly one power for a completed rewarded ad. Only the reward
 ## callback may call this, so a cancelled or failed ad grants nothing and
@@ -1293,6 +1305,10 @@ func restart() -> void:
 	collision_visual_last_at.clear()
 	collision_visual_clock = 0.0
 	chain_multiplier = 1
+	# A streak must not carry across a restart or a level change, or the new
+	# level opens already escalated.
+	merge_streak = 0
+	shot_produced_merge = false
 	danger_timers.clear()
 	won = false
 	win_qualified = false
@@ -1593,6 +1609,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		merge_event.source_texture = AssetCatalogType.gem_texture(maxi(1, result_level - 1))
 		merge_event.result_texture = AssetCatalogType.gem_texture(result_level)
 		chain_multiplier = resolution_multiplier
+		shot_produced_merge = true
 		# The reference awards and animates coins only when the current target is
 		# fulfilled. Ordinary merges keep their impact/gem feedback but do not
 		# change the currency counter or create coin records.
@@ -2154,7 +2171,14 @@ func _update_merge_presentations(delta: float) -> void:
 		if float(presentation.elapsed) >= float(timeline.get("sound_at", GameConfig.MERGE_REVEAL_SOUND_AT)) and not bool(presentation.get("reveal_sound_played", false)):
 			presentation.reveal_sound_played = true
 			if audio_feedback != null:
-				audio_feedback.emit_event(String(presentation.get("merge_sound_event", "normal_merge")), 1.0, float(presentation.get("merge_sound_pitch", 1.0)))
+				# Chain pitch carries the combo depth; the streak lift carries the run
+				# of shots. Multiplied so a deep chain during a long run is the
+				# brightest ordinary merge without ever reaching the power cues.
+				audio_feedback.emit_event(
+					String(presentation.get("merge_sound_event", "normal_merge")),
+					minf(1.0, GameConfig.merge_streak_intensity(merge_streak)),
+					float(presentation.get("merge_sound_pitch", 1.0)) * GameConfig.merge_streak_pitch(merge_streak)
+				)
 			_trace_presentation_event("merge_reveal_sound", result_id)
 		if float(presentation.elapsed) >= overlap_start and pending_target_presentations.has(result_id):
 			pending_target_presentations.erase(result_id)
@@ -3214,6 +3238,7 @@ func _draw_merge_presentation(presentation: Dictionary) -> void:
 func _on_power_shop_requested() -> void:
 	if power_shop == null:
 		return
+	_log_analytics("shop_opened", {"level_number": level_number, "coin_balance": coins})
 	power_shop.present(power_counts(), coins)
 
 

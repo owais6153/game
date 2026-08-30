@@ -1,3 +1,11 @@
+# 2026-08-30 - Consecutive-merge escalation, analytics gaps, hierarchy pinned
+
+- **Added consecutive-merge escalation.** The combo pitch in `MERGE_TIMELINE_*` only escalated *within a single chain*, so a player merging steadily shot after shot heard the same flat cue every time and the moment-to-moment loop read as static. A streak now counts shots that produced at least one merge and applies a small pitch and intensity lift on top of the chain pitch. It caps at 6, resets when a shot produces no merge, and clears on restart and level change so a new level never opens already escalated.
+- **Pinned the feedback hierarchy in a test** rather than leaving it as prose: ordinary merge < chain < mission complete < target complete < level complete, every power above an ordinary combo, and a fully escalated combo asserted to stay quieter than the target cue. The escalation cannot be tuned upward past a target by accident.
+- **Audited analytics against the required event list.** Coverage was already close to complete - `daily_mission_claimed` exists under the name `daily_mission_reward_claimed`. Three genuine gaps were filled: `power_tutorial_shown`, `power_tutorial_completed` (guarded by the seen list, so it fires once per save rather than on every dismissal), and `shop_opened`.
+- Fixed a brittle regression probe in `run_sound_privacy_link_tests` that matched merge-cue source text literally and failed purely because the call was reformatted across lines. It now matches the argument, so the ordering contract it actually checks survives formatting changes.
+- All twenty-five suites pass.
+
 # 2026-08-30 - Production polish: icon centring, ad robustness, limited-shot feasibility
 
 - **Root-caused the Settings icon padding properly.** Godot lays a `Button` out as icon + text and reserves `h_separation` *even when the text is empty*, so an icon-only button draws its glyph left of centre - measured on device, the gear sat ~16px left and clipped the plate border. No `icon_max_width` value could fix that, which is why two numeric attempts failed. The glyph is now a full-rect child `TextureRect` with a symmetric inset via `UiDesignSystem.centre_icon_in_button()`. `run_hud_alignment_v1_tests` measures rendered rects rather than configured values and fails any icon-only `Button.icon` anywhere in the HUD.

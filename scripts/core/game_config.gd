@@ -861,3 +861,22 @@ static func vertical_lane_top_y(x_position: float, radius: float = 0.0) -> float
 		return lerpf(top, bottom, clampf(left_t, 0.0, 1.0))
 	var right_t := (x_position - (TABLE_INNER_RIGHT_TOP + viewport_center_offset_x - radius)) / maxf(0.001, denominator)
 	return lerpf(top, bottom, clampf(right_t, 0.0, 1.0))
+
+## Consecutive-merge streak. The combo pitch in MERGE_TIMELINE_* escalates only
+## within a single chain, so a player merging steadily shot after shot heard the
+## same flat cue every time and the moment-to-moment loop read as static.
+##
+## The streak counts shots that produced at least one merge and decays when a
+## shot produces none, so it rewards sustained play rather than one lucky chain.
+## It is capped low and applies a small pitch lift on top of the chain pitch:
+## enough to hear the run building, far short of the power cues, and it never
+## changes which event fires or any gameplay value.
+const MERGE_STREAK_MAX := 6
+const MERGE_STREAK_PITCH_STEP := 0.028
+const MERGE_STREAK_INTENSITY_STEP := 0.020
+
+static func merge_streak_pitch(streak: int) -> float:
+	return 1.0 + float(clampi(streak - 1, 0, MERGE_STREAK_MAX - 1)) * MERGE_STREAK_PITCH_STEP
+
+static func merge_streak_intensity(streak: int) -> float:
+	return 1.0 + float(clampi(streak - 1, 0, MERGE_STREAK_MAX - 1)) * MERGE_STREAK_INTENSITY_STEP
