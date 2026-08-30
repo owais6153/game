@@ -1,3 +1,10 @@
+# 2026-08-30 - Performance hygiene: unbounded contact-cooldown map
+
+- **Found a slow leak in the contact-cooldown map.** `collision_visual_last_at` was only ever written to. It is cleared on restart, but within a single level it grew one entry per gem id that ever registered a contact, and gem ids are never reused - so a long session accumulated thousands of entries that could never be read again. Measured at 1,280 dead entries over 1,280 contacts. It is now pruned, amortised so the scan only runs once the map exceeds the number of gems that could plausibly be on cooldown at once.
+- **Audited the rest of the long-session surfaces and found them clean.** Repeated power use across 40 activations produced no node growth and no orphans; merge hitstops are erased on completion and cleared on restart; the presentation trace, the audio voice pool, the bonus board cap and the per-shot bonus budget are all bounded by construction. Effects, coins, mini-gems and combo labels all returned to zero after the stress run.
+- Added `tests/run_performance_hygiene_v1_tests.gd` covering the bounded contact map (including that pruning does not break the cooldown it exists to enforce), node and orphan counts across repeated power use, and the configured caps. Verified it reproduces the unbounded growth.
+- All twenty-nine suites pass.
+
 # 2026-08-30 - Coin economy rebalanced: one level paid eight powers
 
 - **Found the economy was broken by roughly 10x.** A single level paid **2,950 coins** (350 + 800 + 1,800 for its three targets) while the most expensive sink in the game was Skip Level at 800 and the priciest power was 350. A player owned every power several times over before finishing level 1, and coins never meant anything again. Every sink price and mission reward had been tuned against an income about ten times smaller than the one actually being paid.

@@ -3109,6 +3109,7 @@ func _begin_collision_visual(piece_id: int, normal: Vector2, strength: float) ->
 	if piece_id < 0 or collision_visual_clock - float(collision_visual_last_at.get(piece_id, -100.0)) < GameConfig.COLLISION_VISUAL_COOLDOWN:
 		return
 	collision_visual_last_at[piece_id] = collision_visual_clock
+	_prune_collision_visual_history()
 	var intensity := clampf(strength / GameConfig.LAUNCH_SPEED, 0.0, 1.0)
 	piece_visual_feedbacks[piece_id] = {
 		"kind": "collision",
@@ -3356,3 +3357,24 @@ func _announce_completed_missions(completed_before: Array[String]) -> void:
 ## second request cannot be started behind the first.
 func _rewarded_request_in_flight() -> bool:
 	return ad_manager != null and bool(ad_manager.call("is_fullscreen_showing"))
+
+
+## Drops cooldown entries for gems that can no longer be on cooldown.
+##
+## This map was only ever written to. It is cleared on restart, but within a
+## single long level it grew one entry per gem id that ever registered a
+## contact, and ids are never reused - so a long session accumulated thousands
+## of dead entries that could never be read again.
+##
+## Pruning is amortised rather than run every contact: the scan is only worth
+## doing once the map is larger than the number of gems that could plausibly be
+## within their cooldown window at once.
+const COLLISION_HISTORY_PRUNE_THRESHOLD := 64
+
+func _prune_collision_visual_history() -> void:
+	if collision_visual_last_at.size() <= COLLISION_HISTORY_PRUNE_THRESHOLD:
+		return
+	var expiry := collision_visual_clock - GameConfig.COLLISION_VISUAL_COOLDOWN
+	for piece_id in collision_visual_last_at.keys():
+		if float(collision_visual_last_at[piece_id]) < expiry:
+			collision_visual_last_at.erase(piece_id)
