@@ -1,3 +1,14 @@
+# 2026-08-31 - Correct fail reason, reward reveal, cinematic powers, wave VFX, and easier shot levels
+
+- Passed the authoritative failure reason into `ResultOverlayLayer`; out-of-shots failures no longer falsely blame the danger line.
+- Extended Daily Treasure feedback from a lid swap to a staged `YOU RECEIVED` reveal with an icon, name, and count for every persisted power grant.
+- Extended the skippable power cinematic to 1.65 seconds and added a targeted Bomb/Hammer brace-and-shake beat over the selected gem before impact applies the board change.
+- Removed merge shards, including their record pool, update loop, gravity, polygon draw calls, and tuning constants. Replaced them with 3-6 delayed concentric wavefronts and a denser bounded 12-30-ray crown keyed to exact result tier/color.
+- Added gameplay-style edge diamonds to Home's Level and Coins cards, removed `CURRENT LEVEL` and idle `Tap to view today's missions` copy, and inserted 20px between Daily Missions and the status row.
+- Made limited-shot rounds materially easier: exactly one L6 and one L7 objective, no L8 objective or repeated quantity, and a 24-shot minimum above the solver result. Normal levels retain their existing target scaling.
+- Added `run_player_feedback_repair_v1_tests.gd` and updated merge, powers, and difficulty contracts for the new behavior.
+- Pointed the existing debug-APK preset at a distinct player-feedback-repair artifact name; release AAB identity/path are unchanged and no AAB is part of this milestone.
+
 # 2026-08-30 - Final HUD clearance, tiered VFX, power/audio production pass
 
 - Moved the dense limited-shots objective stack upward into unused centre-top space. Counter, Target, and merge path now clear the table instead of overlapping its top frame; focused layout coverage forces the limited-shots state at three portrait sizes.

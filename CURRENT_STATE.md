@@ -1,3 +1,13 @@
+# Player Feedback and Limited-Shots Repair - 2026-08-31
+
+- Try Again now uses the controller's fail reason: giving up after an exhausted shot budget says `YOU RAN OUT OF SHOTS`; danger-line failures retain the danger copy.
+- Daily Treasure opens into a persistent `YOU RECEIVED` row with staged Switch, Magnet, and Hammer icons/counts matching the already-saved payout.
+- Bomb/Hammer cinematics last 1.65 seconds and visibly brace/shake over the tapped gem before `impact_reached` applies the staged effect; any tap may still skip directly to impact.
+- The shard array, per-frame shard physics, and shard drawing path are removed. Merge feedback now uses 3-6 delayed colored wavefronts and 12-30 bounded rays plus the existing tier core.
+- Home Level/Coins cards now carry edge diamonds. The redundant `CURRENT LEVEL` and idle `Tap to view today's missions` copy are gone; claim-ready text remains, and a 20px spacer separates missions from the status row.
+- Limited-shot levels now ask for one L6 and one L7 target, never L8 or repeated quantities, and always grant at least 24 shots. Normal target scaling is unchanged.
+- Focused parse and four behavior suites pass. The Windows runner still returns its known post-PASS access violation in some suites; assertions complete first.
+
 # Final HUD, VFX, Power, and Audio Test Candidate - 2026-08-30
 
 - The reported limited-shots composition is corrected: Counter/Target/merge path now ends above the table at 720x1280, 720x1600, and 1080x2340; the counter moves upward into unused centre-top space rather than dragging the objective stack onto the board.

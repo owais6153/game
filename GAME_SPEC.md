@@ -1,3 +1,12 @@
+# Player Feedback, Treasure Reveal, and Limited-Shots Ease - 2026-08-31
+
+- A failed result must display its authoritative reason. `out_of_shots` reads `YOU RAN OUT OF SHOTS`; only a real danger-line failure may claim that the table reached the danger line.
+- Claiming Daily Treasure must keep the opened chest visible and reveal every persisted power reward by icon, name, and quantity. The reveal follows persistence and never grants inventory itself.
+- Bomb and Hammer remain targeted powers. After a valid board tap they visibly arrive and brace/shake over the chosen gem before the cinematic impact signal applies the staged board change. The 1.65-second sequence remains tap-skippable.
+- Merge shards are removed. Confirmed merges use three to six delayed concentric wavefronts, a bounded 12-30-ray crown, exact result color, and the existing tier-scaled jewel core. Presentation remains drawing-only and simulation-independent.
+- Home Level and Coins cards use the same restrained edge-jewel decorators as gameplay HUD cards. `CURRENT LEVEL` and `Tap to view today's missions` are not rendered, and Daily Missions has a 20-pixel separation before the status row.
+- Limited-shot levels use two single-count objectives, L6 then L7, with no L8 target. Their solver-derived budget is never below 24 shots or one full launcher sequence. Normal-level targets and all merge/physics rules are unchanged.
+
 # Final HUD, Tiered Merge VFX, Power Cinematic, and Audio Polish - 2026-08-30
 
 - Limited-shots Counter, Target, and the complete merge path form one centred stack that may use the empty horizontal space between Coins and Next. Its bottom must remain at least 28 design pixels above table art on supported portrait viewports.

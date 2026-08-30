@@ -1,3 +1,15 @@
+# Architecture Addendum - Player Feedback and Limited-Shots Repair
+
+`GameController._trigger_failure(fail_reason)` remains the outcome authority and now forwards that reason to `ResultOverlayLayer`. The overlay only maps the supplied value to copy; it does not infer failure from board state or shot counters.
+
+Daily Treasure stays save-before-presentation. `GameController` constructs and persists the complete power inventory, then passes the same granted dictionary to `DailyMissionsOverlayLayer.play_chest_open()`. The overlay's icon/count reveal is presentation-only and cannot grant, consume, or modify powers.
+
+`PowerCinematicLayer` owns the longer targeted anticipation. Bomb/Hammer reach the selected board coordinate, brace there, and emit the unchanged `impact_reached` signal at the end of the wind-up. `GameController` continues to be the only owner of the staged effect payload and applies it on that signal or the identical skip path.
+
+`GameplayEffectsLayer` no longer owns a shard collection. One bounded merge-impact record derives `ring_layers` from `GameConfig.merge_vfx_wave_layers()` and draws delayed wavefronts plus deterministic rays. No per-frame fragment movement or polygon allocation remains, and simulation/contact/merge authority is unchanged.
+
+`LevelConfig.generated()` selects `[L6, L7]` with quantity one when `level_type == limited_shots`; normal levels retain `[L6, L7, L8]` and their quantity curve. `LevelSolver.minimum_shots()` still establishes feasibility, while `LIMITED_SHOTS_MINIMUM` prevents easier objectives from collapsing the player budget below a complete launcher sequence.
+
 # Architecture Addendum - Final HUD/VFX/Audio Boundaries
 
 `GameplayHudLayer` still consumes controller snapshots only. Its centred objective anchor is allowed to occupy the unused horizontal gap between corner utilities, which prevents the optional Shots panel from forcing the progression path onto table art. `GameConfig` table geometry remains authoritative and is read only as a presentation landmark; HUD layout never changes simulation coordinates.

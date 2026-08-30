@@ -11,6 +11,7 @@ const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/t
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
 const ICON_SETTINGS = preload("res://assets/runtime/ui/kit/icon_gear.png")
+const DECOR_DIAMOND = preload("res://assets/runtime/ui/kit/decor_diamond.png")
 ## The Home shop entry point. A de-fringed derivative of the supplied stall art.
 
 ## A compact brand mark rather than a hero panel. Home is a game screen, so the
@@ -264,6 +265,11 @@ func _build() -> void:
 	column.add_child(tagline_label)
 
 	column.add_child(_build_daily_card())
+	var daily_status_spacer := Control.new()
+	daily_status_spacer.name = "DailyStatusSpacer"
+	daily_status_spacer.custom_minimum_size = Vector2(0.0, 20.0)
+	daily_status_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(daily_status_spacer)
 
 	var status_row := HBoxContainer.new()
 	status_row.name = "HomePlayerStatus"
@@ -278,8 +284,6 @@ func _build() -> void:
 	var level_col := VBoxContainer.new()
 	level_col.alignment = BoxContainer.ALIGNMENT_CENTER
 	level_card.add_child(level_col)
-	var level_caption := _label("CURRENT LEVEL", UiDesignSystemType.CAPTION_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
-	level_col.add_child(level_caption)
 	level_label = _label("LEVEL 1", UiDesignSystemType.PANEL_TITLE_FONT_SIZE + 4, Color.WHITE)
 	level_label.add_theme_font_override("font", UiDesignSystemType.heavy_font())
 	level_col.add_child(level_label)
@@ -608,7 +612,8 @@ func _build_daily_card() -> Control:
 	daily_badges_row.add_theme_constant_override("separation", DAILY_MINI_GAP)
 	column.add_child(daily_badges_row)
 
-	daily_status_label = _label("Tap to view today's missions", UiDesignSystemType.CAPTION_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	daily_status_label = _label("", UiDesignSystemType.CAPTION_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	daily_status_label.visible = false
 	column.add_child(daily_status_label)
 	return daily_button
 
@@ -647,14 +652,15 @@ func _refresh_daily_card() -> void:
 		daily_badges_row.add_child(_daily_mini_card(mission, index, progress, target, claimed))
 	if daily_status_label == null:
 		return
-	if missions.is_empty():
-		daily_status_label.text = "Tap to view today's missions"
-	elif claimable > 0:
+	if claimable > 0:
 		daily_status_label.text = "%d reward%s ready to claim" % [claimable, "" if claimable == 1 else "s"]
+		daily_status_label.visible = true
 	elif DailyMissionServiceType.chest_ready(state):
 		daily_status_label.text = "Daily chest ready"
+		daily_status_label.visible = true
 	else:
-		daily_status_label.text = "Tap to view today's missions"
+		daily_status_label.text = ""
+		daily_status_label.visible = false
 
 
 ## One compact mission tile: the same tinted plate and gold rim the popup cards
@@ -730,7 +736,35 @@ func _home_status_card(node_name: String) -> PanelContainer:
 	card.custom_minimum_size = Vector2(0.0, 94.0)
 	card.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_decorate_status_card(card)
 	return card
+
+
+## Matches the restrained edge-jewel treatment used by the in-game HUD cards.
+func _decorate_status_card(card: Control) -> void:
+	var overlay := Control.new()
+	overlay.name = "PanelDecor"
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(overlay)
+	const SIZE := 30.0
+	var half := SIZE * 0.5
+	var style := card.get_theme_stylebox("panel")
+	var inset_left := style.get_margin(SIDE_LEFT) if style != null else 0.0
+	var inset_right := style.get_margin(SIDE_RIGHT) if style != null else 0.0
+	for side in [-1, 1]:
+		var diamond := TextureRect.new()
+		diamond.name = "PanelDecorLeft" if side < 0 else "PanelDecorRight"
+		diamond.texture = DECOR_DIAMOND
+		diamond.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		diamond.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		diamond.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		diamond.set_anchors_preset(Control.PRESET_CENTER_LEFT if side < 0 else Control.PRESET_CENTER_RIGHT)
+		diamond.offset_top = -half
+		diamond.offset_bottom = half
+		var centre := -inset_left if side < 0 else inset_right
+		diamond.offset_left = centre - half
+		diamond.offset_right = centre + half
+		overlay.add_child(diamond)
 
 func _popup_blocker(node_name: String) -> Control:
 	var blocker := Control.new()

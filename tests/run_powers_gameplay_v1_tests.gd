@@ -398,8 +398,10 @@ func _advance_to_impact(controller) -> void:
 
 
 func _test_power_cinematic_hierarchy() -> void:
-	_assert(PowerCinematicType.DURATION >= 1.0 and PowerCinematicType.DURATION <= 1.2,
-		"power cinematics must hold a readable but still fast one-second beat")
+	_assert(PowerCinematicType.DURATION >= 1.5 and PowerCinematicType.DURATION <= 1.8,
+		"power cinematics must hold a readable target wind-up before impact")
+	_assert(PowerCinematicType.TARGET_ARRIVE < PowerCinematicType.TRAVEL_END,
+		"targeted powers must arrive over the chosen gem before the impact beat")
 	_assert(float(PowerCinematicType.STYLE.bomb.brightness) > float(PowerCinematicType.STYLE.magnet.brightness),
 		"bomb must flash brighter than the non-destructive magnet")
 	_assert(float(PowerCinematicType.STYLE.hammer.brightness) > float(PowerCinematicType.STYLE.switch.brightness),

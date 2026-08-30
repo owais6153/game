@@ -969,25 +969,8 @@ const CHAIN_CONTACT_TOLERANCE := 30.0 # safe readable range 12-30
 ## board label with a visible pause so that state can never become unexplained.
 const TARGET_PROMPT_REPEAT_INTERVAL := 1.35
 
-## Gem shards thrown outward when a merge resolves.
-##
-## The merge previously read as a ring plus abstract sparks. The reference this
-## was compared against breaks the matched pieces into coloured fragments that
-## fly outward and fall, which is what makes an ordinary match feel physical
-## rather than like a swap. These are drawn shapes tinted from the merged gem,
-## so they cost nothing to load and stay on-theme automatically.
-##
-## Counts stay small and scale with the reward tier, so an ordinary merge is
-## lively without the board becoming confetti.
-const MERGE_SHARD_COUNT_NORMAL := 7
-const MERGE_SHARD_COUNT_MAJOR := 11
 const MERGE_VFX_MIN_SCALE := 0.92
 const MERGE_VFX_MAX_SCALE := 1.34
-const MERGE_SHARD_SPEED := Vector2(120.0, 260.0)
-const MERGE_SHARD_GRAVITY := 900.0
-const MERGE_SHARD_DURATION := 0.46
-const MERGE_SHARD_SIZE := Vector2(5.0, 11.0)
-const MERGE_SHARD_SPIN := 7.0
 
 ## Exact result tier drives a smooth VFX ladder instead of the old binary
 ## normal/major split. Art colour still comes from the authoritative tier map.
@@ -997,9 +980,8 @@ static func merge_vfx_tier_scale(level: int) -> float:
 
 
 static func merge_vfx_spark_count(level: int, target_merge: bool = false) -> int:
-	return clampi(7 + clampi(level, 1, 8) + (3 if target_merge else 0), 8, 18)
+	return clampi(10 + clampi(level, 1, 8) * 2 + (4 if target_merge else 0), 12, 30)
 
 
-static func merge_vfx_shard_count(level: int, major: bool = false) -> int:
-	var tier_count := 5 + int(ceil(float(clampi(level, 1, 8)) * 0.75))
-	return clampi(tier_count + (2 if major else 0), MERGE_SHARD_COUNT_NORMAL, 14)
+static func merge_vfx_wave_layers(level: int, target_merge: bool = false) -> int:
+	return clampi(2 + int(ceil(float(clampi(level, 1, 8)) / 3.0)) + (1 if target_merge else 0), 3, 6)

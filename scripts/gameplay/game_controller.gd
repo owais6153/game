@@ -1519,7 +1519,7 @@ func _on_daily_chest_claim_requested() -> void:
 	daily_overlay.present(daily_state, coins)
 	# Presented after the grant is persisted, so the animation reports something
 	# that already happened rather than standing in for the reward.
-	daily_overlay.play_chest_open()
+	daily_overlay.play_chest_open(granted)
 	if audio_feedback != null:
 		# The chest is the daily loop peak and now owns a real fanfare - the cue
 		# that used to announce level completion - instead of borrowing the
@@ -2157,7 +2157,7 @@ func _trigger_failure(fail_reason: String = "danger_line") -> void:
 		effects_layer.clear()
 	haptics_feedback.emit_event("fail")
 	var continue_available := fail_reason == "danger_line" and coin_continues_used < GameConfig.MAX_COIN_CONTINUES_PER_ATTEMPT
-	result_overlay.present(false, score, level_number, active_target_tier(), 0, false, _can_skip_level(), GameConfig.SKIP_LEVEL_COST, continue_available, GameConfig.CONTINUE_COST, coins)
+	result_overlay.present(false, score, level_number, active_target_tier(), 0, false, _can_skip_level(), GameConfig.SKIP_LEVEL_COST, continue_available, GameConfig.CONTINUE_COST, coins, fail_reason)
 	if continue_available:
 		_log_analytics("continue_offered", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": GameConfig.CONTINUE_COST, "coin_balance": coins})
 

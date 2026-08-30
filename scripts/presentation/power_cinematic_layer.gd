@@ -18,11 +18,13 @@ extends Node2D
 const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 
 ## Beat boundaries as fractions of the whole sequence. Announce, travel, impact.
-const ANNOUNCE_END := 0.34
-const TRAVEL_END := 0.63
+const ANNOUNCE_END := 0.24
+const TARGET_ARRIVE := 0.46
+const TRAVEL_END := 0.74
 
-## Long enough to read as a deliberate spend, still skippable on any press.
-const DURATION := 1.08
+## Targeted powers visibly brace over the chosen gem before impact. The longer
+## beat is still tap-skippable for returning players.
+const DURATION := 1.65
 const SKIP_TO_IMPACT_AT := TRAVEL_END
 
 const HERO_SCREEN_SCALE := 0.62
@@ -183,14 +185,27 @@ func _update_hero(progress: float) -> void:
 		_hero.rotation = lerpf(0.0, float(style.spin), eased)
 		_hero.modulate.a = clampf(t * 2.2, 0.0, 1.0)
 	elif progress < TRAVEL_END:
-		var t := (progress - ANNOUNCE_END) / (TRAVEL_END - ANNOUNCE_END)
-		# Accelerate into the target: the strike should feel like it lands, not
-		# like it drifts down.
-		var eased := t * t
-		_hero.position = screen_centre.lerp(origin, eased)
-		_hero.scale = Vector2.ONE * lerpf(HERO_SCREEN_SCALE, 0.16, eased) * _hero_base_scale()
-		_hero.rotation = lerpf(float(style.spin), 0.0, eased)
-		_hero.modulate.a = 1.0
+		var targeted := power == PowerInventoryServiceType.BOMB or power == PowerInventoryServiceType.HAMMER
+		if targeted and progress >= TARGET_ARRIVE:
+			# Hold directly over the selected gem and visibly tremble/cock before
+			# the impact signal changes the board. Hammer receives the strongest
+			# wind-up; Bomb pulses like a fuse about to go.
+			var hold_t := (progress - TARGET_ARRIVE) / (TRAVEL_END - TARGET_ARRIVE)
+			var shake_strength := (7.0 if power == PowerInventoryServiceType.HAMMER else 4.5) * sin(hold_t * PI)
+			_hero.position = origin + Vector2(sin(elapsed * 38.0), cos(elapsed * 31.0)) * shake_strength
+			_hero.scale = Vector2.ONE * (0.19 + sin(hold_t * PI * 3.0) * 0.018) * _hero_base_scale()
+			_hero.rotation = sin(elapsed * 22.0) * (0.24 if power == PowerInventoryServiceType.HAMMER else 0.08)
+			_hero.modulate.a = 1.0
+		else:
+			var travel_end := TARGET_ARRIVE if targeted else TRAVEL_END
+			var t := clampf((progress - ANNOUNCE_END) / (travel_end - ANNOUNCE_END), 0.0, 1.0)
+			# Accelerate into the target: the strike should feel like it lands, not
+			# like it drifts down.
+			var eased := t * t
+			_hero.position = screen_centre.lerp(origin, eased)
+			_hero.scale = Vector2.ONE * lerpf(HERO_SCREEN_SCALE, 0.19 if targeted else 0.16, eased) * _hero_base_scale()
+			_hero.rotation = lerpf(float(style.spin), 0.0, eased)
+			_hero.modulate.a = 1.0
 	else:
 		var t := (progress - TRAVEL_END) / (1.0 - TRAVEL_END)
 		_hero.position = origin

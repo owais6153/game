@@ -1,3 +1,12 @@
+# 2026-08-31 - Player-facing feedback guardrails
+
+- Result copy must consume the authoritative `fail_reason`; never use one generic failure sentence for danger and exhausted-shot outcomes.
+- A persisted random/bundled reward needs an explicit reveal of every received item. An opened container alone is not confirmation.
+- Targeted destructive powers stage payloads first, show anticipation at the selected coordinate, and mutate the board only from the shared cinematic impact signal. Skip must route through that same signal.
+- Do not restore merge shards. Cinematic density lives in the bounded merge-impact record through delayed wave layers, ray count, exact tier color, and core brightness.
+- Limited-shot difficulty must be checked as player margin, not only mathematical feasibility. Keep two single-count L6/L7 objectives and at least 24 shots unless a future balancing milestone supplies real play evidence for a change.
+- Home status cards share gameplay's restrained edge decorations. Avoid redundant captions (`CURRENT LEVEL`) and instructional filler (`Tap to view...`) when the whole surface is already an obvious button.
+
 # 2026-08-30 - Final HUD/VFX/audio guardrails
 
 - On 720x1280, `TOP_HUD_HEIGHT` cannot be reserved above a limited-shots objective stack: Shots + gaps + Target + progression is 272px tall. The centred stack must use the open space between Coins and Next. Assert its anchor bottom against `table_outer_top()`, not just each child's configured size.

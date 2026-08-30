@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Player Feedback and Limited-Shots Repair V1](PLAYER_FEEDBACK_LIMITED_SHOTS_REPAIR_V1_REPORT.md) - authoritative failure copy, explicit treasure payout reveal, targeted power wind-up, shard removal/dense merge waves, Home HUD cleanup, easier limited-shot objectives, and validation.
+
 - [Final HUD, Tiered VFX, Power Cinematic, and Audio Test Candidate](FINAL_HUD_VFX_AUDIO_TEST_CANDIDATE.md) - Claude-change reconciliation, table/HUD clearance, tier-scaled merge effects, power identities, collision concurrency, asset provenance, visual proofs, regression evidence, and APK delivery.
 
 - [Production Polish V1](PRODUCTION_POLISH_V1_REPORT.md) - settings-icon centring root cause, ad-unavailability robustness, and the limited-shot feasibility solver that found every limited level unwinnable.

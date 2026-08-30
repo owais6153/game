@@ -1,5 +1,11 @@
 # Sound + Haptics v1 Report
 
+## Player feedback repair routing note - 2026-08-31
+
+- The longer Bomb/Hammer target wind-up adds no new audio or haptic event. Existing `power_charge` still begins the cinematic; `power_bomb` / `power_hammer` and `major_merge` haptics still fire only on the authoritative impact beat.
+- Removing merge shards and densifying wavefronts changes drawing only. Confirmed merge/chain audio, collision suppression, priorities, cooldowns, voice caps, and haptic mappings remain unchanged.
+- Daily Treasure still fires `treasure_open`, `coin_reward`, and the existing win haptic after persistence. The new item-by-item reveal is visual and does not duplicate those events.
+
 ## Final supplied power audio and collision concurrency update - 2026-08-30
 
 - Bomb, Hammer, Magnet, Switch, and Level Complete use the five supplied runtime Ogg derivatives documented in `ASSET_INVENTORY.md`; originals remain untouched and export-excluded.

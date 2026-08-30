@@ -78,9 +78,14 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 	mapping[5] = support_unique[0]
 	for index in range(3):
 		mapping[index + 6] = target_identities[index]
+	var limited_shots := is_limited_shots_level(level_number)
 	var targets: Array[Dictionary] = []
-	for rank in [6, 7, 8]:
-		targets.append({"tier": rank, "quantity": target_quantity(level_number, rank)})
+	# Limited-shot rounds are accuracy challenges, not endurance checks. Two
+	# single-count lower targets give the player room to recover from imperfect
+	# placement instead of asking for the same L8 climb with fewer launches.
+	var target_ranks := [6, 7] if limited_shots else [6, 7, 8]
+	for rank in target_ranks:
+		targets.append({"tier": rank, "quantity": 1 if limited_shots else target_quantity(level_number, rank)})
 	var launcher_sequence: Array[int] = []
 	var cycle_template: Array[int]
 	var difficulty_band: String
@@ -105,7 +110,6 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		var cycle: Array[int] = cycle_template.duplicate()
 		_fisher_yates(cycle, rng)
 		launcher_sequence.append_array(cycle)
-	var limited_shots := is_limited_shots_level(level_number)
 	var config := {
 		"id": "level_%d" % level_number,
 		"name": "Level %d" % level_number,
@@ -340,6 +344,8 @@ static func target_quantity(level_number: int, tier: int) -> int:
 ## run_level_difficulty_v1_tests asserts the two stay in proportion so a
 ## limited level can never ask for more than its shots can build.
 static func total_target_quantity(level_number: int) -> int:
+	if is_limited_shots_level(level_number):
+		return 2
 	var total := 0
 	for tier in [6, 7, 8]:
 		total += target_quantity(level_number, tier)
@@ -363,6 +369,7 @@ static func total_target_quantity(level_number: int) -> int:
 const SHOT_MARGIN_INTRO := 1.70
 const SHOT_MARGIN_FLOOR := 1.30
 const SHOT_MARGIN_DECAY_LEVELS := 30.0
+const LIMITED_SHOTS_MINIMUM := 24
 
 static func shot_margin_for_level(level_number: int) -> float:
 	var progress := clampf(float(level_number - FIRST_LIMITED_SHOTS_LEVEL) / SHOT_MARGIN_DECAY_LEVELS, 0.0, 1.0)
@@ -375,7 +382,8 @@ static func shot_limit_for_config(config: Dictionary, level_number: int) -> int:
 		# The solver could not find any play-out. Fall back to unlimited rather
 		# than shipping a level nobody can finish.
 		return 0
-	return int(ceil(float(floor_shots) * shot_margin_for_level(level_number)))
+	return maxi(LIMITED_SHOTS_MINIMUM,
+		int(ceil(float(floor_shots) * shot_margin_for_level(level_number))))
 
 
 ## Retained for callers that only have a level number.

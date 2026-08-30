@@ -20,7 +20,7 @@ func _run() -> void:
 	_test_touching_matches_always_merge()
 	_test_fresh_bonus_gems_rejoin_quickly()
 	_test_chains_can_reach_combo_two()
-	_test_merges_throw_coloured_shards()
+	_test_merges_use_dense_coloured_waves_without_shards()
 	if failures.is_empty():
 		print("MERGE_PHYSICS_V1_TESTS: PASS")
 		quit(0)
@@ -134,20 +134,18 @@ func _assert(condition: bool, message: String) -> void:
 		failures.append(message)
 
 
-## An ordinary merge should read as the gem breaking apart, not as a swap.
-## The reference this was compared against throws coloured fragments outward on
-## every routine match; ours had only a ring and abstract sparks.
-func _test_merges_throw_coloured_shards() -> void:
+## Dense concentric wavefronts now carry the cinematic weight without a moving
+## shard array that can build up during repeated chains.
+func _test_merges_use_dense_coloured_waves_without_shards() -> void:
 	var effects = preload("res://scripts/presentation/gameplay_effects_layer.gd").new()
 	root.add_child(effects)
 	effects.begin_merge_feedback({
 		"result_id": 1, "midpoint": Vector2(360.0, 800.0), "level": 4, "depth": 0,
 		"timeline": GameConfig.MERGE_TIMELINE_NORMAL,
 	})
-	_assert(effects.active_merge_shard_count() > 0,
-		"an ordinary merge must throw shards")
-	_assert(effects.active_merge_shard_count() == GameConfig.merge_vfx_shard_count(4, false),
-		"an ordinary merge must throw its configured count")
+	var ordinary: Dictionary = effects.merge_impacts[0]
+	_assert(int(ordinary.get("ring_layers", 0)) >= 3,
+		"an ordinary merge must use a dense multi-wave impact")
 
 	# A target merge is a bigger moment and must throw more.
 	effects.clear()
@@ -156,8 +154,9 @@ func _test_merges_throw_coloured_shards() -> void:
 		"target_objective_completed": true,
 		"timeline": GameConfig.MERGE_TIMELINE_TARGET,
 	})
-	_assert(effects.active_merge_shard_count() == GameConfig.merge_vfx_shard_count(8, true),
-		"a target merge must throw the larger burst")
+	var target: Dictionary = effects.merge_impacts[0]
+	_assert(int(target.get("ring_layers", 0)) > int(ordinary.get("ring_layers", 0)),
+		"a high target merge must use more wavefronts than an ordinary merge")
 	_assert(GameConfig.merge_vfx_tier_scale(8) > GameConfig.merge_vfx_tier_scale(4)
 		and GameConfig.merge_vfx_spark_count(8) > GameConfig.merge_vfx_spark_count(4),
 		"larger result tiers must map to a bolder, shinier VFX tier")
@@ -171,12 +170,12 @@ func _test_merges_throw_coloured_shards() -> void:
 			"result_id": index, "midpoint": Vector2(360.0, 800.0), "level": 7, "depth": 2,
 			"timeline": GameConfig.MERGE_TIMELINE_COMBO_2,
 		})
-	_assert(effects.active_merge_shard_count() <= effects.MERGE_SHARD_LIMIT,
-		"shards must stay bounded under repeated bursts (%d)" % effects.active_merge_shard_count())
+	_assert(effects.merge_impacts.size() <= 12,
+		"merge waves must stay bounded under repeated bursts (%d)" % effects.merge_impacts.size())
 	for _frame in range(90):
 		effects.update_effects(1.0 / 60.0)
-	_assert(effects.active_merge_shard_count() == 0,
-		"shards must expire on their own rather than accumulating")
+	_assert(effects.merge_impacts.is_empty(),
+		"merge waves must expire on their own rather than accumulating")
 	effects.clear()
-	_assert(effects.active_merge_shard_count() == 0, "clear() must drop every shard")
+	_assert(effects.merge_impacts.is_empty(), "clear() must drop every merge wave")
 	effects.queue_free()

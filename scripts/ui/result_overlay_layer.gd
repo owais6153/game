@@ -95,7 +95,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
-func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8, level_reward_amount: int = 0, rewarded_available: bool = false, skip_available: bool = false, skip_cost: int = 0, continue_available: bool = false, continue_cost: int = 0, _coin_balance: int = 0) -> bool:
+func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8, level_reward_amount: int = 0, rewarded_available: bool = false, skip_available: bool = false, skip_cost: int = 0, continue_available: bool = false, continue_cost: int = 0, _coin_balance: int = 0, fail_reason: String = "danger_line") -> bool:
 	_build_ui()
 	# The guard exists to stop the same result being presented twice. It must not
 	# block a genuine mode change: declining the out-of-shots rescue calls
@@ -126,7 +126,12 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 	celebration_label.visible = won
 	celebration_label.text = "✦"
 	celebration_label.modulate = Color.WHITE
-	subtitle_label.text = "LEVEL %d COMPLETE" % level_number if won else "THE TABLE REACHED THE DANGER LINE"
+	if won:
+		subtitle_label.text = "LEVEL %d COMPLETE" % level_number
+	elif fail_reason == "out_of_shots":
+		subtitle_label.text = "YOU RAN OUT OF SHOTS"
+	else:
+		subtitle_label.text = "THE TABLE REACHED THE DANGER LINE"
 	result_icon.visible = won
 	result_icon.texture = AssetCatalogType.gem_texture(result_tier) if won else null
 	fail_badge.visible = not won

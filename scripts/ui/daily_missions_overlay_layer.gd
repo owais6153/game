@@ -53,6 +53,7 @@ var cards_row: HBoxContainer
 var chest_button: Button
 var chest_caption: Label
 var chest_icon: TextureRect
+var chest_reward_row: HBoxContainer
 var coins_label: Label
 var close_button: Button
 var dim_rect: ColorRect
@@ -272,6 +273,14 @@ func _chest_section() -> Control:
 	chest_caption.text = _chest_reward_caption()
 	copy.add_child(chest_caption)
 
+	chest_reward_row = HBoxContainer.new()
+	chest_reward_row.name = "DailyChestRewardReveal"
+	chest_reward_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	chest_reward_row.add_theme_constant_override("separation", 10)
+	chest_reward_row.visible = false
+	chest_reward_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	copy.add_child(chest_reward_row)
+
 	chest_button = Button.new()
 	chest_button.name = "DailyChestButton"
 	chest_button.text = "CLAIM"
@@ -298,6 +307,10 @@ func _refresh(state: Dictionary, coins: int) -> void:
 	chest_button.disabled = not ready
 	var claimed := bool(state.get("chest_claimed", false))
 	chest_caption.text = "Collected today" if claimed else _chest_reward_caption()
+	if chest_reward_row != null and not _chest_opening:
+		chest_reward_row.visible = false
+		for child in chest_reward_row.get_children():
+			child.queue_free()
 	if chest_icon != null and not _chest_opening:
 		# The claim animation owns the texture while it runs; outside it the icon
 		# simply reflects whether the chest for today is still closed.
@@ -428,7 +441,7 @@ func _chest_reward_caption() -> String:
 ## Beats: the closed chest rattles, swells as the lid gives, swaps to the open
 ## art at the peak under a gold flash, then settles back. An instant texture
 ## swap read as a bug rather than as opening a chest.
-func play_chest_open() -> void:
+func play_chest_open(granted: Dictionary = {}) -> void:
 	if chest_icon == null or _chest_opening:
 		return
 	_chest_opening = true
@@ -446,11 +459,57 @@ func play_chest_open() -> void:
 		if chest_icon != null:
 			chest_icon.texture = UiKitType.BADGE_CHEST_OPEN
 		_flash_chest()
+		_reveal_chest_rewards(granted)
 	)
 	sequence.tween_property(chest_icon, "scale", Vector2.ONE, CHEST_SETTLE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	sequence.tween_callback(func() -> void:
 		_chest_opening = false
 	)
+
+
+## Presents the actual persisted payout as three staged power cards. The chest
+## opening is the anticipation; these named icons are the answer to "what did I
+## receive?" and remain visible until the popup closes.
+func _reveal_chest_rewards(granted: Dictionary) -> void:
+	if chest_reward_row == null:
+		return
+	for child in chest_reward_row.get_children():
+		child.queue_free()
+	chest_caption.text = "YOU RECEIVED"
+	chest_reward_row.visible = true
+	var reveal_index := 0
+	for power_value in PowerInventoryServiceType.ALL:
+		var power := String(power_value)
+		var count := int(granted.get(power, 0))
+		if count <= 0:
+			continue
+		var reward := VBoxContainer.new()
+		reward.name = "ChestReward%s" % PowerInventoryServiceType.label(power).replace(" ", "")
+		reward.alignment = BoxContainer.ALIGNMENT_CENTER
+		reward.custom_minimum_size = Vector2(62.0, 82.0)
+		reward.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var icon := TextureRect.new()
+		icon.texture = load("res://assets/runtime/ui/kit/power_icon_%s.png" % power) as Texture2D
+		icon.custom_minimum_size = Vector2(54.0, 54.0)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		reward.add_child(icon)
+		var amount := UiDesignSystemType.style_label(
+			Label.new(), UiDesignSystemType.SMALL_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+		amount.text = "×%d %s" % [count, PowerInventoryServiceType.label(power)]
+		amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		reward.add_child(amount)
+		chest_reward_row.add_child(reward)
+		reward.pivot_offset = reward.custom_minimum_size * 0.5
+		reward.scale = Vector2.ONE * 0.2
+		reward.modulate.a = 0.0
+		var reveal := create_tween().set_parallel(true)
+		reveal.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		reveal.tween_property(reward, "scale", Vector2.ONE * 1.12, 0.24).set_delay(float(reveal_index) * 0.14)
+		reveal.tween_property(reward, "modulate:a", 1.0, 0.14).set_delay(float(reveal_index) * 0.14)
+		reveal.chain().tween_property(reward, "scale", Vector2.ONE, 0.13)
+		reveal_index += 1
 
 
 ## A short gold bloom behind the chest at the moment the lid opens. Deliberately

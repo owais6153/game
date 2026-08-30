@@ -1,5 +1,11 @@
 # Level Difficulty V1 - opening boards, limited-shots schedule, target scaling
 
+## 2026-08-31 ease addendum
+
+Player feedback showed that mathematical feasibility was not sufficient: limited-shot rounds still combined fewer launches with the full L6/L7/L8 endurance objective. Limited levels now request exactly one L6 and one L7 target, with no L8 objective or repeated quantity. Normal levels keep the existing three-target scaling.
+
+Because the solver correctly returned a smaller minimum for the shorter objective, the first regression run exposed budgets below the 20-entry launcher sequence. `LIMITED_SHOTS_MINIMUM = 24` now guarantees a full cycle plus four recovery shots. `run_level_difficulty_v1_tests.gd` passes for every limited level through 60 and asserts both the easier objective and budget floor.
+
 ## Problem
 
 Levels could be cleared by repeatedly pushing gems up a single line. The root

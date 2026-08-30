@@ -91,6 +91,13 @@ func _test_shot_limits_never_make_a_level_impossible() -> void:
 		var limit := int(config.get("shot_limit", 0))
 		var sequence: Array = config.get("launcher_sequence", []) as Array
 		_assert(limit > 0, "level %d must carry a shot limit" % level)
+		var targets: Array = config.get("target_sequence", []) as Array
+		_assert(targets.size() == 2,
+			"limited level %d must use the easier two-target objective" % level)
+		for target_value in targets:
+			var target: Dictionary = target_value as Dictionary
+			_assert(int(target.get("tier", 8)) <= 7 and int(target.get("quantity", 0)) == 1,
+				"limited level %d must avoid repeated and tier-8 targets" % level)
 		# The floor has to clear the deterministic launcher cycle, or the player
 		# could run out before the sequence has offered the tiers a target needs.
 		_assert(limit >= sequence.size(),
