@@ -32,9 +32,15 @@ Baseline: `3a1b786` / `player-feedback-limited-shots-repair-v1-apk`
 - `MERGE_PHYSICS_V1_TESTS`: PASS.
 - `LEVEL_DIFFICULTY_V1_TESTS`: PASS.
 - The Windows runner retains its known post-PASS shutdown stall/access issue; every listed suite printed its PASS sentinel before termination, with no assertion failure.
-- APK package, signature, install, launch, and device observations are added after the single final export.
+- Final APK package metadata and v2 signature pass. `adb install -r` succeeds on connected V2149 `34385676890001M`.
+- Device flow exercised cold launch, Home, PLAY, Level Ready, START GAME, the corrected post-cover table entry, the settled board, and a real launcher drag/shot. The Activity remained resumed and filtered logcat contained no fatal exception, ANR, GDScript parse/runtime error, or invalid call. Firebase `FA-SVC` logged `level_start`.
+- Device evidence: `reports/power-motion-level-entry-v1/device/final-level-ready.png`, `final-level-entry.mp4`, `final-entry-mid.png`, `final-entry-settled.png`, and `final-after-shot.png`.
+- The retained device save has zero Bomb/Magnet/Switch/Hammer inventory. It was not privately altered for a forced demo, so physical power feel remains for inventory-backed manual acceptance; both focused motion and existing gameplay-power suites passed.
 
 ## Milestones
 
-- Source commit/tag: recorded after the clean source milestone is created.
-- APK delivery commit/tag: recorded after package and connected-device validation.
+- Final source commit/tag: `e3d352b` / `power-motion-level-entry-polish-v1-device-fix-source` (initial source milestone `0584a00` / `power-motion-level-entry-polish-v1-source`).
+- APK: `build/android/majestic-gems-power-motion-level-entry-v1.0.15-vc17.apk`.
+- Size/timestamp: 114,506,769 bytes; 2026-08-31 03:13:38 +05:00.
+- SHA-256: `A11472512C862808BE6BA8AE065442C8D0BB3EE359B003AF8A4B6FF2B138EF12`.
+- APK delivery commit/tag: recorded in the delivery milestone containing this final evidence and manifest entry.

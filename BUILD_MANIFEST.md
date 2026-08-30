@@ -1,3 +1,16 @@
+# Power Motion and Level Entry Polish debug APK v1.0.15 (versionCode 17) - 2026-08-31
+
+- File: `build/android/majestic-gems-power-motion-level-entry-v1.0.15-vc17.apk`
+- Size/timestamp: 114,506,769 bytes; 2026-08-31 03:13:38 +05:00.
+- SHA-256: `A11472512C862808BE6BA8AE065442C8D0BB3EE359B003AF8A4B6FF2B138EF12`.
+- Final export-source commit/tag: `e3d352b` / `power-motion-level-entry-polish-v1-device-fix-source`. Initial source milestone: `0584a00` / `power-motion-level-entry-polish-v1-source`; the follow-up prevents the entry animation advancing behind the shared screen cover.
+- Export: Godot 4.6.3 `--export-debug "Android APK"`, Gradle APK format, `arm64-v8a` + `armeabi-v7a`, Godot debug signing. No AAB was generated; release AAB identity/path remain unchanged.
+- Package validation: AAPT confirms package `com.owais.majestygems`, versionCode 17, versionName 1.0.15, min SDK 24, target/compile SDK 36, and both ARM ABIs. APK Signature Scheme v2 passes with one Godot RSA-2048 debug signer.
+- Tests: `POWER_MOTION_LEVEL_ENTRY_V1_TESTS`, `POWERS_GAMEPLAY_V1_TESTS`, `GAME_FLOW_REWARD_SPLASH_TESTS`, `PLAYER_FEEDBACK_REPAIR_V1_TESTS`, `MERGE_PHYSICS_V1_TESTS`, and `LEVEL_DIFFICULTY_V1_TESTS` printed PASS before the known Windows runner shutdown issue where applicable.
+- Device: installed successfully with `adb install -r` on V2149 `34385676890001M` (Android 11, 720x1600). Cold launch, Home, PLAY, Level Ready, START GAME, post-cover table entry, settled board, and a real launcher drag/shot were exercised. The Activity remained resumed; filtered logcat contained no fatal exception, ANR, GDScript parse/runtime error, or invalid call. Firebase `FA-SVC` logged the `level_start` event. Device evidence is under `reports/power-motion-level-entry-v1/device/`.
+- Power-device limit: the retained test save has zero inventory for all four powers. Private progression was not modified merely to force a device run; power timing/impact authority passed focused and existing automated suites and requires the tester's inventory-backed manual acceptance.
+- Report: `reports/POWER_MOTION_LEVEL_ENTRY_POLISH_V1_REPORT.md`.
+
 # Player Feedback and Limited-Shots Repair debug APK v1.0.15 (versionCode 17) - 2026-08-31
 
 - File: `build/android/majestic-gems-player-feedback-repair-v1.0.15-vc17.apk`

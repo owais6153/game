@@ -3,7 +3,7 @@
 - Power cinematics remain 1.65 seconds and tap-skippable, but all icons now arrive by 32% of the sequence. Bomb/Hammer actively brace; Magnet/Switch orbit and tighten at the destination rather than drifting across the screen.
 - The authoritative impact signal starts a 160ms, 1.8-4.0px table/gem sprite response before applying the staged board effect and existing audio/haptic feedback. Simulation coordinates are never offset.
 - After the existing screen cover finishes, entering play from Level Ready runs a visible 520ms table/gem fade, 28px rise, and 96.5%-to-100% table settle.
-- Focused motion, powers, game-flow, player-feedback, merge-physics, and level-difficulty suites reach PASS. Android install and device acceptance are recorded with the APK delivery entry after export.
+- Focused motion, powers, game-flow, player-feedback, merge-physics, and level-difficulty suites reach PASS. The final APK is installed on V2149 and passes Home/Level Ready/visible entry/settled-board/real-shot smoke testing with no filtered crash, ANR, or GDScript error. The retained save has zero powers, so inventory-backed phone acceptance remains for the user's manual pass.
 
 # Player Feedback and Limited-Shots Repair - 2026-08-31
 
