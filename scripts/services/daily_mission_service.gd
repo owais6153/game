@@ -22,16 +22,20 @@ const MISSION_COUNT := 3
 const CHEST_POWER_REWARD := {"switch": 2, "magnet": 1, "hammer": 1}
 ## Retained so an in-flight save or an older analytics row still resolves.
 const CHEST_REWARD := 0
+## Matches LevelConfig.FIRST_LIMITED_SHOTS_LEVEL. Held locally so this pure
+## service keeps no dependency on level generation.
+const LIMITED_SHOTS_UNLOCK_LEVEL := 4
 
-static func ensure_current_day(state: Dictionary, date_key: String = "") -> Dictionary:
+static func ensure_current_day(state: Dictionary, date_key: String = "", unlocked_level: int = 1) -> Dictionary:
 	var today := date_key if not date_key.is_empty() else Time.get_date_string_from_system()
 	if String(state.get("date", "")) == today and (state.get("missions", []) as Array).size() == MISSION_COUNT:
 		return state.duplicate(true)
 	return {
 		"date": today,
-		"missions": _missions_for_day(today),
+		"missions": _missions_for_day(today, unlocked_level),
 		"chest_claimed": false,
 	}
+
 
 ## True when the supplied state does not describe today's mission set, i.e. a
 ## fresh roll is required. Callers use this to persist and report the roll once.
@@ -87,14 +91,48 @@ static func all_missions_claimed(state: Dictionary) -> bool:
 static func chest_ready(state: Dictionary) -> bool:
 	return all_missions_claimed(state) and not bool(state.get("chest_claimed", false))
 
-static func _missions_for_day(date_key: String) -> Array:
-	# One easy, one medium, and one lightly challenging objective. All are
-	# confirmed events that the controller already observes; no locked tier is
-	# requested because every generated level can legitimately create local L6.
+static func _missions_for_day(date_key: String, unlocked_level: int = 1) -> Array:
+	# One easy, one medium, one challenging, drawn from pools rather than a fixed
+	# triple so the day-to-day set varies instead of reading as the same three
+	# grind counters forever. Every objective is built from a confirmed
+	# controller event, and each pool is gated by what the player can actually
+	# reach, so a mission is never impossible for the account it is rolled for.
 	var date_value := date_key.replace("-", "").to_int()
-	var medium_complete := date_value % 2 == 0
-	return [
-		{"type": "merge", "target": 15, "progress": 0, "reward": 45, "claimed": false, "label": "Merge 15 Gems", "difficulty": "easy", "icon": "gems"},
-		{"type": "level_complete" if medium_complete else "coins_earned", "target": 3 if medium_complete else 500, "progress": 0, "reward": 90, "claimed": false, "label": "Complete 3 Levels" if medium_complete else "Earn 500 Coins", "difficulty": "medium", "icon": "crown" if medium_complete else "coinbag"},
-		{"type": "high_tier", "target": 1, "progress": 0, "reward": 140, "claimed": false, "label": "Create 1 High-Tier Gem", "difficulty": "challenging", "icon": "medal"},
+	var easy := [
+		{"type": "merge", "target": 15, "reward": 45, "label": "Merge 15 Gems", "icon": "gems"},
+		{"type": "merge", "target": 25, "reward": 55, "label": "Merge 25 Gems", "icon": "gems"},
+		{"type": "target_complete", "target": 3, "reward": 50, "label": "Complete 3 Targets", "icon": "medal"},
 	]
+	var medium := [
+		{"type": "level_complete", "target": 3, "reward": 90, "label": "Complete 3 Levels", "icon": "crown"},
+		{"type": "coins_earned", "target": 500, "reward": 90, "label": "Earn 500 Coins", "icon": "coinbag"},
+		{"type": "combo", "target": 8, "reward": 95, "label": "Make 8 Combos", "icon": "flame"},
+		{"type": "power_used", "target": 3, "reward": 85, "label": "Use 3 Powers", "icon": "shield"},
+	]
+	var challenging := [
+		{"type": "high_tier", "target": 1, "reward": 140, "label": "Create 1 High-Tier Gem", "icon": "medal"},
+		{"type": "no_power_complete", "target": 1, "reward": 130, "label": "Finish a Level Without Powers", "icon": "shield"},
+	]
+	# Limited-shot levels do not exist before FIRST_LIMITED_SHOTS_LEVEL, so the
+	# objective is only offered once the player can actually meet it.
+	if unlocked_level >= LIMITED_SHOTS_UNLOCK_LEVEL:
+		challenging.append({"type": "limited_complete", "target": 1, "reward": 150, "label": "Beat a Limited-Shots Level", "icon": "timer"})
+	return [
+		_roll(easy, date_value, 0, "easy"),
+		_roll(medium, date_value, 1, "medium"),
+		_roll(challenging, date_value, 2, "challenging"),
+	]
+
+
+## Deterministic pick: the same date always yields the same set, so a reload
+## cannot reroll a day into easier objectives.
+static func _roll(pool: Array, date_value: int, slot: int, difficulty: String) -> Dictionary:
+	# Mixed rather than divided. Dividing by a power of seven left the index
+	# almost constant across a month - consecutive dates differ by one, so the
+	# quotient only moved every 49 days and the "variety" never actually varied.
+	var mixed := (date_value + slot * 7919) * 2654435761
+	var chosen: Dictionary = (pool[posmod(mixed >> 11, pool.size())] as Dictionary).duplicate(true)
+	chosen["progress"] = 0
+	chosen["claimed"] = false
+	chosen["difficulty"] = difficulty
+	return chosen

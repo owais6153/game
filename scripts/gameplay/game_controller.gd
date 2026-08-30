@@ -59,6 +59,9 @@ var chain_multiplier := 1
 ## Shots in a row that produced at least one merge. Presentation only.
 var merge_streak := 0
 var shot_produced_merge := false
+## True once any power has been spent in the current level attempt. Drives the
+## "finish a level without using a power" mission.
+var level_used_power := false
 var danger_timers: Dictionary = {}
 var won := false
 var win_qualified := false
@@ -194,7 +197,9 @@ func _ready() -> void:
 	coins = int(saved.total_coins)
 	var saved_daily: Dictionary = saved.get("daily_state", {}) as Dictionary
 	var rolled_new_day := DailyMissionServiceType.needs_new_day(saved_daily)
-	daily_state = DailyMissionServiceType.ensure_current_day(saved_daily)
+	# The player level gates objectives they could not yet reach, such as beating
+	# a limited-shots level before level 4 exists.
+	daily_state = DailyMissionServiceType.ensure_current_day(saved_daily, "", level_number)
 	seen_level_types = saved.get("seen_level_types", [] as Array[String])
 	seen_power_tutorials = ProgressionSaveServiceType.seen_power_tutorials()
 	var saved_powers: Dictionary = saved.get("power_state", {}) as Dictionary
@@ -647,6 +652,8 @@ func _consume_power(power: String) -> bool:
 		push_warning("%s cancelled because power persistence failed (%d)" % [power, save_error])
 		return false
 	power_state = next_state
+	_record_daily_progress("power_used")
+	level_used_power = true
 	_log_analytics("power_used", {
 		"power": power,
 		"level_number": level_number,
@@ -1314,6 +1321,7 @@ func restart() -> void:
 	# level opens already escalated.
 	merge_streak = 0
 	shot_produced_merge = false
+	level_used_power = false
 	danger_timers.clear()
 	won = false
 	win_qualified = false
@@ -1591,6 +1599,10 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			"chain_depth": depth,
 		})
 		_record_daily_progress("merge")
+		if depth > 0:
+			# A chained merge, i.e. a combo. Recorded per chain link so a deep
+			# chain counts for more than a single follow-up merge.
+			_record_daily_progress("combo")
 		if result_level >= 6:
 			_record_daily_progress("high_tier")
 		merge_event.target_objective_completed = false
@@ -2447,6 +2459,7 @@ func _finish_target_collection() -> void:
 	_trace_presentation_event("collection_animation_completed", result_id)
 	presented_target_progress += 1
 	if objective_completed:
+		_record_daily_progress("target_complete")
 		presented_target_progress = 0
 		presented_target_index += 1
 		if final_completed:
@@ -2472,6 +2485,10 @@ func _qualify_win_if_target_complete() -> void:
 		"coin_balance": coins,
 	})
 	_record_daily_progress("level_complete")
+	if is_limited_shots_level():
+		_record_daily_progress("limited_complete")
+	if not level_used_power:
+		_record_daily_progress("no_power_complete")
 	win_qualified = true
 	win_presented = false
 	win_hold_elapsed = 0.0

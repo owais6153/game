@@ -1,3 +1,12 @@
+# 2026-08-30 - Daily mission variety, gated objectives, four new mission events
+
+- **Missions were a fixed triple.** Every day rolled the same three objectives, so the daily loop read as static grind counters. They are now drawn from an easy/medium/challenging pool with real day-to-day variety.
+- **Added the four mission event sources that did not exist.** Only `merge`, `high_tier`, `coins_earned` and `level_complete` were ever recorded, which is why the mission set could not vary in any meaningful way. Now also recorded: `combo` (per chain link, so a deep chain counts for more than one follow-up), `power_used`, `target_complete`, `limited_complete`, and `no_power_complete` (tracked per attempt and cleared on restart).
+- **Gated objectives the account cannot reach.** Limited-shots levels do not exist before level 4, so "Beat a Limited-Shots Level" is only offered once the player has one available. The player's level is threaded into the daily roll for this.
+- **Fixed a variety bug the new test found immediately:** the roll divided the date by a power of seven, and since consecutive dates differ by one, the quotient only moved every 49 days - the "varied" set was effectively constant across a month, and the limited-shots objective was never reachable at all. Replaced with a proper mix.
+- Added `tests/run_daily_mission_variety_v1_tests.gd`, which asserts every rolled objective is driven by an event the controller actually records (a mission whose event is never recorded can never be completed), that sets vary across a month, that a reload cannot reroll a day into easier objectives, that locked content is never asked for and does become reachable later, and that rewards rise with difficulty.
+- All twenty-seven suites pass.
+
 # 2026-08-30 - Opening board never placed in play, frame calmed, target escalation
 
 - **Found and fixed the biggest defect of this pass: the opening board was never placed in the real game flow.** Only `restart()` seeded it, and the actual sequence - Home -> Level Ready -> Start Game - never calls `restart()`. Every level of every session opened on a completely empty table, so the entire seeded-layout feature added for the difficulty work was silently absent in play. Caught by looking at the device, not by the tests.
