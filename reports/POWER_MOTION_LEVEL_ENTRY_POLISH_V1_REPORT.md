@@ -9,7 +9,7 @@ Baseline: `3a1b786` / `player-feedback-limited-shots-repair-v1-apk`
 - The cinematic duration remains 1.65 seconds and remains tap-skippable. Announce ends at 18%, every power arrives at 32%, and impact remains at 74%.
 - Bomb and Hammer use the longer destination beat for their existing brace/shake. Magnet and Switch now orbit and tighten within 34-to-8 pixels of the action point instead of traveling slowly until impact.
 - Power impact composes a deterministic 160ms table/gem sprite shake: Bomb 4.0px, Hammer 3.4px, Magnet/Switch 1.8px.
-- Entering play from Level Ready fades in the table and live gem sprites over 520ms, rises them 28px, and settles table art from 96.5% to its exact centralized render scale.
+- After the shared screen cover finishes, entering play from Level Ready visibly fades in the table and live gem sprites over 520ms, rises them 28px, and settles table art from 96.5% to its exact centralized render scale. The connected-device pass caught and corrected an initial composition in which this timeline advanced behind the cover.
 
 ## Authority and scope
 

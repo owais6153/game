@@ -54,6 +54,9 @@ func _test_level_entry_and_table_shake_are_presentation_only() -> void:
 	controller._on_home_play_requested()
 	_assert(controller.level_entry_active, "Starting a playable level must begin the table-entry reveal")
 	_assert(controller.table_sprite.modulate.a <= 0.01 and controller.gem_sprite_layer.modulate.a <= 0.01, "Table and gems must begin the level entry faded out")
+	controller._update_level_entry_presentation(GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION * 0.45)
+	_assert(is_zero_approx(controller.level_entry_elapsed), "Table entry must not advance invisibly behind the shared screen cover")
+	controller.screen_transition.reset()
 	var body_positions: Array[Vector2] = []
 	for piece in controller.pieces:
 		body_positions.append(piece.position)

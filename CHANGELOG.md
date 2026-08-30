@@ -2,7 +2,7 @@
 
 - Kept every power cinematic at 1.65 seconds while moving the shared arrival from 46% (and 74% for Magnet/Switch) to 32%. All four powers now cross the screen quickly, then spend the remaining anticipation beat shaking, orbiting, or tightening at the action point.
 - Added a deterministic 160ms presentation-only table/gem shake on the authoritative power-impact signal, centrally bounded to 1.8-4.0 pixels by power.
-- Added a 520ms level-entry reveal: the table and live gem sprite layer fade in, rise 28 pixels, and the table settles from 96.5% scale when Level Ready enters play.
+- Added a 520ms level-entry reveal after the shared navigation cover finishes: the table and live gem sprite layer fade in, rise 28 pixels, and the table settles from 96.5% scale when Level Ready enters play.
 - Added `run_power_motion_level_entry_v1_tests.gd` to prove fast arrival, retained duration, bounded motion, exact transform restoration, and unchanged simulation-body positions.
 - Pointed the debug APK preset at the distinct power-motion-level-entry artifact name. Release AAB identity/path remain unchanged; no AAB is produced for this milestone.
 

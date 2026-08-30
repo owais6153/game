@@ -1034,6 +1034,11 @@ func _start_level_entry_presentation() -> void:
 func _update_level_entry_presentation(delta: float) -> void:
 	if not level_entry_active:
 		return
+	# The shared screen cover owns the navigation reveal first. Advancing this
+	# animation behind its opaque/fading cover hid most of the table entrance on
+	# Android, so hold the starting pose until the cover is completely gone.
+	if screen_transition != null and screen_transition.is_busy():
+		return
 	level_entry_elapsed += delta
 	var progress := clampf(level_entry_elapsed / GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION, 0.0, 1.0)
 	var eased := 1.0 - pow(1.0 - progress, 3.0)

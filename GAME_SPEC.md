@@ -2,7 +2,7 @@
 
 - A power cinematic keeps its full 1.65-second readable duration, but screen travel must finish by 32% of that timeline. Remaining pre-impact time must contain visible local movement at the action point, not slower travel.
 - The power impact may offset only table and gem presentation sprites for 160ms within the central 1.8-4.0px power-specific bounds. Physics bodies, rails, input coordinates, target state, and effect authority must remain unchanged.
-- Starting play from Level Ready fades and raises the table/gem presentation over 520ms. The table begins 28px low at 96.5% render scale and must finish exactly at centralized table geometry and calm modulation.
+- Starting play from Level Ready waits for the shared navigation cover to finish, then fades and raises the table/gem presentation over 520ms. The table begins 28px low at 96.5% render scale and must finish exactly at centralized table geometry and calm modulation.
 
 # Player Feedback, Treasure Reveal, and Limited-Shots Ease - 2026-08-31
 
