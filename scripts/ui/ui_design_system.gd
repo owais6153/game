@@ -732,3 +732,33 @@ static func hud_shine_style(top: Color, bottom: Color, radius: int, rim_width: i
 	bevel.width_bottom = 0
 	style.borders.append(bevel)
 	return style
+
+
+## Centres an icon inside a Button as a child TextureRect rather than using
+## `Button.icon`.
+##
+## Godot lays a Button out as icon + text and reserves `h_separation` between
+## them even when the text is empty, so an icon-only Button draws its glyph
+## measurably left of centre - on the 64px settings control the gear sat ~16px
+## left and clipped the plate's border. `expand_icon` does not fix that; it only
+## stretches the glyph to the full rect and removes the padding entirely.
+##
+## A full-rect child with a symmetric inset is unambiguous: the glyph is
+## optically centred and keeps an even ring of plate on every side, which is the
+## spacing language the rest of the HUD controls already use.
+static func centre_icon_in_button(button: Button, texture: Texture2D, edge: float, inset_ratio := 0.24) -> TextureRect:
+	button.icon = null
+	var icon := TextureRect.new()
+	icon.name = "CentredIcon"
+	icon.texture = texture
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(icon)
+	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var inset := edge * inset_ratio
+	icon.offset_left = inset
+	icon.offset_top = inset
+	icon.offset_right = -inset
+	icon.offset_bottom = -inset
+	return icon

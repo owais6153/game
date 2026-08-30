@@ -110,6 +110,9 @@ var power_ad_pending := ""
 var power_ad_granted := false
 ## Whether the rewarded ad currently on screen has paid for a coin action.
 var coin_action_granted := false
+## Mirrors power_ad_pending: names the coin action whose video is in flight, so
+## repeated taps cannot start a second one.
+var coin_action_pending := ""
 ## Identifiers for the coin actions a video can pay for.
 const COIN_ACTION_SKIP := "skip_level"
 var screen_transition: ScreenTransitionType
@@ -986,6 +989,10 @@ func _offer_power_ad(power: String) -> void:
 func _on_power_ad_confirmed(power: String) -> void:
 	if not PowerInventoryServiceType.is_power(power):
 		return
+	# An impatient player can tap the confirm button several times before the
+	# video opens. Without this each tap started another one.
+	if not power_ad_pending.is_empty() or _rewarded_request_in_flight():
+		return
 	if not PowerInventoryServiceType.can_grant_from_ad(power_state, power):
 		_report_power_ad_result(power, false)
 		return
@@ -1154,9 +1161,13 @@ func _offer_coin_action(action: String, title: String, detail: String, cost: int
 ## The player confirmed a video in place of the coin cost. The action only runs
 ## from the reward callback, so a cancelled or failed video does nothing at all.
 func _on_coin_ad_confirmed(action: String) -> void:
+	# Same guard as the power path: repeated taps must not stack videos.
+	if not coin_action_pending.is_empty() or _rewarded_request_in_flight():
+		return
 	if ad_manager == null or not bool(ad_manager.call("is_rewarded_ready")):
 		_report_coin_action_result(action, false)
 		return
+	coin_action_pending = action
 	coin_action_granted = false
 	var shown := bool(ad_manager.call(
 		"show_rewarded",
@@ -1164,6 +1175,7 @@ func _on_coin_ad_confirmed(action: String) -> void:
 			coin_action_granted = _perform_coin_action(action),
 		# Must accept AdManager's earned flag; see the power-ad completion above.
 		func(_earned: bool = false) -> void:
+			coin_action_pending = ""
 			if not coin_action_granted:
 				_log_analytics("coin_action_ad_declined", {"action": action, "reason": "not_completed"})
 			_report_coin_action_result(action, coin_action_granted)
@@ -1172,6 +1184,7 @@ func _on_coin_ad_confirmed(action: String) -> void:
 	))
 	if not shown:
 		# The video never opened, so neither callback will ever fire.
+		coin_action_pending = ""
 		_log_analytics("coin_action_ad_declined", {"action": action, "reason": "show_failed"})
 		_report_coin_action_result(action, false)
 
@@ -2793,7 +2806,12 @@ func _on_double_coins_requested() -> void:
 		ad_context
 	))
 	if not started:
+		# The video never opened, so neither callback will ever fire. Without
+		# resolving the flow here the win screen kept app_flow_state at AD_SHOWING
+		# with its actions pending, and the player was stranded on a dead screen -
+		# which is the normal outcome whenever there is no ad inventory.
 		_log_analytics("rewarded_ad_failed", ad_context.merged({"failure_reason": "unavailable"}))
+		_on_rewarded_ad_finished(false)
 
 
 func _on_rewarded_bonus_earned(_rewarded_item = null) -> void:
@@ -3277,3 +3295,9 @@ func _announce_completed_missions(completed_before: Array[String]) -> void:
 		# claim time, and reusing the name would mix two different moments into
 		# one metric. This one marks the mission being earned during play.
 		_log_analytics("daily_mission_earned", {"level_number": level_number, "mission_label": label})
+
+
+## True while a fullscreen ad is already open. AdManager owns that state, so a
+## second request cannot be started behind the first.
+func _rewarded_request_in_flight() -> bool:
+	return ad_manager != null and bool(ad_manager.call("is_fullscreen_showing"))

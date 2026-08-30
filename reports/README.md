@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Production Polish V1](PRODUCTION_POLISH_V1_REPORT.md) - settings-icon centring root cause, ad-unavailability robustness, and the limited-shot feasibility solver that found every limited level unwinnable.
+
 - [Level Difficulty V1](LEVEL_DIFFICULTY_V1_REPORT.md) - seeded opening boards, limited shots from level 4, target-quantity scaling, the resulting difficulty curve, and the solvability bound that keeps powers optional.
 
 - [Majestic UI Kit V1](MAJESTIC_UI_KIT_V1_REPORT.md) - supplied art kit and typefaces across every screen, the four retention V1 defect fixes, and the follow-up interaction-polish pass (button states, transitions, reward feedback).

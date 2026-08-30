@@ -365,10 +365,8 @@ func _build_top_settings_control() -> void:
 	top_controls_margin.offset_bottom = 102.0
 	settings_button = Button.new()
 	settings_button.name = "HomeSettingsButton"
-	settings_button.icon = ICON_SETTINGS
-	# Capped rather than expanded, so the gear keeps padding inside its plate.
-	settings_button.add_theme_constant_override("icon_max_width", 40)
 	settings_button.custom_minimum_size = Vector2(78.0, 78.0)
+	UiDesignSystemType.centre_icon_in_button(settings_button, ICON_SETTINGS, 78.0)
 	settings_button.add_theme_stylebox_override("normal", UiDesignSystemType.utility_frame_style())
 	settings_button.add_theme_stylebox_override("hover", UiDesignSystemType.utility_frame_style())
 	settings_button.add_theme_stylebox_override("pressed", UiDesignSystemType.utility_frame_style())

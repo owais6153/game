@@ -43,13 +43,13 @@ func _test_first_limited_shots_level_follows_the_intro() -> void:
 			"level %d must carry no shot limit" % level)
 	_assert(LevelConfigType.is_limited_shots_level(4),
 		"the first limited-shots level must land immediately after level 3")
-	_assert(LevelConfigType.shot_limit_for_level(4) == LevelConfigType.SHOT_LIMIT_INTRO,
-		"the first limited-shots level must use the most generous limit")
+	_assert(is_equal_approx(LevelConfigType.shot_margin_for_level(4), LevelConfigType.SHOT_MARGIN_INTRO),
+		"the first limited-shots level must use the most generous margin")
 	var config := LevelConfigType.generated(4, LevelConfigType.seed_for_level(4))
 	_assert(String(config.get("level_type", "")) == "limited_shots",
 		"the generated level 4 must be typed as limited_shots")
-	_assert(int(config.get("shot_limit", 0)) == LevelConfigType.SHOT_LIMIT_INTRO,
-		"the generated level 4 must carry the intro shot limit")
+	_assert(int(config.get("shot_limit", 0)) > 0,
+		"the generated level 4 must carry a derived shot limit")
 
 
 ## Limited shots should read as a recurring variant, not a phase that ends.
@@ -65,14 +65,17 @@ func _test_limited_shots_recur_and_tighten() -> void:
 	for index in range(1, limited.size()):
 		_assert(limited[index] - limited[index - 1] >= 2,
 			"limited-shots levels must not run back to back (%d then %d)" % [limited[index - 1], limited[index]])
-	var previous := LevelConfigType.shot_limit_for_level(limited[0])
+	# Limits are derived per level from what that level actually needs, so the
+	# raw number rises and falls with the targets. What must tighten is the
+	# margin over the solved minimum - that is the difficulty ramp.
+	var previous := LevelConfigType.shot_margin_for_level(limited[0])
 	for index in range(1, limited.size()):
-		var current := LevelConfigType.shot_limit_for_level(limited[index])
-		_assert(current <= previous,
-			"shot limits must never loosen as levels advance (%d then %d)" % [previous, current])
+		var current := LevelConfigType.shot_margin_for_level(limited[index])
+		_assert(current <= previous + 0.0001,
+			"the shot margin must never loosen as levels advance (%.2f then %.2f)" % [previous, current])
 		previous = current
-	_assert(previous == LevelConfigType.SHOT_LIMIT_FLOOR,
-		"shot limits must settle at the documented floor rather than shrinking forever")
+	_assert(is_equal_approx(previous, LevelConfigType.SHOT_MARGIN_FLOOR),
+		"the margin must settle at the documented floor rather than shrinking forever")
 
 
 ## Hard levels may strongly encourage powers, but a level must never be
@@ -84,8 +87,7 @@ func _test_shot_limits_never_make_a_level_impossible() -> void:
 		var config := LevelConfigType.generated(level, LevelConfigType.seed_for_level(level))
 		var limit := int(config.get("shot_limit", 0))
 		var sequence: Array = config.get("launcher_sequence", []) as Array
-		_assert(limit >= LevelConfigType.SHOT_LIMIT_FLOOR,
-			"level %d must respect the shot floor" % level)
+		_assert(limit > 0, "level %d must carry a shot limit" % level)
 		# The floor has to clear the deterministic launcher cycle, or the player
 		# could run out before the sequence has offered the tiers a target needs.
 		_assert(limit >= sequence.size(),

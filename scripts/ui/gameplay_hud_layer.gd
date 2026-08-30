@@ -1218,11 +1218,7 @@ func _build_settings_button() -> Button:
 	var button := Button.new()
 	button.name = "SettingsButton"
 	button.custom_minimum_size = Vector2.ONE * UiDesignSystemType.TOP_SETTINGS_SIZE
-	button.icon = ICON_SETTINGS
-	# Not expand_icon: that stretches the gear to the full button and leaves it
-	# jammed against the frame with no padding. A capped width keeps a ring of
-	# plate visible around the glyph.
-	button.add_theme_constant_override("icon_max_width", int(UiDesignSystemType.TOP_SETTINGS_SIZE * 0.52))
+	UiDesignSystemType.centre_icon_in_button(button, ICON_SETTINGS, UiDesignSystemType.TOP_SETTINGS_SIZE)
 	button.add_theme_stylebox_override("normal", UiDesignSystemType.utility_frame_style())
 	button.add_theme_stylebox_override("hover", UiDesignSystemType.utility_frame_style())
 	button.add_theme_stylebox_override("pressed", UiDesignSystemType.utility_frame_style())

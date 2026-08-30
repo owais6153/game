@@ -2,6 +2,7 @@ class_name LevelConfig
 extends RefCounted
 
 const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
+const LevelSolverType = preload("res://scripts/core/level_solver.gd")
 const PATTERN_BLOCK_SEED := 2026082417
 const PATTERN_FAMILIES := ["same_shape", "same_color"]
 const PATTERN_SHAPES := ["circle", "rounded_square"]
@@ -105,8 +106,7 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		_fisher_yates(cycle, rng)
 		launcher_sequence.append_array(cycle)
 	var limited_shots := is_limited_shots_level(level_number)
-	var shot_limit := shot_limit_for_level(level_number)
-	return {
+	var config := {
 		"id": "level_%d" % level_number,
 		"name": "Level %d" % level_number,
 		"level_number": level_number,
@@ -127,8 +127,11 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		"table_index": rng.randi_range(0, AssetCatalogType.TABLE_COUNT - 1),
 		"starting_board": starting_board_for_level(level_number, seed_value, mapping),
 		"level_type": "limited_shots" if limited_shots else "normal",
-		"shot_limit": shot_limit if limited_shots else 0,
+		"shot_limit": 0,
 	}
+	if limited_shots:
+		config["shot_limit"] = shot_limit_for_config(config, level_number)
+	return config
 
 ## Pure, seeded block lookup: retries and save reloads reconstruct the same
 ## 3-4-level family without mutable global history, while adjacent blocks never
@@ -205,15 +208,6 @@ static func is_limited_shots_level(level_number: int) -> bool:
 ## well above the launcher cycle length: every L6-L8 objective must stay
 ## constructible from the sequence alone, so powers can be strongly encouraged
 ## but are never required.
-const SHOT_LIMIT_INTRO := 40
-const SHOT_LIMIT_FLOOR := 30
-const SHOT_LIMIT_STEP := 2
-
-static func shot_limit_for_level(level_number: int) -> int:
-	if not is_limited_shots_level(level_number):
-		return 0
-	var index := (level_number - FIRST_LIMITED_SHOTS_LEVEL) / LIMITED_SHOTS_CYCLE
-	return maxi(SHOT_LIMIT_FLOOR, SHOT_LIMIT_INTRO - index * SHOT_LIMIT_STEP)
 
 
 ## Seeded opening layout. Levels used to start on an empty table, which is why
@@ -312,3 +306,42 @@ static func total_target_quantity(level_number: int) -> int:
 	for tier in [6, 7, 8]:
 		total += target_quantity(level_number, tier)
 	return total
+
+
+## Shots granted to a limited level, derived from what the level actually needs
+## rather than from a fixed ladder.
+##
+## The previous ladder counted down 40 -> 30 with no reference to the targets,
+## and every limited level was unwinnable because of it: a perfect play-out of
+## level 4 needs 46 shots against the 40 it granted, and level 25 needed 79
+## against 30. LevelSolver.minimum_shots() plays the level out greedily with the
+## real merge and bonus-gem rules, so the limit is anchored to a solution that
+## demonstrably exists.
+##
+## The margin above that floor is the room a real player has for imperfect
+## placement. It starts generous while the mechanic is new and tightens with
+## level, but never falls to zero - a shipped level must never require flawless
+## play.
+const SHOT_MARGIN_INTRO := 1.70
+const SHOT_MARGIN_FLOOR := 1.30
+const SHOT_MARGIN_DECAY_LEVELS := 30.0
+
+static func shot_margin_for_level(level_number: int) -> float:
+	var progress := clampf(float(level_number - FIRST_LIMITED_SHOTS_LEVEL) / SHOT_MARGIN_DECAY_LEVELS, 0.0, 1.0)
+	return lerpf(SHOT_MARGIN_INTRO, SHOT_MARGIN_FLOOR, progress)
+
+
+static func shot_limit_for_config(config: Dictionary, level_number: int) -> int:
+	var floor_shots: int = LevelSolverType.minimum_shots(config)
+	if floor_shots <= 0:
+		# The solver could not find any play-out. Fall back to unlimited rather
+		# than shipping a level nobody can finish.
+		return 0
+	return int(ceil(float(floor_shots) * shot_margin_for_level(level_number)))
+
+
+## Retained for callers that only have a level number.
+static func shot_limit_for_level(level_number: int) -> int:
+	if not is_limited_shots_level(level_number):
+		return 0
+	return int(generated(level_number, seed_for_level(level_number)).get("shot_limit", 0))
