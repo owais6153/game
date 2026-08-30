@@ -1,3 +1,15 @@
+# Player Feedback and Limited-Shots Repair debug APK v1.0.15 (versionCode 17) - 2026-08-31
+
+- File: `build/android/majestic-gems-player-feedback-repair-v1.0.15-vc17.apk`
+- Size/timestamp: 114,504,049 bytes; 2026-08-31 02:26:01 +05:00.
+- SHA-256: `903012F1786A1A7B87894D31EADF32302A519712470F18ECC35A86992BAD79F4`.
+- Export-source commit/tag: `10b744a` / `player-feedback-limited-shots-repair-v1-source`.
+- Export: Godot 4.6.3 `--export-debug "Android APK"`, Gradle APK format, `arm64-v8a` + `armeabi-v7a`, Godot debug signing. No AAB was generated; release AAB version/path remain unchanged.
+- Package validation: AAPT package `com.owais.majestygems`, versionCode 17, versionName 1.0.15, min SDK 24, target/compile SDK 36, game category, touchscreen/portrait declarations, and both ARM ABIs. APK Signature Scheme v2 passes with one Godot RSA-2048 debug signer.
+- Tests: Godot editor import/class registration plus `PLAYER_FEEDBACK_REPAIR_V1_TESTS`, `MERGE_PHYSICS_V1_TESTS`, `POWERS_GAMEPLAY_V1_TESTS`, `LEVEL_DIFFICULTY_V1_TESTS`, `GAME_FLOW_REWARD_SPLASH_TESTS`, `RETENTION_DAILY_MISSIONS_V2_TESTS`, `UI_SCALE_LAYOUT_TESTS`, `HUD_ALIGNMENT_V1_TESTS`, and `SOUND_PRIVACY_LINK_TESTS` passed. Some Windows runners returned the known post-PASS access violation after their sentinel; no assertion failed first.
+- Device status: `adb devices -l` reports connected V2149 `34385676890001M`. The APK was not installed or launched; physical visual, touch, animation, listening, and performance acceptance are not claimed.
+- Report: `reports/PLAYER_FEEDBACK_LIMITED_SHOTS_REPAIR_V1_REPORT.md`.
+
 # Majestic UI Kit debug APK v1.0.15 (versionCode 17) - 2026-08-29
 
 - APK: `build/android/majestic-gems-ui-kit-v1.0.15-vc17-debug.apk`

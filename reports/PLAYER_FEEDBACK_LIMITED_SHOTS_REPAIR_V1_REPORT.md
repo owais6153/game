@@ -38,6 +38,15 @@ Baseline: `b4b896f` / `final-hud-vfx-audio-test-candidate-apk`
 - Some Windows test processes return the repository's known post-PASS access violation (`-1073741819`) after printing the PASS sentinel; no assertion failed before those sentinels.
 - The legacy multi-frame capture stalled before writing any file and was stopped; a focused fallback confirmed that this headless session uses Godot's dummy renderer and therefore exposes no viewport texture. No blank or stale screenshot is claimed as new visual proof. Device visual acceptance remains outstanding.
 
-Final broader regression, APK existence/build validation, commit/tag, push, and device status are recorded when completed below.
-
 The debug APK preset keeps the existing non-Play test identity `17 / 1.0.15` and writes a distinct milestone filename. No AAB is produced and the release AAB identity remains unchanged.
+
+## Artifact and delivery
+
+- Source commit/tag: `10b744a` / `player-feedback-limited-shots-repair-v1-source`.
+- APK: `build/android/majestic-gems-player-feedback-repair-v1.0.15-vc17.apk`.
+- Size: 114,504,049 bytes.
+- Timestamp: 2026-08-31 02:26:01 +05:00.
+- SHA-256: `903012F1786A1A7B87894D31EADF32302A519712470F18ECC35A86992BAD79F4`.
+- AAPT: package `com.owais.majestygems`, versionCode 17, versionName 1.0.15, min SDK 24, target/compile SDK 36, both ARM ABIs.
+- Signature: APK Signature Scheme v2 PASS with one Godot RSA-2048 debug signer.
+- Device: ADB reports connected V2149 `34385676890001M`; no install/launch or physical acceptance was performed.

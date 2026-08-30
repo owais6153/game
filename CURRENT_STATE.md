@@ -7,6 +7,7 @@
 - Home Level/Coins cards now carry edge diamonds. The redundant `CURRENT LEVEL` and idle `Tap to view today's missions` copy are gone; claim-ready text remains, and a 20px spacer separates missions from the status row.
 - Limited-shot levels now ask for one L6 and one L7 target, never L8 or repeated quantities, and always grant at least 24 shots. Normal target scaling is unchanged.
 - Focused parse and four behavior suites pass. The Windows runner still returns its known post-PASS access violation in some suites; assertions complete first.
+- Debug APK `build/android/majestic-gems-player-feedback-repair-v1.0.15-vc17.apk` is exported and validated at 114,504,049 bytes, SHA-256 `903012F1786A1A7B87894D31EADF32302A519712470F18ECC35A86992BAD79F4`. Connected V2149 status is recorded, but no install/device acceptance is claimed.
 
 # Final HUD, VFX, Power, and Audio Test Candidate - 2026-08-30
 
