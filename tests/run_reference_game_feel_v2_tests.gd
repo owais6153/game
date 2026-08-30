@@ -125,7 +125,11 @@ func _test_feedback_contracts() -> void:
 	_assert(GameConfig.MERGE_RESULT_POP_SCALE == 1.24 and GameConfig.MERGE_PRESENTATION_DURATION == 0.42 and GameConfig.MERGE_SOURCE_PULL_DURATION == 0.080, "Merge and push animation must retain the approved readable reward cadence")
 	_assert(GameConfig.COIN_FLIGHT_DURATION == 0.55 and GameConfig.MAJOR_COIN_FLIGHT_DURATION == 0.62 and GameConfig.COIN_FLIGHT_STAGGER == 0.08, "Coin flights must retain the restored readable cadence")
 	_assert(GameConfig.TARGET_COLLECTION_DURATION == 0.70, "Target collection must retain the restored readable cadence")
-	_assert(GameConfig.COLLISION_SEPARATION_PASSES == 3, "Dense-pile stabilization must remain bounded at three pair sweeps")
+	# Raised from three, which left a gem pressed by several neighbours visibly
+	# overlapping. What matters is that the sweep count stays bounded and cheap -
+	# it is O(n^2) per pass - not that it is any particular literal.
+	_assert(GameConfig.COLLISION_SEPARATION_PASSES >= 3 and GameConfig.COLLISION_SEPARATION_PASSES <= 8,
+		"Dense-pile stabilization must stay bounded to a small number of pair sweeps")
 	var overlay_source := FileAccess.get_file_as_string("res://scripts/presentation/target_reward_overlay.gd")
 	_assert(not overlay_source.contains("check_points") and not overlay_source.contains("draw_polyline"), "Target confirmation must not render a checkmark")
 	_assert(float(GameConfig.AUDIO_TONES.normal_merge.volume) > float(GameConfig.AUDIO_TONES.gem_contact.volume) * 1.4, "Merge audio must clearly dominate normal collision")

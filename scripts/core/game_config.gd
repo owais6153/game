@@ -146,7 +146,10 @@ const CONTACT_EPSILON := VISIBLE_CONTACT_TOLERANCE # calibrated range 0.20–2.0
 const SEPARATION_EPSILON := 0.02 # keeps post-contact correction inside narrow merge tolerance
 ## Bounded physics-only stabilization for dense piles. This removes residual
 ## visual penetration without changing radii or merge eligibility.
-const COLLISION_SEPARATION_PASSES := 3
+## Separation sweeps per frame. Three left visible overlaps whenever a gem was
+## pressed by several neighbours at once, which is the "gems overlap sometimes"
+## report; each extra sweep resolves another layer of a packed cluster.
+const COLLISION_SEPARATION_PASSES := 7
 const MAX_SIMULATION_SUBSTEPS := 8
 const MAX_SUBSTEP_RADIUS_FRACTION := 0.45 # swept-step guard; never changes contact distance
 ## Presentation-only reward cadence. Physics, colliders, contact eligibility,
@@ -305,7 +308,12 @@ const BONUS_GEMS_COMBO_4_PLUS := 3
 const BONUS_TIER_WEIGHTS := [0.50, 0.30, 0.20]
 const BONUS_SPAWN_IMPULSE := 135.0
 const BONUS_SPAWN_CLEARANCE := 3.0
-const BONUS_MERGE_GRACE_MS := 650
+## Fresh bonus gems cannot merge for this long after spawning, so their arrival
+## stays readable. At 650ms it was long enough to look broken: bonus gems spawn
+## on every merge, so there were almost always gems visibly touching a match and
+## refusing to combine for two thirds of a second. Shortened to just cover the
+## spawn pop, which also lets bonus gems join chains instead of sitting them out.
+const BONUS_MERGE_GRACE_MS := 180
 ## A shot can mint at most three real reward pieces, and delayed rewards never
 ## raise the live population beyond this cap. These bounds terminate unattended
 ## reward cascades without changing ordinary merge eligibility.
@@ -944,4 +952,9 @@ const TABLE_ART_CALM_MODULATE := Color(0.82, 0.84, 0.90, 1.0)
 ## bounded window - roughly half a small gem - so a near-adjacent same-tier gem
 ## also chains. Combos become a regular reward for good placement rather than a
 ## coincidence, without firing on every shot.
-const CHAIN_CONTACT_TOLERANCE := 22.0 # safe readable range 12-30
+const CHAIN_CONTACT_TOLERANCE := 30.0 # safe readable range 12-30
+
+## How often the armed-power instruction repeats. Slightly longer than the label
+## itself, so there is a visible beat between repeats rather than a solid block
+## of text sitting over the board.
+const TARGET_PROMPT_REPEAT_INTERVAL := 1.35

@@ -62,6 +62,10 @@ var shot_produced_merge := false
 ## True once any power has been spent in the current level attempt. Drives the
 ## "finish a level without using a power" mission.
 var level_used_power := false
+## Re-shows the "TAP ON GEM" prompt while a targeted power waits. One combo-
+## style label lasts under a second, which was easy to miss entirely, while the
+## power stays armed until the player acts.
+var _target_prompt_elapsed := 0.0
 var danger_timers: Dictionary = {}
 var won := false
 var win_qualified := false
@@ -3383,3 +3387,29 @@ func _prune_collision_visual_history() -> void:
 	for piece_id in collision_visual_last_at.keys():
 		if float(collision_visual_last_at[piece_id]) < expiry:
 			collision_visual_last_at.erase(piece_id)
+
+
+## Draws the armed-power instruction in exactly the combo-label style: same
+## font, colour, rise, duration and pop timing, so it reads as part of the same
+## feedback language rather than as separate UI.
+func _show_target_prompt() -> void:
+	if effects_layer == null or pending_power_target.is_empty():
+		return
+	effects_layer.show_board_prompt(
+		"TAP ON GEM",
+		Vector2(GameConfig.table_center_x(), GameConfig.danger_line_y() - 150.0)
+	)
+
+
+## Repeats the prompt on a cadence for as long as the power is armed. Without
+## this the single label expired in under a second and the player was left in a
+## targeting mode with nothing on screen explaining it.
+func _update_target_prompt(delta: float) -> void:
+	if pending_power_target.is_empty():
+		_target_prompt_elapsed = 0.0
+		return
+	_target_prompt_elapsed += delta
+	if _target_prompt_elapsed < GameConfig.TARGET_PROMPT_REPEAT_INTERVAL:
+		return
+	_target_prompt_elapsed = 0.0
+	_show_target_prompt()

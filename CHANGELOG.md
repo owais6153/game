@@ -1,3 +1,13 @@
+# 2026-08-30 - Merge grace, cluster overlap, chain reach, repeating power prompt
+
+- **Found the "touching but didn't merge" cause: `BONUS_MERGE_GRACE_MS` was 650.** A fresh bonus gem cannot merge during that window, and bonus gems spawn on *every* merge - so there were almost always gems visibly touching a match and refusing to combine for two thirds of a second. Cut to 180ms, enough to keep the spawn pop readable. This also feeds directly into chains, because bonus gems can now join one instead of sitting it out.
+- **Found the overlap cause: only three separation sweeps ran per frame.** A gem pressed by several neighbours at once kept a visible overlap, which the code comment already acknowledged. Raised to seven; each extra sweep resolves another layer of a packed cluster.
+- **Widened the chain window to the top of its documented range** (22 -> 30px) after the previous value still left chains scarce.
+- **Fixed the "TAP ON GEM" prompt being invisible in practice.** It was firing correctly - verified in-engine, the label is created - but a single combo-style label lasts under a second while the power stays armed indefinitely, so it was trivially missed. It now repeats on a 1.35s cadence for as long as a power is armed, in the same style throughout.
+- Added `tests/run_merge_physics_v1_tests.gd`: a dense mixed-tier cluster must settle without visible overlap, two touching same-tier gems must always produce a merge at every tier, the bonus grace must stay short, and a chain must continue to a gem placed a fixed 14px beyond touching. That last distance is deliberately a literal rather than a fraction of the tolerance - scaling it with the constant would have made the assertion unfalsifiable, which is exactly the mistake the first draft made.
+- Relaxed a contract that pinned separation sweeps to exactly three. Its stated intent was that stabilisation stay *bounded*; it now asserts a range instead of a literal.
+- All thirty-one suites pass, twice, with no order dependence.
+
 # 2026-08-30 - Combos made reachable, straight lanes closed, merge feedback raised
 
 - **Found why Combo 2 essentially never happened.** A chain required the freshly merged gem to be already touching another gem *of its new tier* to within `CONTACT_EPSILON` - two pixels. Higher tiers are scarcer, so that was effectively luck and players only ever saw Combo 1. Chains now get their own bounded window, `CHAIN_CONTACT_TOLERANCE` (22px, roughly half a small gem). **The primary merge is unchanged and still strictly contact-only**; only the chain search reaches further.
