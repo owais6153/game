@@ -1,3 +1,14 @@
+# 2026-08-30 - Rewarded-ad completion never ran: root cause found and fixed on device
+
+- **Found the real cause of "I never see the reward popup after watching an ad."** `AdManager._finish_rewarded` invokes the completion with `callv([earned])` - one argument - but both controller completions were declared `func() -> void:` with **no parameter**. The call failed, so the entire dismissal handler was skipped. The reward itself was still granted, because that runs on a separate callback, so the inventory incremented while the popup that reports it never opened. This shipped that way and is exactly the symptom reported repeatedly. Both completions now accept the flag.
+- Verified end-to-end on a physical device (Vivo V2149, 720x1600, real AdMob fill): watched a rewarded video, `power_granted owned=3` logged, and the panel now reads **"+1 BOMB - You now have 3."**
+- **Fixed the power overlay rendering behind the screens that open it.** It sat on CanvasLayer 55 while the shop is 66 and Home is 60, so tapping **GET** with no coins opened the offer *underneath the shop* and looked like it did nothing. Now at 80. Verified on device: GET now opens the offer.
+- **Fixed the daily-mission badges drawing through the Settings modal.** They raise their own `z_index`, which sorts across the whole canvas layer regardless of tree order. Modal blockers now carry `MODAL_Z_INDEX`, applied to Home and to the gameplay pause modal. Verified on device.
+- **Fixed contradictory offer copy.** The shop opens the ad offer when the player cannot *afford* a power, which is not the same as being *out* of it - the panel said "Out of BOMB" over a shop row reading "Owned: 1". The title and body now depend on the owned count.
+- **Fixed the HUD panel decorators sitting fully inside their panels** (`PanelContainer` sizes children to its content rect, inset by the stylebox margin) and **gave the settings cog padding** (`expand_icon` stretched the gear to the full button).
+- Added `tests/run_ad_callback_contract_v1_tests.gd` and `tests/run_overlay_layering_v1_tests.gd`. Both were verified to reproduce their original defects before the fixes, and the ad suite seeds its own inventory because the rewarded daily cap lives in `user://` and would otherwise make it order-dependent.
+- All twenty-one suites pass.
+
 # 2026-08-30 - Overlay layering root cause, restored ad result, decorator and padding fixes
 
 - **Root-caused three separate reported bugs as one defect: CanvasLayer ordering.** `PowerOverlayLayer` sat on layer 55 while the power shop is 66, daily missions 65, and Home 60. Every ad offer and every ad result opened *behind* the screen that launched it. That is why tapping **GET** with no coins looked like it did nothing, and why the **rewarded-result popup was never visible after watching a video** - it was rendering, just underneath the shop. The overlay now sits at 80, above every screen that can open it.

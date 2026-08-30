@@ -7,7 +7,7 @@ extends SceneTree
 const SHEETS := [
 	"res://assets/ui_kit_source/sheet_power_buttons.png",
 	"res://assets/ui_kit_source/sheet_power_icons.png",
-	"res://assets/ui_kit_source/sheet_panels_v2.png",
+	"res://assets/ui_kit_source/sheet_icons_v2.png",
 ]
 const ALPHA_THRESHOLD := 0.5
 const MIN_AREA := 2000

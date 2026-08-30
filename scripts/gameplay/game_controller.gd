@@ -977,7 +977,7 @@ func _offer_power_ad(power: String) -> void:
 		_log_analytics("power_ad_declined", {"power": power, "reason": "daily_cap"})
 	elif not ready:
 		_log_analytics("power_ad_declined", {"power": power, "reason": "no_fill"})
-	power_overlay.present_ad_offer(power, ready, capped)
+	power_overlay.present_ad_offer(power, ready, capped, PowerInventoryServiceType.count(power_state, power))
 
 
 ## The player confirmed the offer. Nothing is granted unless the ad reports a
@@ -1001,8 +1001,12 @@ func _on_power_ad_confirmed(power: String) -> void:
 		"show_rewarded",
 		func(_item = null) -> void:
 			power_ad_granted = _grant_power_from_ad(power),
-		func() -> void:
-			# Runs on dismissal for success, cancellation, and failure alike.
+		# AdManager invokes this completion with the earned flag, so the lambda
+			# must accept it. Declared with no parameter it was called via callv with
+			# one argument, the call failed, and the dismissal handler never ran -
+			# which is why the reward popup never appeared after a completed video.
+			# The default keeps it valid for any caller that passes nothing.
+		func(_earned: bool = false) -> void:
 			if not power_ad_granted:
 				_log_analytics("power_ad_declined", {"power": power, "reason": "not_completed"})
 			power_ad_pending = ""
@@ -1158,8 +1162,8 @@ func _on_coin_ad_confirmed(action: String) -> void:
 		"show_rewarded",
 		func(_item = null) -> void:
 			coin_action_granted = _perform_coin_action(action),
-		func() -> void:
-			# Runs on dismissal for success, cancellation, and failure alike.
+		# Must accept AdManager's earned flag; see the power-ad completion above.
+		func(_earned: bool = false) -> void:
 			if not coin_action_granted:
 				_log_analytics("coin_action_ad_declined", {"action": action, "reason": "not_completed"})
 			_report_coin_action_result(action, coin_action_granted)

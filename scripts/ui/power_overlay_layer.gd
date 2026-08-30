@@ -81,20 +81,27 @@ func is_open() -> bool:
 ## Step one of the rewarded-ad path: an offer the player can decline.
 ## An unavailable ad still shows the offer and explains why it cannot play,
 ## rather than silently doing nothing when the player taps.
-func present_ad_offer(power: String, ad_ready: bool, daily_cap_reached: bool) -> void:
+func present_ad_offer(power: String, ad_ready: bool, daily_cap_reached: bool, owned: int = 0) -> void:
 	_build()
 	mode = Mode.AD_OFFER
 	active_power = power
 	var power_label := PowerInventoryServiceType.label(power)
 	icon_rect.texture = _icon_for(power)
-	title_label.text = "Out of %s" % power_label.to_upper()
+	# The shop also opens this offer when the player simply cannot afford the
+	# power, which is not the same as being out of it. Saying "Out of Bomb" over
+	# a shop row reading "Owned: 1" is a plain contradiction.
+	var out_of_it := owned <= 0
+	title_label.text = "Out of %s" % power_label.to_upper() if out_of_it else "Get another %s" % power_label.to_upper()
 	if daily_cap_reached:
 		body_label.text = "You have claimed every free %s for today. Come back tomorrow, or buy more with coins." % power_label
 		primary_button.visible = false
 	elif not ad_ready:
 		# No video to offer, so the panel does not mention one. Dangling an ad the
 		# player cannot actually watch is worse than simply pointing at the shop.
-		body_label.text = "You have no %s left. You can buy more in the shop." % power_label
+		body_label.text = (
+			"You have no %s left. You can buy more in the shop." % power_label if out_of_it
+			else "No video is available right now. You can buy more in the shop."
+		)
 		primary_button.visible = false
 	else:
 		body_label.text = "Watch a short video to get 1 %s." % power_label
