@@ -4,7 +4,7 @@
 - Per-device download is now 49.8 MB on arm64-v8a (51.4 MB on armeabi-v7a), measured with Bundletool on a split APK set rather than inferred from the AAB size.
 - Replaced the blue launch screen. `screen/background_color` was `#095579` - a blue that appears nowhere in the game's palette - and it drove both `android:windowBackground` and the baked `--background_color` launch argument. It, `splash_screen/background_color`, and `boot_splash/bg_color` are now `#1C0734`, the same colour as the adaptive launcher-icon background, so the system splash and the window behind the engine read as one continuous deep purple instead of two mismatched screens.
 - Bumped the release AAB to versionCode 18 / versionName 1.0.16, strictly above every code previously used in `BUILD_MANIFEST.md` (highest prior 17; last Play upload was 12 / 1.0.10). The debug APK preset was moved to the same identity so device builds match the release.
-- Delivered `build/android/majestic-gems-release-v1.0.16-vc18.aab`, signed with the real upload key (`CN=Muhammad Owais Khan, O=Teckvertex Labs`) and version-validated with Bundletool.
+- Delivered `build/android/majestic-gems-release-v1.0.16-vc18.aab`, signed with the real upload key (`CN=Muhammad Owais Khan, O=Teckvertex Labs`) and version-validated with Bundletool, plus a matching release-signed `majestic-gems-release-v1.0.16-vc18.apk` for sideloading. The APK export preset had no release keystore configured, which is why an earlier release APK attempt failed; it now uses the same upload key as the AAB (credentials live in the gitignored `.godot/export_credentials.cfg`).
 
 # 2026-08-31 - Low-end performance, rescue softlock, and merge presentation
 
