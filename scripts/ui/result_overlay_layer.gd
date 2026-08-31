@@ -196,6 +196,30 @@ func show_purchase_feedback(message: String) -> void:
 		transition_label.text = message
 
 
+## Re-arms the overlay's buttons after a request that ended without dismissing
+## it.
+##
+## _on_action_pressed sets _actions_pending and disables every button so a
+## double tap cannot buy twice. In rescue mode that also disables GIVE UP. If
+## the controller then answers the request without dismissing the overlay — the
+## player could not afford the shots, or persistence failed — nothing cleared
+## the flag, so the rescue popup was left with a dead buy button AND a dead GIVE
+## UP: the level could not be paid for, abandoned, or exited. Every controller
+## path that declines a request must call this.
+## True while the popup is the out-of-shots rescue offer rather than a win or
+## fail result. The rescue offer has a real decline action (GIVE UP), so Back can
+## be answered there; a win screen must still route through Collect.
+func is_rescue_mode() -> bool:
+	return visible_result and _rescue_mode
+
+
+func clear_pending_actions() -> void:
+	if not _actions_pending:
+		return
+	_actions_pending = false
+	_refresh_action_state()
+
+
 func dismiss() -> void:
 	visible_result = false
 	_actions_pending = false

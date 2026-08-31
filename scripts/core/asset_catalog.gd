@@ -2,30 +2,41 @@ class_name AssetCatalog
 extends RefCounted
 
 ## Presentation-only texture catalog. Simulation must never read these resources.
-const LEVEL_BACKGROUNDS: Array[Texture2D] = [
-	preload("res://assets/runtime/backgrounds/scene_bg_01.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_02.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_03.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_04.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_05.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_06.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_07.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_08.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_09.webp"),
-	preload("res://assets/runtime/backgrounds/scene_bg_10.webp"),
+##
+## Scene art is addressed by path, not by `preload`. Preloading all twenty
+## 720x1280 backgrounds and tables kept roughly 70 MB of texture memory resident
+## for the one background and one table a level can actually show, which is what
+## pushed low-RAM devices (Helio P22 class, 3 GB) into constant texture eviction
+## and the animation stalls that came with it. `_scene_texture()` keeps a small
+## most-recently-used cache instead, so a level swap reuses what is already
+## loaded and everything else is released.
+const LEVEL_BACKGROUNDS: Array[String] = [
+	"res://assets/runtime/backgrounds/scene_bg_01.webp",
+	"res://assets/runtime/backgrounds/scene_bg_02.webp",
+	"res://assets/runtime/backgrounds/scene_bg_03.webp",
+	"res://assets/runtime/backgrounds/scene_bg_04.webp",
+	"res://assets/runtime/backgrounds/scene_bg_05.webp",
+	"res://assets/runtime/backgrounds/scene_bg_06.webp",
+	"res://assets/runtime/backgrounds/scene_bg_07.webp",
+	"res://assets/runtime/backgrounds/scene_bg_08.webp",
+	"res://assets/runtime/backgrounds/scene_bg_09.webp",
+	"res://assets/runtime/backgrounds/scene_bg_10.webp",
 ]
-const LEVEL_TABLES: Array[Texture2D] = [
-	preload("res://assets/runtime/tables/table_01.webp"),
-	preload("res://assets/runtime/tables/table_02.webp"),
-	preload("res://assets/runtime/tables/table_03.webp"),
-	preload("res://assets/runtime/tables/table_04.webp"),
-	preload("res://assets/runtime/tables/table_05.webp"),
-	preload("res://assets/runtime/tables/table_06.webp"),
-	preload("res://assets/runtime/tables/table_07.webp"),
-	preload("res://assets/runtime/tables/table_08.webp"),
-	preload("res://assets/runtime/tables/table_09.webp"),
-	preload("res://assets/runtime/tables/table_10.webp"),
+const LEVEL_TABLES: Array[String] = [
+	"res://assets/runtime/tables/table_01.webp",
+	"res://assets/runtime/tables/table_02.webp",
+	"res://assets/runtime/tables/table_03.webp",
+	"res://assets/runtime/tables/table_04.webp",
+	"res://assets/runtime/tables/table_05.webp",
+	"res://assets/runtime/tables/table_06.webp",
+	"res://assets/runtime/tables/table_07.webp",
+	"res://assets/runtime/tables/table_08.webp",
+	"res://assets/runtime/tables/table_09.webp",
+	"res://assets/runtime/tables/table_10.webp",
 ]
+## Two entries per kind: the level being played plus the one it came from, so a
+## Home->level or level->level swap never re-reads the texture it is leaving.
+const SCENE_TEXTURE_CACHE_LIMIT := 2
 const BACKGROUND_COUNT := 10
 const TABLE_COUNT := 10
 const GEM_IDENTITY_COUNT := 34
@@ -148,11 +159,35 @@ static func reset_active_level_mapping() -> void:
 static func identity_for_local_tier(level: int) -> int:
 	return int(active_gem_identity_by_tier.get(level, level))
 
+## Most-recently-used scene-art cache. Keyed by resource path and bounded by
+## SCENE_TEXTURE_CACHE_LIMIT per kind, so at most two backgrounds and two tables
+## are ever held. Dropping a reference here releases the texture; nothing else in
+## the project keeps scene art alive.
+static var _background_cache: Array[Array] = []
+static var _table_cache: Array[Array] = []
+
+static func _scene_texture(cache: Array[Array], path: String) -> Texture2D:
+	for index in range(cache.size()):
+		if String(cache[index][0]) == path:
+			var hit: Array = cache[index]
+			# Refresh recency so the level being played is never the eviction
+			# candidate when the next one loads.
+			cache.remove_at(index)
+			cache.append(hit)
+			return hit[1] as Texture2D
+	var texture := load(path) as Texture2D
+	if texture == null:
+		return null
+	cache.append([path, texture])
+	while cache.size() > SCENE_TEXTURE_CACHE_LIMIT:
+		cache.remove_at(0)
+	return texture
+
 static func background_texture(index: int) -> Texture2D:
-	return LEVEL_BACKGROUNDS[posmod(index, LEVEL_BACKGROUNDS.size())]
+	return _scene_texture(_background_cache, LEVEL_BACKGROUNDS[posmod(index, LEVEL_BACKGROUNDS.size())])
 
 static func table_texture(index: int) -> Texture2D:
-	return LEVEL_TABLES[posmod(index, LEVEL_TABLES.size())]
+	return _scene_texture(_table_cache, LEVEL_TABLES[posmod(index, LEVEL_TABLES.size())])
 
 static func gem_entry(level: int) -> Dictionary:
 	var identity := identity_for_local_tier(level)

@@ -481,7 +481,6 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 		return
 	var duration := float(effect.get("duration", GameConfig.MERGE_PRESENTATION_DURATION))
 	var effect_scale := float(effect.get("effect_scale", 1.0))
-	var spark_count := int(effect.get("spark_count", 6))
 	var major_reward := bool(effect.get("major_reward", false))
 	var target_merge := bool(effect.get("target_merge", false))
 	var tier_scale := float(effect.get("tier_scale", 1.0))
@@ -521,20 +520,11 @@ func _draw_merge_impact(effect: Dictionary) -> void:
 	var core_alpha := maxf(0.0, tier_scale - 1.0) * (1.0 - t) * 0.72
 	if core_alpha > 0.01:
 		draw_circle(center, gem_radius * lerpf(0.34, 0.72, expand), Color(1.0, 0.97, 0.82, core_alpha))
-	# A dense but bounded radial crown replaces the removed moving shards.
-	var spark_fade := maxf(0.0, 1.0 - t * 2.6)
-	if spark_fade <= 0.0:
-		return
-	for index in range(spark_count):
-		var seed := absi(int(effect.result_id) * 31 + index * 73)
-		var angle := float(index) * TAU / float(spark_count) + float(int(effect.result_id) % 7) * 0.07 + float(seed % 11 - 5) * 0.025
-		var direction := Vector2.from_angle(angle)
-		var length_variation := 0.78 + float(seed % 7) * 0.065
-		var inner := center + direction * (gem_radius * 0.78 + 14.0 * expand) * effect_scale
-		var outer := center + direction * (gem_radius * 1.00 + 28.0 * expand) * effect_scale * length_variation
-		var sparkle := Color("fff2a8") if index % 2 == 0 else color
-		sparkle.a = spark_fade * 0.80
-		draw_line(inner, outer, sparkle, 3.6 if major_reward else 2.6)
+	# The radial spark crown that used to be drawn here is gone. Short lines
+	# flung off the merge read as debris — shredded gem fragments — rather than
+	# as one deliberate effect, and each one cost a separate primitive. The
+	# rotating swirl in GemSpriteLayer's burst shader now carries that energy on
+	# a single quad, which both looks intentional and costs less.
 
 
 func _draw_combo_label(effect: Dictionary) -> void:

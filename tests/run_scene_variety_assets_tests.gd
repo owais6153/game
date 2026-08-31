@@ -32,7 +32,14 @@ func _test_runtime_assets() -> void:
 		_assert(texture != null, "Table %d must load" % index)
 		if texture != null:
 			_assert(texture.get_size() == Vector2(720.0, 1280.0), "Table %d must use the optimized full-composition 720x1280 runtime canvas" % index)
+			# Scene art ships VRAM-compressed (ETC2/ASTC) so the ten tables and
+			# ten backgrounds cost a few MB of texture memory instead of 70 MB.
+			# A compressed Image cannot be sampled directly, so decompress the
+			# CPU-side copy before reading the corner. This checks the shipped
+			# texture, which is the one that matters.
 			var table_image := texture.get_image()
+			if table_image != null and table_image.is_compressed():
+				_assert(table_image.decompress() == OK, "Table %d runtime texture must be decompressible for inspection" % index)
 			_assert(table_image != null and table_image.get_pixel(0, 0).a <= 0.02, "Table %d must retain transparent outer corners" % index)
 	_assert(AssetCatalogType.GEM_TIER_TEXTURES.size() == AssetCatalogType.GEM_IDENTITY_COUNT, "Every supplied gem identity must have one runtime derivative")
 	AssetCatalogType.reset_active_level_mapping()

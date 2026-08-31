@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ca0d718x2m8lu"
-path="res://.godot/imported/scene_bg_10.webp-6c88c877b8b348327a2c9dedf3a60a00.ctex"
+path.s3tc="res://.godot/imported/scene_bg_10.webp-6c88c877b8b348327a2c9dedf3a60a00.s3tc.ctex"
+path.etc2="res://.godot/imported/scene_bg_10.webp-6c88c877b8b348327a2c9dedf3a60a00.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/runtime/backgrounds/scene_bg_10.webp"
-dest_files=["res://.godot/imported/scene_bg_10.webp-6c88c877b8b348327a2c9dedf3a60a00.ctex"]
+dest_files=["res://.godot/imported/scene_bg_10.webp-6c88c877b8b348327a2c9dedf3a60a00.s3tc.ctex", "res://.godot/imported/scene_bg_10.webp-6c88c877b8b348327a2c9dedf3a60a00.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.85
 compress/uastc_level=0

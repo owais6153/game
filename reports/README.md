@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Low-End Performance, Rescue Softlock, and Merge Presentation V1](LOW_END_PERFORMANCE_AND_RESCUE_SOFTLOCK_V1_REPORT.md) - measured texture-memory and O(N^2) collision causes of the Y21A stalls, a bit-identical simulation optimization with its equivalence regression, the unrecoverable out-of-shots softlock, rewarded-video offers in place of unaffordable dead ends, blast tier safety, and the reworked merge burst.
+
 - [Power Motion and Level Entry Polish V1](POWER_MOTION_LEVEL_ENTRY_POLISH_V1_REPORT.md) - fast shared power travel with active anticipation, subtle presentation-only table impact, animated level entry, regression evidence, and Android delivery/device validation.
 
 - [Player Feedback and Limited-Shots Repair V1](PLAYER_FEEDBACK_LIMITED_SHOTS_REPAIR_V1_REPORT.md) - authoritative failure copy, explicit treasure payout reveal, targeted power wind-up, shard removal/dense merge waves, Home HUD cleanup, easier limited-shot objectives, and validation.

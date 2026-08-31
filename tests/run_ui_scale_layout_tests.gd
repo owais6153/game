@@ -90,7 +90,12 @@ func _test_regenerated_table_art_alignment() -> void:
 	var center := GameConfig.table_texture_center()
 	var scale := GameConfig.table_texture_render_scale()
 	for index in range(AssetCatalog.LEVEL_TABLES.size()):
+		# Table art ships VRAM-compressed, and a compressed Image cannot be
+		# sampled. Decompress the CPU-side copy so this still measures the rails
+		# of the texture the game actually renders.
 		var image := AssetCatalog.table_texture(index).get_image()
+		if image != null and image.is_compressed():
+			_assert(image.decompress() == OK, "Table %d runtime texture must be decompressible for rail inspection" % (index + 1))
 		_assert(image != null and image.get_size() == Vector2i(720, 1280), "Table %d must load on the shared portrait canvas" % (index + 1))
 		if image == null:
 			continue

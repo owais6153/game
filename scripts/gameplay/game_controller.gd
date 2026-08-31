@@ -2,6 +2,7 @@ extends Node2D
 
 const AudioFeedbackServiceType = preload("res://scripts/services/audio_feedback_service.gd")
 const HapticsServiceType = preload("res://scripts/services/haptics_service.gd")
+const PerformanceProbeType = preload("res://scripts/services/performance_probe.gd")
 const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
 const GemSpriteLayerType = preload("res://scripts/presentation/gem_sprite_layer.gd")
 const ResultOverlayScene = preload("res://scenes/ui/ResultOverlay.tscn")
@@ -109,6 +110,8 @@ var ready_delay_elapsed := 0.0
 var launcher_handoff_elapsed := 0.0
 var audio_feedback: Node
 var haptics_feedback: RefCounted
+## Null in every shipped build. See GameConfig.PERFORMANCE_TELEMETRY_ENABLED.
+var performance_probe: Node
 var gem_sprite_layer: GemSpriteLayer
 var gameplay_ui: GameplayHudLayer
 var effects_layer: GameplayEffectsLayer
@@ -132,6 +135,8 @@ var coin_action_granted := false
 var coin_action_pending := ""
 ## Identifiers for the coin actions a video can pay for.
 const COIN_ACTION_SKIP := "skip_level"
+const COIN_ACTION_EXTRA_SHOTS := "extra_shots"
+const COIN_ACTION_CONTINUE := "continue_attempt"
 var screen_transition: ScreenTransitionType
 var level_briefing: LevelBriefingType
 var seen_level_types: Array[String] = []
@@ -250,6 +255,11 @@ func _ready() -> void:
 	# intact without exposing or persisting a control that has no user effect.
 	haptics_feedback.enabled = false
 	add_child(audio_feedback)
+	# Diagnostics only, and only in a measurement build. See
+	# GameConfig.PERFORMANCE_TELEMETRY_ENABLED.
+	if GameConfig.PERFORMANCE_TELEMETRY_ENABLED:
+		performance_probe = PerformanceProbeType.new()
+		add_child(performance_probe)
 	_advance_launcher_lifecycle()
 	_sync_gems_and_mark_visibility()
 	_refresh_hud()
@@ -261,6 +271,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	process_frame_index += 1
+	if performance_probe != null:
+		performance_probe.tracked_gem_count = pieces.size()
+		performance_probe.set_label(AppFlowState.keys()[app_flow_state])
 	_update_level_entry_presentation(delta)
 	_update_table_impact_feedback(delta)
 	# Advanced before any state-dependent early return: the mission banner is
@@ -482,6 +495,13 @@ func _handle_back_request(_allow_application_exit: bool = true) -> String:
 		return "power_overlay"
 	if home_overlay != null and home_overlay.handle_back_request():
 		return "home_overlay"
+	if result_overlay != null and result_overlay.is_rescue_mode():
+		# The rescue offer is the one result popup with a real decline action, so
+		# Back answers it instead of being swallowed. Swallowing it here is what
+		# left a player with no coins unable to leave the popup at all once its
+		# buttons had locked.
+		_on_extra_shots_declined()
+		return "rescue_declined"
 	if result_overlay != null and result_overlay.visible_result:
 		# Result actions own progression/reward resolution. Back is consumed without
 		# dismissing the modal or skipping its required Collect/ad path.
@@ -883,6 +903,10 @@ func _clear_magnet_field() -> void:
 func _activate_bomb_power(origin: Vector2) -> bool:
 	var cleared: Array[GemPiece] = []
 	for piece in _targetable_pieces():
+		# Objective-tier gems are inside the blast but survive it. See
+		# GameConfig.POWER_BOMB_MAX_CLEARED_TIER.
+		if piece.level > GameConfig.POWER_BOMB_MAX_CLEARED_TIER:
+			continue
 		if piece.position.distance_to(origin) <= GameConfig.POWER_BOMB_RADIUS:
 			cleared.append(piece)
 	if cleared.is_empty():
@@ -1023,6 +1047,17 @@ func _update_table_impact_feedback(delta: float) -> void:
 
 
 func _start_level_entry_presentation() -> void:
+	if not GameConfig.LEVEL_ENTRY_PRESENTATION_ENABLED:
+		# The table is already on screen behind the briefing popup. Starting from
+		# alpha 0 made it disappear and come back on START GAME, so the entrance
+		# resolves immediately to its authoritative pose instead.
+		level_entry_active = false
+		level_entry_elapsed = GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION
+		level_entry_offset = Vector2.ZERO
+		level_entry_table_scale = 1.0
+		_apply_table_presentation_transform()
+		_apply_level_entry_alpha(1.0)
+		return
 	level_entry_active = true
 	level_entry_elapsed = 0.0
 	level_entry_offset = Vector2(0.0, GameConfig.LEVEL_ENTRY_TABLE_SLIDE)
@@ -1316,13 +1351,38 @@ func _perform_coin_action(action: String) -> bool:
 			_log_analytics("coin_action_granted", {"action": action, "source": "rewarded_ad", "level_number": level_number})
 			_perform_skip_level(0)
 			return true
+		COIN_ACTION_EXTRA_SHOTS:
+			# The rescue offer is only meaningful while the out-of-shots popup is
+			# still the live state. If the player gave up while the video played,
+			# the attempt has already failed and the shots must not be granted
+			# into a finished level.
+			if not out_of_shots_presented or failed or win_qualified:
+				return false
+			_log_analytics("coin_action_granted", {"action": action, "source": "rewarded_ad", "level_number": level_number})
+			_grant_extra_shots(0)
+			return true
+		COIN_ACTION_CONTINUE:
+			# Only meaningful while the attempt is still failed and the player
+			# has not already used their one allowed continuation.
+			if not failed or coin_continues_used >= GameConfig.MAX_COIN_CONTINUES_PER_ATTEMPT:
+				return false
+			_log_analytics("coin_action_granted", {"action": action, "source": "rewarded_ad", "level_number": level_number})
+			_grant_continue(0)
+			return true
 	return false
 
 
 func _report_coin_action_result(action: String, granted: bool) -> void:
 	if power_overlay == null:
 		return
-	var detail := "Level skipped" if action == COIN_ACTION_SKIP else "Done"
+	var detail := "Done"
+	match action:
+		COIN_ACTION_SKIP:
+			detail = "Level skipped"
+		COIN_ACTION_EXTRA_SHOTS:
+			detail = "+%d shots" % GameConfig.EXTRA_SHOTS_AMOUNT
+		COIN_ACTION_CONTINUE:
+			detail = "Attempt continued"
 	power_overlay.present_coin_result(action, granted, detail)
 	if granted and audio_feedback != null:
 		audio_feedback.emit_event("coin_reward")
@@ -1467,17 +1527,17 @@ func _setup_asset_presentation() -> void:
 	var background := Sprite2D.new()
 	background.texture = AssetCatalogType.background_texture(int(level_config.get("background_index", 0)))
 	background_sprite = background
-	background.z_index = -20
+	background.z_index = GameConfig.BACKGROUND_Z_INDEX
 	add_child(background)
 	var table := Sprite2D.new()
 	table.texture = AssetCatalogType.table_texture(int(level_config.get("table_index", 0)))
 	table_sprite = table
 	table.position = GameConfig.table_texture_center()
 	table.scale = GameConfig.table_texture_render_scale()
-	table.z_index = -10
+	table.z_index = GameConfig.TABLE_Z_INDEX
 	add_child(table)
 	gem_sprite_layer = GemSpriteLayerType.new()
-	gem_sprite_layer.z_index = 10
+	gem_sprite_layer.z_index = GameConfig.GEM_LAYER_Z_INDEX
 	add_child(gem_sprite_layer)
 	gameplay_ui = GameplayHudScene.instantiate() as GameplayHudLayer
 	add_child(gameplay_ui)
@@ -1493,7 +1553,7 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.power_ad_requested.connect(_offer_power_ad)
 	gameplay_ui.skip_level_requested.connect(_on_skip_level_requested)
 	effects_layer = GameplayEffectsLayerType.new()
-	effects_layer.z_index = 0
+	effects_layer.z_index = GameConfig.EFFECTS_LAYER_Z_INDEX
 	gameplay_ui.attach_reward_foreground(effects_layer)
 	effects_layer.coin_flight_started.connect(_on_coin_flight_started)
 	effects_layer.coin_arrived.connect(_on_coin_arrived)
@@ -2180,23 +2240,51 @@ func _on_extra_shots_requested() -> void:
 	extra_shots_request_locked = true
 	if coins < GameConfig.EXTRA_SHOTS_COST:
 		extra_shots_request_locked = false
-		if result_overlay != null: result_overlay.show_purchase_feedback("NOT ENOUGH COINS")
+		# Re-arm the overlay before anything else. It disabled both its buy
+		# button and GIVE UP when the tap was accepted, so leaving it pending
+		# here strands the player in the rescue popup with no way out.
+		if result_overlay != null:
+			result_overlay.clear_pending_actions()
+			result_overlay.show_purchase_feedback("NOT ENOUGH COINS · WATCH A VIDEO")
+		# A player who cannot pay is offered a video, the same way Skip and the
+		# powers do it. Showing only "NOT ENOUGH COINS" made the button look
+		# broken at exactly the moment the player most wants to keep going.
+		_offer_coin_action(
+			COIN_ACTION_EXTRA_SHOTS,
+			"Out of shots?",
+			"Add %d shots and continue this attempt." % GameConfig.EXTRA_SHOTS_AMOUNT,
+			GameConfig.EXTRA_SHOTS_COST
+		)
 		return
 	var next_balance := coins - GameConfig.EXTRA_SHOTS_COST
 	if ProgressionSaveServiceType.save_progress(level_number, level_seed, next_balance, daily_state) != OK:
 		extra_shots_request_locked = false
+		if result_overlay != null:
+			result_overlay.clear_pending_actions()
+			result_overlay.show_purchase_feedback("COULD NOT SAVE · TRY AGAIN")
 		return
 	coins = next_balance
-	level_start_coins -= GameConfig.EXTRA_SHOTS_COST
+	_grant_extra_shots(GameConfig.EXTRA_SHOTS_COST)
+	extra_shots_request_locked = false
+
+
+## Adds the rescue shots and hands the attempt back to the player. `cost` is 0
+## when a rewarded video paid for them; the balance itself is deducted by the
+## caller that owns the persistence, so this only records and resumes.
+func _grant_extra_shots(cost: int) -> void:
+	level_start_coins -= cost
 	shots_remaining += GameConfig.EXTRA_SHOTS_AMOUNT
 	out_of_shots_pending = false
 	out_of_shots_presented = false
-	_log_analytics("coin_spent", {"amount": GameConfig.EXTRA_SHOTS_COST, "reason": "extra_shots", "level_number": level_number, "resulting_balance": coins})
-	_log_analytics("extra_shots_purchased", {"level_number": level_number, "shots_added": GameConfig.EXTRA_SHOTS_AMOUNT, "shots_remaining": shots_remaining, "coin_cost": GameConfig.EXTRA_SHOTS_COST, "coin_balance": coins})
-	if result_overlay != null: result_overlay.dismiss()
+	if cost > 0:
+		_log_analytics("coin_spent", {"amount": cost, "reason": "extra_shots", "level_number": level_number, "resulting_balance": coins})
+	_log_analytics("extra_shots_purchased", {"level_number": level_number, "shots_added": GameConfig.EXTRA_SHOTS_AMOUNT, "shots_remaining": shots_remaining, "coin_cost": cost, "coin_balance": coins})
+	if result_overlay != null:
+		result_overlay.clear_pending_actions()
+		result_overlay.dismiss()
 	launcher_state = LauncherState.SPAWNING_NEXT
-	extra_shots_request_locked = false
 	_refresh_hud()
+
 
 func _on_extra_shots_declined() -> void:
 	_log_analytics("extra_shots_declined", {"level_number": level_number, "shots_remaining": shots_remaining})
@@ -2260,14 +2348,34 @@ func _on_continue_requested() -> void:
 	continue_request_locked = true
 	if coins < GameConfig.CONTINUE_COST:
 		continue_request_locked = false
-		if result_overlay != null: result_overlay.show_purchase_feedback("NOT ENOUGH COINS")
+		# Same contract as the out-of-shots rescue: re-arm the overlay, then
+		# offer a video rather than leaving the player staring at a price they
+		# cannot pay on a button that appears to do nothing.
+		if result_overlay != null:
+			result_overlay.clear_pending_actions()
+			result_overlay.show_purchase_feedback("NOT ENOUGH COINS · WATCH A VIDEO")
+		_offer_coin_action(
+			COIN_ACTION_CONTINUE,
+			"Continue this attempt?",
+			"Clear the gems past the line and keep playing.",
+			GameConfig.CONTINUE_COST
+		)
 		return
 	var next_balance := coins - GameConfig.CONTINUE_COST
 	if ProgressionSaveServiceType.save_progress(level_number, level_seed, next_balance, daily_state) != OK:
 		continue_request_locked = false
+		if result_overlay != null:
+			result_overlay.clear_pending_actions()
+			result_overlay.show_purchase_feedback("COULD NOT SAVE · TRY AGAIN")
 		return
 	coins = next_balance
-	level_start_coins -= GameConfig.CONTINUE_COST
+	_grant_continue(GameConfig.CONTINUE_COST)
+
+
+## Resumes a failed attempt. `cost` is 0 when a rewarded video paid for it; the
+## balance itself is deducted by the caller that owns the persistence.
+func _grant_continue(cost: int) -> void:
+	level_start_coins -= cost
 	coin_continues_used += 1
 	# The smallest safe recovery is to remove only the settled bodies that were
 	# already beyond the danger line. No target/coin event is replayed and every
@@ -2276,9 +2384,12 @@ func _on_continue_requested() -> void:
 	danger_timers.clear()
 	failed = false
 	launcher_state = LauncherState.SPAWNING_NEXT
-	if result_overlay != null: result_overlay.dismiss()
-	_log_analytics("coin_spent", {"amount": GameConfig.CONTINUE_COST, "reason": "continue", "level_number": level_number, "resulting_balance": coins})
-	_log_analytics("continue_purchased", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": GameConfig.CONTINUE_COST, "coin_balance": coins})
+	if result_overlay != null:
+		result_overlay.clear_pending_actions()
+		result_overlay.dismiss()
+	if cost > 0:
+		_log_analytics("coin_spent", {"amount": cost, "reason": "continue", "level_number": level_number, "resulting_balance": coins})
+	_log_analytics("continue_purchased", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": cost, "coin_balance": coins})
 	_refresh_hud()
 
 func _update_merge_presentations(delta: float) -> void:

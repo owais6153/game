@@ -78,7 +78,12 @@ func _test_pattern_blocks_and_target_safety() -> void:
 			var rarity := String(AssetCatalogType.gem_definition(identity).get("rarity", ""))
 			_assert(rarity == ("common" if tier <= 4 else "unique"), "Level %d tier %d must respect the Common/Unique progression split" % [level_number, tier])
 		var targets: Array = first.target_sequence
-		_assert(targets.size() == 3, "Level %d must have exactly three targets" % level_number)
+		# Limited-shot levels are accuracy challenges and deliberately ask for the
+		# two lower objectives instead of the full L6-L8 climb (see
+		# LevelConfig.generated). This assertion predates that rule and was
+		# failing on every third level; it now checks the rule that exists.
+		var expected_targets := 2 if LevelConfigType.is_limited_shots_level(level_number) else 3
+		_assert(targets.size() == expected_targets, "Level %d must have exactly %d targets" % [level_number, expected_targets])
 		for target_index in range(targets.size()):
 			var target_tier := int(targets[target_index].tier)
 			_assert(target_tier == target_index + 6, "Level %d targets must remain the reachable ascending L6-L8 path" % level_number)

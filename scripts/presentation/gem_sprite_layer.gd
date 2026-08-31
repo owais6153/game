@@ -3,21 +3,82 @@ extends Node2D
 
 const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
 const RADIAL_POOL_SIZE := 8
+## One additive quad carries the whole merge burst: an expanding ring, a
+## rotating swirl, and a soft smoke bloom, all evaluated per pixel. This is
+## deliberately a shader rather than more draw_arc/draw_line primitives — the
+## radial spark lines it replaces cost a primitive each and read as loose debris
+## ("shred") rather than as one deliberate effect. Cost here is a single bounded
+## quad per merge regardless of how elaborate the motion looks, which is what
+## keeps it affordable on low-end hardware.
+##
+## The timing is matched to the merge sound rather than chosen by eye: the cue's
+## energy is gone inside a third of a second, so the burst arrives and clears in
+## the same window. See GameConfig.MERGE_RADIAL_DURATION.
+##
+## Style uniforms give each gem family its own character; see
+## GameConfig.merge_burst_style().
 const RADIAL_SHADER_CODE := """
 shader_type canvas_item;
 render_mode unshaded, blend_add;
 uniform vec4 tint : source_color = vec4(0.5, 0.9, 1.0, 1.0);
+uniform vec4 accent : source_color = vec4(1.0, 0.95, 0.75, 1.0);
 uniform float progress : hint_range(0.0, 1.0) = 0.0;
-uniform float intensity : hint_range(0.0, 1.0) = 0.35;
+uniform float intensity : hint_range(0.0, 2.0) = 0.35;
+// Number of swirl arms. Low tiers get a simple wave, objective gems a denser
+// rosette, so a player can tell what merged without reading the gem.
+uniform float arms : hint_range(0.0, 16.0) = 7.0;
+// Signed rotation speed. The sign alternates by gem family so neighbouring
+// families never look like the same effect recoloured.
+uniform float spin = 2.4;
+// Extra bloom and a bright rim for objective-tier merges.
+uniform float sparkle : hint_range(0.0, 1.0) = 0.0;
+
 void fragment() {
 	vec2 p = UV * 2.0 - vec2(1.0);
 	float d = length(p);
-	float expanding_edge = mix(0.18, 0.92, progress);
-	float ring = smoothstep(expanding_edge + 0.14, expanding_edge, d) * smoothstep(expanding_edge - 0.18, expanding_edge, d);
-	float core = smoothstep(0.82, 0.0, d) * (1.0 - progress);
-	float fade = 1.0 - smoothstep(0.0, 1.0, progress);
-	float alpha = (ring * 0.78 + core * 0.42) * fade * intensity;
-	COLOR = vec4(tint.rgb, alpha * tint.a);
+	float angle = atan(p.y, p.x);
+
+	// Snap out, then straight back off. An earlier version held near full
+	// brightness for most of the window, which made the burst linger well past
+	// its own sound cue. It reads better as a hit that arrives and clears.
+	float edge_t = 1.0 - pow(1.0 - progress, 3.0);
+	float fade = pow(1.0 - progress, 1.4);
+
+	// Everything must be gone before the quad's edge. Anything still alive at
+	// d = 1 gets sliced off square by the sprite bounds, which reads as the
+	// effect being cropped rather than fading.
+	float bounds = smoothstep(0.94, 0.62, d);
+
+	// One crisp expanding ring is the shape of the effect. A wide soft front was
+	// tried and read as a smear; the board is sharp faceted art and the burst
+	// has to look deliberate next to it, not like a blur.
+	float expanding_edge = mix(0.10, 0.70, edge_t);
+	float thickness = mix(0.10, 0.20, edge_t);
+	float ring = smoothstep(expanding_edge + thickness, expanding_edge, d)
+		* smoothstep(expanding_edge - thickness, expanding_edge, d);
+
+	// Rotation rides ON the ring rather than filling the disc. Sampling the
+	// swirl across the whole interior produced broad lobes that read as a
+	// spinning fan blade; modulating the ring instead makes the same rotation
+	// look like light travelling around a shockwave.
+	float wound = angle * arms + spin * progress * 9.4247780;
+	float swirl = 0.55 + 0.45 * sin(wound);
+	float ring_light = ring * swirl;
+
+	// A tight inner glow that stays close to the result gem.
+	float core = smoothstep(0.34, 0.0, d) * pow(1.0 - progress, 2.2);
+
+	// A brief flash at the instant of the merge, giving the burst a hard onset
+	// the eye is drawn to before the ring takes over.
+	float flash = smoothstep(0.30, 0.0, d) * pow(1.0 - clamp(progress / 0.20, 0.0, 1.0), 2.0);
+
+	vec3 colour = mix(tint.rgb, accent.rgb, clamp(swirl * 0.55 + sparkle * 0.35, 0.0, 1.0));
+	// Only a touch of white, and only at the onset. Pushed harder the effect
+	// desaturates into grey smoke and stops reading as a gem.
+	colour = mix(colour, vec3(1.0), clamp(flash * 0.45, 0.0, 1.0));
+	float alpha = (ring * 0.34 + ring_light * (0.70 + sparkle * 0.40)
+		+ core * 0.45 + flash * 0.60) * fade * intensity * bounds;
+	COLOR = vec4(colour, alpha * tint.a);
 }
 """
 
@@ -62,7 +123,11 @@ func _build_radial_pool() -> void:
 		sprite.name = "MergeRadialBurst_%d" % index
 		sprite.texture = texture
 		sprite.centered = true
-		sprite.z_index = -4096
+		# Above the gems; see GameConfig.MERGE_BURST_Z_INDEX. This was -4096,
+		# which is relative to the parent layer and resolved below the table
+		# sprite, so every burst was drawn behind opaque table art and the
+		# effect was never visible at all.
+		sprite.z_index = GameConfig.MERGE_BURST_Z_INDEX
 		sprite.visible = false
 		var material := ShaderMaterial.new()
 		material.shader = shader
@@ -86,13 +151,41 @@ func begin_merge_radial(position: Vector2, level: int, intensity: float, delay: 
 		slot = int(oldest.slot)
 	var node := _radial_pool[slot]
 	node.visible = false
+	var style := _burst_style(level)
 	_radial_bursts.append({
 		"slot": slot,
 		"position": position,
 		"level": level,
-		"intensity": clampf(intensity, 0.0, 1.0),
+		# Ceiling is above 1 on purpose: the objective and combo tiers are tuned
+		# brighter than an ordinary merge, and a 1.0 clamp silently flattened that
+		# escalation back to the ordinary level.
+		"intensity": clampf(intensity, 0.0, GameConfig.MERGE_RADIAL_INTENSITY_CEILING),
 		"elapsed": -delay,
+		"arms": float(style.arms),
+		"spin": float(style.spin),
+		"sparkle": float(style.sparkle),
+		"accent": style.accent as Color,
 	})
+
+
+## Resolves the burst character for one merge result.
+##
+## Two things vary. The gem's own colour family picks the swirl shape and its
+## rotation direction, so families read as different effects rather than one
+## effect recoloured. The tier picks how bright and dense it is, so the
+## objective gems the level is asking for land harder than the commons the
+## player merges constantly. Both tables live in GameConfig.
+func _burst_style(level: int) -> Dictionary:
+	var identity := AssetCatalogType.identity_for_local_tier(level)
+	var family := String(AssetCatalogType.gem_definition(identity).get("color_family", ""))
+	var family_style: Dictionary = GameConfig.MERGE_BURST_FAMILY_STYLE.get(family, GameConfig.MERGE_BURST_DEFAULT_STYLE)
+	var is_target := level >= GameConfig.MERGE_BURST_TARGET_TIER
+	return {
+		"arms": float(family_style.get("arms", 4.0)) + (1.0 if is_target else 0.0),
+		"spin": float(family_style.get("spin", 1.8)),
+		"sparkle": float(GameConfig.MERGE_BURST_TIER_SPARKLE.get(level, 0.0)),
+		"accent": GameConfig.MERGE_BURST_ACCENT_TARGET if is_target else GameConfig.MERGE_BURST_ACCENT_COMMON,
+	}
 
 
 func update_reward_effects(delta: float) -> void:
@@ -120,6 +213,10 @@ func update_reward_effects(delta: float) -> void:
 		material.set_shader_parameter("progress", t)
 		material.set_shader_parameter("intensity", float(burst.intensity))
 		material.set_shader_parameter("tint", GameConfig.gem_color(int(burst.level)).lightened(0.22))
+		material.set_shader_parameter("accent", burst.get("accent", GameConfig.MERGE_BURST_ACCENT_COMMON))
+		material.set_shader_parameter("arms", float(burst.get("arms", 4.0)))
+		material.set_shader_parameter("spin", float(burst.get("spin", 1.8)))
+		material.set_shader_parameter("sparkle", float(burst.get("sparkle", 0.0)))
 		active.append(burst)
 	_radial_bursts = active
 

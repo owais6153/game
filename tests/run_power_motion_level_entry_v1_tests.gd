@@ -52,19 +52,35 @@ func _test_level_entry_and_table_shake_are_presentation_only() -> void:
 	await process_frame
 	controller._on_home_level_intro_requested()
 	controller._on_home_play_requested()
-	_assert(controller.level_entry_active, "Starting a playable level must begin the table-entry reveal")
-	_assert(controller.table_sprite.modulate.a <= 0.01 and controller.gem_sprite_layer.modulate.a <= 0.01, "Table and gems must begin the level entry faded out")
-	controller._update_level_entry_presentation(GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION * 0.45)
-	_assert(is_zero_approx(controller.level_entry_elapsed), "Table entry must not advance invisibly behind the shared screen cover")
-	controller.screen_transition.reset()
 	var body_positions: Array[Vector2] = []
-	for piece in controller.pieces:
-		body_positions.append(piece.position)
-	controller._update_level_entry_presentation(GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION * 0.45)
-	_assert(controller.table_sprite.position.y > GameConfig.table_texture_center().y, "Level entry must visibly rise into its authoritative table position")
-	_assert(controller.table_sprite.modulate.a > 0.0, "Level entry must fade the table in while it rises")
-	_assert(_positions_match(controller, body_positions), "Level entry presentation must not move simulation bodies")
-	controller._update_level_entry_presentation(GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION)
+	if GameConfig.LEVEL_ENTRY_PRESENTATION_ENABLED:
+		_assert(controller.level_entry_active, "Starting a playable level must begin the table-entry reveal")
+		_assert(controller.table_sprite.modulate.a <= 0.01 and controller.gem_sprite_layer.modulate.a <= 0.01, "Table and gems must begin the level entry faded out")
+		controller._update_level_entry_presentation(GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION * 0.45)
+		_assert(is_zero_approx(controller.level_entry_elapsed), "Table entry must not advance invisibly behind the shared screen cover")
+		controller.screen_transition.reset()
+		for piece in controller.pieces:
+			body_positions.append(piece.position)
+		controller._update_level_entry_presentation(GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION * 0.45)
+		_assert(controller.table_sprite.position.y > GameConfig.table_texture_center().y, "Level entry must visibly rise into its authoritative table position")
+		_assert(controller.table_sprite.modulate.a > 0.0, "Level entry must fade the table in while it rises")
+		_assert(_positions_match(controller, body_positions), "Level entry presentation must not move simulation bodies")
+		controller._update_level_entry_presentation(GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION)
+	else:
+		# The entrance is switched off: the briefing popup already shows the
+		# table behind it, so fading it in on START GAME read as the table
+		# disappearing and coming back. With the flag off the board must simply
+		# be present and fully opaque from the moment the level starts, and it
+		# must stay that way when the presentation update is pumped.
+		_assert(not controller.level_entry_active, "With the entrance disabled, starting a level must not begin a reveal")
+		_assert(is_equal_approx(controller.table_sprite.modulate.a, GameConfig.TABLE_ART_CALM_MODULATE.a), "The table must be fully visible the moment a level starts")
+		_assert(is_equal_approx(controller.gem_sprite_layer.modulate.a, 1.0), "Gems must be fully visible the moment a level starts")
+		_assert(controller.table_sprite.position.is_equal_approx(GameConfig.table_texture_center()), "The table must start on its authoritative geometry, not offset for an entrance")
+		controller.screen_transition.reset()
+		for piece in controller.pieces:
+			body_positions.append(piece.position)
+		controller._update_level_entry_presentation(GameConfig.LEVEL_ENTRY_PRESENTATION_DURATION)
+		_assert(_positions_match(controller, body_positions), "Level entry presentation must not move simulation bodies")
 	_assert(not controller.level_entry_active and controller.table_sprite.position.is_equal_approx(GameConfig.table_texture_center()), "Level entry must finish exactly on authoritative table geometry")
 	_assert(is_equal_approx(controller.table_sprite.modulate.a, GameConfig.TABLE_ART_CALM_MODULATE.a) and is_equal_approx(controller.gem_sprite_layer.modulate.a, 1.0), "Level entry must restore final table and gem opacity")
 	controller._start_table_impact_feedback(PowerInventoryServiceType.HAMMER)

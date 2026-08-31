@@ -22,6 +22,13 @@ const SKIP_LEVEL_COST := 800
 ## approach a full clear, and the cap holds even where gems are packed tightest.
 const POWER_BOMB_RADIUS := 165.0 # safe readable range 140-190
 const POWER_BOMB_MAX_CLEARED := 8
+## Highest tier the bomb is allowed to destroy. Tiers 1-4 are the Common gems a
+## player can always make more of; 5 is the support Unique and 6-8 are the
+## level's objectives. Letting the blast take an objective gem destroyed the
+## exact thing the level asks the player to build, which reads as the power
+## punishing them for using it. Gems above this tier are pushed by the blast but
+## never removed by it.
+const POWER_BOMB_MAX_CLEARED_TIER := 4
 ## Survivors just outside the blast are shoved outward so the hole reads as an
 ## explosion rather than gems silently vanishing. Reuses the target-merge blast
 ## feel at a lower impulse because this clears rather than only pushes.
@@ -176,20 +183,83 @@ const COMBO_2_HITSTOP_DURATION := 0.04
 const COMBO_3_HITSTOP_DURATION := 0.045
 const COMBO_4_HITSTOP_DURATION := 0.05
 const TARGET_HITSTOP_DURATION := 0.05
-const MERGE_RADIAL_DURATION := 0.18
+## Matched to the merge cue rather than chosen by eye.
+##
+## `merge-target-immediate.ogg` is the sound a merge plays. Its energy peaks at
+## 0.10-0.15s and has fallen ~20 dB by 0.30s, so the audible hit is over inside a
+## third of a second. A 0.78s visual was tried and read as wrong precisely
+## because it outlasted its own sound by a factor of three: the burst was still
+## turning on screen well after the merge had finished being heard. The burst now
+## comes and goes with the cue.
+const MERGE_RADIAL_DURATION := 0.30
 const MERGE_RADIAL_START_SCALE := 0.30
-const MERGE_RADIAL_END_SCALE := 1.30
+## Barely wider than the gem it came from. Pushed to 2.1 the burst covered the
+## result and its neighbours, so the player could no longer see what they had
+## just made - louder, but less readable, which is the opposite of the goal. The
+## burst is already bright enough to notice; it does not also need to be large.
+const MERGE_RADIAL_END_SCALE := 1.05
+## Per-family burst character, so a green merge and a blue merge are not the
+## same effect recoloured. `arms` sets how many swirl lobes wind out of the
+## centre and `spin` their direction and speed; alternating the sign keeps
+## adjacent families visually distinct.
+const MERGE_BURST_FAMILY_STYLE := {
+	"pink": {"arms": 8.0, "spin": 1.6},
+	"red": {"arms": 6.0, "spin": -2.2},
+	"orange": {"arms": 7.0, "spin": 2.0},
+	"yellow": {"arms": 10.0, "spin": -1.4},
+	"green": {"arms": 6.0, "spin": 1.9},
+	"blue": {"arms": 7.0, "spin": -1.7},
+	"purple": {"arms": 9.0, "spin": 2.3},
+}
+const MERGE_BURST_DEFAULT_STYLE := {"arms": 7.0, "spin": 1.8}
+## Objective tiers earn a brighter, denser burst than the commons the player
+## makes constantly, so climbing the ladder visibly escalates.
+const MERGE_BURST_TIER_SPARKLE := {1: 0.0, 2: 0.0, 3: 0.05, 4: 0.12, 5: 0.30, 6: 0.55, 7: 0.75, 8: 1.0}
+const MERGE_BURST_ACCENT_COMMON := Color(1.0, 0.96, 0.82, 1.0)
+const MERGE_BURST_ACCENT_TARGET := Color(1.0, 0.88, 0.42, 1.0)
+## Above this tier a merge uses the brighter objective accent and extra arms.
+const MERGE_BURST_TARGET_TIER := 5
 ## Raised from 0.35. An ordinary merge is the action the player performs most,
 ## and it was the quietest thing on screen - the reference this was compared
 ## against gives every routine match real visible feedback. Still ordered below
 ## COMBO_1 so the hierarchy is unchanged; only the floor moved up.
-const MERGE_RADIAL_INTENSITY_NORMAL := 0.52
-const MERGE_RADIAL_INTENSITY_COMBO_1 := 0.60
-const MERGE_RADIAL_INTENSITY_COMBO_2 := 0.68
-const MERGE_RADIAL_INTENSITY_COMBO_3 := 0.80
-const MERGE_RADIAL_INTENSITY_COMBO_4 := 0.92
-const MERGE_RADIAL_INTENSITY_TARGET := 0.90
-const MERGE_RADIAL_INTENSITY_FINAL_TARGET := 1.00
+## Raised across the board. The floor matters most: an ordinary merge is the
+## action the player performs constantly, and at 0.52 it was losing the contrast
+## fight against the sharp, bright gem art it sits on top of. Brightness was
+## never the complaint once the burst was actually visible - size and duration
+## were - so this stays lifted while those came back down. The hierarchy between
+## the tiers is preserved, only raised.
+const MERGE_RADIAL_INTENSITY_NORMAL := 0.90
+const MERGE_RADIAL_INTENSITY_COMBO_1 := 0.98
+const MERGE_RADIAL_INTENSITY_COMBO_2 := 1.06
+const MERGE_RADIAL_INTENSITY_COMBO_3 := 1.16
+const MERGE_RADIAL_INTENSITY_COMBO_4 := 1.26
+const MERGE_RADIAL_INTENSITY_TARGET := 1.24
+const MERGE_RADIAL_INTENSITY_FINAL_TARGET := 1.38
+## Upper bound the burst intensity is clamped to. Above 1 so the tiers above an
+## ordinary merge keep their headroom.
+const MERGE_RADIAL_INTENSITY_CEILING := 1.50
+## Draw order for the merge burst, relative to the gem sprite layer.
+##
+## The burst goes ON TOP of the gems. Underneath them it reads as something
+## happening behind the board rather than to the gem that just merged, and the
+## gem art occludes most of it. Because the material is additive, drawing over
+## the gem lights the gem up instead of hiding it.
+##
+## It was -4096 originally. Child z_index is relative to the parent, so inside a
+## layer at z 10 that resolved below the table sprite and the effect was drawn
+## behind opaque table art - it was never visible at all.
+##
+## Gems in this layer reach GEM_VISUAL_Z_MAX, so this sits above that while
+## keeping layer + index inside the engine's 4096 z ceiling.
+const GEM_VISUAL_Z_MAX := GEM_VISUAL_Z_BUCKETS * GEM_VISUAL_Z_TIE_STRIDE + GEM_VISUAL_Z_TIE_STRIDE - 1
+const MERGE_BURST_Z_INDEX := 4080
+## Draw order of the layers the burst has to sit between, kept here so the
+## regression can assert the relationship rather than restating magic numbers.
+const BACKGROUND_Z_INDEX := -20
+const TABLE_Z_INDEX := -10
+const EFFECTS_LAYER_Z_INDEX := 0
+const GEM_LAYER_Z_INDEX := 10
 ## Result-scale keyframes are `[time_from_merge, uniform_scale]` pairs applied
 ## after `reveal`. They are presentation-only and never touch collision radius.
 const MERGE_TIMELINE_NORMAL := {
@@ -960,6 +1030,19 @@ const POWER_TABLE_SHAKE_AMPLITUDE := {
 	"magnet": 1.8,
 	"switch": 1.8,
 }
+## The table entrance is disabled. The briefing popup already shows the table
+## behind it, so fading and sliding it in on START GAME read as the table
+## vanishing and coming back rather than as an entrance. With the flag off the
+## board is simply present, which also removes a full-screen fade from the
+## first half-second of every level on low-end hardware.
+const LEVEL_ENTRY_PRESENTATION_ENABLED := false
+
+## Frame-time telemetry for device measurement builds. Off in every shipped
+## build: it prints one log line every two seconds and is only useful when a
+## device is attached and someone is reading logcat. Turn it on to measure a
+## specific phone, record the numbers in the task report, and turn it back off
+## before exporting a release.
+const PERFORMANCE_TELEMETRY_ENABLED := false
 const LEVEL_ENTRY_PRESENTATION_DURATION := 0.52
 const LEVEL_ENTRY_TABLE_SLIDE := 28.0
 const LEVEL_ENTRY_TABLE_START_SCALE := 0.965
@@ -996,5 +1079,12 @@ static func merge_vfx_spark_count(level: int, target_merge: bool = false) -> int
 	return clampi(10 + clampi(level, 1, 8) * 2 + (4 if target_merge else 0), 12, 30)
 
 
+## Concentric ring layers the effects layer draws behind the burst.
+##
+## This was 3-6. Each layer is delayed behind the last, so a stack of them
+## outlived the burst itself and trailed a set of thin, dull rings across the
+## board - a sonar ripple rather than a merge. The shader burst is the merge
+## feedback now; these are a single supporting wave, with one extra for the
+## objective merges that are meant to land harder.
 static func merge_vfx_wave_layers(level: int, target_merge: bool = false) -> int:
-	return clampi(2 + int(ceil(float(clampi(level, 1, 8)) / 3.0)) + (1 if target_merge else 0), 3, 6)
+	return clampi(1 + (1 if target_merge else 0) + (1 if level >= MAJOR_REWARD_TIER else 0), 1, 3)

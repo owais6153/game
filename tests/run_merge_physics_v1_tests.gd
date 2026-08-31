@@ -134,8 +134,14 @@ func _assert(condition: bool, message: String) -> void:
 		failures.append(message)
 
 
-## Dense concentric wavefronts now carry the cinematic weight without a moving
-## shard array that can build up during repeated chains.
+## The supporting wavefronts stay few, and escalate with the moment.
+##
+## These were 3-6 delayed concentric rings, from before the burst shader was
+## visible. Each layer trails the one before it, so a stack of them outlived the
+## burst and left thin dull rings expanding across the board - a sonar ripple
+## rather than a merge, and the reason merges read as going on too long. The
+## burst now carries the merge; these support it, so the assertion is that they
+## stay bounded and still escalate, not that they are dense.
 func _test_merges_use_dense_coloured_waves_without_shards() -> void:
 	var effects = preload("res://scripts/presentation/gameplay_effects_layer.gd").new()
 	root.add_child(effects)
@@ -144,8 +150,10 @@ func _test_merges_use_dense_coloured_waves_without_shards() -> void:
 		"timeline": GameConfig.MERGE_TIMELINE_NORMAL,
 	})
 	var ordinary: Dictionary = effects.merge_impacts[0]
-	_assert(int(ordinary.get("ring_layers", 0)) >= 3,
-		"an ordinary merge must use a dense multi-wave impact")
+	_assert(int(ordinary.get("ring_layers", 0)) >= 1,
+		"an ordinary merge must still show a supporting wavefront")
+	_assert(int(ordinary.get("ring_layers", 0)) <= 2,
+		"an ordinary merge must not stack wavefronts into a lingering ripple (got %d)" % int(ordinary.get("ring_layers", 0)))
 
 	# A target merge is a bigger moment and must throw more.
 	effects.clear()

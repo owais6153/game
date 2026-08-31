@@ -1,3 +1,30 @@
+# Majestic Gems release AAB v1.0.16 (versionCode 18) - 2026-08-31
+
+- File: `build/android/majestic-gems-release-v1.0.16-vc18.aab`
+- Size/timestamp: 76,177,250 bytes; 2026-08-31 06:54:45 +05:00.
+- SHA-256: `C4B8D5180DA4C19B9CAA8B861BFE28B280E62EE39B997CDE01279B3FE523F602`.
+- Export: Godot 4.6.3 `--export-release "Android"` (preset.0, `gradle_build/export_format=1`), `arm64-v8a` + `armeabi-v7a`.
+- **Signing: release upload key.** `keytool -printcert` on the bundle's signature block reports `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`, valid 2026-08-13 to 2053-12-29. This is the real upload key, not a debug key, so the artifact is uploadable to Play.
+- Version validation: Bundletool `dump manifest` on the built bundle reports `versionCode="18"`, `versionName="1.0.16"`, `package="com.owais.majestygems"`, `minSdkVersion="24"`, `targetSdkVersion="36"`. 18 is strictly greater than every code previously used in this manifest (highest prior was 17); the last Play-uploaded build was 12 / 1.0.10.
+- Download size (Bundletool `get-size total --dimensions=ABI` on a split APK set): **arm64-v8a 49.8 MB**, armeabi-v7a 51.4 MB. The universal APK is 75.3 MB; Play serves the per-ABI split.
+- Package trimming: 26.0 MB of packaged asset data removed by excluding art no reachable code loads - `assets/ui_kit_source/*` (the source sheets; the runtime uses trimmed derivatives), `assets/vfx/*`, `assets/fonts/*`, `majestic_gems_logo_v3.png`, system splash v4/v5, and app icon v3/v4. Reachability was established by extracting every `res://` reference in shipped scripts, scenes, `project.godot`, and the export presets: only `assets/runtime/` is referenced. `assets/runtime/ui/kit/` was deliberately left intact because it is loaded dynamically by name (`load(KIT % key)` and `power_icon_%s`), so static reference analysis cannot prove any of it unused.
+- Launch screens: `screen/background_color` was `#095579`, a blue that appears nowhere in the game's palette; it drove `android:windowBackground` and the baked `--background_color` launch argument. It, `splash_screen/background_color`, and `boot_splash/bg_color` are now `#1C0734`, the same colour as the adaptive launcher-icon background, so the system splash and the window behind the engine are one continuous deep purple instead of two mismatched screens.
+- Device validation: **not completed.** The device went offline during `bundletool install-apks` and did not recover over adb, so the launch sequence and this build were not visually verified on the phone. The theme value was verified in the generated `android/build/res/values/themes.xml` (`android:windowBackground` is `#1c0734`) and in the bundle's resource table, but that is a build-output check, not a device check.
+- Report: `reports/LOW_END_PERFORMANCE_AND_RESCUE_SOFTLOCK_V1_REPORT.md`.
+
+# Low-End Performance, Rescue Softlock, and Merge Presentation debug APK - 2026-08-31
+
+- File: `build/android/low-end-performance-rescue-softlock-v1.apk`
+- Size/timestamp: 116,804,496 bytes; 2026-08-31 06:21:18 +05:00.
+- SHA-256: `BEEE250B84C1E8BBEDC81BC491C5837F4FE9FF1BE505F47ABD759E7604535FAD`.
+- Export: Godot 4.6.3 `--export-debug "Android APK"`. Debug artifact only; no AAB was generated and release AAB identity/path are unchanged. The APK is larger than the previous debug build because scene art now ships VRAM-compressed (ETC2/ASTC), which costs package bytes and saves ~60 MB of GPU memory at runtime.
+- Tests: all 34 suites PASS, including three new ones - `BROAD_PHASE_EQUIVALENCE_V1_TESTS`, `RESCUE_SOFTLOCK_BLAST_SAFETY_V1_TESTS`, `MERGE_BURST_PRESENTATION_V1_TESTS`.
+- Device (V2149 `34385676890001M`, Android 11, 720x1600): installed with `adb install -r`. Home, PLAY, Level Ready, START GAME, the limited-shots briefing, and repeated real shots through target completion were exercised via adb. The process stayed resumed and filtered `godot` logcat contained no GDScript error or crash.
+- Memory on device, same cold-start protocol as the HEAD baseline: GL texture memory 139.7 MB -> 79.3 MB at Home and 143.3 MB -> 82.9 MB in play; total PSS 404 MB -> ~390 MB. The baseline figures come from an APK exported from HEAD in a clean worktree and measured in the same session, not from recollection.
+- Frame time on device at 17-20 gems, measured with the (normally disabled) `PerformanceProbe`: median 18.06 ms, p90 19.44 ms, p99 22.67 ms, worst ~30 ms, no stalls. Typical play sits at 10-15 gems where the median is a locked 16.67 ms.
+- Not claimed: a before/after frame-time table. The baseline APK was measured for memory but not driven through a matching instrumented play session.
+- Report: `reports/LOW_END_PERFORMANCE_AND_RESCUE_SOFTLOCK_V1_REPORT.md`.
+
 # Power Motion and Level Entry Polish debug APK v1.0.15 (versionCode 17) - 2026-08-31
 
 - File: `build/android/majestic-gems-power-motion-level-entry-v1.0.15-vc17.apk`

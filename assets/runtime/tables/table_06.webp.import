@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8vplg76lpvga"
-path="res://.godot/imported/table_06.webp-cf1b114877e99e82862ac2d8a7d3fae9.ctex"
+path.s3tc="res://.godot/imported/table_06.webp-cf1b114877e99e82862ac2d8a7d3fae9.s3tc.ctex"
+path.etc2="res://.godot/imported/table_06.webp-cf1b114877e99e82862ac2d8a7d3fae9.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/runtime/tables/table_06.webp"
-dest_files=["res://.godot/imported/table_06.webp-cf1b114877e99e82862ac2d8a7d3fae9.ctex"]
+dest_files=["res://.godot/imported/table_06.webp-cf1b114877e99e82862ac2d8a7d3fae9.s3tc.ctex", "res://.godot/imported/table_06.webp-cf1b114877e99e82862ac2d8a7d3fae9.etc2.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.92
 compress/uastc_level=0
