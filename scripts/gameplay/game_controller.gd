@@ -29,6 +29,10 @@ var next_piece_id := 1
 var level_config: Dictionary = LevelConfigType.level_1()
 var level_number := 1
 var level_seed := 0
+## Banked coins: the authoritative spendable balance. `coins` additionally
+## carries the current attempt's unresolved target earnings, which `restart()`
+## rolls back, so it must never be used to decide affordability. See
+## `spendable_coins()`.
 var level_start_coins := 0
 var next_level := 1
 var next_queue_index := 0
@@ -166,6 +170,9 @@ var analytics_attempt_number := 0
 var analytics_shot_count := 0
 var reroll_count_for_level := 0
 var reroll_request_locked := false
+## Held across one power purchase transaction so a double tap cannot run the
+## persist-then-adopt sequence twice and buy two powers for one price.
+var power_purchase_locked := false
 ## Powers V1. `power_state` is the persisted inventory; `pending_power_target`
 ## names the power waiting for the player to tap a spot on the board (bomb and
 ## hammer), and is empty whenever no power is targeting. Targeting input is
@@ -540,7 +547,14 @@ func _handle_pointer(pointer: Vector2, pressed: bool) -> void:
 			return
 		var active := get_active_piece()
 		var grabbed_gem := active != null and pointer.distance_to(active.position) <= active.radius * GameConfig.DRAG_HIT_RADIUS_MULTIPLIER
-		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and (grabbed_gem or GameConfig.aim_guide_contains(pointer, active.position, active.radius)):
+		# The gem itself, the aim guide above it, and — since the drag-area fix —
+		# anywhere on the table below the danger line. A player swiping the felt
+		# beside the shooter previously got no response and read the shooter as
+		# stuck. Popups and HUD controls consume their own presses before
+		# `_unhandled_input` runs, so widening this cannot steal a UI tap, and an
+		# armed power has already claimed the press above.
+		var grabbed_zone := GameConfig.shooter_drag_zone_contains(pointer)
+		if launcher_state == LauncherState.READY_TO_AIM and active != null and active.is_settled() and (grabbed_gem or grabbed_zone or GameConfig.aim_guide_contains(pointer, active.position, active.radius)):
 			dragging = true
 			move_active_to(pointer.x)
 	elif dragging:
@@ -1239,19 +1253,60 @@ func _grant_power_from_ad(power: String) -> bool:
 	return true
 
 
+## The one authoritative balance every coin sink and every affordability check
+## must read.
+##
+## `coins` is a display value: it includes the current attempt's unresolved
+## target earnings, which `restart()` rolls back to `level_start_coins`. Reading
+## `coins` to decide whether a purchase is allowed is what produced the shop
+## desync - the shop showed a balance the economy would not actually spend, so
+## Buy was silently refused and the number "corrected itself" on the next
+## rollback.
+func spendable_coins() -> int:
+	return level_start_coins
+
+
+## Credits coins that are already persisted, so they are banked immediately and
+## are not rolled back by `restart()`. Daily rewards go through here; unresolved
+## in-run target earnings deliberately do not.
+func _credit_banked_coins(amount: int) -> void:
+	if amount == 0:
+		return
+	coins += amount
+	level_start_coins += amount
+	_notify_coin_balance_changed()
+
+
+## Any live popup showing a balance re-reads the authority here, so a balance can
+## never go stale underneath an open shop.
+func _notify_coin_balance_changed() -> void:
+	if power_shop != null and power_shop.is_open():
+		power_shop.update_balance(spendable_coins())
+
+
 ## Buys one power with coins. Spends only banked coins, matching the skip sink's
 ## rollback-safe contract: unresolved target earnings stay recoverable until
 ## Level Complete.
-func _purchase_power(power: String) -> bool:
-	var attempt := PowerInventoryServiceType.purchase(power_state, level_start_coins, power)
+##
+## Returns a result dictionary rather than a bare bool so the caller can tell the
+## player *why* a purchase did not happen. Returning false with no reason is what
+## made a Buy tap look like it did nothing at all.
+func _purchase_power(power: String) -> Dictionary:
+	var balance_before := spendable_coins()
+	var price := PowerInventoryServiceType.purchase_cost(power)
+	if not PowerInventoryServiceType.is_power(power):
+		return {"ok": false, "reason": "unknown_power", "price": price, "balance_before": balance_before}
+	if balance_before < price:
+		return {"ok": false, "reason": "insufficient_coins", "price": price, "balance_before": balance_before}
+	var attempt := PowerInventoryServiceType.purchase(power_state, balance_before, power)
 	if not bool(attempt.get("ok", false)):
-		return false
+		return {"ok": false, "reason": String(attempt.get("reason", "rejected")), "price": price, "balance_before": balance_before}
 	var next_state: Dictionary = attempt.get("state", power_state) as Dictionary
-	var resulting_banked := int(attempt.get("resulting_coins", level_start_coins))
+	var resulting_banked := int(attempt.get("resulting_coins", balance_before))
 	var cost := int(attempt.get("cost", 0))
 	if ProgressionSaveServiceType.save_power_state(next_state, resulting_banked) != OK:
 		push_warning("Power purchase of %s cancelled because persistence failed" % power)
-		return false
+		return {"ok": false, "reason": "save_failed", "price": price, "balance_before": balance_before}
 	power_state = next_state
 	coins -= cost
 	level_start_coins = resulting_banked
@@ -1263,7 +1318,13 @@ func _purchase_power(power: String) -> bool:
 		"resulting_balance": coins,
 	})
 	_refresh_hud()
-	return true
+	return {
+		"ok": true,
+		"reason": "",
+		"price": cost,
+		"balance_before": balance_before,
+		"balance_after": spendable_coins(),
+	}
 
 
 
@@ -1604,6 +1665,7 @@ func _setup_asset_presentation() -> void:
 	add_child(power_shop)
 	power_shop.purchase_requested.connect(_on_power_purchase_requested)
 	power_shop.ad_requested.connect(_offer_power_ad)
+	power_shop.closed.connect(_on_power_shop_closed)
 	power_shop.ui_tap_requested.connect(_on_ui_tap_requested)
 	screen_transition = ScreenTransitionType.new()
 	add_child(screen_transition)
@@ -1630,7 +1692,10 @@ func _on_daily_mission_claim_requested(index: int) -> void:
 	if haptics_feedback != null:
 		haptics_feedback.emit_event("target_collect")
 	daily_state = updated
-	coins += reward
+	# Banked, not merely displayed. Crediting `coins` alone let the displayed
+	# balance drift permanently above the spendable one, which is what made the
+	# power shop refuse a Buy it had just shown as affordable.
+	_credit_banked_coins(reward)
 	_log_analytics("daily_mission_completed", {"level_number": level_number, "mission_reward": reward})
 	_log_analytics("daily_mission_reward_claimed", {"level_number": level_number, "mission_reward": reward, "coin_balance": coins})
 	if DailyMissionServiceType.all_missions_claimed(daily_state):
@@ -1683,7 +1748,7 @@ func _on_daily_chest_claim_requested() -> void:
 	if haptics_feedback != null:
 		haptics_feedback.emit_event("win")
 	if power_shop != null and power_shop.is_open():
-		power_shop.present(power_counts(), coins)
+		power_shop.present(power_counts(), spendable_coins())
 	_refresh_hud()
 
 
@@ -3501,23 +3566,82 @@ func _draw_merge_presentation(presentation: Dictionary) -> void:
 func _on_power_shop_requested() -> void:
 	if power_shop == null:
 		return
-	_log_analytics("shop_opened", {"level_number": level_number, "coin_balance": coins})
-	power_shop.present(power_counts(), coins)
+	# Presented from the authority, never from the display balance, so the shop
+	# opens showing exactly what it is able to spend.
+	_log_analytics("power_shop_open", {"level_number": level_number, "coin_balance": spendable_coins()})
+	power_shop.present(power_counts(), spendable_coins())
+
+
+func _on_power_shop_closed() -> void:
+	_log_analytics("power_shop_close", {"level_number": level_number, "coin_balance": spendable_coins()})
 
 
 ## Buying re-presents the shop so the new balance and count are visible without
-## replaying the popup entrance. A failed purchase leaves both untouched.
+## replaying the popup entrance. A failed purchase leaves both untouched but is
+## always reported back to the player and to analytics - a Buy tap must never
+## look like it did nothing.
 func _on_power_purchase_requested(power: String) -> void:
-	if not _purchase_power(power):
+	if power_purchase_locked:
 		return
+	# Held until the transaction resolves, so a double tap cannot run the
+	# persist-then-adopt sequence twice and buy two powers for one price.
+	power_purchase_locked = true
+	var balance_before := spendable_coins()
+	var price := PowerInventoryServiceType.purchase_cost(power)
+	_log_analytics("power_purchase_attempt", {
+		"power_type": power,
+		"power_price": price,
+		"coin_balance_before": balance_before,
+		"level_number": level_number,
+	})
+	var result := _purchase_power(power)
+	if not bool(result.get("ok", false)):
+		var failure_reason := String(result.get("reason", "rejected"))
+		_log_analytics("power_purchase_failed", {
+			"power_type": power,
+			"power_price": price,
+			"coin_balance_before": balance_before,
+			"failure_reason": failure_reason,
+		})
+		if power_shop != null:
+			# Re-read the authority before reporting, so the popup corrects a
+			# stale number in the same frame it explains the refusal.
+			power_shop.update_balance(spendable_coins())
+			power_shop.show_purchase_feedback(_purchase_failure_message(failure_reason, price))
+		if failure_reason == "insufficient_coins":
+			# Existing product behaviour: an unaffordable power routes to the
+			# rewarded-ad offer rather than dead-ending.
+			_offer_power_ad(power)
+		power_purchase_locked = false
+		return
+	_log_analytics("power_purchase_success", {
+		"power_type": power,
+		"power_price": int(result.get("price", price)),
+		"coin_balance_before": balance_before,
+		"coin_balance_after": int(result.get("balance_after", spendable_coins())),
+		"power_inventory_after": PowerInventoryServiceType.count(power_state, power),
+		"level_number": level_number,
+	})
 	if audio_feedback != null:
 		audio_feedback.emit_event("coin_reward")
 	if haptics_feedback != null:
 		haptics_feedback.emit_event("target_collect")
 	if power_shop != null:
-		power_shop.present(power_counts(), coins)
+		power_shop.present(power_counts(), spendable_coins())
 	if home_overlay != null:
 		home_overlay.update_snapshot(hud_snapshot())
+	power_purchase_locked = false
+
+
+func _purchase_failure_message(reason: String, price: int) -> String:
+	match reason:
+		"insufficient_coins":
+			return "NEED %d COINS" % price
+		"save_failed":
+			return "COULD NOT SAVE · TRY AGAIN"
+		"unknown_power":
+			return "UNAVAILABLE"
+	return "PURCHASE FAILED · TRY AGAIN"
 
 
 ## Places the level's seeded opening layout. Levels used to start on an empty

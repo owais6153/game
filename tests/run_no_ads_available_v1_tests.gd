@@ -110,7 +110,9 @@ func _test_coin_route_survives_when_ads_do_not() -> void:
 	controller.coins = 5000
 	controller.level_start_coins = 5000
 	var before := PowerInventoryServiceType.count(controller.power_state, "bomb")
-	_assert(controller._purchase_power("bomb"),
+	# Checked through `ok`, not the dictionary itself: every return value here is
+	# a non-empty dictionary and would be truthy even for a refused purchase.
+	_assert(bool(controller._purchase_power("bomb").get("ok", false)),
 		"buying with coins must still work when no ad is available")
 	_assert(PowerInventoryServiceType.count(controller.power_state, "bomb") == before + 1,
 		"a coin purchase must grant the power")

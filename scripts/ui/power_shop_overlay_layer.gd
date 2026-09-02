@@ -30,6 +30,10 @@ const ENTER_RISE := 0.18
 const ENTER_SETTLE := 0.12
 const EXIT_DURATION := 0.14
 
+## How long a refused-purchase message stays legible before fading.
+const FEEDBACK_HOLD := 1.6
+const FEEDBACK_FADE := 0.35
+
 signal purchase_requested(power: String)
 signal ad_requested(power: String)
 signal closed
@@ -40,10 +44,12 @@ var dim_rect: ColorRect
 var panel: PanelContainer
 var rows_column: VBoxContainer
 var coins_label: Label
+var feedback_label: Label
 var close_button: Button
 var visible_shop := false
 var power_rows: Dictionary = {}
 var _tween: Tween
+var _feedback_tween: Tween
 var _coins := 0
 var _counts: Dictionary = {}
 
@@ -69,6 +75,9 @@ func present(counts: Dictionary, coins: int) -> void:
 	_refresh()
 	if was_open:
 		return
+	# A fresh open starts clean: a refusal from a previous visit must not greet
+	# the player as if it described this one.
+	_clear_purchase_feedback()
 	visible_shop = true
 	_set_visible(true)
 	panel.modulate.a = 1.0
@@ -84,9 +93,47 @@ func present(counts: Dictionary, coins: int) -> void:
 	_tween.tween_property(panel, "scale", Vector2.ONE, ENTER_SETTLE).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
+## Re-reads the balance the controller treats as authoritative. Called whenever
+## coins change while the popup is up, so an open shop can never display a value
+## the economy will not actually spend.
+func update_balance(coins: int) -> void:
+	_coins = coins
+	_refresh()
+
+
+## One-line explanation of a refused purchase. Never leave a Buy tap silent: a
+## tap that does nothing is indistinguishable from a broken button.
+func show_purchase_feedback(message: String) -> void:
+	if feedback_label == null:
+		return
+	feedback_label.text = message
+	feedback_label.visible = not message.is_empty()
+	if message.is_empty():
+		return
+	if _feedback_tween != null and _feedback_tween.is_valid():
+		_feedback_tween.kill()
+	feedback_label.modulate.a = 1.0
+	_feedback_tween = create_tween()
+	_feedback_tween.tween_interval(FEEDBACK_HOLD)
+	_feedback_tween.tween_property(feedback_label, "modulate:a", 0.0, FEEDBACK_FADE)
+	_feedback_tween.finished.connect(func() -> void:
+		if feedback_label != null:
+			feedback_label.visible = false
+	)
+
+
+func _clear_purchase_feedback() -> void:
+	if _feedback_tween != null and _feedback_tween.is_valid():
+		_feedback_tween.kill()
+	if feedback_label != null:
+		feedback_label.visible = false
+		feedback_label.text = ""
+
+
 func close() -> void:
 	if not visible_shop:
 		return
+	_clear_purchase_feedback()
 	visible_shop = false
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
@@ -192,6 +239,15 @@ func _build() -> void:
 	coins_label.name = "PowerShopCoins"
 	coins_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	balance_row.add_child(coins_label)
+
+	# Sits directly under the balance, so a refusal is read in the same glance as
+	# the number it refers to.
+	feedback_label = UiDesignSystemType.style_label(
+		Label.new(), UiDesignSystemType.SMALL_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	feedback_label.name = "PowerShopFeedback"
+	feedback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	feedback_label.visible = false
+	column.add_child(feedback_label)
 
 	rows_column = VBoxContainer.new()
 	rows_column.name = "PowerShopRows"

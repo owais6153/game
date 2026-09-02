@@ -2,9 +2,12 @@ class_name GameConfig
 extends RefCounted
 
 const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
-## V1 economy sink. The controller performs the deduction and save atomically;
-## presentation reads this one value and never owns economy rules.
-const NEXT_GEM_REROLL_COST := 100
+## Removed in 1.0.17: `NEXT_GEM_REROLL_COST := 100` described a coin-priced
+## next-gem reroll that no shipped path ever charged for. Switching the queued
+## gem is a *power* (see PowerInventoryService "switch"), spent from inventory,
+## not from coins. The constant was read by nothing and only misled readers into
+## believing a coin sink existed here. Do not reintroduce it without an actual
+## sink; the live sinks are listed below and in ECONOMY.md.
 ## Retention/economy V1. Keep the relative hierarchy intentional: switching
 ## is cheapest, extra shots is medium, one safe continuation is expensive, and
 ## Skip remains the highest escape hatch.
@@ -940,6 +943,41 @@ static func table_playable_width_at(y_position: float) -> float:
 
 static func launcher_drag_x(requested_x: float, y_position: float, radius: float) -> float:
 	return clampf(requested_x, table_left_at(y_position) + radius, table_right_at(y_position) - radius)
+
+## Horizontal padding beyond the table rails that still counts as a shooter
+## grab. The rails slope inward, so a thumb aiming at the extreme left or right
+## naturally lands slightly outside the playable span; without this the two
+## edges of the drag zone are the hardest places to start a drag.
+const SHOOTER_DRAG_EDGE_PADDING := 48.0
+## How far below the danger line the drag zone starts. Zero: the requested
+## behaviour is that the whole table below the line is grabbable, and the line
+## itself is the boundary the player can see.
+const SHOOTER_DRAG_TOP_INSET := 0.0
+
+
+## Whether a press at `pointer` should begin a shooter drag.
+##
+## The launcher gem used to be the only grabbable thing on the table, so a
+## player swiping on the felt beside it got no response at all and reasonably
+## concluded the shooter was stuck. The whole band below the danger line is the
+## natural bottom gameplay zone and now behaves as one drag surface.
+##
+## Deliberately bounded above by the danger line: presses over the board proper
+## stay available to board interaction and power targeting.
+static func shooter_drag_zone_contains(pointer: Vector2) -> bool:
+	var top := danger_line_y() + SHOOTER_DRAG_TOP_INSET
+	if pointer.y < top:
+		return false
+	var bottom := table_outer_bottom()
+	if pointer.y > bottom:
+		return false
+	# Measured at the pointer's own height, so the zone follows the same sloped
+	# rails the launcher is clamped to rather than assuming a rectangle.
+	var clamped_y := clampf(pointer.y, board_top(), board_bottom())
+	var left := table_left_at(clamped_y) - SHOOTER_DRAG_EDGE_PADDING
+	var right := table_right_at(clamped_y) + SHOOTER_DRAG_EDGE_PADDING
+	return pointer.x >= left and pointer.x <= right
+
 
 static func aim_guide_contains(pointer: Vector2, active_position: Vector2, active_radius: float) -> bool:
 	var lane_top := vertical_lane_top_y(active_position.x, 5.0)
