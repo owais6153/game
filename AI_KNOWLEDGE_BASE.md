@@ -1149,3 +1149,13 @@ and only surfaced when run in batch order.
 `majestic-gems-upload-key.jks` with alias `majestic-gems-upload`. `--export-release`
 picks them up with no extra arguments; there is no need to ask for or handle the
 password.
+
+**Godot's exit code says nothing about export success, in either direction.**
+Observed on 1.0.17: a *failed* export (Gradle daemon crash, no artifact written)
+returned 0, and the *successful* export returned 124 because Godot hung on
+shutdown after finishing and was killed by the `timeout` wrapper. Gate on the
+artifact instead - file exists, `unzip -t` clean, Bundletool `validate` passes,
+Bundletool `dump manifest` shows the intended versionCode/versionName, and
+`jarsigner -verify` reports the expected certificate. Also stop stale Gradle
+daemons (`android/build/gradlew --stop`) before a release export; one carried
+over from a run that had exhausted disk space crashed the first attempt.
