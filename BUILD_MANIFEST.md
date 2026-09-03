@@ -1,3 +1,20 @@
+# 2026-09-03 - majestic-gems-release-v1.0.17-vc19.aab FINAL (versionCode 19 / versionName 1.0.17)
+
+**This is the artifact to upload.** It supersedes both earlier 1.0.17 entries below, which were built before later corrections to the level system and are deleted from disk.
+
+- Artifact: `build/android/majestic-gems-release-v1.0.17-vc19.aab`, 76,204,213 bytes; 2026-09-03 09:29 +05:00; SHA-256 `624B63D8B360DE5DF1FA65DACF8FB5E54ADEBD6129D54BBD0E24AB3E2C143303`.
+- Commit: `dfef3f5` on `main`. Tree clean at export.
+- Supersedes `DC39D8BE...C322` (built before the limited-cadence lengthening and the target_heavy reachability fix) and `88132CB2...CF67` (built before nine analytics events existed). Neither remains on disk.
+- Version validation: Bundletool 1.18.3 `dump manifest` reports package `com.owais.majestygems`, versionCode **19**, versionName **1.0.17**. `validate` passes.
+- Integrity: `unzip -t` reports no CRC errors across the archive.
+- Signing: `jarsigner -verify` reports **jar verified**; certificate `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs` - the same upload key as 1.0.16.
+- Archive audit: 1,170 entries; six ARM libraries (three per ABI); **zero** x86/x86_64; **zero** packaged `tests/`, `reports/`, or `scripts/dev/` entries.
+- Tests: all **36** suites pass.
+- Level validation: levels 1-100 generate with no invalid configurations, all 18 templates reachable, zero consecutive identical templates, zero straight lanes across 120 levels. See `reports/LEVEL_VALIDATION_1_100_V1017.md` and `reports/LEVEL_SYSTEMS_VERIFICATION_V1017.md`.
+- Economy: per-level coin income is 12.3% below 1.0.16, but levels demand 12.6% less material, so the earn rate is 1.884 -> 1.890 coins per unit of merge work (+0.3%) and coins per minute is flat. Sink prices remain calibrated. See ECONOMY.md.
+- Export exit code: Godot's exit status is not a success signal on this project - a failed export returned 0 and a successful one returned 124 (shutdown hang). The artifact was validated directly instead.
+- Device status: **not installed or run on a device.** Firebase DebugView receipt of the new and renamed analytics events is unverified, as are the widened shooter drag area and the power-shop purchase flow on real hardware. Recommended before promoting the release.
+
 # 2026-09-03 - majestic-gems-release-v1.0.17-vc19.aab REBUILD (versionCode 19 / versionName 1.0.17)
 
 **This supersedes the earlier 1.0.17 entry below.** The first artifact was built before nine requested analytics events were implemented, so it was deleted and re-exported rather than shipped stale. Only this artifact should be uploaded.
