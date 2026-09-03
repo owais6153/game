@@ -3,6 +3,7 @@ extends RefCounted
 
 const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
 const LevelSolverType = preload("res://scripts/core/level_solver.gd")
+const LevelTemplateType = preload("res://scripts/core/level_template.gd")
 const PATTERN_BLOCK_SEED := 2026082417
 const PATTERN_FAMILIES := ["same_shape", "same_color"]
 const PATTERN_SHAPES := ["circle", "rounded_square"]
@@ -78,38 +79,20 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 	mapping[5] = support_unique[0]
 	for index in range(3):
 		mapping[index + 6] = target_identities[index]
-	var limited_shots := is_limited_shots_level(level_number)
-	var targets: Array[Dictionary] = []
-	# Limited-shot rounds are accuracy challenges, not endurance checks. Two
-	# single-count lower targets give the player room to recover from imperfect
-	# placement instead of asking for the same L8 climb with fewer launches.
-	var target_ranks := [6, 7] if limited_shots else [6, 7, 8]
-	for rank in target_ranks:
-		targets.append({"tier": rank, "quantity": 1 if limited_shots else target_quantity(level_number, rank)})
+	# One template now decides the queue band, the opening board, the target
+	# structure, and the limited-shot behaviour together, instead of three
+	# independent ladders that each capped out and left every late level
+	# identical. See scripts/core/level_template.gd.
+	var template := LevelTemplateType.for_level(level_number)
+	var limited_shots := bool(template.get("limited", false))
+	var targets := LevelTemplateType.targets_for(template)
 	var launcher_sequence: Array[int] = []
-	var cycle_template: Array[int]
-	var difficulty_band: String
-	if level_number == 1:
-		difficulty_band = "INTRO"
-		cycle_template = [4, 4, 3, 3, 2, 2, 1, 1, 3, 2]
-	elif level_number == 2:
-		difficulty_band = "EASY"
-		cycle_template = [4, 3, 3, 2, 2, 2, 1, 1, 1, 4]
-	elif level_number <= 5:
-		difficulty_band = "NORMAL"
-		cycle_template = [1, 1, 1, 2, 2, 2, 3, 3, 4, 4]
-	elif level_number <= 12:
-		difficulty_band = "CHALLENGE"
-		cycle_template = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
-	else:
-		difficulty_band = "EXPERT"
-		# Difficulty is capped here. L3/L4 remain in every ten-launch cycle and
-		# launches remain unlimited, so every L5-L8 target stays constructible.
-		cycle_template = [1, 1, 1, 1, 1, 2, 2, 2, 3, 4]
+	var cycle_template := LevelTemplateType.queue_cycle_for(template)
 	for _cycle in range(2):
 		var cycle: Array[int] = cycle_template.duplicate()
 		_fisher_yates(cycle, rng)
 		launcher_sequence.append_array(cycle)
+	var starting_board := starting_board_for_template(template, seed_value, mapping)
 	var config := {
 		"id": "level_%d" % level_number,
 		"name": "Level %d" % level_number,
@@ -119,7 +102,12 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		"active_tier_max": 8,
 		"spawnable_tiers": [1, 2, 3, 4],
 		"launcher_sequence": launcher_sequence,
-		"difficulty_band": difficulty_band,
+		# Two different questions, both worth answering in analytics. The template
+		# band is how hard *this composition* is; the progression band is how far
+		# up the curve the level sits. A relief level deep in the game has a low
+		# template band and a high progression band, and that gap is the point.
+		"difficulty_band": String(template.get("band", LevelTemplateType.BAND_NORMAL)),
+		"progression_band": LevelTemplateType.band_for_level(level_number),
 		"target_sequence": targets,
 		"gem_identity_by_tier": mapping,
 		"pattern_family": String(pattern.family),
@@ -129,9 +117,20 @@ static func generated(level_number: int, seed_value: int) -> Dictionary:
 		"pattern_block_size": int(pattern.block_size),
 		"background_index": rng.randi_range(0, AssetCatalogType.BACKGROUND_COUNT - 1),
 		"table_index": rng.randi_range(0, AssetCatalogType.TABLE_COUNT - 1),
-		"starting_board": starting_board_for_level(level_number, seed_value, mapping),
+		"starting_board": starting_board,
 		"level_type": "limited_shots" if limited_shots else "normal",
 		"shot_limit": 0,
+		# Stable identifiers, carried into every analytics event for this level so
+		# real-user difficulty can be compared per template and per layout.
+		"template_id": String(template.get("id", "")),
+		"template_role": String(template.get("role", "")),
+		"layout_id": String(template.get("layout", "")),
+		"queue_band": String(template.get("queue", "")),
+		"target_structure": String(template.get("targets", "")),
+		"power_hint": String(template.get("power_hint", "")),
+		"generator_version": LevelTemplateType.GENERATOR_VERSION,
+		"starting_board_rows": int(template.get("rows", 0)),
+		"starting_board_gem_count": starting_board.size(),
 	}
 	if limited_shots:
 		config["shot_limit"] = shot_limit_for_config(config, level_number)
@@ -199,13 +198,14 @@ static func launcher_level_at(config: Dictionary, sequence_index: int) -> int:
 ## a recurring variant rather than a phase the player passes through.
 ##
 ## Levels 1-3 are never limited: they are where the merge loop itself is taught.
-const FIRST_LIMITED_SHOTS_LEVEL := 4
-const LIMITED_SHOTS_CYCLE := 3
+const FIRST_LIMITED_SHOTS_LEVEL := LevelTemplateType.FIRST_LIMITED_SHOTS_LEVEL
 
+## Cadence now lives in LevelTemplate.LIMITED_PATTERN. A flat "every third level"
+## was immediately legible and made the variant feel like a metronome; the
+## pattern keeps limited rounds just as frequent while varying the gap between
+## them, so the rhythm is felt rather than counted.
 static func is_limited_shots_level(level_number: int) -> bool:
-	if level_number < FIRST_LIMITED_SHOTS_LEVEL:
-		return false
-	return (level_number - FIRST_LIMITED_SHOTS_LEVEL) % LIMITED_SHOTS_CYCLE == 0
+	return LevelTemplateType.is_limited_shots_level(level_number)
 
 
 ## Shots tighten with level and then hold at a floor. The floor is deliberately
@@ -238,18 +238,192 @@ const STARTING_BOARD_DENSE_LEVEL := 2
 ## leave a gem-width channel straight through the board.
 const STARTING_BOARD_GAP_SEPARATION := 0.30
 
+## Row count is a template property now, so density can move both ways with the
+## composition instead of only ratcheting upward with the level number. Two rows
+## remain the minimum for any seeded board: a single row cannot block a straight
+## lane, because its gap is open top to bottom by definition.
 static func starting_board_rows(level_number: int) -> int:
-	if level_number < STARTING_BOARD_FIRST_LEVEL:
-		return 0
-	# Two rows minimum. A single-row board cannot block a straight lane - its gap
-	# is open top to bottom by definition - so the very first seeded levels were
-	# still one-lineable however the gaps were chosen.
-	return mini(STARTING_BOARD_MAX_ROWS, 2 + (level_number - STARTING_BOARD_FIRST_LEVEL) / 3)
+	return clampi(int(LevelTemplateType.for_level(level_number).get("rows", 0)), 0, STARTING_BOARD_MAX_ROWS)
 
 
-## Returns placement records rather than pieces, so the data boundary stays
-## free of simulation types. The controller turns these into gems.
+## Builds the opening board for one template.
+##
+## Layout archetypes only decide *which* columns are left open and how tiers are
+## distributed. Row heights, column positions, spacing, radii, and the danger-line
+## margin are unchanged and still come from the constants below and from
+## GameConfig, so no archetype can place a gem inside a rail or near the line.
+##
+## The no-straight-lane guarantee is preserved for every archetype: an archetype
+## expresses a *preference* over gap positions, and the selector only ever picks
+## from columns that already satisfy the separation rule against the previous
+## row. A "left heavy" board therefore leans left without ever stacking its gaps
+## into a full-height channel.
+static func starting_board_for_template(template: Dictionary, seed_value: int, mapping: Dictionary) -> Array:
+	var layout := String(template.get("layout", LevelTemplateType.LAYOUT_STAGGERED_GAPS))
+	if layout == LevelTemplateType.LAYOUT_EMPTY:
+		return []
+	var rows := clampi(int(template.get("rows", 0)), 0, STARTING_BOARD_MAX_ROWS)
+	if rows <= 0:
+		return []
+	var base_gaps := maxi(1, int(template.get("gaps", 1)))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int((seed_value ^ 0x5F3759DF) & 0x7fffffff)
+	var board: Array = []
+	var previous_gap_positions: Array[float] = []
+	for row in range(rows):
+		# Row 0 is the lowest seeded row; higher indices sit further above the
+		# danger line.
+		var stagger := 0.5 if row % 2 == 1 else 0.0
+		var columns := STARTING_BOARD_COLUMNS - (1 if row % 2 == 1 else 0)
+		var gaps := _gaps_for_row(layout, base_gaps, row, rows)
+		var available: Array[int] = []
+		for column in range(columns):
+			var t := float(column) / float(maxi(1, columns - 1))
+			var clear := true
+			for previous_t in previous_gap_positions:
+				if absf(t - float(previous_t)) < STARTING_BOARD_GAP_SEPARATION:
+					clear = false
+					break
+			if clear:
+				available.append(column)
+		# The exclusion can starve the pool, especially for the two-gap
+		# archetypes. Serve fewer gaps rather than more: dropping the separation
+		# rule here is what lets two rows open at the same x, and a column open in
+		# every row is a straight lane the player can shoot up all level without
+		# ever aiming - the exact defect the seeded board exists to prevent.
+		if available.is_empty():
+			# Nothing satisfies the rule. Take the single column furthest from the
+			# previous row's openings so the overlap is as small as it can be,
+			# instead of emitting a sealed row or an aligned one.
+			available.append(_furthest_column_from(previous_gap_positions, columns))
+		var gaps_this_row := mini(gaps, mini(available.size(), columns - 1))
+		var gap_columns := _pick_gap_columns(layout, available, columns, gaps_this_row, row, rng)
+		previous_gap_positions.clear()
+		for column in gap_columns:
+			previous_gap_positions.append(float(column) / float(maxi(1, columns - 1)))
+		var placed_in_row := 0
+		for column in range(columns):
+			if gap_columns.has(column):
+				continue
+			var tier := _tier_for_slot(layout, row, placed_in_row, rng)
+			if not mapping.is_empty() and not mapping.has(tier):
+				tier = 1
+			placed_in_row += 1
+			board.append({
+				"tier": tier,
+				"row": row,
+				"column": float(column) + stagger,
+				"columns": STARTING_BOARD_COLUMNS,
+			})
+	return board
+
+
+## Last-resort gap position when every column collides with the previous row's
+## openings: the one that sits furthest from all of them.
+static func _furthest_column_from(previous_gap_positions: Array[float], columns: int) -> int:
+	var best_column := 0
+	var best_distance := -1.0
+	for column in range(columns):
+		var t := float(column) / float(maxi(1, columns - 1))
+		var nearest := 2.0
+		for previous_t in previous_gap_positions:
+			nearest = minf(nearest, absf(t - float(previous_t)))
+		if nearest > best_distance:
+			best_distance = nearest
+			best_column = column
+	return best_column
+
+
+## Gap count for one row. Archetypes that shape density vertically vary it; the
+## rest keep the template's base value. Always at least one, so no row is a
+## sealed wall, and never more than `columns - 1`.
+static func _gaps_for_row(layout: String, base_gaps: int, row: int, rows: int) -> int:
+	match layout:
+		LevelTemplateType.LAYOUT_SPARSE_TOP:
+			# Upper rows thinner: the board is easy to reach into from above.
+			return base_gaps + 1 if row >= rows / 2 else base_gaps
+		LevelTemplateType.LAYOUT_DENSE_TOP:
+			# Upper rows solid, lower rows open: material waits overhead while the
+			# landing area stays reachable.
+			return base_gaps + 1 if row < rows / 2 else base_gaps
+		LevelTemplateType.LAYOUT_TWO_POCKET, LevelTemplateType.LAYOUT_WIDE_CENTER_GAP:
+			return maxi(2, base_gaps)
+	return base_gaps
+
+
+## Chooses this row's gaps from the columns that are already legal, ordered by
+## how well each matches the archetype. Ties are broken with the seeded RNG, so
+## the archetype reads clearly while levels sharing it still differ.
+static func _pick_gap_columns(layout: String, available: Array[int], columns: int, gaps: int, row: int, rng: RandomNumberGenerator) -> Array[int]:
+	var wanted := mini(gaps, columns - 1)
+	var pool: Array[int] = available.duplicate()
+	var chosen: Array[int] = []
+	if pool.is_empty():
+		return chosen
+	# Score once per column, then take the best `wanted`. Scores are "distance
+	# from where this archetype wants its opening", so lower is better.
+	var scored: Array = []
+	for index in range(pool.size()):
+		var column: int = pool[index]
+		var t := float(column) / float(maxi(1, columns - 1))
+		scored.append({
+			"column": column,
+			"score": _gap_preference(layout, t, row) + rng.randf() * 0.08,
+		})
+	scored.sort_custom(func(a, b): return float(a.score) < float(b.score))
+	for index in range(mini(wanted, scored.size())):
+		chosen.append(int((scored[index] as Dictionary).column))
+	return chosen
+
+
+## Lower is a better place for a gap. `t` is the normalised position across the
+## row, 0.0 at the left rail and 1.0 at the right.
+static func _gap_preference(layout: String, t: float, row: int) -> float:
+	match layout:
+		LevelTemplateType.LAYOUT_LEFT_HEAVY:
+			# Gems bunch left, so the opening belongs on the right.
+			return 1.0 - t
+		LevelTemplateType.LAYOUT_RIGHT_HEAVY:
+			return t
+		LevelTemplateType.LAYOUT_CENTER_HEAVY:
+			# Mass in the middle, openings at the rails.
+			return 0.5 - absf(t - 0.5)
+		LevelTemplateType.LAYOUT_SPLIT_CLUSTERS, LevelTemplateType.LAYOUT_WIDE_CENTER_GAP:
+			# One opening down the middle splits the board into two clusters.
+			return absf(t - 0.5)
+		LevelTemplateType.LAYOUT_ALTERNATING_GAPS:
+			# Zig-zags row to row, which also reinforces the no-lane rule.
+			return t if row % 2 == 0 else 1.0 - t
+		LevelTemplateType.LAYOUT_TWO_POCKET:
+			# Two openings at the quarter points leave a centre block flanked by
+			# two landing pockets.
+			return minf(absf(t - 0.25), absf(t - 0.75))
+	# staggered_gaps, chain_opportunity, sparse_top, dense_top: position is not
+	# the point of these archetypes, so every legal column is equally good and
+	# the RNG jitter decides.
+	return 0.0
+
+
+## Opening tier for one placed gem. Only spawnable tiers are ever used, so every
+## seeded gem can still be merged into.
+static func _tier_for_slot(layout: String, row: int, index_in_row: int, rng: RandomNumberGenerator) -> int:
+	if layout == LevelTemplateType.LAYOUT_CHAIN_OPPORTUNITY:
+		# Adjacent slots share a tier, so the board opens with pairs already
+		# touching and one good shot can start a cascade. This is the existing
+		# merge rule being set up, not a new mechanic.
+		var pair_index := (row * STARTING_BOARD_COLUMNS + index_in_row) / 2
+		var pair_rng := RandomNumberGenerator.new()
+		pair_rng.seed = int(rng.seed) + pair_index * 7919
+		return 1 + pair_rng.randi_range(0, 3)
+	return 1 + rng.randi_range(0, 3)
+
+
+## Retained for callers and tests that only have a level number.
 static func starting_board_for_level(level_number: int, seed_value: int, mapping: Dictionary) -> Array:
+	return starting_board_for_template(LevelTemplateType.for_level(level_number), seed_value, mapping)
+
+
+static func _legacy_starting_board(level_number: int, seed_value: int, mapping: Dictionary) -> Array:
 	var rows := starting_board_rows(level_number)
 	if rows <= 0:
 		return []
@@ -344,11 +518,9 @@ static func target_quantity(level_number: int, tier: int) -> int:
 ## run_level_difficulty_v1_tests asserts the two stay in proportion so a
 ## limited level can never ask for more than its shots can build.
 static func total_target_quantity(level_number: int) -> int:
-	if is_limited_shots_level(level_number):
-		return 2
 	var total := 0
-	for tier in [6, 7, 8]:
-		total += target_quantity(level_number, tier)
+	for target in LevelTemplateType.targets_for(LevelTemplateType.for_level(level_number)):
+		total += maxi(1, int(target.get("quantity", 1)))
 	return total
 
 
@@ -371,7 +543,15 @@ const SHOT_MARGIN_FLOOR := 1.30
 const SHOT_MARGIN_DECAY_LEVELS := 30.0
 const LIMITED_SHOTS_MINIMUM := 24
 
+## The margin is now a property of the template rather than of the level number
+## alone. A "generous" limited round and a "tight" one can sit two levels apart
+## and feel genuinely different, which is what stops the limited variant reading
+## as a single fixed difficulty wherever it appears.
 static func shot_margin_for_level(level_number: int) -> float:
+	var template := LevelTemplateType.for_level(level_number)
+	var margin := float(template.get("shot_margin", 0.0))
+	if margin > 0.0:
+		return margin
 	var progress := clampf(float(level_number - FIRST_LIMITED_SHOTS_LEVEL) / SHOT_MARGIN_DECAY_LEVELS, 0.0, 1.0)
 	return lerpf(SHOT_MARGIN_INTRO, SHOT_MARGIN_FLOOR, progress)
 

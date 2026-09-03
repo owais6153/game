@@ -82,11 +82,21 @@ func _test_pattern_blocks_and_target_safety() -> void:
 		# two lower objectives instead of the full L6-L8 climb (see
 		# LevelConfig.generated). This assertion predates that rule and was
 		# failing on every third level; it now checks the rule that exists.
-		var expected_targets := 2 if LevelConfigType.is_limited_shots_level(level_number) else 3
-		_assert(targets.size() == expected_targets, "Level %d must have exactly %d targets" % [level_number, expected_targets])
+		# Target structure is a template property from 1.0.17: a level asks for two
+		# or three cards depending on its composition, and a short ladder may
+		# start above L6 (see LevelTemplate.TARGET_STRUCTURES). The invariant that
+		# still holds - and the one the merge economy actually depends on - is
+		# that the tiers ascend and stay inside the L6-L8 objective range.
+		_assert(targets.size() >= 2 and targets.size() <= 3,
+			"Level %d must ask for two or three targets (found %d)" % [level_number, targets.size()])
+		var previous_target_tier := 5
 		for target_index in range(targets.size()):
 			var target_tier := int(targets[target_index].tier)
-			_assert(target_tier == target_index + 6, "Level %d targets must remain the reachable ascending L6-L8 path" % level_number)
+			_assert(target_tier >= 6 and target_tier <= 8,
+				"Level %d target %d tier %d is outside the L6-L8 objective range" % [level_number, target_index + 1, target_tier])
+			_assert(target_tier > previous_target_tier,
+				"Level %d targets must remain a reachable ascending path (%d after %d)" % [level_number, target_tier, previous_target_tier])
+			previous_target_tier = target_tier
 			var target_identity := int(mapping[target_tier])
 			_assert(String(AssetCatalogType.gem_definition(target_identity).rarity) == "unique", "Level %d target %d must come from Unique" % [level_number, target_index + 1])
 		if String(pattern.family) == "same_shape":

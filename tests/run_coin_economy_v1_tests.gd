@@ -84,9 +84,18 @@ func _test_rewards_rise_with_tier() -> void:
 		_assert(reward > previous,
 			"tier %d must pay more than tier %d (%d vs %d)" % [tier, tier - 1, reward, previous])
 		previous = reward
-	# Later levels ask for more, so they must pay more.
-	_assert(_level_income(20) > _level_income(1),
-		"a later level must pay more than the first")
+	# Later levels ask for more, so they must pay more. Compared as an average
+	# over a window rather than level-to-level: from 1.0.17 a given level may be
+	# a short limited round or a long climb depending on its template, so any
+	# single pair of levels can legitimately run the wrong way. What must hold is
+	# that income rises across the run.
+	var early_income := 0
+	var late_income := 0
+	for level in range(1, 21):
+		early_income += _level_income(level)
+		late_income += _level_income(level + 60)
+	_assert(late_income > early_income,
+		"later levels must pay more overall (%d early, %d late)" % [early_income, late_income])
 
 
 ## Missions should reward returning, without replacing play as the main source.

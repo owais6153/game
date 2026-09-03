@@ -82,15 +82,28 @@ func _test_treasure_names_every_granted_power() -> void:
 
 
 func _test_limited_shot_targets_are_shorter() -> void:
-	for level in [4, 7, 10, 25, 40]:
+	# Which levels are limited is a template property from 1.0.17, so the levels
+	# are discovered rather than hardcoded. Limited objectives now vary between
+	# templates; what must stay true is that a limited round asks for a *shorter*
+	# ladder than an unlimited one, because it has fewer shots to build it.
+	var checked := 0
+	for level in range(4, 61):
+		if not LevelConfigType.is_limited_shots_level(level):
+			continue
+		checked += 1
 		var config := LevelConfigType.generated(level, LevelConfigType.seed_for_level(level))
 		var targets: Array = config.get("target_sequence", []) as Array
-		_assert(targets.size() == 2,
-			"limited level %d must use two achievable targets" % level)
+		_assert(targets.size() >= 2 and targets.size() <= 3,
+			"limited level %d must use a short achievable ladder (found %d)" % [level, targets.size()])
+		var total := 0
 		for target_value in targets:
 			var target: Dictionary = target_value as Dictionary
-			_assert(int(target.get("tier", 8)) <= 7 and int(target.get("quantity", 0)) == 1,
-				"limited level %d must avoid repeated or top-tier objectives" % level)
+			total += maxi(1, int(target.get("quantity", 1)))
+			_assert(not (int(target.get("tier", 0)) == 8 and int(target.get("quantity", 1)) > 1),
+				"limited level %d must not repeat the top-tier objective" % level)
+		_assert(total <= 4,
+			"limited level %d asks for %d gems, too many for a limited round" % [level, total])
+	_assert(checked > 0, "the range must contain limited levels to check")
 
 
 func _test_targeted_power_has_a_windup() -> void:

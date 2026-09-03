@@ -71,14 +71,32 @@ func _test_limited_shots_recur_and_tighten() -> void:
 	# Limits are derived per level from what that level actually needs, so the
 	# raw number rises and falls with the targets. What must tighten is the
 	# margin over the solved minimum - that is the difficulty ramp.
-	var previous := LevelConfigType.shot_margin_for_level(limited[0])
-	for index in range(1, limited.size()):
-		var current := LevelConfigType.shot_margin_for_level(limited[index])
-		_assert(current <= previous + 0.0001,
-			"the shot margin must never loosen as levels advance (%.2f then %.2f)" % [previous, current])
-		previous = current
-	_assert(is_equal_approx(previous, LevelConfigType.SHOT_MARGIN_FLOOR),
-		"the margin must settle at the documented floor rather than shrinking forever")
+	# From 1.0.17 the margin belongs to the template, not to the level number, so
+	# a generous limited round and a tight one can sit close together - that
+	# variation is what stops every limited level feeling like the same level.
+	# The invariants that matter are the safety floor and the downward trend.
+	var early_margin_total := 0.0
+	var early_count := 0
+	var late_margin_total := 0.0
+	var late_count := 0
+	for level in limited:
+		var margin := LevelConfigType.shot_margin_for_level(level)
+		# A shipped level must never demand flawless play.
+		_assert(margin >= 1.25,
+			"level %d margin %.2f leaves no room for imperfect placement" % [level, margin])
+		_assert(margin <= LevelConfigType.SHOT_MARGIN_INTRO + 0.0001,
+			"level %d margin %.2f is more generous than the intro margin" % [level, margin])
+		if level <= 20:
+			early_margin_total += margin
+			early_count += 1
+		else:
+			late_margin_total += margin
+			late_count += 1
+	_assert(early_count > 0 and late_count > 0, "the sample must cover early and late limited levels")
+	var early_average := early_margin_total / float(early_count)
+	var late_average := late_margin_total / float(late_count)
+	_assert(late_average < early_average,
+		"limited levels must tighten overall (early %.2f, late %.2f)" % [early_average, late_average])
 
 
 ## Hard levels may strongly encourage powers, but a level must never be
@@ -92,12 +110,25 @@ func _test_shot_limits_never_make_a_level_impossible() -> void:
 		var sequence: Array = config.get("launcher_sequence", []) as Array
 		_assert(limit > 0, "level %d must carry a shot limit" % level)
 		var targets: Array = config.get("target_sequence", []) as Array
-		_assert(targets.size() == 2,
-			"limited level %d must use the easier two-target objective" % level)
+		# Limited objectives now vary by template rather than always being the
+		# same two single-count cards, which is what made every limited level
+		# read identically. The structural guarantees still hold: a short ladder
+		# of ascending objective tiers, with the apex asked for at most once.
+		_assert(targets.size() >= 2 and targets.size() <= 3,
+			"limited level %d must ask for a short target ladder (found %d)" % [level, targets.size()])
+		var previous_tier := 0
 		for target_value in targets:
 			var target: Dictionary = target_value as Dictionary
-			_assert(int(target.get("tier", 8)) <= 7 and int(target.get("quantity", 0)) == 1,
-				"limited level %d must avoid repeated and tier-8 targets" % level)
+			var tier := int(target.get("tier", 0))
+			var quantity := int(target.get("quantity", 0))
+			_assert(tier >= 6 and tier <= 8,
+				"limited level %d target tier %d is not an objective tier" % [level, tier])
+			_assert(tier > previous_tier,
+				"limited level %d target tiers must ascend (%d after %d)" % [level, tier, previous_tier])
+			previous_tier = tier
+			_assert(quantity >= 1, "limited level %d target quantity must be positive" % level)
+			_assert(not (tier == 8 and quantity > 1),
+				"limited level %d must not repeat the apex tier" % level)
 		# The floor has to clear the deterministic launcher cycle, or the player
 		# could run out before the sequence has offered the tiers a target needs.
 		_assert(limit >= sequence.size(),
@@ -121,13 +152,27 @@ func _test_opening_board_grows_and_is_bounded() -> void:
 		"the generated level 1 must carry no opening board")
 	_assert(LevelConfigType.starting_board_rows(LevelConfigType.STARTING_BOARD_FIRST_LEVEL) > 0,
 		"the opening board must begin once the loop is taught")
-	var previous := 0
+	# Density is a template property from 1.0.17 onward, so it deliberately moves
+	# both ways: a relief level after a spike opens on a shallower board than the
+	# level before it. What must still hold is that every board stays inside the
+	# safe envelope, and that density trends upward across the run rather than
+	# staying flat - which is what the old monotonic assertion was really for.
+	var shallow_early := 0
+	var shallow_late := 0
 	for level in range(1, 61):
 		var rows := LevelConfigType.starting_board_rows(level)
-		_assert(rows >= previous, "opening board rows must never shrink as levels advance")
+		_assert(rows >= 0, "opening board rows must never be negative")
 		_assert(rows <= LevelConfigType.STARTING_BOARD_MAX_ROWS,
 			"opening board rows must stay capped so the launcher always has a landing spot")
-		previous = rows
+		# A seeded board of exactly one row cannot block a straight lane, because
+		# its single gap is open from top to bottom by definition.
+		_assert(rows != 1, "level %d seeded a single row, which cannot block a lane" % level)
+		if level <= 30:
+			shallow_early += 1 if rows <= 2 else 0
+		else:
+			shallow_late += 1 if rows <= 2 else 0
+	_assert(shallow_late < shallow_early,
+		"opening boards must get denser overall (%d shallow early, %d shallow late)" % [shallow_early, shallow_late])
 
 	# Only spawnable tiers may be pre-placed, or a seeded gem could never be
 	# merged into and the level would be unwinnable.
