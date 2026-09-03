@@ -1,3 +1,19 @@
+# 2026-09-03 - majestic-gems-release-v1.0.17-vc19.aab (versionCode 19 / versionName 1.0.17)
+
+- Artifact: `build/android/majestic-gems-release-v1.0.17-vc19.aab`, 76,202,935 bytes; 2026-09-03 06:51:00 +05:00; SHA-256 `88132CB22594C51E626A4386112ECECD481DBDEF4DA0E6027057E67CBDAECF67`.
+- Commit: `51a315db2819b328567d3af12e312752bb373cfb` on `main`. Tree clean at export.
+- Version decision: versionCode 19 / versionName 1.0.17, strictly greater than the last uploaded production build (18 / 1.0.16) and than every code recorded in this manifest. Both values were committed in `export_presets.cfg` before the export.
+- Export: Godot 4.6.3 `--export-release "Android"` (preset.0, `gradle_build/export_format=1`), `arm64-v8a` + `armeabi-v7a`, existing upload signing from the gitignored `.godot/export_credentials.cfg`.
+- Version validation: Bundletool 1.18.3 `dump manifest` reports package `com.owais.majestygems`, versionCode **19**, versionName **1.0.17**, compileSdk 36. `validate` passes and lists the base module with both ABI library sets.
+- Signing: `jarsigner -verify -certs` reports **jar verified** with `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`, SHA256withRSA 2048-bit - the same upload certificate as the 1.0.16 release. The accompanying "invalid certificate chain" note is expected for a self-signed upload key, and the JarInputStream entry notices are the usual bundle-format output.
+- Archive audit: 1,174 entries; three `.so` libraries for each of `arm64-v8a` and `armeabi-v7a`; **zero** x86/x86_64 libraries; **zero** packaged `tests/`, `reports/`, or `scripts/dev/` entries. The changed and new compiled scripts are present: `level_template.gdc`, `level_attempt_analytics.gdc`, `level_config.gdc`, `game_controller.gdc`, `game_config.gdc`, `power_shop_overlay_layer.gdc`.
+- Tests: all **36** Godot regression suites printed their PASS sentinels, including the two new ones (`LEVEL_TEMPLATE_V1_TESTS`, `SHOP_INPUT_ANALYTICS_V1_TESTS`). A whole-project `--headless --import` pass completed with no script or import errors (the known harmless warning about the nested `project.godot` under `build/closed_test_aab_audit`, which is excluded from export, remains).
+- Level validation: `scripts/dev/print_level_template_audit.gd` generated levels 1-100 with no invalid configurations, all 18 templates used, zero consecutive identical templates, and every limited level solvable with spare shots. Recorded in `reports/LEVEL_VALIDATION_1_100_V1017.md`.
+- **First export attempt failed and produced no artifact.** Gradle reported `Gradle build daemon disappeared unexpectedly`; the daemon had been alive for 1h12m and had survived an earlier run that exhausted disk space on `D:`. Note that **Godot returned exit code 0 for that failed export** - its exit status is not a reliable success signal, so artifact existence plus Bundletool version validation is the gate. Stopping all daemons (`gradlew --stop`) and re-running produced this artifact cleanly.
+- Disk: `D:` had reached 100% (364 KB free), which is what killed the first attempt. 126 superseded `.apk` files and 18 superseded `.aab` files were deleted from `build/android` with the user's authorization, freeing ~11.6 GB. The 1.0.16 release AAB and APK were preserved.
+- Device status: **not installed or run on a device.** No Android device was connected during this task, so Firebase DebugView receipt of the new and renamed analytics events is unverified, and the widened shooter drag area and the power-shop purchase flow have automated coverage only. This does not block delivery of the signed, validated AAB, but a device pass on those three areas is recommended before promoting the release.
+- Companion release APK: not generated in this task. The release AAB is the Play artifact.
+
 # Majestic Gems release AAB v1.0.16 (versionCode 18) - 2026-08-31
 
 - File: `build/android/majestic-gems-release-v1.0.16-vc18.aab`
