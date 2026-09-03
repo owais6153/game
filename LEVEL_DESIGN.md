@@ -75,12 +75,27 @@ Two selection details that matter:
 ## Limited-shot cadence
 
 Previously every third level, forever — legible enough that players could count
-it. Now an irregular four-in-thirteen pattern with gaps of two to five.
+it. Now seven in every twenty-three, with gaps of 2, 5, 3, 2, 4, 3, 4.
 
-Held near the old one-in-three density **on purpose**: limited rounds carry
-shorter target ladders and so pay fewer coins, and making them more frequent
-quietly deflates coin income across the whole run. The first cadence tried
-(five-in-thirteen) cost about 13% of average income before it was corrected.
+Any deterministic schedule repeats; the only question is whether the period is
+long enough that nobody counts it. **Check the emitted gap sequence, not the
+pattern array** — two attempts here looked irregular written down and were not:
+
+- a 13-length pattern produced gaps cycling `2 5 2 4`, so every *other* limited
+  level sat exactly two apart — learnable in one sitting;
+- a mis-transcribed 23-length pattern yielded only three distinct gap lengths in
+  a `5 3 5 3 5 2` loop.
+
+23 is prime and so shares no factor with the 8-long role cycle, giving a
+combined period of 184 levels before cadence and pacing role pair up the same
+way again. `scripts/dev/verify_level_systems.gd` prints the gap histogram.
+
+Density is held near the old one-in-three, but note that per-level coin income
+still fell 12.3% against 1.0.16 — not from the cadence but because the target
+ladders themselves are shorter. Levels also demand 12.6% less material, so the
+earn rate per unit of merge work is unchanged (+0.3%) and coins per minute is
+flat. **Read ECONOMY.md before changing any target quantity to "fix" the
+per-level figure; doing so would inflate the economy.**
 
 Limited levels are never back to back.
 
@@ -168,6 +183,14 @@ across 120 levels and every archetype.
 `chain_opportunity` additionally assigns tiers in adjacent pairs, so the board
 opens with matching gems already touching and one good shot can start a cascade.
 That is the existing merge rule being set up, not a new mechanic.
+
+Note that `chain_opportunity` is the one archetype whose effect is **invisible in
+a gap diagram** — its gap placement is deliberately unconstrained, so it looks
+like `staggered_gaps` when drawn. Its difference is in tier placement, measured
+rather than assumed: across 40 seeded boards it produces adjacent same-tier pairs
+in **71%** of neighbouring slots, against **23.8%** for `staggered_gaps` (which
+is about the 25% expected by chance across four spawnable tiers).
+`scripts/dev/verify_level_systems.gd` renders every archetype.
 
 ## Validation
 

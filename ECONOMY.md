@@ -26,11 +26,34 @@ composition rather than by level number alone. Measured across levels 1-100 with
 
 | Levels | 1-20 | 21-40 | 41-60 | 61-80 | 81-100 |
 | --- | --- | --- | --- | --- | --- |
-| Average coins per level | 322 | 426 | 449 | 467 | 486 |
+| Average coins per level (1.0.17) | 310 | 412 | 470 | 480 | 452 |
+| Average coins per level (1.0.16) | 425 | 493 | 518 | 493 | 493 |
 
-Income rises monotonically by band. This is a property worth re-measuring after
-any template or target-structure edit; `run_coin_economy_v1_tests` asserts the
-trend but not the exact figures.
+**Per-level income is 12.3% lower than 1.0.16, and this is not a nerf.** Levels
+also demand 12.6% less material, because many templates use shorter target
+ladders than the old universal `L6x3 -> L7x2 -> L8x1`. Normalised against the
+work a level actually asks for, the earn rate is unchanged:
+
+| | Per level | Coins per material unit |
+| --- | --- | --- |
+| 1.0.16 | 484 coins / 257 units | 1.884 |
+| 1.0.17 | 425 coins / 225 units | 1.890 (+0.3%) |
+
+So coins per *minute* of play is flat and the sink prices below stay correctly
+calibrated; only coins per *level* moved, because levels are shorter. A player
+reaches the same balance after slightly more, slightly quicker levels.
+
+Two consequences worth holding in mind before changing anything here:
+
+- **Do not "fix" the per-level figure by raising target quantities.** That would
+  raise the earn rate above 1.0.16 and inflate the economy.
+- Income no longer rises strictly monotonically by bucket (81-100 sits just
+  under 61-80) because which levels land as limited shifts with the cadence
+  pattern. The trend across the run is what matters and is strongly upward;
+  `run_coin_economy_v1_tests` asserts that trend over a window, not per bucket.
+
+Re-measure both tables with `scripts/dev/print_level_template_audit.gd` after any
+template or target-structure edit.
 
 ### Daily missions
 

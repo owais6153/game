@@ -113,3 +113,4 @@
 - [Home Startup and Return Flow Repair](HOME_STARTUP_RETURN_FLOW_REPAIR.md) — fixes direct-to-level startup, Pause/Home return, and Level Ready Back with production-controller regression coverage.
 - [Difficulty Analytics Guide](DIFFICULTY_ANALYTICS_GUIDE.md) — which Firebase events and parameters to inspect after the 1.0.17 release, and what the numbers mean for too easy, too hard, boring, and good challenge.
 - [Level Validation 1-100 (1.0.17)](LEVEL_VALIDATION_1_100_V1017.md) — generated composition, solver verdict, distribution, and coin income for every level from 1 to 100 under generator_version 2.
+- [Level Systems Verification (1.0.17)](LEVEL_SYSTEMS_VERIFICATION_V1017.md) — rendered evidence that the template, target, layout, and difficulty systems change real gameplay decisions: every archetype drawn from its actual placements, the target ladders in a 26-level window, the band/relief rhythm, and the limited-shot gap histogram.

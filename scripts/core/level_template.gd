@@ -276,13 +276,28 @@ const ROLE_CYCLE := [
 ##
 ## Its length is coprime with ROLE_CYCLE's, so the combined pattern runs 104
 ## levels before it repeats.
-## Four in every thirteen levels, with gaps of two to five between them. Held
-## close to the previous one-in-three density on purpose: limited rounds carry
-## shorter target ladders and so pay less, and making them more frequent would
-## quietly deflate coin income across the whole run.
+## Seven in every twenty-three levels, with gaps of two to five between them.
+##
+## Any deterministic schedule repeats; the question is only whether its period is
+## long enough that nobody counts it. The first attempt at this used a 13-level
+## pattern, which produced gaps of 2, 5, 2, 4 over and over - every *other*
+## limited level exactly two apart, which is learnable in a single sitting.
+##
+## 23 is prime and so shares no factor with the 8-long role cycle, giving a
+## combined period of 184 levels before the pairing of cadence and pacing role
+## repeats at all. Gaps here are 2, 5, 3, 2, 4, 3, 4 - no value more than twice,
+## and no two limited levels adjacent.
+##
+## Density is 30.4%, deliberately within half a point of the previous 30.8% and
+## of the original one-in-three: limited rounds carry shorter target ladders and
+## so pay less, and making them more frequent quietly deflates coin income across
+## the whole run.
+## Limited at offsets 0, 2, 7, 10, 12, 16, 19 within the 23.
 const LIMITED_PATTERN := [
-	false, true, false, false, false, true, false,
-	true, false, false, false, false, true,
+	true, false, true, false, false, false, false,
+	true, false, false, true, false, true, false,
+	false, false, true, false, false, true, false,
+	false, false,
 ]
 
 ## Which pool a role draws from, per band. Selection walks the pool by level so
@@ -295,7 +310,15 @@ const CHALLENGE_POOLS := {
 	BAND_NORMAL: ["chain_friendly", "dense_opening", "recovery"],
 	BAND_CHALLENGING: ["precision", "target_heavy", "low_tier_build"],
 	BAND_HARD: ["high_pressure", "high_tier_build", "precision", "low_tier_build"],
-	BAND_EXPERT: ["expert", "expert_volume", "high_pressure", "high_tier_build", "precision"],
+	# target_heavy also lives here, not only in the CHALLENGING pool. The pools
+	# are small and the selection hash modulo a small size is coarse, so a
+	# template that appears in only two or three narrow pools can end up never
+	# being picked at all - which is exactly what happened to this one when the
+	# limited cadence changed which levels reach which pool. The expert band is
+	# the widest, so membership here guarantees it is reachable. A sparse board
+	# against the longest ladder is a legitimate expert challenge in its own
+	# right, not a filler entry.
+	BAND_EXPERT: ["expert", "expert_volume", "high_pressure", "high_tier_build", "precision", "target_heavy"],
 }
 
 const SPIKE_POOLS := {
