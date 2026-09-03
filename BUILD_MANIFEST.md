@@ -1,3 +1,19 @@
+# 2026-09-03 - majestic-gems-release-v1.0.17-vc19.aab REBUILD (versionCode 19 / versionName 1.0.17)
+
+**This supersedes the earlier 1.0.17 entry below.** The first artifact was built before nine requested analytics events were implemented, so it was deleted and re-exported rather than shipped stale. Only this artifact should be uploaded.
+
+- Artifact: `build/android/majestic-gems-release-v1.0.17-vc19.aab`, 76,204,129 bytes; 2026-09-03 08:27:15 +05:00; SHA-256 `DC39D8BEFDEB641E2F6B3EFCE6F8E242EE596BEABF261B2919AA04E0C4EDC322`.
+- Commit: `368e2b5` on `main`. Tree clean at export.
+- Supersedes SHA-256 `88132CB22594C51E626A4386112ECECD481DBDEF4DA0E6027057E67CBDAECF67` (76,202,935 bytes, commit `51a315d`), which was deleted from disk.
+- Version validation: Bundletool 1.18.3 `dump manifest` reports package `com.owais.majestygems`, versionCode **19**, versionName **1.0.17**. `validate` passes.
+- Integrity: `unzip -t` reports no CRC errors across the whole archive.
+- Signing: `jarsigner -verify -certs` reports **jar verified** with `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`, SHA256withRSA 2048-bit - the same upload certificate as 1.0.16.
+- Archive audit: 1,170 entries; both ARM ABIs; **zero** x86/x86_64 libraries; **zero** packaged `tests/`, `reports/`, or `scripts/dev/` entries.
+- Content proof: the ten analytics events added in this release were grepped directly out of the packaged bytecode - `rewarded_power_ad_started/_completed/_failed`, `skip_level_opened`, `daily_chest_available`, `daily_chest_claim_failed`, `daily_mission_claim_failed`, `level_abandon` in `game_controller.gdc`, and `rewarded_ad_loaded`, `interstitial_loaded` in `ad_manager.gdc`. All ten present.
+- Tests: all **36** suites pass. One suite (`ANIMATION_AUDIO_BACK_PRIVACY_POLISH_TESTS`) reported a single failure in one batch run with no assertion message and passed 5/5 on isolated reruns and on a full batch rerun; treated as a batch-order flake, not a regression.
+- Export exit code: **124** again (Godot completed the export, then hung on shutdown and was killed by the `timeout` wrapper). Log contains zero errors and no `FAILURE` block. As with the previous build, the exit code was ignored and the artifact validated directly.
+- Device status: **not installed or run on a device.** Firebase DebugView receipt of the new and renamed events is unverified, as are the widened shooter drag area and the power-shop purchase flow on real hardware. Given that this release is mostly analytics, a DebugView pass is recommended before promoting it.
+
 # 2026-09-03 - majestic-gems-release-v1.0.17-vc19.aab (versionCode 19 / versionName 1.0.17)
 
 - Artifact: `build/android/majestic-gems-release-v1.0.17-vc19.aab`, 76,202,935 bytes; 2026-09-03 06:51:00 +05:00; SHA-256 `88132CB22594C51E626A4386112ECECD481DBDEF4DA0E6027057E67CBDAECF67`.
