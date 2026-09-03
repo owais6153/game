@@ -19,6 +19,7 @@ const DailyMissionsOverlayType = preload("res://scripts/ui/daily_missions_overla
 const PowerOverlayType = preload("res://scripts/ui/power_overlay_layer.gd")
 const PowerCinematicType = preload("res://scripts/presentation/power_cinematic_layer.gd")
 const PowerShopOverlayType = preload("res://scripts/ui/power_shop_overlay_layer.gd")
+const LevelAttemptAnalyticsType = preload("res://scripts/services/level_attempt_analytics.gd")
 const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.gd")
 const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
 
@@ -168,6 +169,9 @@ var analytics_level_started := false
 var analytics_level_finished := false
 var analytics_attempt_number := 0
 var analytics_shot_count := 0
+## Per-attempt gameplay aggregates, attached to whichever event ends the attempt
+## so the per-event stream stays small. See LevelAttemptAnalytics.
+var attempt_analytics := LevelAttemptAnalyticsType.new()
 var reroll_count_for_level := 0
 var reroll_request_locked := false
 ## Held across one power purchase transaction so a double tap cannot run the
@@ -571,6 +575,7 @@ func launch_active_piece() -> void:
 		if is_limited_shots_level() and shots_remaining <= 0:
 			return
 		analytics_shot_count += 1
+		attempt_analytics.record_shot()
 		if is_limited_shots_level():
 			shots_remaining = maxi(0, shots_remaining - 1)
 			if shots_remaining == 0:
@@ -702,11 +707,17 @@ func _consume_power(power: String) -> bool:
 	power_state = next_state
 	_record_daily_progress("power_used")
 	level_used_power = true
-	_log_analytics("power_used", {
-		"power": power,
-		"level_number": level_number,
-		"remaining": PowerInventoryServiceType.count(power_state, power),
-	})
+	# Fired only after the spend is persisted and the power has actually been
+	# consumed, so a power that failed to apply is never counted as used.
+	attempt_analytics.record_power_used(power)
+	var context := _level_analytics_context()
+	context.merge({
+		"power_type": power,
+		"power_inventory_before": PowerInventoryServiceType.count(power_state, power) + 1,
+		"power_inventory_after": PowerInventoryServiceType.count(power_state, power),
+		"powers_used_this_attempt": attempt_analytics.powers_used_count,
+	}, true)
+	_log_analytics("power_used", context)
 	return true
 
 
@@ -1312,6 +1323,7 @@ func _purchase_power(power: String) -> Dictionary:
 	level_start_coins = resulting_banked
 	_log_analytics("coin_spent", {
 		"amount": cost,
+		"coin_sink": "power_purchase",
 		"reason": "power_purchase",
 		"power": power,
 		"level_number": level_number,
@@ -1351,9 +1363,25 @@ func _can_skip_level() -> bool:
 func _on_skip_level_requested() -> void:
 	if not _skip_is_available():
 		return
+	# Recorded before the branch, so the denominator of the skip funnel is every
+	# player who reached for Skip - not only the ones who could afford it.
+	_log_analytics("skip_level_attempt", {
+		"level_number": level_number,
+		"attempt_number": analytics_attempt_number,
+		"level_template_id": String(level_config.get("template_id", "")),
+		"coin_balance": spendable_coins(),
+		"coin_cost": GameConfig.SKIP_LEVEL_COST,
+		"affordable": _can_skip_level(),
+	})
 	if _can_skip_level():
 		_perform_skip_level()
 		return
+	_log_analytics("skip_level_failed", {
+		"level_number": level_number,
+		"skip_reason": "insufficient_coins",
+		"coin_balance": spendable_coins(),
+		"coin_cost": GameConfig.SKIP_LEVEL_COST,
+	})
 	_offer_coin_action(
 		COIN_ACTION_SKIP,
 		"Skip this level?",
@@ -1464,12 +1492,31 @@ func _perform_skip_level(cost: int = GameConfig.SKIP_LEVEL_COST) -> void:
 	if cost > 0:
 		_log_analytics("coin_spent", {
 			"amount": cost,
+			"coin_sink": "skip_level",
 			"reason": "skip_level",
 			"level_number": skipped_level,
 			"resulting_balance": resulting_balance,
 		})
-	_log_analytics("level_skipped", {
+	# Emitted only after the spend and the level advance have both been committed,
+	# so a skip that failed to persist is never reported as a success.
+	#
+	# Carries the compact context, not the attempt aggregate block: Skip is
+	# offered on the failure screen, so a skip can legitimately follow a
+	# `level_fail` for the same attempt, and repeating the aggregates would
+	# double-count that attempt's shots and merges in any summed report.
+	var skip_parameters := _level_analytics_context()
+	skip_parameters.merge({
+		"skip_reason": "rewarded_ad" if cost <= 0 else "coins",
+		"coin_cost": cost,
+		"shots_used": attempt_analytics.shots_fired,
+		"resulting_balance": resulting_balance,
+	}, true)
+	_log_analytics("level_skip", skip_parameters)
+	_log_analytics("skip_level_success", {
 		"level_number": skipped_level,
+		"level_template_id": String(level_config.get("template_id", "")),
+		"skip_reason": "rewarded_ad" if cost <= 0 else "coins",
+		"coin_cost": cost,
 		"resulting_balance": resulting_balance,
 	})
 	coins = resulting_balance
@@ -1674,8 +1721,15 @@ func _setup_asset_presentation() -> void:
 	level_briefing.ui_tap_requested.connect(_on_ui_tap_requested)
 
 func _on_daily_missions_requested() -> void:
-	if daily_overlay != null:
-		daily_overlay.present(daily_state, coins)
+	if daily_overlay == null:
+		return
+	_log_analytics("daily_missions_open", {
+		"level_number": level_number,
+		"coin_balance": spendable_coins(),
+		"missions_complete": _completed_mission_labels(daily_state).size(),
+		"all_claimed": DailyMissionServiceType.all_missions_claimed(daily_state),
+	})
+	daily_overlay.present(daily_state, coins)
 
 func _on_daily_mission_claim_requested(index: int) -> void:
 	var claim := DailyMissionServiceType.claim_mission(daily_state, index)
@@ -1696,11 +1750,11 @@ func _on_daily_mission_claim_requested(index: int) -> void:
 	# balance drift permanently above the spendable one, which is what made the
 	# power shop refuse a Buy it had just shown as affordable.
 	_credit_banked_coins(reward)
-	_log_analytics("daily_mission_completed", {"level_number": level_number, "mission_reward": reward})
-	_log_analytics("daily_mission_reward_claimed", {"level_number": level_number, "mission_reward": reward, "coin_balance": coins})
+	_log_analytics("daily_mission_complete", {"level_number": level_number, "mission_reward": reward})
+	_log_analytics("daily_mission_claim", {"level_number": level_number, "mission_reward": reward, "coin_balance": coins})
 	if DailyMissionServiceType.all_missions_claimed(daily_state):
-		_log_analytics("daily_all_missions_completed", {"level_number": level_number})
-	_log_analytics("coin_earned", {"amount": reward, "reason": "daily_mission", "level_number": level_number, "resulting_balance": coins})
+		_log_analytics("daily_all_missions_complete", {"level_number": level_number})
+	_log_analytics("coin_earned", {"amount": reward, "coin_source": "daily_mission", "reason": "daily_mission", "level_number": level_number, "balance_before": coins - reward, "balance_after": coins, "resulting_balance": coins})
 	daily_overlay.present(daily_state, coins)
 	# Celebrate only after the claim is persisted and banked, so the feedback can
 	# never imply a reward the player did not actually receive.
@@ -1727,7 +1781,7 @@ func _on_daily_chest_claim_requested() -> void:
 	power_state = next_powers
 	# daily_all_missions_completed already fired on the final mission claim; the
 	# chest is a separate act and reports only its own event.
-	_log_analytics("daily_chest_claimed", {"level_number": level_number, "powers": JSON.stringify(granted)})
+	_log_analytics("daily_chest_claim", {"level_number": level_number, "powers": JSON.stringify(granted)})
 	for power in granted.keys():
 		_log_analytics("power_granted", {
 			"power": String(power),
@@ -1826,6 +1880,7 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			"involved_target": completes_active_target,
 			"chain_depth": depth,
 		})
+		attempt_analytics.record_merge(depth)
 		_record_daily_progress("merge")
 		if depth > 0:
 			# A chained merge, i.e. a combo. Recorded per chain link so a deep
@@ -1864,11 +1919,18 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 			if gameplay_ui != null:
 				gameplay_ui.begin_coin_reward(awarded_coins)
 			coins += awarded_coins
+			attempt_analytics.record_coins_earned(awarded_coins)
 			_record_daily_progress("coins_earned", awarded_coins)
 			_log_analytics("coin_earned", {
 				"amount": awarded_coins,
+				# `coin_source` is the documented dimension name; `reason` is kept
+				# because existing saved reports group on it.
+				"coin_source": "target_reward",
 				"reason": "target_complete",
 				"level_number": level_number,
+				"level_template_id": String(level_config.get("template_id", "")),
+				"balance_before": coins - awarded_coins,
+				"balance_after": coins,
 				"resulting_balance": coins,
 			})
 		# Chain resolution remains immediate and deterministic; this only staggers its visuals.
@@ -2200,11 +2262,17 @@ func _advance_target_state_authoritative(result_id: int, merge_event: Dictionary
 	var required_quantity := active_target_quantity()
 	target_progress += 1
 	if target_progress < required_quantity:
+		# Only fires for a card that needs more than one gem, so a single-gem card
+		# reports completion alone rather than a progress event immediately
+		# followed by an identical completion.
 		_log_analytics("target_progress", {
 			"level_number": level_number,
+			"level_template_id": String(level_config.get("template_id", "")),
 			"target_index": target_index + 1,
+			"target_tier": int(merge_event.get("level", 1)),
 			"target_progress": target_progress,
 			"target_quantity": required_quantity,
+			"shots_used": attempt_analytics.shots_fired,
 		})
 		return
 	target_progress = 0
@@ -2212,17 +2280,26 @@ func _advance_target_state_authoritative(result_id: int, merge_event: Dictionary
 	merge_event.target_objective_completed = true
 	var target_tier := int(merge_event.get("level", 1))
 	var identity_mapping: Dictionary = level_config.get("gem_identity_by_tier", {})
-	_log_analytics("target_complete", {
-		"level_number": level_number,
+	attempt_analytics.record_target_completed()
+	var target_parameters := _level_analytics_context()
+	target_parameters.merge({
 		"target_index": target_index,
 		"target_gem_id": int(identity_mapping.get(target_tier, target_tier)),
 		"target_gem_type": target_tier,
-		"attempt_number": analytics_attempt_number,
+		"target_tier": target_tier,
+		"shots_used": attempt_analytics.shots_fired,
+		# Retained from the previous schema so existing saved reports keep working.
 		"shots": analytics_shot_count,
-	})
+		"attempt_duration": snappedf(attempt_analytics.duration_seconds(), 0.1),
+	}, true)
+	_log_analytics("target_complete", target_parameters)
 	if target_index >= target_sequence().size():
 		merge_event.final_target_completed = true
 		final_target_result_id = result_id
+		# Distinct from target_complete: the last card is the one that decides the
+		# level, so its own event makes "reached the final target but did not
+		# finish" measurable without reconstructing card counts per template.
+		_log_analytics("final_target_complete", target_parameters)
 		_trace_presentation_event("final_target_confirmed", result_id)
 		_qualify_win_if_target_complete()
 
@@ -2297,13 +2374,24 @@ func _try_present_out_of_shots() -> void:
 	if result_overlay != null:
 		result_overlay.present_out_of_shots(coins, GameConfig.EXTRA_SHOTS_AMOUNT, GameConfig.EXTRA_SHOTS_COST)
 	_log_analytics("out_of_shots", {"level_number": level_number, "attempt_number": analytics_attempt_number, "shots_remaining": shots_remaining, "coin_balance": coins})
-	_log_analytics("extra_shots_offered", {"level_number": level_number, "coin_cost": GameConfig.EXTRA_SHOTS_COST, "coin_balance": coins})
+	_log_analytics("extra_shots_offer_shown", {"level_number": level_number, "coin_cost": GameConfig.EXTRA_SHOTS_COST, "coin_balance": coins})
 
 func _on_extra_shots_requested() -> void:
 	if not out_of_shots_presented or extra_shots_request_locked:
 		return
 	extra_shots_request_locked = true
-	if coins < GameConfig.EXTRA_SHOTS_COST:
+	_log_analytics("extra_shots_accept", {
+		"level_number": level_number,
+		"attempt_number": analytics_attempt_number,
+		"level_template_id": String(level_config.get("template_id", "")),
+		"coin_cost": GameConfig.EXTRA_SHOTS_COST,
+		"coin_balance": spendable_coins(),
+	})
+	# Gated on the banked balance, matching the sink below, which deducts from
+	# it. Gating on the display balance here allowed an attempt's unresolved
+	# earnings to authorise a spend the bank could not cover and drive it
+	# negative - the same defect as the power shop, on a different button.
+	if spendable_coins() < GameConfig.EXTRA_SHOTS_COST:
 		extra_shots_request_locked = false
 		# Re-arm the overlay before anything else. It disabled both its buy
 		# button and GIVE UP when the tap was accepted, so leaving it pending
@@ -2342,8 +2430,8 @@ func _grant_extra_shots(cost: int) -> void:
 	out_of_shots_pending = false
 	out_of_shots_presented = false
 	if cost > 0:
-		_log_analytics("coin_spent", {"amount": cost, "reason": "extra_shots", "level_number": level_number, "resulting_balance": coins})
-	_log_analytics("extra_shots_purchased", {"level_number": level_number, "shots_added": GameConfig.EXTRA_SHOTS_AMOUNT, "shots_remaining": shots_remaining, "coin_cost": cost, "coin_balance": coins})
+		_log_analytics("coin_spent", {"amount": cost, "coin_sink": "extra_shots", "reason": "extra_shots", "level_number": level_number, "balance_before": coins + cost, "balance_after": coins, "resulting_balance": coins})
+	_log_analytics("extra_shots_used", {"level_number": level_number, "shots_added": GameConfig.EXTRA_SHOTS_AMOUNT, "shots_remaining": shots_remaining, "coin_cost": cost, "coin_balance": coins})
 	if result_overlay != null:
 		result_overlay.clear_pending_actions()
 		result_overlay.dismiss()
@@ -2352,7 +2440,13 @@ func _grant_extra_shots(cost: int) -> void:
 
 
 func _on_extra_shots_declined() -> void:
-	_log_analytics("extra_shots_declined", {"level_number": level_number, "shots_remaining": shots_remaining})
+	_log_analytics("extra_shots_decline", {
+		"level_number": level_number,
+		"attempt_number": analytics_attempt_number,
+		"level_template_id": String(level_config.get("template_id", "")),
+		"shots_remaining": shots_remaining,
+		"coin_balance": spendable_coins(),
+	})
 	out_of_shots_presented = false
 	_trigger_failure("out_of_shots")
 
@@ -2378,13 +2472,11 @@ func _trigger_failure(fail_reason: String = "danger_line") -> void:
 	if failed:
 		return
 	failed = true
-	_emit_level_end_analytics_once("level_fail", {
-		"level_number": level_number,
+	_emit_level_end_analytics_once("level_fail", _level_outcome_parameters({
 		"fail_reason": fail_reason,
-		"attempt_number": analytics_attempt_number,
+		# Retained from the previous schema so existing saved reports keep working.
 		"shots": analytics_shot_count,
-		"coin_balance": coins,
-	})
+	}))
 	active_piece_id = -1
 	launcher_state = LauncherState.RESOLVING
 	dragging = false
@@ -2405,13 +2497,21 @@ func _trigger_failure(fail_reason: String = "danger_line") -> void:
 	var continue_available := fail_reason == "danger_line" and coin_continues_used < GameConfig.MAX_COIN_CONTINUES_PER_ATTEMPT
 	result_overlay.present(false, score, level_number, active_target_tier(), 0, false, _can_skip_level(), GameConfig.SKIP_LEVEL_COST, continue_available, GameConfig.CONTINUE_COST, coins, fail_reason)
 	if continue_available:
-		_log_analytics("continue_offered", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": GameConfig.CONTINUE_COST, "coin_balance": coins})
+		_log_analytics("continue_offer_shown", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": GameConfig.CONTINUE_COST, "coin_balance": coins})
 
 func _on_continue_requested() -> void:
 	if not failed or continue_request_locked or coin_continues_used >= GameConfig.MAX_COIN_CONTINUES_PER_ATTEMPT:
 		return
 	continue_request_locked = true
-	if coins < GameConfig.CONTINUE_COST:
+	_log_analytics("continue_accept", {
+		"level_number": level_number,
+		"attempt_number": analytics_attempt_number,
+		"level_template_id": String(level_config.get("template_id", "")),
+		"coin_cost": GameConfig.CONTINUE_COST,
+		"coin_balance": spendable_coins(),
+	})
+	# Banked balance, matching the sink. See _on_extra_shots_requested.
+	if spendable_coins() < GameConfig.CONTINUE_COST:
 		continue_request_locked = false
 		# Same contract as the out-of-shots rescue: re-arm the overlay, then
 		# offer a video rather than leaving the player staring at a price they
@@ -2453,8 +2553,8 @@ func _grant_continue(cost: int) -> void:
 		result_overlay.clear_pending_actions()
 		result_overlay.dismiss()
 	if cost > 0:
-		_log_analytics("coin_spent", {"amount": cost, "reason": "continue", "level_number": level_number, "resulting_balance": coins})
-	_log_analytics("continue_purchased", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": cost, "coin_balance": coins})
+		_log_analytics("coin_spent", {"amount": cost, "coin_sink": "continue", "reason": "continue", "level_number": level_number, "balance_before": coins + cost, "balance_after": coins, "resulting_balance": coins})
+	_log_analytics("continue_used", {"level_number": level_number, "attempt_number": analytics_attempt_number, "coin_cost": cost, "coin_balance": coins})
 	_refresh_hud()
 
 func _update_merge_presentations(delta: float) -> void:
@@ -2756,13 +2856,11 @@ func _qualify_win_if_target_complete() -> void:
 	if target_index < target_sequence().size() or win_qualified:
 		return
 	won = true
-	_emit_level_end_analytics_once("level_complete", {
-		"level_number": level_number,
-		"coins_earned": maxi(0, coins - level_start_coins),
-		"attempt_number": analytics_attempt_number,
+	_emit_level_end_analytics_once("level_complete", _level_outcome_parameters({
+		# Retained from the previous schema so existing saved reports keep working.
 		"shots": analytics_shot_count,
-		"coin_balance": coins,
-	})
+		"coins_earned": maxi(0, coins - level_start_coins),
+	}))
 	_record_daily_progress("level_complete")
 	if is_limited_shots_level():
 		_record_daily_progress("limited_complete")
@@ -3031,7 +3129,7 @@ func _save_settings() -> void:
 
 func _on_restart_requested() -> void:
 	var retry_reason := "level_fail" if failed else "manual_restart"
-	_log_analytics("retry", {
+	_log_analytics("level_retry", {
 		"level_number": level_number,
 		"attempt_number": analytics_attempt_number + 1,
 		"shots": analytics_shot_count,
@@ -3154,6 +3252,7 @@ func _on_rewarded_bonus_earned(_rewarded_item = null) -> void:
 	coins += level_reward_for_completion
 	_log_analytics("coin_earned", {
 		"amount": level_reward_for_completion,
+		"coin_source": "rewarded_ad",
 		"reason": "rewarded_double_coins",
 		"level_number": level_number,
 		"resulting_balance": coins,
@@ -3204,6 +3303,7 @@ func _on_result_home_requested() -> void:
 func _show_home() -> void:
 	if home_overlay == null:
 		return
+	_emit_level_abandon_if_in_progress("home")
 	var enter_home := func() -> void:
 		if gameplay_ui != null:
 			gameplay_ui.hide_pause(false)
@@ -3253,21 +3353,91 @@ func _log_analytics(event_name: String, parameters: Dictionary = {}) -> void:
 	analytics.log_event(event_name, parameters)
 
 
+## Stable identifying context for the level being played. Attached to every
+## level-lifecycle event so any of them can be sliced by template, layout, band,
+## or generator version without a join.
+##
+## Deliberately all low-cardinality categoricals and small integers: template and
+## layout ids come from a fixed table, bands from a fixed list. The one
+## high-cardinality value, the level seed, is included because a support report
+## naming a specific broken level is worth far more than the dimension costs -
+## but it is never used as a grouping key in the documented reports.
+## GA4 accepts at most 25 parameters on an event and silently drops the rest, so
+## the level context is split in two.
+##
+## This is the compact core: the identifiers every level event needs in order to
+## be sliced by composition. Everything here is a stable low-cardinality
+## categorical or a small integer, and everything omitted is either derivable
+## from these (the target tiers follow from `target_structure`, the band from
+## `level_number`) or is carried once on `level_start`.
+func _level_analytics_context() -> Dictionary:
+	return {
+		"level_number": level_number,
+		"attempt_number": analytics_attempt_number,
+		"level_type": String(level_config.get("level_type", "normal")),
+		"level_template_id": String(level_config.get("template_id", "")),
+		"layout_id": String(level_config.get("layout_id", "")),
+		"difficulty_band": String(level_config.get("difficulty_band", "")),
+		"queue_band": String(level_config.get("queue_band", "")),
+		"target_structure": String(level_config.get("target_structure", "")),
+		"generator_version": int(level_config.get("generator_version", 0)),
+	}
+
+
+## The full composition, sent once per attempt on `level_start`. Joined to the
+## outcome events by `level_template_id` plus `level_number`, which is why those
+## two stay in the compact core.
+func _level_start_parameters() -> Dictionary:
+	var parameters := _level_analytics_context()
+	# Budgeted to stay under GA4's 25-parameter ceiling with the three target
+	# slots below. Two fields were dropped rather than risk silent truncation:
+	# `limited_shots` is exactly `level_type == "limited_shots"`, and
+	# `starting_board_rows` follows from `level_template_id`, while
+	# `starting_board_gem_count` is the more direct measure of opening density.
+	parameters.merge({
+		"shot_limit": int(level_config.get("shot_limit", 0)),
+		"template_role": String(level_config.get("template_role", "")),
+		"progression_band": String(level_config.get("progression_band", "")),
+		"level_seed": int(level_config.get("seed", 0)),
+		"starting_board_gem_count": int(level_config.get("starting_board_gem_count", 0)),
+		"coin_balance": coins,
+	}, true)
+	var pattern_family := String(level_config.get("pattern_family", ""))
+	if not pattern_family.is_empty():
+		parameters["active_pattern_family"] = pattern_family
+		parameters["active_pattern_variant"] = String(level_config.get("pattern_dominant", ""))
+		# Retained: existing saved GA4 reports group on this combined string.
+		parameters["pattern"] = "%s:%s" % [pattern_family, String(level_config.get("pattern_dominant", ""))]
+	# Flattened rather than nested: GA4 parameters are scalar, and three fixed
+	# slots let a report compare "levels whose second card is an L7 x2" directly.
+	var targets: Array = level_config.get("target_sequence", []) as Array
+	for index in range(mini(3, targets.size())):
+		var target: Dictionary = targets[index] as Dictionary
+		parameters["target_%d_tier" % (index + 1)] = int(target.get("tier", 0))
+		parameters["target_%d_amount" % (index + 1)] = maxi(1, int(target.get("quantity", 1)))
+	return parameters
+
+
+## Merges the attempt aggregates into the level context for an event that ends
+## an attempt. Only the three attempt-ending events use this, so the aggregate
+## block is never double-counted.
+func _level_outcome_parameters(extra: Dictionary = {}) -> Dictionary:
+	var parameters := _level_analytics_context()
+	parameters.merge(attempt_analytics.summary(), true)
+	# -1, not 0, for an unlimited level: 0 would be indistinguishable from a
+	# limited level that ran exactly out of shots.
+	parameters["shots_remaining"] = maxi(0, shots_remaining) if is_limited_shots_level() else -1
+	parameters.merge(extra, true)
+	return parameters
+
+
 func _emit_level_start_analytics_once() -> void:
 	if analytics_level_started or analytics_level_finished:
 		return
 	analytics_level_started = true
 	analytics_attempt_number += 1
-	var pattern_family := String(level_config.get("pattern_family", ""))
-	var pattern_dominant := String(level_config.get("pattern_dominant", ""))
-	var parameters := {
-		"level_number": level_number,
-		"attempt_number": analytics_attempt_number,
-		"coin_balance": coins,
-	}
-	if not pattern_family.is_empty():
-		parameters["pattern"] = "%s:%s" % [pattern_family, pattern_dominant]
-	_log_analytics("level_start", parameters)
+	attempt_analytics.begin()
+	_log_analytics("level_start", _level_start_parameters())
 	if is_limited_shots_level():
 		_log_analytics("limited_shots_level_start", {"level_number": level_number, "attempt_number": analytics_attempt_number, "shots_remaining": shots_remaining})
 
@@ -3277,6 +3447,46 @@ func _emit_level_end_analytics_once(event_name: String, parameters: Dictionary) 
 		return
 	analytics_level_finished = true
 	_log_analytics(event_name, parameters)
+
+
+## Reports a level the player walked away from mid-attempt.
+##
+## Routed through the same once-only latch as completion and failure, so an
+## attempt produces exactly one outcome event. Without that shared latch a player
+## who failed and then backed out to Home would be counted as both a failure and
+## an abandon, and every funnel built on those two events would over-count.
+##
+## `abandon_point` is where in the attempt they left, which is the whole reason
+## to record it: leaving on the first shot and leaving on the last one are very
+## different signals about a level.
+func _emit_level_abandon_if_in_progress(destination: String) -> void:
+	if app_flow_state != AppFlowState.PLAYING:
+		return
+	if not analytics_level_started or analytics_level_finished:
+		return
+	if won or win_qualified or failed:
+		# Completion and failure own the outcome; this is only for a level left
+		# genuinely unresolved.
+		return
+	_emit_level_end_analytics_once("level_abandon", _level_outcome_parameters({
+		"abandon_destination": destination,
+		"abandon_point": _abandon_point(),
+	}))
+
+
+## A stable categorical for how far into the attempt the player got, rather than
+## a raw shot count: GA4 groups a handful of labelled buckets far more usefully
+## than an unbounded integer, and the buckets are what a designer actually asks
+## about.
+func _abandon_point() -> String:
+	if attempt_analytics.shots_fired <= 0:
+		return "before_first_shot"
+	if attempt_analytics.targets_completed <= 0:
+		return "before_first_target"
+	var total_targets := target_sequence().size()
+	if total_targets > 0 and attempt_analytics.targets_completed >= total_targets - 1:
+		return "on_final_target"
+	return "mid_targets"
 
 func _on_home_play_requested() -> void:
 	if app_flow_state != AppFlowState.LEVEL_READY:

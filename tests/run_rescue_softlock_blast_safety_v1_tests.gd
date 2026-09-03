@@ -70,7 +70,13 @@ func _test_rescue_popup_is_escapable_after_a_failed_purchase() -> void:
 	await process_frame
 	controller.out_of_shots_pending = true
 	controller.out_of_shots_presented = true
+	# Both balances, because "no coins left" is a statement about the *banked*
+	# balance from 1.0.17 onward - that is what every coin sink now spends. Zeroing
+	# only the display balance left the banked one at whatever a previous test had
+	# saved, so this case bought shots instead of taking the video path whenever
+	# the suite ran after one that banked coins.
 	controller.coins = 0
+	controller.level_start_coins = 0
 	controller.result_overlay.present_out_of_shots(0, GameConfig.EXTRA_SHOTS_AMOUNT, GameConfig.EXTRA_SHOTS_COST)
 	# The real tap. extra_shots_requested is wired straight to the controller, so
 	# this one call runs the whole chain: the overlay arms its pending state and

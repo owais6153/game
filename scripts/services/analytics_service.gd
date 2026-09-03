@@ -7,6 +7,12 @@ signal event_requested(event_name: String, parameters: Dictionary)
 const NATIVE_SINGLETON := "FirebaseAnalytics"
 const LOG_PREFIX := "[Analytics]"
 
+## GA4 accepts at most 25 custom parameters on an event and silently discards
+## the overflow - no error, no warning, just missing columns discovered weeks
+## later in a report. Exceeding it is a bug, so it is surfaced loudly here and
+## asserted by the analytics test suite rather than left to be found in BigQuery.
+const MAX_EVENT_PARAMETERS := 25
+
 var _bridge_checked := false
 var _bridge_available := false
 
@@ -22,6 +28,12 @@ func log_event(event_name: String, parameters: Dictionary = {}) -> bool:
 		push_warning("%s Rejected invalid event name: %s" % [LOG_PREFIX, event_name])
 		return false
 	var safe_parameters := _firebase_parameters(parameters)
+	if safe_parameters.size() > MAX_EVENT_PARAMETERS:
+		# Reported, not truncated. Dropping parameters here would decide silently
+		# which columns a report loses; leaving it to GA4 at least keeps the
+		# behaviour in one place, and the warning makes the bug findable.
+		push_warning("%s %s carries %d parameters; GA4 accepts %d and drops the rest" % [
+			LOG_PREFIX, event_name, safe_parameters.size(), MAX_EVENT_PARAMETERS])
 	event_requested.emit(event_name, safe_parameters.duplicate(true))
 	var bridge = _native_bridge()
 	if bridge == null:
