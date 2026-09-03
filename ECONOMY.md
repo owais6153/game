@@ -1,32 +1,147 @@
-# V1 Economy
+# Economy
 
-Coins are earned only from confirmed target results and the exactly-once rewarded Double Coins callback. Ordinary merges award no coins. The authoritative target rewards remain L2-L8: `10, 25, 60, 150, 350, 800, 1800`, with the existing confirmed chain multiplier.
+**Accurate as of versionName 1.0.17 / versionCode 19.** Every number below was
+read from the shipping source, not from an earlier plan. Where this document
+previously disagreed with the code, the code was right and the document has been
+corrected — see *Corrections* at the end for what changed and why, so an earlier
+revision of this file is not mistaken for a spec the code has drifted from.
 
-## Current Gem reroll
+## Sources — how coins are earned
 
-- Cost: `GameConfig.NEXT_GEM_REROLL_COST` (`100` coins for the production candidate).
-- Scope: replaces the tier of the currently aimable launcher gem in place (its physical/visual identity, not the queued Next preview). It does not modify later deterministic queue entries, target generation, physics rules, or merge rules. `GemSpriteLayer` re-syncs texture, collision radius, and shadow from the piece's model automatically.
-- Eligibility: active gameplay, the current gem is still aimable (not yet launched or mid-resolution), no terminal state, sufficient banked coins, and at least one different tier in the current level's existing weighted launcher sequence.
-- Selection: deterministic from the level seed, queue index, and reroll count, sampled from the existing weighted launcher sequence after excluding the displayed tier. It cannot create L5-L8 or any unavailable tier.
-- Transaction safety: the banked balance is saved before the in-memory gem/balance commit. A save failure cancels the reroll. A 350 ms request lock prevents rapid duplicate spending.
-- Retry safety: unresolved target earnings keep the existing rollback contract. Rerolls spend banked coins and reduce the attempt baseline by the same amount, so Retry cannot refund the cost and force-close cannot duplicate unresolved rewards.
-- Analytics: one `coin_spent` event with amount, reason, level, resulting balance, and resulting local tier.
-- UI: live gameplay shows one large circular `SWITCH GEM` button below the table. Its cost appears as a transient popup at spending time, styled after the gameplay combo labels.
+Coins come only from confirmed target results, daily missions, and the
+exactly-once rewarded Double Coins callback. **Ordinary merges award nothing.**
+Only a merge whose result tier equals the *active* target card pays out.
 
-## Skip Level
+Target rewards, from `GameConfig.TARGET_COIN_REWARD_BY_RESULT_LEVEL`:
 
-- Cost: `GameConfig.SKIP_LEVEL_COST` (`200` coins).
-- Scope: jumps straight to the next level. There is no win screen, no reward-processing state, no interstitial, and no level-complete coin reward — it is purely a paid escape hatch, not an alternate way to earn coins. The active launcher sequence, physics, merge rules, and target rules for the *next* level are generated exactly as they would be by a normal completion.
-- Eligibility: Level Ready or active gameplay (including Pause and the Failed result), never a completed/win-qualified level, no in-flight skip request, and at least 200 banked coins from the level-start baseline.
-- Selection: the next level and its seed use the same deterministic `LevelConfig.seed_for_level()` sequence a normal completion would produce.
-- Transaction safety: the banked balance and the advanced `level_number`/seed are persisted in one atomic save before any in-memory state changes. A failed save cancels the skip and leaves balance and level unchanged, matching the reroll sink's contract. A request lock prevents double-spend from a rapid double-tap.
-- Analytics: one `coin_spent` event (`reason: "skip_level"`) plus a distinct `level_skipped` event, so skip usage never shows up in `level_complete`/`level_failed` funnels.
-- UI: Skip is absent from the live board and successful Level Complete. It appears only in Level Ready, Pause, and Failed overlays with its explicit 200-coin price and the curated @icons fast-forward glyph.
+| Result tier | L2 | L3 | L4 | L5 | L6 | L7 | L8 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Coins | 2 | 6 | 14 | 30 | 55 | 120 | 260 |
 
-No shop, IAP, coin pack, or booster catalog is part of V1. V1 now ships two coin sinks: Next Gem Reroll and Skip Level.
+The confirmed chain multiplier applies on top.
 
-## Retention Loop V1
+Because a level's targets are set by its template, income per level varies by
+composition rather than by level number alone. Measured across levels 1-100 with
+`scripts/dev/print_level_template_audit.gd`:
 
-The centralized economy hierarchy is Switch Gem `100`, Extra Shots `300`, Continue `500`, and Skip Level `800`. Target rewards remain the primary earn rate (`10..1800`), while mission rewards are `45/90/140` with a `180`-coin daily chest. This keeps a low-cost tactical reroll available more often than recovery, while a full escape remains deliberately scarce. The prior 200-coin Skip cost is raised with this sprint so it remains the most expensive option.
+| Levels | 1-20 | 21-40 | 41-60 | 61-80 | 81-100 |
+| --- | --- | --- | --- | --- | --- |
+| Average coins per level | 322 | 426 | 449 | 467 | 486 |
 
-The loop is: Play Level -> Merge / Complete Target -> Earn Coins -> Complete Daily Missions -> Earn more Coins / Daily Chest -> use coins when stuck -> Switch Gem / Extra Shots / Continue -> Complete harder level -> return for new Daily Missions.
+Income rises monotonically by band. This is a property worth re-measuring after
+any template or target-structure edit; `run_coin_economy_v1_tests` asserts the
+trend but not the exact figures.
+
+### Daily missions
+
+Three missions per day, one from each difficulty tier:
+
+- Easy: `45`-`55` coins (Merge 15 Gems, Merge 25 Gems, Complete 3 Targets)
+- Medium: `85`-`95` coins (Complete 3 Levels, Earn 500 Coins, Make 8 Combos, Use 3 Powers)
+- Challenging: `130`-`150` coins (Create 1 High-Tier Gem, Finish Without Powers,
+  Beat a Limited-Shots Level — the last only once the player has reached the
+  first limited level)
+
+### Daily chest
+
+`DailyMissionService.CHEST_REWARD` is **`0` coins**. The chest pays in powers
+only: `{switch: 2, magnet: 1, hammer: 1}`. It is not a coin source.
+
+### Rewarded ads
+
+Rewarded video substitutes for a coin cost rather than paying coins, except for
+Double Coins on level completion. Every grant runs from the earned-reward
+callback only, so a cancelled or failed video grants nothing. Power grants are
+capped per day by `PowerInventoryService`: `MAX_AD_GRANTS_PER_POWER_PER_DAY = 3`
+and `MAX_AD_GRANTS_PER_DAY = 6`.
+
+## Sinks — how coins are spent
+
+| Sink | Cost | Constant |
+| --- | --- | --- |
+| Extra Shots (+5) | `300` | `GameConfig.EXTRA_SHOTS_COST` |
+| Continue after failure | `500` | `GameConfig.CONTINUE_COST` |
+| Skip Level | `800` | `GameConfig.SKIP_LEVEL_COST` |
+| Power: Switch | `120` | `PowerInventoryService.PURCHASE_COST` |
+| Power: Magnet | `200` | `PowerInventoryService.PURCHASE_COST` |
+| Power: Hammer | `260` | `PowerInventoryService.PURCHASE_COST` |
+| Power: Bomb | `350` | `PowerInventoryService.PURCHASE_COST` |
+
+Continue is capped at `MAX_COIN_CONTINUES_PER_ATTEMPT = 1` per attempt.
+
+### The power shop
+
+There **is** a shop: `PowerShopOverlayLayer`, opened from Home. It sells the four
+powers above, one at a time, at the fixed prices listed. A power the player
+cannot afford is never presented as a dead button — the row swaps its coin price
+for a `+` and the tap routes to the rewarded-ad offer instead. There is still no
+IAP, no coin pack, and no purchasable bundle.
+
+## The authoritative balance
+
+This is the part most likely to be got wrong, and it caused a production bug in
+1.0.16.
+
+There are two coin variables in `GameController`:
+
+- **`level_start_coins` — the banked balance. This is the authority.** Every
+  sink spends it, and every affordability check must read it, through
+  `GameController.spendable_coins()`.
+- `coins` — a *display* value. It is the banked balance plus the current
+  attempt's unresolved target earnings, and `restart()` rolls it back to
+  `level_start_coins`.
+
+Coins earned mid-attempt are provisional until the level resolves. Coins granted
+by a daily reward are banked immediately, and must be credited through
+`_credit_banked_coins()` so both variables move together — crediting `coins`
+alone is precisely the defect that made the shop display a balance it would not
+spend.
+
+**Rule: never read `coins` to decide whether the player can afford something.**
+Read `spendable_coins()`.
+
+Transaction contract for every sink: persist first, adopt the result only on a
+successful save, and hold a request lock across the transaction so a double tap
+cannot spend twice. A failed save cancels the spend and leaves balance,
+inventory, and level unchanged.
+
+## Switch inventory behaviour
+
+Switching the queued gem is a **power spent from inventory**, not a coin
+purchase. The player buys Switch powers in the shop (or earns them from the
+chest or a rewarded video) and spends one to reroll the current launcher gem.
+
+The reroll itself is deterministic from the level seed, the queue index, and the
+reroll count, sampled from the level's existing weighted launcher sequence after
+excluding the displayed tier. It cannot produce L5-L8 or any tier the level does
+not use, and it does not alter later queue entries, targets, physics, or merge
+rules.
+
+## Analytics
+
+Economy events are `coin_earned` and `coin_spent`, each carrying `amount`,
+`balance_before`, `balance_after`, and a stable categorical `coin_source` or
+`coin_sink`. Dedicated events (`power_purchase_success`, `level_skip`,
+`continue_used`, `extra_shots_used`, `daily_mission_claim`) describe the action;
+the coin event describes the money. Do not sum both for the same transaction.
+See `ANALYTICS_EVENT_CATALOG.md` and `reports/DIFFICULTY_ANALYTICS_GUIDE.md`.
+
+## Corrections made in 1.0.17
+
+The previous revision of this file had drifted from the code in ways that would
+mislead anyone planning a balance change. Recorded rather than deleted:
+
+- **Target rewards** were documented as `10, 25, 60, 150, 350, 800, 1800`. The
+  shipping table is `2, 6, 14, 30, 55, 120, 260` — roughly seven times smaller.
+  Any plan sized against the old figures was wrong by that factor.
+- **"Current Gem reroll — cost `GameConfig.NEXT_GEM_REROLL_COST` (100 coins)"**
+  described a coin sink that no shipped path ever charged. `NEXT_GEM_REROLL_COST`
+  was read by nothing and has been removed; the constant's removal note lives at
+  the top of `GameConfig`. Switching is a power, as described above.
+- **Skip Level** was documented as `200` coins in one section and `800` in
+  another. It is `800`.
+- **"No shop … is part of V1"** was false. The power shop ships.
+- **"V1 now ships two coin sinks"** was false. There are seven, listed above.
+- **Daily chest** was described as a `180`-coin reward. `CHEST_REWARD` is `0`;
+  the chest pays powers only.
+- Analytics event names were pre-rename (`level_skipped`).

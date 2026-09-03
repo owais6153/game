@@ -822,3 +822,69 @@ Gameplay Settings is a direct `Button` styled through `utility_frame_style()`; H
 # Retention services (unreleased)
 
 `LevelConfig` declares `level_type` and `shot_limit`; `GameController` decrements only committed shots and evaluates out-of-shots after the merge/collection lifecycle settles. `DailyMissionService` is a deterministic, event-driven local-state transformer stored as `retention.daily_state` by `ProgressionSaveService`. `DailyMissionsOverlayLayer` and HUD read controller snapshots/signals only. Currency mutations remain controller save-before-commit transactions.
+
+# Architecture Addendum - Level Templates and Analytics Instrumentation (1.0.17)
+
+## Level composition is one object, not three ladders
+
+`scripts/core/level_template.gd` owns level composition. A template names a queue
+band, an opening-board archetype and density, a target structure, and
+limited-shot behaviour together; `LevelConfig.generated()` consumes one and no
+longer holds difficulty branches of its own.
+
+The boundary matters: `LevelTemplate` is pure data plus pure selection functions,
+with no engine dependencies, so the whole progression can be generated and
+validated headlessly. `LevelConfig` still owns identity mapping, seeding, and
+placement records; `GameController` still turns placement records into gems and
+never learns what a template is.
+
+Selection is a pure function of the level number. Retries, reinstalls, and save
+reloads reconstruct the same level, and no mutable global history exists.
+
+## Layout archetypes cannot violate board safety
+
+An archetype decides only which columns are left open and how tiers are
+distributed. Row heights, column positions, spacing, gem radii, collision
+geometry, and the danger-line margin remain owned by `GameConfig` and the
+`STARTING_BOARD_*` constants. An archetype expresses a *preference* over gap
+positions and the selector picks only from columns already satisfying the
+inter-row separation rule, so the no-straight-lane guarantee holds for every
+archetype rather than only for the default one.
+
+## The authoritative coin balance
+
+`GameController.spendable_coins()` is the single authority for affordability and
+every coin sink. It returns the banked balance (`level_start_coins`). The `coins`
+field is a display value carrying the current attempt's unresolved earnings and
+is rolled back by `restart()`; reading it to authorise a spend is a bug, and was
+the cause of the 1.0.16 shop desync. Grants that are persisted immediately go
+through `_credit_banked_coins()` so both move together.
+
+## Analytics aggregates live outside the controller
+
+`scripts/services/level_attempt_analytics.gd` accumulates per-attempt gameplay
+figures and is written to only from confirmed controller events. It owns no
+gameplay state and makes no decisions; reading it cannot fail. The controller
+attaches its `summary()` to whichever event ends the attempt, which is why there
+is no per-shot or per-chain event.
+
+Three invariants hold across the analytics layer:
+
+- an event fires only after the action it names has succeeded;
+- one attempt produces exactly one outcome event, enforced by the shared
+  `analytics_level_finished` latch that `level_complete`, `level_fail` and
+  `level_abandon` all pass through;
+- no event exceeds GA4's 25-parameter ceiling, which silently drops overflow.
+  `AnalyticsService.MAX_EVENT_PARAMETERS` warns and the test suite asserts it.
+
+Analytics remains observational: a missing native bridge never affects
+simulation, reward authority, or navigation.
+
+## Input zone ownership
+
+`GameConfig.shooter_drag_zone_contains()` is the authority for where a shooter
+drag may begin. It is geometry only, derived from the same rails and danger line
+every other system reads, and is unit-testable without a controller. UI
+protection is structural rather than conditional: popups and HUD controls consume
+their presses before `_unhandled_input` runs, so widening the zone cannot steal a
+UI tap.

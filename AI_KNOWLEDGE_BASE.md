@@ -1084,3 +1084,68 @@ For settings controls, use the `SettingsSwitch` toggle Button variation with ON/
 # Retention-loop guardrails (unreleased)
 
 Limited shots never enter the simulation as a timer or collision rule. The controller spends a shot only in `launch_active_piece`; zero-shot resolution blocks a new launcher and waits for settled pieces, merge candidates, bonus spawns, and target collection before rescue. Continue removes only bodies already beyond the danger line, preserving all other physical state and never replays target/coin authority. Daily state is local-clock V1 data with safe defaults for older saves.
+
+## Level templates, coin authority, and analytics budgets (1.0.17)
+
+Facts a future agent will otherwise rediscover the hard way.
+
+**There are two coin variables and only one is spendable.** `GameController.coins`
+is a *display* value: banked coins plus the current attempt's unresolved target
+earnings, which `restart()` rolls back. `level_start_coins` is the banked
+balance every sink actually spends. Always read `spendable_coins()` for
+affordability. Reading `coins` caused the 1.0.16 shop bug where Buy silently did
+nothing, and the same mistake existed in the extra-shots and continue paths.
+Grants that persist immediately must go through `_credit_banked_coins()`.
+
+**Level composition lives in `LevelTemplate`, not in `LevelConfig`.** Do not add
+difficulty branches keyed to level number back into `LevelConfig.generated()` -
+that is exactly the structure that produced the plateau. Add or edit a template
+instead, then run `scripts/dev/print_level_template_audit.gd` and bump
+`GENERATOR_VERSION`.
+
+**Pool selection must not use `level % pool.size()`.** The role cycle has an even
+length, so a modulo walk gives a two-entry pool the same index every time that
+role comes round. It is indexed by a multiplicative hash for this reason.
+
+**Layout archetypes must never bypass the gap-separation rule.** They express a
+preference over gap positions; the selector picks only from already-legal
+columns. Where the pool starves, serve fewer gaps - do not fall back to "any
+column", which opens a full-height lane the player can shoot up all level. The
+test suite sweeps 60 horizontal positions per level across 120 levels.
+
+**Targets are counted at merge time against the active card.** A gem merged above
+the active tier is never banked for a later card; it becomes wasted material and
+board clutter. This is intentional. Consequences: target tiers must ascend
+(`LevelTemplate.validate()` enforces it), and a high `total_merges` on a failed
+attempt may mean wasted work rather than near-success.
+
+**`LevelSolver` does not model that** - `simulate()` keeps a tier histogram and
+collects pre-built gems once their card activates, so it is optimistic. Its
+`shot_limit`, `spare_shots` and classification are upper bounds on real play.
+Safe in the generous direction for shot limits; never usable as a difficulty
+prediction.
+
+**GA4 drops parameters past 25 silently.** No warning, no error - just columns
+missing from a report weeks later. `AnalyticsService.MAX_EVENT_PARAMETERS` warns
+and `run_shop_input_analytics_v1_tests` asserts the budget for the widest events.
+Adding a parameter to a level event means removing one. The full level
+composition rides on `level_start`; outcome events carry the nine-field compact
+core and join back on `level_number` + `level_template_id`.
+
+**One attempt, one outcome event.** `level_complete`, `level_fail` and
+`level_abandon` share the `analytics_level_finished` latch. Anything new that
+ends an attempt must pass through `_emit_level_end_analytics_once`, or funnels
+double-count. `level_skip` deliberately does *not* carry the aggregate block,
+because Skip is offered on the failure screen and can follow a `level_fail` for
+the same attempt.
+
+**Test fixtures must set both balances.** A test that sets only `controller.coins`
+to express "no coins" will pass or fail depending on what a previously-run suite
+left in the save file. `run_rescue_softlock_blast_safety_v1_tests` had this bug
+and only surfaced when run in batch order.
+
+**Release signing credentials already exist** in the gitignored
+`.godot/export_credentials.cfg` for both presets, pointing at
+`majestic-gems-upload-key.jks` with alias `majestic-gems-upload`. `--export-release`
+picks them up with no extra arguments; there is no need to ask for or handle the
+password.

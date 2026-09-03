@@ -111,3 +111,5 @@
 - `HOME_SETTINGS_FAST_FEEL_MOTION_V1_REPORT.md` — Home settings alignment fix, Tween Composer/Global Tweens integration, and centralized fast-feel timing pass.
 - [Reference-Driven Game Feel v2](REFERENCE_DRIVEN_GAME_FEEL_V2.md) — video-led merge/target/reward pacing rebuild, checkmark removal, audio hierarchy, and confirmed-contact reliability.
 - [Home Startup and Return Flow Repair](HOME_STARTUP_RETURN_FLOW_REPAIR.md) — fixes direct-to-level startup, Pause/Home return, and Level Ready Back with production-controller regression coverage.
+- [Difficulty Analytics Guide](DIFFICULTY_ANALYTICS_GUIDE.md) — which Firebase events and parameters to inspect after the 1.0.17 release, and what the numbers mean for too easy, too hard, boring, and good challenge.
+- [Level Validation 1-100 (1.0.17)](LEVEL_VALIDATION_1_100_V1017.md) — generated composition, solver verdict, distribution, and coin income for every level from 1 to 100 under generator_version 2.

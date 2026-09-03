@@ -105,7 +105,7 @@ const LAYOUTS := [
 
 ## Target cards are strictly sequential and are counted at merge time against
 ## whichever card is active. A gem merged *above* the active tier is not banked
-## for a later card - see the audit note in `docs/TARGET_PROGRESSION_AUDIT` in
+## for a later card - see "The audit: future target gems do not count" in
 ## LEVEL_DESIGN.md. Two rules follow, and `validate()` enforces both:
 ##
 ##  1. Tiers must ascend. A sequence that asks for a high tier before a low one
