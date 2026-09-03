@@ -166,6 +166,23 @@ noisy, high-frequency telemetry. Native diagnostics remain in Godot output and
 logcat. Firebase DebugView receipt requires a connected authorized Android
 device in debug mode.
 
+## Requested events deliberately not emitted
+
+Five events from the 1.0.17 brief are intentionally absent. Recorded here so
+their absence reads as a decision rather than an oversight.
+
+| Event | Why not, and where the data lives instead |
+| --- | --- |
+| `shots_fired` | One event per shot would be by far the highest-volume event in the game — tens per attempt, per player. `shots_used` on every attempt-ending event carries the same information at 1/40th the volume. |
+| `shot_result` | Same volume problem. The useful form is a rate, not a stream: `shot_merge_percent` and `shot_chain_percent`. |
+| `chain_reaction` | Chains are frequent and bursty; a per-chain event would spike hardest exactly when the game is working well. `total_chains` and `max_chain_depth` per attempt answer the same questions. |
+| `combo_reached` | Covered by `combo_1_count`, `combo_2_count`, `combo_3_plus_count` per attempt, which is the requested breakdown without the per-occurrence cost. |
+| `continue_decline` | **No trigger exists.** Unlike the out-of-shots rescue, which has an explicit GIVE UP button (`extra_shots_decline`), the continue offer has no decline action — the player simply takes another action on the fail screen. Emitting one would mean inventing a UI semantic that does not exist. Declined continues are derivable as `continue_offer_shown` minus `continue_accept`. |
+
+The first four follow the brief's own instruction not to emit thousands of
+redundant events where an attempt-level summary will do. If per-shot telemetry
+is ever genuinely needed, sample it — do not send it for every shot.
+
 ## Renames in 1.0.17
 
 Renamed to a single consistent vocabulary. Each kept its previous parameters, so

@@ -259,6 +259,9 @@ func preload_interstitial() -> void:
 			return
 		if _interstitial_ad != null:
 			_interstitial_ad.destroy()
+		# Fill succeeded. Reported here rather than at request time, so the load
+		# funnel separates "asked for an ad" from "actually got one".
+		_log_analytics("interstitial_loaded", {"placement": "level_complete"})
 		_interstitial_ad = ad
 		_setup_interstitial_callbacks(ad)
 		interstitial_availability_changed.emit(is_interstitial_ready())
@@ -288,6 +291,7 @@ func preload_rewarded() -> void:
 			return
 		if _rewarded_ad != null:
 			_rewarded_ad.destroy()
+		_log_analytics("rewarded_ad_loaded", {})
 		_rewarded_ad = ad
 		_setup_rewarded_callbacks(ad)
 		rewarded_availability_changed.emit(is_rewarded_ready())

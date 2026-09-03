@@ -1173,6 +1173,14 @@ func _on_power_ad_confirmed(power: String) -> void:
 	if ad_manager == null or not bool(ad_manager.call("is_rewarded_ready")):
 		_report_power_ad_result(power, false)
 		return
+	# The power-specific rewarded funnel, separate from the generic
+	# `rewarded_ad_*` events so "watched a video instead of buying" can be
+	# measured per power without unpicking placements.
+	_log_analytics("rewarded_power_ad_started", {
+		"power_type": power,
+		"level_number": level_number,
+		"power_inventory_before": PowerInventoryServiceType.count(power_state, power),
+	})
 	power_ad_pending = power
 	# Tracked on the controller rather than in a local: GDScript lambdas capture
 	# locals by value, so the dismissal callback below would always observe the
@@ -1188,7 +1196,20 @@ func _on_power_ad_confirmed(power: String) -> void:
 			# which is why the reward popup never appeared after a completed video.
 			# The default keeps it valid for any caller that passes nothing.
 		func(_earned: bool = false) -> void:
-			if not power_ad_granted:
+			# Completion is reported from the granted flag, which is set only
+			# inside the earned-reward callback above - never from dismissal.
+			if power_ad_granted:
+				_log_analytics("rewarded_power_ad_completed", {
+					"power_type": power,
+					"level_number": level_number,
+					"power_inventory_after": PowerInventoryServiceType.count(power_state, power),
+				})
+			else:
+				_log_analytics("rewarded_power_ad_failed", {
+					"power_type": power,
+					"level_number": level_number,
+					"failure_reason": "not_completed",
+				})
 				_log_analytics("power_ad_declined", {"power": power, "reason": "not_completed"})
 			power_ad_pending = ""
 			_report_power_ad_result(power, power_ad_granted)
@@ -1199,6 +1220,11 @@ func _on_power_ad_confirmed(power: String) -> void:
 		# The video never opened, so neither callback will ever fire. Without this
 		# the offer popup sat on screen forever with no way forward.
 		power_ad_pending = ""
+		_log_analytics("rewarded_power_ad_failed", {
+			"power_type": power,
+			"level_number": level_number,
+			"failure_reason": "show_failed",
+		})
 		_log_analytics("power_ad_declined", {"power": power, "reason": "show_failed"})
 		_report_power_ad_result(power, false)
 
@@ -1397,6 +1423,16 @@ func _offer_coin_action(action: String, title: String, detail: String, cost: int
 	var ready := ad_manager != null and bool(ad_manager.call("is_rewarded_ready"))
 	if not ready:
 		_log_analytics("coin_action_ad_declined", {"action": action, "reason": "no_fill"})
+	if action == COIN_ACTION_SKIP:
+		# The skip offer reached the screen. Together with skip_level_attempt this
+		# separates "wanted to skip but could not pay" from "was shown a way to".
+		_log_analytics("skip_level_opened", {
+			"level_number": level_number,
+			"level_template_id": String(level_config.get("template_id", "")),
+			"coin_cost": cost,
+			"coin_balance": spendable_coins(),
+			"rewarded_ready": ready,
+		})
 	power_overlay.present_coin_offer(action, title, detail, cost, level_start_coins, ready)
 
 
@@ -1723,21 +1759,39 @@ func _setup_asset_presentation() -> void:
 func _on_daily_missions_requested() -> void:
 	if daily_overlay == null:
 		return
+	var all_claimed := DailyMissionServiceType.all_missions_claimed(daily_state)
 	_log_analytics("daily_missions_open", {
 		"level_number": level_number,
 		"coin_balance": spendable_coins(),
 		"missions_complete": _completed_mission_labels(daily_state).size(),
-		"all_claimed": DailyMissionServiceType.all_missions_claimed(daily_state),
+		"all_claimed": all_claimed,
 	})
+	# The denominator for chest conversion: how many players ever saw a claimable
+	# chest, against how many actually claimed it.
+	if all_claimed and not bool(daily_state.get("chest_claimed", false)):
+		_log_analytics("daily_chest_available", {"level_number": level_number})
 	daily_overlay.present(daily_state, coins)
 
 func _on_daily_mission_claim_requested(index: int) -> void:
 	var claim := DailyMissionServiceType.claim_mission(daily_state, index)
 	if not bool(claim.get("ok", false)):
+		# A claim the service refused: already taken, or not yet earned. Reported
+		# so a claim button that appears to do nothing is visible in analytics.
+		_log_analytics("daily_mission_claim_failed", {
+			"level_number": level_number,
+			"mission_index": index,
+			"failure_reason": "not_claimable",
+		})
 		return
 	var reward := int(claim.get("reward", 0))
 	var updated: Dictionary = claim.get("state", {}) as Dictionary
 	if ProgressionSaveServiceType.save_progress(level_number, level_seed, coins + reward, updated) != OK:
+		_log_analytics("daily_mission_claim_failed", {
+			"level_number": level_number,
+			"mission_index": index,
+			"reward_coins": reward,
+			"failure_reason": "save_failed",
+		})
 		return
 	# Claiming is the smallest of the reward beats, so it gets the coin cue on its
 	# own rather than the layered treatment the chest and level completion use.
@@ -1764,6 +1818,10 @@ func _on_daily_mission_claim_requested(index: int) -> void:
 func _on_daily_chest_claim_requested() -> void:
 	var claim := DailyMissionServiceType.claim_chest(daily_state)
 	if not bool(claim.get("ok", false)):
+		_log_analytics("daily_chest_claim_failed", {
+			"level_number": level_number,
+			"failure_reason": "not_claimable",
+		})
 		return
 	var updated: Dictionary = claim.get("state", {}) as Dictionary
 	var granted: Dictionary = claim.get("powers", {}) as Dictionary
@@ -1774,8 +1832,16 @@ func _on_daily_chest_claim_requested() -> void:
 		for _index in range(maxi(0, int(granted[power]))):
 			next_powers = _granted_inventory(next_powers, String(power))
 	if ProgressionSaveServiceType.save_progress(level_number, level_seed, coins, updated) != OK:
+		_log_analytics("daily_chest_claim_failed", {
+			"level_number": level_number,
+			"failure_reason": "save_failed",
+		})
 		return
 	if ProgressionSaveServiceType.save_power_state(next_powers, level_start_coins) != OK:
+		_log_analytics("daily_chest_claim_failed", {
+			"level_number": level_number,
+			"failure_reason": "power_save_failed",
+		})
 		return
 	daily_state = updated
 	power_state = next_powers
