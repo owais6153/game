@@ -1633,6 +1633,15 @@ func restart() -> void:
 	continue_request_locked = false
 	coin_continues_used = 0
 	active_piece_id = -1
+	# Discard the attempt's unresolved target earnings.
+	#
+	# `coins` is the display balance and runs ahead of the bank while a level is
+	# in progress; `level_start_coins` is what the economy will actually spend.
+	# Every comment in this file said restart() rolled the display back, and it
+	# did not - it only reset `score`. So an abandoned attempt left `coins`
+	# inflated, Home showed the inflated figure, and the next level entry banked
+	# it, which is how a player could farm one target over and over.
+	coins = level_start_coins
 	score = level_start_coins
 	target_progress = 0
 	target_index = 0
@@ -3515,10 +3524,25 @@ func _on_result_home_requested() -> void:
 		_on_restart_requested()
 		_show_home()
 
+## Rolls the display balance back to what the economy will actually spend.
+##
+## Called when a level is left rather than finished. `restart()` does the same
+## thing on the way back in, but Home and the level map both draw the balance
+## before any restart happens, so without this they show the abandoned
+## attempt.s inflated figure.
+func _discard_unresolved_earnings() -> void:
+	if coins == level_start_coins:
+		return
+	coins = level_start_coins
+	_notify_coin_balance_changed()
+	_refresh_hud()
+
+
 func _show_home() -> void:
 	if home_overlay == null:
 		return
 	_emit_level_abandon_if_in_progress("home")
+	_discard_unresolved_earnings()
 	var enter_home := func() -> void:
 		if gameplay_ui != null:
 			gameplay_ui.hide_pause(false)
@@ -3562,6 +3586,8 @@ func _show_level_select() -> void:
 		# level the player is on rather than stranding them on Home.
 		_show_level_start()
 		return
+	_emit_level_abandon_if_in_progress("level_select")
+	_discard_unresolved_earnings()
 	var enter_map := func() -> void:
 		if gameplay_ui != null:
 			gameplay_ui.hide_pause(false)
@@ -3589,7 +3615,10 @@ func _on_level_chosen(chosen_level: int) -> void:
 		return
 	level_number = chosen_level
 	level_seed = LevelConfigType.seed_for_level(chosen_level)
-	level_start_coins = coins
+	# Deliberately does NOT bank `coins` into `level_start_coins`. Entering a
+	# level is not an earning event, and the previous attempt's unresolved
+	# target rewards are still sitting in `coins` at this point - banking them
+	# here is what turned a display inflation into spendable currency.
 	analytics_attempt_number = 0
 	reroll_count_for_level = 0
 	_log_analytics("level_selected", {

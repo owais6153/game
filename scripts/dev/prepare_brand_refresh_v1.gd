@@ -37,6 +37,7 @@ const OUT_SPLASH_ICON := "res://assets/runtime/ui/majestic_gems_system_splash_11
 const OUT_APP_ICON := "res://assets/runtime/ui/majestic_gems_app_icon_192_v6.png"
 const OUT_ADAPTIVE_FOREGROUND := "res://assets/runtime/ui/majestic_gems_adaptive_foreground_v6.png"
 const OUT_ADAPTIVE_BACKGROUND := "res://assets/runtime/ui/majestic_gems_adaptive_background_v6.png"
+const OUT_BOOT_SPLASH := "res://assets/runtime/ui/majestic_gems_boot_splash_v6.png"
 
 ## Home draws the mark inside a 424x259 box with the aspect preserved, so the
 ## only thing that matters here is that it is large enough not to soften.
@@ -49,10 +50,26 @@ const SPLASH_CANVAS := 1152
 const SPLASH_LOGO_EDGE := 720
 
 const APP_ICON_EDGE := 192
+
+## The engine boot splash, used on every platform that is not the Android launch
+## screen. Painted on a flat plate in exactly `boot_splash/bg_color`, so the
+## letterboxing that any fixed-size splash gets on a tall phone is invisible -
+## the previous splash was a gradient whose edges did not match the fill, and
+## the seam showed as a band across the top and bottom of a 20:9 screen.
+const BOOT_SPLASH_SIZE := Vector2i(1080, 1920)
+const BOOT_SPLASH_LOGO_EDGE := 760
+## Must stay identical to project.godot boot_splash/bg_color and to
+## android windowBackground, or the seam comes back.
+const BOOT_SPLASH_BG := Color(0.109804, 0.027451, 0.203922, 1.0)
 const ADAPTIVE_CANVAS := 432
-## Android masks an adaptive icon to the middle 66 of its 108dp, so anything
-## outside the centre ~61% can be cropped by the launcher's shape.
-const ADAPTIVE_SAFE_EDGE := 252
+## An adaptive icon is authored at 108dp and only its middle 72dp is displayed,
+## so artwork meant to be seen whole has to sit inside that viewport: 72/108 of
+## the 432 canvas.
+const ADAPTIVE_VIEWPORT_EDGE := 288
+## How far the surround behind the artwork is dimmed, and how hard it is blurred
+## first. The blur is a downscale-then-upscale, so this is the intermediate edge.
+const SURROUND_DIM := 0.55
+const SURROUND_SAMPLE := 6
 ## How far the wash is reduced before being scaled back up. Small enough that
 ## no glyph or gem survives it as a recognisable shape.
 const WASH_SAMPLE := 10
@@ -81,6 +98,7 @@ func _init() -> void:
 	_save(_fit(illustrated, APP_ICON_EDGE), OUT_APP_ICON)
 	_save(_empty_layer(ADAPTIVE_CANVAS), OUT_ADAPTIVE_FOREGROUND)
 	_save(_adaptive_background(illustrated, ADAPTIVE_CANVAS), OUT_ADAPTIVE_BACKGROUND)
+	_save(_boot_splash(mark), OUT_BOOT_SPLASH)
 
 	print("BRAND_REFRESH_V1: PASS")
 	quit(0)
@@ -110,27 +128,37 @@ func _centre_on_canvas(mark: Image, canvas: int, logo_edge: int) -> Image:
 	return out
 
 
-## The illustrated logo, full bleed.
+## The illustrated logo, sized so the launcher does not crop into it.
 ##
-## Inset to the adaptive safe zone was tried first and rejected: it left a flat
-## purple border around the artwork, so the icon read as a picture pasted on a
-## card rather than as the illustration itself.
+## Full bleed was tried and is wrong. An adaptive icon is authored at 108dp but
+## only the middle 72dp is ever shown - the outer 18dp on each side exists for
+## the mask and for launcher parallax. Scaling the artwork to fill the canvas
+## therefore hands the launcher a 1.5x enlargement of it, which is exactly the
+## "icon is zoomed in" the artwork appeared to have on device.
 ##
-## Full bleed is safe here because of where the wordmark sits. A launcher mask
-## crops to roughly the inscribed circle, radius 216 on this canvas; the
-## wordmark spans about 75% of the width, so its half-width is ~162 and it
-## clears the crop with room to spare. What the mask actually removes is the
-## garden in the corners, which is what it is there for.
+## So the illustration is drawn at the 72dp viewport instead, and the ring around
+## it is a blur of the same artwork - reduced until no shape survives, then
+## enlarged and dimmed. Two other surrounds were tried and rejected: a flat fill
+## made the icon read as a picture pasted on a card, and an un-blurred copy of
+## the illustration showed the logo twice, once in the ring and once on top.
 func _adaptive_background(source: Image, canvas: int) -> Image:
 	var out := source.duplicate() as Image
-	out.resize(canvas, canvas, Image.INTERPOLATE_LANCZOS)
+	# Small enough that no gem, leaf or letter survives as a recognisable shape.
+	out.resize(SURROUND_SAMPLE, SURROUND_SAMPLE, Image.INTERPOLATE_LANCZOS)
+	out.resize(canvas, canvas, Image.INTERPOLATE_CUBIC)
 	out.convert(Image.FORMAT_RGBA8)
-	# Opaque: this is the bottom layer and any transparency would show the
-	# launcher.s own background through the icon.
 	for y in range(canvas):
 		for x in range(canvas):
 			var pixel := out.get_pixel(x, y)
-			out.set_pixel(x, y, Color(pixel.r, pixel.g, pixel.b, 1.0))
+			# Opaque, and dimmed so the surround never competes with the artwork
+			# sitting on top of it.
+			out.set_pixel(x, y, Color(pixel.r * SURROUND_DIM, pixel.g * SURROUND_DIM, pixel.b * SURROUND_DIM, 1.0))
+	var art := _fit(source, ADAPTIVE_VIEWPORT_EDGE)
+	out.blend_rect(
+		art,
+		Rect2i(Vector2i.ZERO, art.get_size()),
+		Vector2i((canvas - art.get_width()) / 2, (canvas - art.get_height()) / 2)
+	)
 	return out
 
 
@@ -147,3 +175,19 @@ func _save(image: Image, path: String) -> void:
 	if error != OK:
 		push_error("prepare_brand_refresh: save failed for %s (%d)" % [path, error])
 		quit(1)
+
+
+## The engine boot splash: the mark on a flat plate in the boot background
+## colour. Flat is the whole point - a fixed-size splash is letterboxed on any
+## aspect it was not authored for, and only a fill that matches `bg_color`
+## exactly hides the join.
+func _boot_splash(mark: Image) -> Image:
+	var out := Image.create_empty(BOOT_SPLASH_SIZE.x, BOOT_SPLASH_SIZE.y, false, Image.FORMAT_RGBA8)
+	out.fill(BOOT_SPLASH_BG)
+	var art := _fit(mark, BOOT_SPLASH_LOGO_EDGE)
+	out.blend_rect(
+		art,
+		Rect2i(Vector2i.ZERO, art.get_size()),
+		Vector2i((BOOT_SPLASH_SIZE.x - art.get_width()) / 2, (BOOT_SPLASH_SIZE.y - art.get_height()) / 2)
+	)
+	return out

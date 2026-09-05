@@ -126,6 +126,9 @@ var _plate_locked: StyleBox
 var _plate_chest: StyleBox
 var _plate_chest_locked: StyleBox
 var _plate_shadow: StyleBoxFlat
+## Own canvas item for the halos and sparkles, so the static map underneath is
+## not repainted every frame just to animate them.
+var _animated_layer: Control
 
 
 ## PASS, not STOP. The map fills the ScrollContainer, and a child that stops
@@ -135,7 +138,25 @@ var _plate_shadow: StyleBoxFlat
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	_build_plates()
+	_animated_layer = Control.new()
+	_animated_layer.name = "LevelMapAnimation"
+	_animated_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Behind the map, not over it. A child canvas item draws after its parent by
+	# default, which would put the halos on top of the plates they sit behind.
+	_animated_layer.show_behind_parent = true
+	_animated_layer.draw.connect(_draw_animated_layer)
+	add_child(_animated_layer)
+	_match_animation_layer()
+	resized.connect(_match_animation_layer)
 	set_process(true)
+
+
+## The animation layer shares the map.s coordinate space, so the halo positions
+## it draws are the same _point_at values the plates were drawn at.
+func _match_animation_layer() -> void:
+	if _animated_layer != null:
+		_animated_layer.position = Vector2.ZERO
+		_animated_layer.size = size
 
 
 ## Cleared plates sit slightly recessed and the current one is lifted, so the
@@ -162,12 +183,52 @@ func _build_plates() -> void:
 
 
 func _process(delta: float) -> void:
-	# Only the current-level ring animates, so the redraw is worth its cost only
-	# while that ring is actually on screen.
-	if not _slot_in_window(LevelMilestoneType.slot_for_level(highest_level)):
-		return
 	_pulse = fmod(_pulse + delta, TAU)
-	queue_redraw()
+	# Only the animation layer repaints per frame. The map itself is expensive -
+	# a dozen nine-patched plates, their laurels, the path strokes, the scattered
+	# gems, and a hundred-odd draw_string calls for the outlined numbers - and
+	# repainting all of it sixty times a second just to breathe one halo is what
+	# made scrolling stutter.
+	if _animated_layer != null:
+		_animated_layer.queue_redraw()
+
+
+## The moving parts, on their own canvas item: the current level's breathing
+## halo and a claimable chest's glinting sparkles. Everything static stays in
+## `_draw`, which only repaints when the visible slot range changes.
+func _draw_animated_layer() -> void:
+	if _animated_layer == null or _slot_count <= 0:
+		return
+	var range_slots := _visible_slot_range()
+	if range_slots.y < range_slots.x:
+		return
+	var canvas := _animated_layer.get_canvas_item()
+	for slot in range(range_slots.x, range_slots.y + 1):
+		var contents := LevelMilestoneType.slot_contents(slot)
+		var chest_index := int(contents.get("chest", 0))
+		var centre := _point_at(float(slot))
+		if chest_index > 0:
+			if chest_index > LevelMilestoneType.unlocked_chest_count(highest_level):
+				continue
+			if claimed_chests.has(chest_index):
+				continue
+			var chest_halo := CHEST_PLATE * 0.62 + 22.0 + sin(_pulse * 2.0 + float(chest_index)) * 7.0
+			_animated_layer.draw_circle(centre, chest_halo, Color(UiDesignSystemType.COLOR_GOLD_LIGHT, 0.20))
+			_animated_layer.draw_circle(centre, chest_halo * 0.80, Color(UiDesignSystemType.COLOR_GOLD_LIGHT, 0.16))
+			for index in range(2):
+				# Clear of the plate corners, because this layer draws behind the
+				# plate and a sparkle any closer in would be hidden by it.
+				var offset := Vector2(CHEST_PLATE * (0.60 if index == 0 else -0.60), -CHEST_PLATE * 0.56)
+				var twinkle := 0.55 + 0.45 * sin(_pulse * 3.0 + float(index) * PI)
+				var edge := SPARKLE_WIDTH
+				var rect := Rect2(centre + offset - Vector2(edge, edge) * 0.5, Vector2(edge, edge))
+				UiKitType.ICON_SPARKLE.draw_rect(canvas, rect, false, Color(1.0, 1.0, 1.0, twinkle))
+			continue
+		if int(contents.get("level", 0)) != highest_level:
+			continue
+		var halo := CURRENT_PLATE * 0.62 + 18.0 + sin(_pulse * 2.4) * 5.0
+		_animated_layer.draw_circle(centre, halo, Color(UiDesignSystemType.COLOR_GOLD_LIGHT, 0.22))
+		_animated_layer.draw_circle(centre, halo * 0.82, Color(UiDesignSystemType.COLOR_GOLD_LIGHT, 0.16))
 
 
 ## `levels_ahead` is how far beyond the player's furthest level the path keeps
@@ -189,10 +250,18 @@ func content_height() -> float:
 ## The visible slice of the map, in this control's own coordinates. The parent
 ## ScrollContainer owns the scroll offset, so it has to tell us; without it we
 ## would redraw a thousand levels to show eight.
+## Redraws only when the window has actually moved onto different slots.
+##
+## This fires on every scroll event, and a flick produces a great many of them.
+## Repainting the whole visible path - plates, laurels, crown, path strokes,
+## studs and scattered gems - for a two-pixel change was the stutter: the work
+## is identical until the slot range changes, so the redraw is not.
 func set_window(top: float, bottom: float) -> void:
+	var previous := _visible_slot_range()
 	_window_top = top
 	_window_bottom = bottom
-	queue_redraw()
+	if _visible_slot_range() != previous:
+		queue_redraw()
 
 
 ## Position of a fractional slot. Drawing walks it in CURVE_STEPS increments to
@@ -318,12 +387,8 @@ func _draw_level(slot: int, level_number: int) -> void:
 		text_colour = UiDesignSystemType.COLOR_TEXT
 
 	if current:
-		# A soft halo behind the plate, breathing with _pulse. This is the only
-		# thing on the map that moves, so it reads as "you are here" before any
-		# number is parsed.
-		var halo := edge * 0.62 + 18.0 + sin(_pulse * 2.4) * 5.0
-		draw_circle(centre, halo, Color(UiDesignSystemType.COLOR_GOLD_LIGHT, 0.22))
-		draw_circle(centre, halo * 0.82, Color(UiDesignSystemType.COLOR_GOLD_LIGHT, 0.16))
+		# The breathing halo is drawn on the animation layer, not here - see
+		# _draw_animated_layer.
 		# The crown marks the frontier, matching how the reference map crowns the
 		# level the player is standing on.
 		_draw_texture_centred(UiKitType.BADGE_CROWN, centre + Vector2(0.0, -edge * 0.68), CROWN_WIDTH)
@@ -341,13 +406,6 @@ func _draw_chest(slot: int, chest_index: int) -> void:
 	var unlocked := chest_index <= LevelMilestoneType.unlocked_chest_count(highest_level)
 	var claimed := claimed_chests.has(chest_index)
 
-	if unlocked and not claimed:
-		# A claimable chest is the loudest thing on the map on purpose: it is the
-		# one node that pays out rather than costing a run.
-		var halo := CHEST_PLATE * 0.62 + 22.0 + sin(_pulse * 2.0 + float(chest_index)) * 7.0
-		draw_circle(centre, halo, Color(UiDesignSystemType.COLOR_GOLD_LIGHT, 0.20))
-		draw_circle(centre, halo * 0.80, Color(UiDesignSystemType.COLOR_GOLD_LIGHT, 0.16))
-
 	_draw_plate(_plate_chest if unlocked else _plate_chest_locked, centre, CHEST_PLATE)
 
 	# The same chest art the daily missions screen uses, in the same two states,
@@ -360,13 +418,6 @@ func _draw_chest(slot: int, chest_index: int) -> void:
 		Color.WHITE if unlocked else Color(0.58, 0.52, 0.66, 0.88)
 	)
 
-	if unlocked and not claimed:
-		# Sparkles on the two upper corners, counter-phased so the chest glints
-		# rather than blinking as one block.
-		for index in range(2):
-			var offset := Vector2(CHEST_PLATE * (0.46 if index == 0 else -0.46), -CHEST_PLATE * 0.44)
-			var twinkle := 0.55 + 0.45 * sin(_pulse * 3.0 + float(index) * PI)
-			_draw_texture_centred(UiKitType.ICON_SPARKLE, centre + offset, SPARKLE_WIDTH, Color(1.0, 1.0, 1.0, twinkle))
 
 
 ## Nine-patched so the plate's gold rim keeps its authored thickness at every

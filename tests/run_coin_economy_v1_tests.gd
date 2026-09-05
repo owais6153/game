@@ -10,6 +10,7 @@ extends SceneTree
 ## suite noticed, because each number was only ever asserted on its own.
 
 const GameConfigType = preload("res://scripts/core/game_config.gd")
+const GameControllerType = preload("res://scripts/gameplay/game_controller.gd")
 const LevelConfigType = preload("res://scripts/core/level_config.gd")
 const PowerInventoryServiceType = preload("res://scripts/services/power_inventory_service.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
@@ -26,6 +27,7 @@ func _run() -> void:
 	_test_escape_hatches_stay_expensive()
 	_test_rewards_rise_with_tier()
 	_test_a_day_of_missions_is_worth_less_than_grinding_levels()
+	await _test_abandoned_attempt_never_banks_its_earnings()
 	if failures.is_empty():
 		print("COIN_ECONOMY_V1_TESTS: PASS")
 		quit(0)
@@ -114,3 +116,51 @@ func _test_a_day_of_missions_is_worth_less_than_grinding_levels() -> void:
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
 		failures.append(message)
+
+
+## The reported farming exploit, reproduced as the player performed it.
+##
+## Hit a target, leave the level without finishing it, come back in, hit the
+## same target again. Before the fix the display balance was never rolled back,
+## Home showed the inflated figure, and re-entering the level banked it into
+## `level_start_coins` - so the same target could be cashed repeatedly and the
+## gain became genuinely spendable. Only a cold restart revealed the truth,
+## because nothing had ever been persisted.
+func _test_abandoned_attempt_never_banks_its_earnings() -> void:
+	var controller := GameControllerType.new()
+	root.add_child(controller)
+	await process_frame
+
+	controller.coins = 2400
+	controller.level_start_coins = 2400
+	controller.highest_level = maxi(controller.highest_level, 3)
+
+	# Mid-level target reward: the display runs ahead, the bank does not.
+	controller.coins += 200
+	_assert(controller.coins == 2600, "A target must credit the display balance")
+	_assert(controller.spendable_coins() == 2400,
+		"A target must not credit the spendable balance before the level resolves, got %d" % controller.spendable_coins())
+
+	# Walk out to Home without finishing.
+	controller._show_home()
+	_assert(controller.coins == 2400,
+		"Leaving a level must discard unresolved earnings, Home showed %d" % controller.coins)
+	_assert(controller.spendable_coins() == 2400,
+		"Leaving a level must not bank unresolved earnings, got %d" % controller.spendable_coins())
+
+	# Back in through the map, which is where the inflation used to be banked.
+	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
+	_assert(controller.spendable_coins() == 2400,
+		"Entering a level must not bank the previous attempt's earnings, got %d" % controller.spendable_coins())
+	_assert(controller.coins == 2400,
+		"Entering a level must start from the banked balance, got %d" % controller.coins)
+
+	# Cash the same target a second time; it must not compound.
+	controller.coins += 200
+	controller._show_home()
+	_assert(controller.coins == 2400 and controller.spendable_coins() == 2400,
+		"Repeating a target across abandoned attempts must not accumulate, got %d/%d" % [controller.coins, controller.spendable_coins()])
+
+	controller.queue_free()
+	await process_frame

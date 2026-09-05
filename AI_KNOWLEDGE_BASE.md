@@ -1,3 +1,28 @@
+# 2026-09-05 - Currency and icon guardrails
+
+- **`coins` is display, `level_start_coins` is money.** The first runs ahead
+  during a level and includes target rewards that have not resolved; the second
+  is what `spendable_coins()` returns and what any purchase checks. Three rules
+  keep them honest, and all three were broken at once:
+  `restart()` must roll `coins` back to `level_start_coins`; entering a level
+  must never assign `level_start_coins = coins`; and leaving a level must
+  discard the difference immediately, because Home and the level map draw the
+  balance before any restart happens.
+- **Only bank at a real earning event.** `level_start_coins = coins` is correct
+  in exactly two places - after a win's reward is persisted, and after a skip's
+  balance is persisted. Anywhere else it converts a display figure into money.
+- **Adaptive icons show only the middle 72 of 108dp.** Artwork scaled to fill a
+  432 canvas is handed to the launcher as a 1.5x enlargement, which is what
+  "the icon is zoomed in" means. Anything meant to be seen whole goes at 288.
+- **A fixed-size boot splash is letterboxed on aspects it was not authored
+  for.** The only way the join is invisible is if the image's own fill is
+  exactly `boot_splash/bg_color`. A gradient that merely looks close will band.
+- **Do not repaint a scrolling custom-drawn view every frame.** Put the animated
+  parts on their own `Control` child with `show_behind_parent` if they belong
+  underneath, and gate the static repaint on the visible range actually
+  changing. `LevelMapView` was doing ~100 `draw_string` calls per frame to
+  animate one halo.
+
 # 2026-09-05 - Mascot, popup shell, and reminder guardrails
 
 - **Never animate a popup's `panel` directly.** The title plate is a sibling of

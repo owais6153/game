@@ -1,3 +1,16 @@
+# Release APK 1.0.19 (vc21) - Coin Exploit, Icon Zoom, Splash Seam, Map Scroll
+
+- Filename: `build/android/majestic-gems-release-v1.0.19-vc21.apk`
+- Size: 88179296 bytes (84.1 MB)
+- SHA-256: `c99bf45bfb2623d06f7fb27d182ecbc5bd04b8e548a4e92888f7aa2ea4baedae`
+- Built: 2026-09-05, Godot 4.6.3.stable, custom build template
+- Version: versionCode 21 / versionName 1.0.19, strictly above every code previously recorded here (highest prior 20 / 1.0.18)
+- Signing: release-signed with the real upload key, `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`
+- Validation (aapt2 badging + apksigner): package `com.owais.majestygems`, versionCode 21, versionName 1.0.19, minSdk 24, target/compile SDK 36; `MajesticNotifications` compiled into `classes3.dex`.
+- Fixes in this build: the abandoned-attempt coin exploit; the zoomed adaptive launcher icon; the boot-splash seam on tall screens; level-map scroll stutter.
+- Tests: all 38 regression suites pass, including a new case in `run_coin_economy_v1_tests` that reproduces the reported coin sequence and fails without the fix.
+- **Device status: not installed and not verified on hardware.** No device was available. The icon zoom and splash seam were both reported from a device and are fixed against the Android sizing rules and verified through rendered mask previews, but neither has been re-checked on a handset. The daily reminder has still never fired on real hardware.
+
 # Release APK 1.0.18 (vc20) - Brand Refresh v6 and Pause Reminders
 
 - Filename: `build/android/majestic-gems-release-v1.0.18-vc20.apk`

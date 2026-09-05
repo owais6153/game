@@ -212,6 +212,9 @@ func _build() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	scroll.follow_focus = false
+	# Touch panning needs a little travel before it takes over, or a tap that
+	# wobbles by a pixel starts a scroll and the map twitches under the finger.
+	scroll.scroll_deadzone = 8
 	# Godot's built-in ScrollContainer panel is a bordered grey plate, and the
 	# project theme does not override it - that stylebox is what drew a visible
 	# box around the map.

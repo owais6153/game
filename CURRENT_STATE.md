@@ -1,3 +1,11 @@
+# Coin Exploit, Icon Zoom, Splash Seam and Map Scroll - 1.0.19 (vc21) - 2026-09-05
+
+- **`restart()` now rolls the display balance back to the bank.** It never did, despite every comment saying so. `coins` is the display value and runs ahead of `level_start_coins` while a level is in progress; leaving a level unfinished left it inflated, and re-entering banked the inflation. Entering a level banks nothing, and leaving one discards unresolved earnings on the spot.
+- **The adaptive launcher icon is drawn at the 72dp viewport, not full bleed.** Only the middle 72 of an adaptive icon's 108dp is ever shown, so filling the canvas is a 1.5x enlargement. The ring around the artwork is a blur of the same illustration.
+- **The boot splash is the v6 mark on a plate in exactly `boot_splash/bg_color`**, so its letterboxing is invisible on any aspect. The previous one was a gradient whose edges did not match the fill.
+- **The level map repaints only when the visible slot range changes**, and the animated halos live on their own canvas item behind it. Repainting the whole path every frame to breathe one ring was the scroll stutter.
+- All 38 suites pass. Release-signed APK at versionCode 21 / versionName 1.0.19.
+
 # Brand Refresh v6, Pause Reminders, and 1.0.18 (vc20) - 2026-09-05
 
 - **Two logo varieties, two jobs.** Transparent goes on Home and the Android launch screen, because both composite it over a background they already own. The illustrated square goes on the launcher icon, which has nothing to composite against. They are not interchangeable, and `ASSET_INVENTORY.md` records which derivative feeds which consumer.
