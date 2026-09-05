@@ -1,3 +1,11 @@
+# Brand Refresh v6, Pause Reminders, and 1.0.18 (vc20) - 2026-09-05
+
+- **Two logo varieties, two jobs.** Transparent goes on Home and the Android launch screen, because both composite it over a background they already own. The illustrated square goes on the launcher icon, which has nothing to composite against. They are not interchangeable, and `ASSET_INVENTORY.md` records which derivative feeds which consumer.
+- **The adaptive launcher icon is the illustration, full bleed, with an empty foreground layer** - so it matches the legacy icon on older Android. Inset-to-safe-zone was tried and rejected for the flat border it left. `scripts/dev/preview_adaptive_icon_masks.gd` proves the wordmark clears every common launcher mask.
+- **`HomeOverlayLayer.LOGO_SIZE` is now 360x340**, matching the new square crest. The old 424x259 box was shaped for the previous wide wordmark and letterboxed the new art down to 259 across.
+- **The REMINDERS switch is in the pause settings as well as Home settings.** Pause is where settings actually get opened mid-session; having it only on Home meant most players would never see it.
+- All 38 suites pass. Release-signed APK at versionCode 20 / versionName 1.0.18.
+
 # Mood Mascot, Daily Reminders, and One Popup Shell - 2026-09-05
 
 - **The mascot is a mood dial, not a clip.** Two eight-frame tracks (happy, sad) share a neutral first pose. Callers set a mood and an intensity; `MascotView` eases along the track and cross-fades the two frames either side of its position. Draw the lower frame opaque and the upper over it at the fractional alpha - drawing both semi-transparent leaves the shared gold ring 75% opaque and the mascot visibly dims mid-blend.

@@ -512,3 +512,53 @@ godot --headless --path . --script scripts/dev/slice_mascot_frames.gd
 | 12x2 mood sheet | `assets/character/mascot_mood_sheet_source_v2.png` | `assets/runtime/character/mascot_{happy,sad}_1..12.png`, 160x160 registered crops |
 | Gradient boot splash | transparent v6 logo plus generated purple gradient | `assets/runtime/ui/majestic_gems_gradient_logo_splash_v1.png`, 720x1280 |
 | Android system splash mark | transparent v6 logo | `assets/runtime/ui/majestic_gems_system_splash_logo_v1.png`, transparent 1152x1152 canvas |
+
+## Brand refresh v6 (2026-09-05)
+
+Two supplied logo varieties, used for different jobs. They are not
+interchangeable: one composites over a background the screen already has, the
+other is a fixed square with nowhere to composite against.
+
+| Source | Runtime derivative | Used by |
+| --- | --- | --- |
+| `assets/logo/majestic_gems_home_logo_source_v6.png` (transparent) | `assets/runtime/ui/majestic_gems_logo_v6.png` | Home screen, via `AssetCatalog.BRAND_LOGO` |
+| same | `assets/runtime/ui/majestic_gems_system_splash_1152_v6.png` | Android launch screen, `splash_screen/icon` |
+| `assets/logo/majestic_gems_logo_with_background_source_v6.png` (illustrated) | `assets/runtime/ui/majestic_gems_app_icon_192_v6.png` | Legacy launcher icon, and `project.godot` `config/icon` |
+| same | `assets/runtime/ui/majestic_gems_adaptive_background_v6.png` | Adaptive launcher icon, background layer |
+| — | `assets/runtime/ui/majestic_gems_adaptive_foreground_v6.png` | Adaptive foreground: deliberately empty |
+
+Regenerate all five with:
+
+```
+godot --headless --path . --script scripts/dev/prepare_brand_refresh_v1.gd
+```
+
+**Why the transparent mark is used for the launch screen.** The Android launch
+screen draws the icon over the `#1C0734` window background, and Home draws it
+over the garden art. A baked-in background would show as a visible square on
+both.
+
+**Why the adaptive icon has no foreground layer.** The illustrated square is the
+whole icon, so it is the background layer and the foreground is transparent.
+That keeps the launcher icon identical on Android 7 and Android 14, since the
+legacy 192px icon is the same artwork.
+
+The illustration is full bleed rather than inset into the adaptive safe zone.
+Inset was tried first and left a flat purple border, so the icon read as a
+picture pasted on a card. Full bleed is safe because of where the wordmark sits:
+a launcher mask crops to roughly the inscribed circle, and the wordmark's
+half-width is about 162 against a 216 radius. What the mask removes is garden.
+
+Verify the crop before shipping a new logo with:
+
+```
+godot --headless --path . --script scripts/dev/preview_adaptive_icon_masks.gd
+```
+
+which writes `reports/brand-refresh-v6/adaptive-masks.png` — the composited icon
+under circle, squircle and rounded-square masks.
+
+**Home's logo box changed shape with the art.** `HomeOverlayLayer.LOGO_SIZE` went
+from 424x259 to 360x340. The mark is drawn with its aspect preserved, so the old
+wide box letterboxed the new square crest down to 259 across and made it look
+small.

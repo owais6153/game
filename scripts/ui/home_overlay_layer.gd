@@ -20,7 +20,12 @@ const DECOR_DIAMOND = preload("res://assets/runtime/ui/kit/decor_diamond.png")
 
 ## A compact brand mark rather than a hero panel. Home is a game screen, so the
 ## logo identifies the game and then gets out of the way.
-const LOGO_SIZE := Vector2(424.0, 259.0)
+##
+## Squarer than it was: the v6 mark is a square crest, and the old 424x259 box
+## was shaped for the previous wide wordmark. The logo is drawn with its aspect
+## preserved, so a wide box simply letterboxed the new art down to 259 across
+## and made it look small on the screen.
+const LOGO_SIZE := Vector2(360.0, 340.0)
 const ICON_PLAY = preload("res://assets/runtime/ui/icons/play_white.svg")
 const ICON_CHECK = preload("res://assets/runtime/ui/icons/check_white.svg")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_lavender.svg")
@@ -842,11 +847,14 @@ func _setting_switch_row(parent: VBoxContainer, text: String, node_name: String)
 	row.add_child(toggle)
 	return toggle
 
+## Reminders are not an audio setting, so they must not wear the speaker. The
+## icon set has no bell, and the kit calendar badge is the closest thing that
+## actually says "daily" - which is what the reminder is.
 func _setting_icon_texture(node_name: String) -> Texture2D:
 	if node_name.contains("Music"):
 		return ICON_MUSIC
-	if node_name.contains("Sound"):
-		return ICON_SOUND
+	if node_name.contains("Notifications"):
+		return UiKitType.BADGE_CALENDAR
 	return ICON_SOUND
 
 func _sync_settings_from_snapshot() -> void:

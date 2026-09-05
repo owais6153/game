@@ -5,6 +5,7 @@ const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/core/score_formatter.gd")
 const CoinIconType = preload("res://scripts/presentation/coin_icon.gd")
 const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
+const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 
 ## Sized to the Target panel it rides in. Still smaller than the popup mascot on
 ## purpose: here it is a reaction at the edge of vision, not the subject of the
@@ -42,6 +43,7 @@ signal restart_requested
 signal home_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
+signal notifications_toggled(enabled: bool)
 signal privacy_options_requested
 signal ui_tap_requested
 ## Emitted when a power tile is tapped while the player owns at least one.
@@ -103,6 +105,8 @@ var restart_button: Button
 var home_button: Button
 var music_toggle: Button
 var sound_toggle: Button
+## Daily-reminder switch, mirroring the one in Home settings.
+var notifications_toggle: Button
 var privacy_options_button: Button
 
 var _built := false
@@ -240,6 +244,8 @@ func update_snapshot(snapshot: Dictionary) -> void:
 		music_toggle.set_pressed_no_signal(bool(snapshot.get("music_enabled", true)))
 	if sound_toggle != null:
 		sound_toggle.set_pressed_no_signal(bool(snapshot.get("sound_enabled", true)))
+	if notifications_toggle != null:
+		notifications_toggle.set_pressed_no_signal(bool(snapshot.get("notifications_enabled", true)))
 	_sync_pause_switch_labels()
 	if restart_button != null:
 		restart_button.tooltip_text = "Restart Level %d with the same gem chain" % level_number
@@ -1342,6 +1348,14 @@ func _build_pause_popup() -> void:
 		_sync_switch_label(sound_toggle)
 		sound_toggled.emit(enabled)
 	)
+	# The same three switches Home offers. Pause is where a player actually
+	# reaches for settings mid-session, so leaving reminders out of it meant the
+	# toggle effectively did not exist for anyone who never opened Home settings.
+	notifications_toggle = _setting_toggle(column, "REMINDERS", "NotificationsToggle")
+	notifications_toggle.toggled.connect(func(enabled: bool) -> void:
+		_sync_switch_label(notifications_toggle)
+		notifications_toggled.emit(enabled)
+	)
 	privacy_options_button = _button("PausePrivacyOptions", "PRIVACY OPTIONS", Vector2(424.0, 56.0), "SecondaryButton")
 	privacy_options_button.visible = false
 	privacy_options_button.pressed.connect(func() -> void: privacy_options_requested.emit())
@@ -1428,11 +1442,14 @@ func _setting_toggle(parent: VBoxContainer, text: String, node_name: String) -> 
 	return toggle
 
 
+## Reminders are not an audio setting, so they must not wear the speaker. The
+## icon set has no bell, and the kit calendar badge is the closest thing that
+## actually says "daily" - which is what the reminder is.
 func _setting_icon_texture(node_name: String) -> Texture2D:
 	if node_name.contains("Music"):
 		return ICON_MUSIC
-	if node_name.contains("Sound"):
-		return ICON_SOUND
+	if node_name.contains("Notifications"):
+		return UiKitType.BADGE_CALENDAR
 	return ICON_SOUND
 
 
@@ -1462,6 +1479,7 @@ func _sync_switch_label(toggle: Button) -> void:
 func _sync_pause_switch_labels() -> void:
 	_sync_switch_label(music_toggle)
 	_sync_switch_label(sound_toggle)
+	_sync_switch_label(notifications_toggle)
 
 
 func set_privacy_options_available(available: bool) -> void:

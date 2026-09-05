@@ -1,3 +1,16 @@
+# Release APK 1.0.18 (vc20) - Brand Refresh v6 and Pause Reminders
+
+- Filename: `build/android/majestic-gems-release-v1.0.18-vc20.apk`
+- Size: 87473840 bytes (83.4 MB)
+- SHA-256: `5f82ef4c4c802ee89c9a6d8ac27bc6a36c68483f20c0331ab7b6c006af492ac0`
+- Built: 2026-09-05, Godot 4.6.3.stable, custom build template
+- Version: versionCode 20 / versionName 1.0.18, strictly above every code previously recorded here (highest prior 19 / 1.0.17)
+- Signing: release-signed with the real upload key, `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`; SHA-256 `e3ba3287a50af4ac49c07cbcb2e4f10940ad519642cb24f21bcf856b3f3bce14`
+- Validation (aapt2 badging + apksigner): package `com.owais.majestygems`, versionCode 20, versionName 1.0.18, minSdk 24, target/compile SDK 36; `android.permission.POST_NOTIFICATIONS` present; adaptive launcher icon resolves to `res/2r.xml` at all six densities; three DEX files, with `MajesticNotifications` compiled into `classes3.dex` - the daily-reminder plugin is genuinely in this build rather than only in source.
+- Contents of this build: v6 brand across Home, launch screen and launcher icon; the REMINDERS switch in both the Home and pause settings panels; the 12-frame mascot re-sliced from the v3 sheet; the level-select map with milestone chests.
+- Tests: all 38 regression suites pass.
+- **Device status: not installed and not verified on hardware.** No device was available. The daily reminder in particular has never fired on a real handset - the scheduling rules are covered by `run_daily_reminder_mascot_v1_tests`, but the Java that posts the notification has still never run.
+
 # 2026-09-05 - Level Select Map V1 release APK (versionCode 19 / versionName 1.0.17)
 
 - Artifact: `build/android/majestic-gems-level-select-map-v1.0.17-vc19.apk`, 76,359,320 bytes; 2026-09-05 07:06:12 +05:00; SHA-256 `EE833CF3E63053FB0AA8CA1FE75B8090F0DBFFFB2F74454F7443C330416E817D`.

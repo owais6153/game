@@ -1722,6 +1722,7 @@ func _setup_asset_presentation() -> void:
 	gameplay_ui.home_requested.connect(_on_pause_home_requested)
 	gameplay_ui.music_toggled.connect(_on_music_toggled)
 	gameplay_ui.sound_toggled.connect(_on_sound_toggled)
+	gameplay_ui.notifications_toggled.connect(_on_notifications_toggled)
 	gameplay_ui.privacy_options_requested.connect(_on_privacy_options_requested)
 	gameplay_ui.ui_tap_requested.connect(_on_ui_tap_requested)
 	gameplay_ui.power_requested.connect(_on_power_requested)
