@@ -10,7 +10,7 @@
 - **The screen is full-bleed**: the map fills it edge to edge, with the header banner and the hero PLAY button floating over it pinned to the top and bottom. There is no coin chip - nothing here spends coins.
 - Presentation uses the supplied kit throughout - `btn_square_small` plates through a StyleBoxTexture (so the nine-patch rim survives scaling), `badge_check_laurel` on cleared levels, `badge_crown` on the current one, `icon_sparkle` on claimable chests, `decor_diamond_small` studs along a three-stroke gold path. The overlay must set `UiDesignSystem.theme()` on its own root, because a CanvasLayer does not pass the theme down by inheritance.
 - All 38 regression suites pass. Twelve suites gained the level-choice step that the new flow requires between Home PLAY and play; two had back-navigation assertions rewritten for the three-screen flow.
-- `build/` (3.0 GB, gitignored) and the report media subdirectories (694 MB, tracked) were deleted, reclaiming 3.7 GB. The 158 report markdown files are kept and the deleted media is still in git history. **There is currently no built AAB or APK on disk** - the next release must export fresh artefacts.
+- The old `build/` tree (3.0 GB, gitignored) and report media subdirectories (694 MB, tracked) were deleted, reclaiming 3.7 GB. The 158 report markdown files are kept and the deleted media is still in git history. A fresh release-signed APK now exists at `build/android/majestic-gems-level-select-map-v1.0.17-vc19.apk`; no new AAB was exported.
 
 # Level Templates, Analytics, Shop and Input Fixes - 1.0.17 (vc19) - 2026-09-03
 

@@ -367,11 +367,17 @@ than 1.0.17, and record the result in `BUILD_MANIFEST.md`.
 
 ---
 
-## 10. Not done
+## 10. Delivery follow-up
 
-- **No Android build.** This task changed no export configuration and produced
-  no artefact; a release build is a separate task, and the version bump rules
-  above apply to it.
+- A release-signed companion APK was exported after the source milestone commit:
+  `build/android/majestic-gems-level-select-map-v1.0.17-vc19.apk` (76,359,320
+  bytes, SHA-256
+  `EE833CF3E63053FB0AA8CA1FE75B8090F0DBFFFB2F74454F7443C330416E817D`).
+  AAPT reports package `com.owais.majestygems`, versionCode 19, versionName
+  1.0.17, and both supported ARM ABIs. APK Signature Scheme v2 verifies with
+  the established Teckvertex Labs upload certificate. No AAB was generated.
+- The final focused rerun printed `LEVEL_SELECT_MAP_V1_TESTS: PASS`; the runner
+  then returned the repository's known Windows post-PASS exit code 1.
 - **No device validation.** The screen was verified headless through the
   regression suite and through rendered captures at 720x1440, not on a phone.
 - **No stars.** Per-level star ratings were considered and deliberately not

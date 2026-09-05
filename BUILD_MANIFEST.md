@@ -1,3 +1,13 @@
+# 2026-09-05 - Level Select Map V1 release APK (versionCode 19 / versionName 1.0.17)
+
+- Artifact: `build/android/majestic-gems-level-select-map-v1.0.17-vc19.apk`, 76,359,320 bytes; 2026-09-05 07:06:12 +05:00; SHA-256 `EE833CF3E63053FB0AA8CA1FE75B8090F0DBFFFB2F74454F7443C330416E817D`.
+- Export-source commit/tag: `7328e95` / `level-select-map-v1-source`.
+- Delivery tag: `level-select-map-v1-apk` on the manifest/provenance follow-up commit.
+- Export: Godot 4.6.3 `--export-release "Android APK"`, Gradle APK format, `arm64-v8a` + `armeabi-v7a`, existing upload signing. No AAB was generated and the committed version values were not changed.
+- Validation: AAPT reports package `com.owais.majestygems`, versionCode 19, versionName 1.0.17, min SDK 24, target/compile SDK 36. APK Signature Scheme v2 passes with one RSA-2048 signer, `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs`. The archive contains `AndroidManifest.xml`, `classes.dex`, both ARM library sets, and the compiled `level_milestone`, `level_map_view`, and `level_select_overlay_layer` scripts.
+- Tests: the source milestone's recorded 38-suite regression is documented in `reports/LEVEL_SELECT_MAP_V1_REPORT.md`; the final focused rerun printed `LEVEL_SELECT_MAP_V1_TESTS: PASS`. Godot returned the repository's known Windows post-PASS exit code 1 after the sentinel.
+- Device status: `adb devices -l` found no connected device. Installation, launch, touch behavior, and physical visual acceptance are not claimed.
+
 # 2026-09-03 - majestic-gems-release-v1.0.17-vc19.aab FINAL (versionCode 19 / versionName 1.0.17)
 
 **This is the artifact to upload.** It supersedes both earlier 1.0.17 entries below, which were built before later corrections to the level system and are deleted from disk.
