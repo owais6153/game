@@ -36,6 +36,7 @@ func _capture_resolution(resolution: Vector2i, table_index: int) -> void:
 	controller.level_seed = LevelConfigType.seed_for_level(1)
 	controller.restart()
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	controller.set_process(false)
 	controller.table_sprite.texture = AssetCatalogType.table_texture(table_index)

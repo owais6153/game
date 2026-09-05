@@ -1,3 +1,81 @@
+# Architecture Addendum - Level Select Map and Milestone Chests
+
+## Progression identity is two numbers, not one
+
+`GameController.level_number` is the level currently loaded on the table.
+`GameController.highest_level` is the furthest level ever unlocked. Before the
+level screen these were the same value, and code that conflated them was
+correct only because the player could never be on any level but their furthest.
+
+The level screen makes that false. Replaying level 5 out of 40 sets
+`level_number` to 5 and must leave `highest_level` at 40, or the map re-locks
+levels the player has already beaten. The invariant is enforced in one place:
+`ProgressionSaveService.save_progress()` writes
+`max(stored_highest, level_number, highest_level)`, so `highest_level` is
+monotonic no matter which caller writes it and a caller that predates the
+distinction still behaves correctly by passing nothing.
+
+`_finish_completion_transition()` raises `highest_level` only via that maximum,
+which is why winning a replayed level 5 advances `level_number` to 6 - Next
+Level still means next - without moving the frontier.
+
+## Level seeds are derived, never stored
+
+`LevelConfig.seed_for_level(n)` is a pure function of the level number. Nothing
+persists a per-level seed and nothing should: the save's `seed` field is a
+cache of `seed_for_level(level_number)`, not an independent source of truth.
+Replay correctness depends entirely on that purity, so it is asserted directly
+in `run_level_select_map_v1_tests` rather than assumed. If a future change makes
+level generation depend on anything outside the level number - a timestamp, an
+install id, a difficulty adjustment - replays stop reproducing and the level
+screen quietly becomes a lie.
+
+## The map is drawn, not built
+
+`LevelMapView` renders every node, chest, path stroke and ornament in `_draw()`.
+It deliberately does not create a Control per level. The map spans a thousand
+levels beyond the player, so a Control-per-node design would build and lay out
+several thousand nodes on every open, and pay that cost again on every resize
+and scroll.
+
+Two consequences are load-bearing:
+
+- **Only the visible window is drawn.** The parent `ScrollContainer` owns the
+  scroll offset, so the overlay must push it down via `set_window()`; without
+  that call the view would redraw a thousand levels to show eight.
+- **Drawing and hit testing share `_point_at()`.** A separate hit-test layout
+  would drift from the drawn one along the serpentine, where a node's horizontal
+  position changes fastest, and taps would land off the plates.
+
+Slot arithmetic lives in `LevelMilestone`, not in the view, because the
+controller that grants a chest and the map that draws one must agree on where
+chests are. Levels and chests share one column of slots: every block of 20
+levels is followed by a single chest slot.
+
+## The level screen owns no progression rules
+
+`LevelSelectOverlayLayer` is handed `highest_level`, the coin balance and the
+opened chests, and renders exactly that. Unlocking, granting, and saving stay in
+the controller. The map cannot disagree with the save because it has no opinion
+of its own; `update_state()` repaints without re-centring, so a coin change
+while the player is browsing level 300 does not yank them back.
+
+## Entering a level always rebuilds it
+
+`_show_level_start()` calls `restart()`. Every route into a level - Home, the
+map, Next Level, skip - passes through it, so there is exactly one place where
+a level's board is constructed. Before this, leaving a level for Home and
+returning resumed the half-played table, because `_show_home()` only hid the
+gameplay HUD and `_on_home_play_requested()` only un-hid it.
+
+## Back is dispatched by flow state
+
+The Home layer hosts both Home and the Level Ready popup, so its single
+`home_requested` signal is routed by `app_flow_state`:
+Level Ready backs out to the map, everything else to Home. `LevelSelectOverlayLayer`
+deliberately does not listen for Escape or the Android back gesture itself - the
+controller owns app flow, and two listeners would route one press twice.
+
 # Architecture Addendum - Player Feedback and Limited-Shots Repair
 
 `GameController._trigger_failure(fail_reason)` remains the outcome authority and now forwards that reason to `ResultOverlayLayer`. The overlay only maps the supplied value to copy; it does not infer failure from board state or shot counters.

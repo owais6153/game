@@ -134,6 +134,7 @@ func _test_real_bonus_merge_rewards() -> void:
 	var controller := _controller()
 	await process_frame
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	var pieces_before := controller.pieces.size()
 	controller._apply_confirmed_merge_events([_merge_event(controller, 7001, 4, 0)])
@@ -192,6 +193,7 @@ func _test_bonus_cascade_limits() -> void:
 	var controller := _controller()
 	await process_frame
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	controller._schedule_bonus_gems({"result_id": 8999, "level": 6, "midpoint": Vector2.ZERO, "depth": 2})
 	var split_levels: Array = controller.pending_bonus_spawns[0].levels
@@ -280,6 +282,7 @@ func _test_non_final_target_keeps_standard_collection() -> void:
 	var controller := _controller()
 	await process_frame
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	if controller.target_sequence().size() < 2:
 		paused = false
@@ -315,6 +318,7 @@ func _test_final_target_celebration() -> void:
 	var controller := _controller()
 	await process_frame
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	_prepare_final_target(controller, true)
 	var target_tier := controller.active_target_tier()
@@ -414,6 +418,7 @@ func _test_hud_coin_counter_continuity() -> void:
 	var controller := _controller()
 	await process_frame
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	# Fix the level number so the interstitial cadence (every 2 levels) never
 	# gates the transition this test drives deterministically.

@@ -70,6 +70,27 @@ Three missions per day, one from each difficulty tier:
 `DailyMissionService.CHEST_REWARD` is **`0` coins**. The chest pays in powers
 only: `{switch: 2, magnet: 1, hammer: 1}`. It is not a coin source.
 
+### Milestone chest (added 2026-09-05)
+
+One chest per twenty levels, on the level-select path, unlocked by clearing
+levels 20, 40, 60 and so on. `LevelMilestone.COIN_REWARD` is **`800` coins**,
+paid alongside the same power grant the daily chest gives.
+
+It pays coins where the daily chest does not, because the two answer different
+questions. The daily chest recurs once a day against a coin flow that already
+arrives from every level, so adding coins there would only inflate it. A
+milestone is earned once per twenty levels and has to land as an event.
+
+`800` is chosen against two figures the player already knows: roughly two
+levels' income at the measured 310-480 coins per level, and exactly the price of
+one Skip Level. Sizing it that way keeps the reward legible without introducing
+a new number to the economy.
+
+**Effect on the earn rate:** 800 coins per 20 levels is 40 coins per level, or
+about +9% on the 425-coin average - a bonus that is felt at the moment it lands
+but does not move the sink calibration. Raising it much past this starts to make
+Skip Level (800) and Continue (500) cheap enough to blunt the failure loop.
+
 ### Rewarded ads
 
 Rewarded video substitutes for a coin cost rather than paying coins, except for

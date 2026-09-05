@@ -61,6 +61,7 @@ func _load_level(level_number: int) -> void:
 	controller.level_seed = LevelConfigType.seed_for_level(level_number)
 	controller.restart()
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	controller.set_process(false)
 	paused = false

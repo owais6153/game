@@ -51,6 +51,7 @@ func _test_level_entry_and_table_shake_are_presentation_only() -> void:
 	root.add_child(controller)
 	await process_frame
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	var body_positions: Array[Vector2] = []
 	if GameConfig.LEVEL_ENTRY_PRESENTATION_ENABLED:

@@ -172,6 +172,7 @@ func _test_power_row_never_overlaps_the_table() -> void:
 		viewport.add_child(controller)
 		await process_frame
 		controller._on_home_level_intro_requested()
+		controller._on_level_chosen(controller.highest_level)
 		controller._on_home_play_requested()
 		await process_frame
 		# Reproduce the densest objective stack from the reported limited-shots

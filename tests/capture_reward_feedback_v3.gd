@@ -57,6 +57,7 @@ func _build() -> void:
 	await process_frame
 	await process_frame
 	_controller._on_home_level_intro_requested()
+	_controller._on_level_chosen(_controller.highest_level)
 	_controller._on_home_play_requested()
 	# The capture drives the controller by hand so timing is exact and repeatable.
 	_controller.set_process(false)

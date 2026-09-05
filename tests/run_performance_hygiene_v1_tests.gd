@@ -103,6 +103,7 @@ func _start():
 	controller.level_seed = LevelConfigType.seed_for_level(6)
 	controller.restart()
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	controller.set_process(false)
 	return controller

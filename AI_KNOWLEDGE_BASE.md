@@ -1,3 +1,46 @@
+# 2026-09-05 - Level select, replay, and milestone chest guardrails
+
+- **Never store a level seed.** `LevelConfig.seed_for_level(n)` is pure and must
+  stay pure. Replay correctness, and therefore the entire level screen, depends
+  on it. The save's `seed` field is a cache of that function, not a second
+  source of truth. Do not make level generation depend on time, install id, or
+  any adaptive-difficulty input without accepting that replays stop reproducing.
+- **`level_number` is not `highest_level`.** The first is what is on the table,
+  the second is the furthest unlocked. Any new code that means "how far has this
+  player got" wants `highest_level`. Any new save path must not lower it -
+  `save_progress()` already guarantees this by taking a maximum, so route
+  progression writes through it rather than writing the config section directly.
+- **Do not add a Control per level to the map.** `LevelMapView` draws a thousand
+  levels; the design is deliberate and the performance argument is in
+  `ARCHITECTURE.md`. If a node needs new state, add it to the draw path, and add
+  the matching case to `slot_at_position()` in the same change - drawing and hit
+  testing must keep sharing `_point_at()`.
+- **The map must be told what is visible.** A `ScrollContainer` owns its scroll
+  offset; `LevelMapView.set_window()` is how the view learns it. A new scroll
+  path that forgets to call it will render the wrong slice, not nothing, which
+  makes the bug look like a layout problem.
+- **Godot's default `ScrollContainer` panel will draw a box.** The project theme sets no `ScrollContainer` stylebox, so a scroll view falls back to the built-in bordered grey plate. Any full-bleed scrolling screen needs `add_theme_stylebox_override("panel", StyleBoxEmpty.new())`.
+- **`set_anchors_preset()` does not set offsets.** A Control pinned with it alone collapses to the top-left at zero size. Either use `set_anchors_and_offsets_preset()`, or drive the offsets explicitly from `get_combined_minimum_size()` - and re-run that whenever safe insets change, because they change the content height.
+- **A CanvasLayer does not inherit the UI theme.** `LevelSelectOverlayLayer` and
+  `HomeOverlayLayer` both set `UiDesignSystem.theme()` on their own root
+  Control. A new overlay layer that skips this gets Godot's default grey plates
+  and will look broken in a way that reads as missing art.
+- **Milestone chest coins are not the daily chest's coins.** `DailyMissionService.CHEST_REWARD`
+  is 0 by design - the daily chest pays powers only, because coins already
+  arrive from every level. The milestone chest's coin figure is
+  `LevelMilestone.COIN_REWARD`. Do not "fix" one to match the other.
+- **Grant a chest atomically.** Build the entire resulting inventory before
+  persisting anything, then adopt it only after every save returns OK. Both
+  chest paths follow this; a partial grant is unrecoverable for the player.
+- **Entering a level goes through `_show_level_start()`**, which calls
+  `restart()`. Do not add a route into gameplay that bypasses it, or the
+  resume-instead-of-restart bug returns.
+- Adding a screen to the app flow means updating the suites that drive it. The
+  established test idiom for "get me into a level" is now three calls:
+  `_on_home_level_intro_requested()`, `_on_level_chosen(highest_level)`,
+  `_on_home_play_requested()`. Screen transitions apply their swap
+  synchronously, so `app_flow_state` is still readable immediately after.
+
 # 2026-08-31 - Power motion and level-entry guardrails
 
 - Do not lengthen a cinematic by stretching its travel. Power travel ends at 32% of the 1.65-second timeline; use local anticipation/orbit motion for the remaining pre-impact beat.

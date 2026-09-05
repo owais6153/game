@@ -60,6 +60,7 @@ func _capture(resolution: Vector2i, state: Dictionary, armed: String = "") -> vo
 	controller.level_seed = LevelConfigType.seed_for_level(4)
 	controller.restart()
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	controller.set_process(false)
 	controller.coins = 1240
@@ -130,6 +131,7 @@ func _capture_popups() -> void:
 		controller.level_seed = LevelConfigType.seed_for_level(4)
 		controller.restart()
 		controller._on_home_level_intro_requested()
+		controller._on_level_chosen(controller.highest_level)
 		controller._on_home_play_requested()
 		controller.set_process(false)
 		controller.coins = 1240
@@ -176,6 +178,7 @@ func _capture_cinematics() -> void:
 		controller.level_seed = LevelConfigType.seed_for_level(4)
 		controller.restart()
 		controller._on_home_level_intro_requested()
+		controller._on_level_chosen(controller.highest_level)
 		controller._on_home_play_requested()
 		controller.coins = 1240
 		_populate_board(controller)
@@ -284,6 +287,7 @@ func _capture_opening_boards() -> void:
 		controller.level_seed = LevelConfigType.seed_for_level(level)
 		controller.restart()
 		controller._on_home_level_intro_requested()
+		controller._on_level_chosen(controller.highest_level)
 		controller._on_home_play_requested()
 		controller.set_process(false)
 		controller._sync_gems_and_mark_visibility()
@@ -351,6 +355,7 @@ func _capture_limited_shots() -> void:
 		controller.level_seed = LevelConfigType.seed_for_level(4)
 		controller.restart()
 		controller._on_home_level_intro_requested()
+		controller._on_level_chosen(controller.highest_level)
 		controller._on_home_play_requested()
 		controller.set_process(false)
 		controller.coins = 650
@@ -383,6 +388,7 @@ func _capture_mission_toast() -> void:
 		controller.level_seed = LevelConfigType.seed_for_level(4)
 		controller.restart()
 		controller._on_home_level_intro_requested()
+		controller._on_level_chosen(controller.highest_level)
 		controller._on_home_play_requested()
 		controller.coins = 1240
 		_populate_board(controller)

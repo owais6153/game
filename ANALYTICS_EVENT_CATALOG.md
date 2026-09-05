@@ -125,6 +125,28 @@ purchase funnel is everyone who reached for it. `power_purchase_failed` carries
 Completion and claiming are separate events on purpose: the gap between them is
 the interesting number.
 
+## Level select and milestone chests
+
+`level_selected`, `milestone_chest_unlocked`, `milestone_chest_claim`,
+`milestone_chest_claim_failed`
+
+`level_selected` fires when a level is picked off the map. Parameters:
+`level_number`, `highest_level`, `is_replay`. `is_replay` is the one that
+matters - it separates forward progress from a player going back to re-play
+something, which every per-level completion and difficulty metric otherwise
+mixes together.
+
+`milestone_chest_unlocked` fires on the win that clears a multiple of 20, and
+`milestone_chest_claim` when the chest is actually opened on the map. As with
+the daily chest these are deliberately separate: the gap between them is how
+many players earned a reward and never went back for it.
+`milestone_chest_claim` carries `chest_index`, `level_number`, `amount`,
+`powers` and `resulting_balance`, and is paired with a `coin_earned` carrying
+`coin_source` `milestone_chest`. `milestone_chest_claim_failed` carries a
+`failure_reason` of `not_unlocked`, `save_failed`, or `power_save_failed`.
+
+Like every other grant here, the claim event fires only after both saves commit.
+
 ## Recovery funnels
 
 `skip_level_attempt`, `skip_level_success`, `skip_level_failed`,

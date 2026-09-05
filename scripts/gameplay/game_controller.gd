@@ -22,6 +22,8 @@ const PowerShopOverlayType = preload("res://scripts/ui/power_shop_overlay_layer.
 const LevelAttemptAnalyticsType = preload("res://scripts/services/level_attempt_analytics.gd")
 const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.gd")
 const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
+const LevelSelectType = preload("res://scripts/ui/level_select_overlay_layer.gd")
+const LevelMilestoneType = preload("res://scripts/core/level_milestone.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -144,6 +146,15 @@ const COIN_ACTION_EXTRA_SHOTS := "extra_shots"
 const COIN_ACTION_CONTINUE := "continue_attempt"
 var screen_transition: ScreenTransitionType
 var level_briefing: LevelBriefingType
+var level_select: LevelSelectOverlayLayer
+
+## The furthest level ever unlocked. Distinct from `level_number`, which is the
+## level currently loaded on the table: replaying level 5 out of 40 sets
+## `level_number` to 5 while this stays at 40, which is what keeps the rest of
+## the map unlocked and Home showing real progress.
+var highest_level := 1
+## Milestone chests already opened, by chest index.
+var claimed_chests: Array[int] = []
 var seen_level_types: Array[String] = []
 var ad_manager: Node
 var level_reward_for_completion := 0
@@ -152,7 +163,7 @@ var completion_transition_consumed := false
 var completion_destination := "play"
 var rewarded_bonus_granted := false
 var completion_reward_resolved := false
-enum AppFlowState { STARTUP, HOME, LEVEL_READY, PLAYING, LEVEL_COMPLETE, REWARD_PROCESSING, AD_SHOWING }
+enum AppFlowState { STARTUP, HOME, LEVEL_SELECT, LEVEL_READY, PLAYING, LEVEL_COMPLETE, REWARD_PROCESSING, AD_SHOWING }
 var app_flow_state := AppFlowState.STARTUP
 var presentation_event_trace: Array[Dictionary] = []
 var process_frame_index := 0
@@ -220,7 +231,13 @@ func _ready() -> void:
 	var saved := ProgressionSaveServiceType.load_progress()
 	var saved_settings := GameSettingsServiceType.load_settings()
 	level_number = int(saved.level_number)
-	level_seed = int(saved.seed)
+	highest_level = maxi(level_number, int(saved.get("highest_level", level_number)))
+	claimed_chests = saved.get("claimed_chests", [] as Array[int])
+	# A session always opens on the furthest level, never on whichever earlier
+	# level the last session happened to replay. The replay is a detour; the
+	# player's place in the game is `highest_level`.
+	level_number = highest_level
+	level_seed = LevelConfigType.seed_for_level(level_number)
 	coins = int(saved.total_coins)
 	var saved_daily: Dictionary = saved.get("daily_state", {}) as Dictionary
 	var rolled_new_day := DailyMissionServiceType.needs_new_day(saved_daily)
@@ -522,9 +539,14 @@ func _handle_back_request(_allow_application_exit: bool = true) -> String:
 			if home_overlay != null:
 				home_overlay.show_exit_confirmation()
 			return "exit_confirmation"
-		AppFlowState.LEVEL_READY:
+		AppFlowState.LEVEL_SELECT:
 			_show_home()
 			return "home"
+		AppFlowState.LEVEL_READY:
+			# Back out of the level popup returns to the map that opened it, so
+			# the player can pick a different level without a trip through Home.
+			_show_level_select()
+			return "level_select"
 		AppFlowState.PLAYING:
 			if gameplay_ui != null and gameplay_ui.is_pause_visible():
 				_on_resume_requested()
@@ -1519,7 +1541,8 @@ func _perform_skip_level(cost: int = GameConfig.SKIP_LEVEL_COST) -> void:
 	var skipped_level := level_number
 	var next_level_number := level_number + 1
 	var next_seed := LevelConfigType.seed_for_level(next_level_number)
-	var save_error := ProgressionSaveServiceType.save_progress(next_level_number, next_seed, resulting_balance)
+	var next_highest := maxi(highest_level, next_level_number)
+	var save_error := ProgressionSaveServiceType.save_progress(next_level_number, next_seed, resulting_balance, {}, next_highest)
 	if save_error != OK:
 		skip_request_locked = false
 		push_warning("Skip Level cancelled because coin persistence failed (%d)" % save_error)
@@ -1558,10 +1581,12 @@ func _perform_skip_level(cost: int = GameConfig.SKIP_LEVEL_COST) -> void:
 	coins = resulting_balance
 	level_number = next_level_number
 	level_seed = next_seed
+	highest_level = next_highest
 	level_start_coins = coins
 	analytics_attempt_number = 0
 	reroll_count_for_level = 0
-	restart()
+	# _show_level_start() rebuilds the level itself, so a second restart here
+	# would only re-seed the same board twice.
 	_show_level_start()
 	if is_inside_tree():
 		var unlock_timer := get_tree().create_timer(0.35)
@@ -1723,7 +1748,7 @@ func _setup_asset_presentation() -> void:
 	add_child(home_overlay)
 	home_overlay.play_requested.connect(_on_home_play_requested)
 	home_overlay.level_intro_requested.connect(_on_home_level_intro_requested)
-	home_overlay.home_requested.connect(_show_home)
+	home_overlay.home_requested.connect(_on_home_overlay_back_requested)
 	home_overlay.skip_level_requested.connect(_on_skip_level_requested)
 	home_overlay.music_toggled.connect(_on_music_toggled)
 	home_overlay.sound_toggled.connect(_on_sound_toggled)
@@ -1755,6 +1780,12 @@ func _setup_asset_presentation() -> void:
 	level_briefing = LevelBriefingType.new()
 	add_child(level_briefing)
 	level_briefing.ui_tap_requested.connect(_on_ui_tap_requested)
+	level_select = LevelSelectType.new()
+	add_child(level_select)
+	level_select.level_chosen.connect(_on_level_chosen)
+	level_select.chest_claim_requested.connect(_on_milestone_chest_claim_requested)
+	level_select.home_requested.connect(_show_home)
+	level_select.ui_tap_requested.connect(_on_ui_tap_requested)
 
 func _on_daily_missions_requested() -> void:
 	if daily_overlay == null:
@@ -1814,6 +1845,70 @@ func _on_daily_mission_claim_requested(index: int) -> void:
 	# never imply a reward the player did not actually receive.
 	daily_overlay.celebrate_claim(index, reward)
 	_refresh_hud()
+
+## A milestone chest tapped on the level map. It pays the same coins and powers
+## as the daily chest, so the two read as one reward object wherever the player
+## meets them, and it is granted with the same atomicity rule: the whole
+## resulting inventory is built before anything is persisted, so a failed save
+## can never hand out half a chest.
+func _on_milestone_chest_claim_requested(chest_index: int) -> void:
+	if chest_index <= 0 or claimed_chests.has(chest_index):
+		return
+	if chest_index > LevelMilestoneType.unlocked_chest_count(highest_level):
+		_log_analytics("milestone_chest_claim_failed", {
+			"chest_index": chest_index,
+			"failure_reason": "not_unlocked",
+		})
+		return
+	var reward := LevelMilestoneType.COIN_REWARD
+	var granted: Dictionary = DailyMissionServiceType.CHEST_POWER_REWARD.duplicate()
+	var next_powers := power_state
+	for power in granted.keys():
+		for _index in range(maxi(0, int(granted[power]))):
+			next_powers = _granted_inventory(next_powers, String(power))
+	var next_claimed := claimed_chests.duplicate()
+	next_claimed.append(chest_index)
+	var resulting_balance := coins + reward
+	if ProgressionSaveServiceType.save_claimed_chest(chest_index, next_claimed, resulting_balance) != OK:
+		_log_analytics("milestone_chest_claim_failed", {
+			"chest_index": chest_index,
+			"failure_reason": "save_failed",
+		})
+		return
+	if ProgressionSaveServiceType.save_power_state(next_powers, resulting_balance) != OK:
+		_log_analytics("milestone_chest_claim_failed", {
+			"chest_index": chest_index,
+			"failure_reason": "power_save_failed",
+		})
+		return
+	claimed_chests = next_claimed
+	power_state = next_powers
+	coins = resulting_balance
+	_log_analytics("milestone_chest_claim", {
+		"chest_index": chest_index,
+		"level_number": LevelMilestoneType.level_for_chest(chest_index),
+		"amount": reward,
+		"powers": JSON.stringify(granted),
+		"resulting_balance": coins,
+	})
+	_log_analytics("coin_earned", {
+		"amount": reward,
+		"coin_source": "milestone_chest",
+		"reason": "milestone_chest",
+		"level_number": LevelMilestoneType.level_for_chest(chest_index),
+		"balance_before": coins - reward,
+		"balance_after": coins,
+		"resulting_balance": coins,
+	})
+	if audio_feedback != null:
+		audio_feedback.emit_event("treasure_open")
+	# Repainted rather than re-presented, so the map keeps the player's scroll
+	# position and the chest simply changes to its opened state under their
+	# finger.
+	if level_select != null:
+		level_select.update_state(highest_level, coins, claimed_chests)
+	_refresh_hud()
+
 
 func _on_daily_chest_claim_requested() -> void:
 	var claim := DailyMissionServiceType.claim_chest(daily_state)
@@ -3265,17 +3360,30 @@ func _finish_completion_transition() -> void:
 	completion_transition_consumed = true
 	completion_action_pending = false
 	var destination := completion_destination
+	var cleared_level := level_number
 	level_number += 1
 	level_seed = LevelConfigType.seed_for_level(level_number)
+	# Only a win on the frontier moves the frontier. Replaying level 5 out of 40
+	# still advances `level_number` to 6 - that is what Next Level means - but it
+	# must never drag the map's unlocked boundary back down to 6.
+	highest_level = maxi(highest_level, level_number)
 	level_start_coins = coins
 	analytics_attempt_number = 0
 	reroll_count_for_level = 0
-	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins)
+	ProgressionSaveServiceType.save_progress(level_number, level_seed, coins, {}, highest_level)
+	var unlocked_chest := LevelMilestoneType.chest_for_level(cleared_level)
+	if unlocked_chest > 0 and unlocked_chest <= LevelMilestoneType.unlocked_chest_count(highest_level):
+		_log_analytics("milestone_chest_unlocked", {
+			"chest_index": unlocked_chest,
+			"level_number": cleared_level,
+		})
 	restart()
 	if destination == "home":
 		_show_home()
 	else:
-		_show_level_start()
+		# Next Level lands on the map, not straight in the next board, so the
+		# path the player just climbed one step of is what they see.
+		_show_level_select()
 
 
 func _on_double_coins_requested() -> void:
@@ -3382,14 +3490,73 @@ func _show_home() -> void:
 			result_overlay.dismiss()
 		if daily_overlay != null:
 			daily_overlay.dismiss()
+		if level_select != null:
+			level_select.dismiss()
 		app_flow_state = AppFlowState.HOME
-		home_overlay.present(level_number, coins, hud_snapshot())
+		home_overlay.present(highest_level, coins, hud_snapshot())
 		if is_inside_tree():
 			get_tree().paused = true
 	if screen_transition != null:
 		screen_transition.play(enter_home)
 	else:
 		enter_home.call()
+
+
+## The Home layer hosts the Level Ready popup as well as Home itself, so its
+## single back signal has to be routed by what the player is actually looking
+## at. Backing out of Level Ready returns to the map that opened it; backing out
+## of anything else on that layer is Home.
+func _on_home_overlay_back_requested() -> void:
+	if app_flow_state == AppFlowState.LEVEL_READY:
+		_show_level_select()
+		return
+	_show_home()
+
+
+## The level map. Every route into a level now passes through it: Home's PLAY,
+## and the Next Level action on a win.
+func _show_level_select() -> void:
+	if level_select == null:
+		# Without the map there is no way to pick a level, so fall through to the
+		# level the player is on rather than stranding them on Home.
+		_show_level_start()
+		return
+	var enter_map := func() -> void:
+		if gameplay_ui != null:
+			gameplay_ui.hide_pause(false)
+			gameplay_ui.hide()
+		if result_overlay != null:
+			result_overlay.dismiss()
+		if home_overlay != null:
+			home_overlay.dismiss()
+		app_flow_state = AppFlowState.LEVEL_SELECT
+		level_select.present(highest_level, coins, claimed_chests)
+		if is_inside_tree():
+			get_tree().paused = true
+	if screen_transition != null:
+		screen_transition.play(enter_map)
+	else:
+		enter_map.call()
+
+
+## A level picked off the map. Seeds are a pure function of the level number, so
+## loading level 5 here rebuilds exactly the board level 5 was first played on.
+func _on_level_chosen(chosen_level: int) -> void:
+	if app_flow_state != AppFlowState.LEVEL_SELECT:
+		return
+	if chosen_level <= 0 or chosen_level > highest_level:
+		return
+	level_number = chosen_level
+	level_seed = LevelConfigType.seed_for_level(chosen_level)
+	level_start_coins = coins
+	analytics_attempt_number = 0
+	reroll_count_for_level = 0
+	_log_analytics("level_selected", {
+		"level_number": chosen_level,
+		"highest_level": highest_level,
+		"is_replay": chosen_level < highest_level,
+	})
+	_show_level_start()
 
 
 func _show_level_start() -> void:
@@ -3399,6 +3566,13 @@ func _show_level_start() -> void:
 		gameplay_ui.hide_pause(false)
 	if result_overlay != null:
 		result_overlay.dismiss()
+	if level_select != null:
+		level_select.dismiss()
+	# Entering a level always builds it from scratch. Without this, leaving a
+	# level for Home and coming back resumed the half-played table that was
+	# still loaded, which read as the game refusing to let go of a run the
+	# player had walked away from.
+	restart()
 	app_flow_state = AppFlowState.LEVEL_READY
 	if gameplay_ui != null:
 		gameplay_ui.show()
@@ -3610,10 +3784,12 @@ func _briefing_for_level_type(level_type: String) -> Dictionary:
 	}
 
 
+## Home's PLAY. It opens the map rather than the level popup, so the player
+## chooses a level before every run instead of only ever being handed one.
 func _on_home_level_intro_requested() -> void:
 	if app_flow_state != AppFlowState.HOME:
 		return
-	_show_level_start()
+	_show_level_select()
 
 
 func _on_reward_animation_finished() -> void:

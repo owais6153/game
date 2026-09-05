@@ -48,6 +48,7 @@ func _test_live_gameplay_hooks() -> void:
 	await process_frame
 	_assert(_event_count("level_start") == 0, "Home/scene setup must not emit level_start before the player starts an attempt")
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	controller._on_home_play_requested()
 	_assert(_event_count("level_start") == 1, "START GAME must emit level_start exactly once")
@@ -151,6 +152,7 @@ func _test_live_gameplay_hooks() -> void:
 	root.add_child(failed_controller)
 	await process_frame
 	failed_controller._on_home_level_intro_requested()
+	failed_controller._on_level_chosen(failed_controller.highest_level)
 	failed_controller._on_home_play_requested()
 	failed_controller._trigger_failure()
 	failed_controller._trigger_failure()

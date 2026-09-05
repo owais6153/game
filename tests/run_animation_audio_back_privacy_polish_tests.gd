@@ -72,6 +72,7 @@ func _test_exactly_once_restored_cadence_and_launcher_independence() -> void:
 	root.add_child(controller)
 	await process_frame
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	var result_level := controller.active_target_tier()
 	var result_id := 9001
@@ -138,8 +139,13 @@ func _test_back_state_priority() -> void:
 	_assert(controller._handle_back_request(false) == "exit_confirmation" and controller.home_overlay.exit_confirm_blocker.visible, "Bare Home Back must show exit confirmation")
 	_assert(controller._handle_back_request(false) == "home_overlay" and not controller.home_overlay.exit_confirm_blocker.visible, "Back must close exit confirmation without exiting")
 	controller._on_home_level_intro_requested()
-	_assert(controller._handle_back_request(false) == "home_overlay" and controller.app_flow_state == controller.AppFlowState.HOME, "Back must return Level Ready to Home")
+	_assert(controller._handle_back_request(false) == "home" and controller.app_flow_state == controller.AppFlowState.HOME, "Back must return the level map to Home")
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
+	_assert(controller._handle_back_request(false) == "home_overlay" and controller.app_flow_state == controller.AppFlowState.LEVEL_SELECT, "Back must return Level Ready to the level map")
+	controller._show_home()
+	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	_assert(controller._handle_back_request(false) == "pause" and controller.gameplay_ui.is_pause_visible(), "Gameplay Back must open Pause")
 	_assert(controller._handle_back_request(false) == "resume", "Back on Pause must resume")

@@ -157,6 +157,7 @@ func _test_input_drag_area() -> void:
 	var snapshot := _backup_save_file()
 	var controller = await _start_controller()
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	await process_frame
 	await process_frame
@@ -234,6 +235,7 @@ func _test_analytics_integrity() -> void:
 	var controller = await _start_controller()
 
 	controller._on_home_level_intro_requested()
+	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
 	# Re-entering must not restart the attempt's reporting.
 	controller._on_home_play_requested()
