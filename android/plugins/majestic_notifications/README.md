@@ -20,23 +20,24 @@ The plugin is compiled into the current custom build template. Its authoritative
 Java sources are mirrored into `android/build/src/main/java`, and the manifest
 registers both the Godot singleton and alarm receiver.
 
-1. Add the module to `android/build/settings.gradle` and as a dependency of the
-   app module in `android/build/build.gradle`, or build it to an `.aar` and drop
-   that plus a `.gdap` into `android/plugins/`.
-2. Add to `android/build/src/main/AndroidManifest.xml`, inside `<manifest>`:
+No gradle module and no `.aar` are involved: the sources sit directly in the
+build template's own source set, and the manifest carries all three pieces of
+registration:
 
-   ```xml
-   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-   ```
+```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-   and inside `<application>`:
+<meta-data
+    android:name="org.godotengine.plugin.v2.MajesticNotifications"
+    android:value="com.teckvertex.majesticgems.notifications.MajesticNotifications" />
+<receiver
+    android:name="com.teckvertex.majesticgems.notifications.ReminderReceiver"
+    android:exported="false" />
+```
 
-   ```xml
-   <receiver
-       android:name="com.teckvertex.majesticgems.notifications.ReminderReceiver"
-       android:exported="false" />
-   ```
-3. Enable the plugin in `export_presets.cfg`.
+**This directory is the reference copy, not the one that compiles.** Only
+`android/build` is on the gradle source path, so the two cannot collide - but
+they can silently diverge. Edit the `android/build` copy and mirror it here.
 
 Desktop and any Android package built without the custom template still degrade
 to a tested no-op when the singleton is absent.
