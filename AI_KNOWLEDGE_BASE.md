@@ -1,4 +1,25 @@
-# 2026-09-05 - Splash and draw-cost guardrails
+# 2026-09-05 - Scroll, splash and test-isolation guardrails
+
+- **Do not put a virtually-scrolled view inside a ScrollContainer.** The
+  container needs the view to BE its content, which for a thousand levels is a
+  node 186,000px tall re-laid-out on every scroll. Own the offset, keep the
+  control viewport-sized, and shift the drawing with `draw_set_transform`.
+- **Scrolling that writes an offset straight from each drag event has no feel.**
+  Whole-pixel steps while dragging and a dead stop on release is what players
+  call "not smooth" - it is not frame rate. Track velocity during the drag and
+  glide with exponential friction so the result is frame-rate independent.
+- **A splash border must equal `boot_splash/bg_color` all the way round.**
+  Reaching it at the corners is not enough: the shortest distance from the
+  centre is an edge midpoint, and that is where the band appears. The generator
+  asserts the whole border before writing.
+- **Suites share `user://` even though they run in separate processes.** Daily
+  mission progress banked by one suite changed a coin assertion in another and
+  produced a one-in-five failure. Any test that measures currency or progression
+  must call `ProgressionSaveService.clear_progress()` first.
+- **When a fix does not land, the diagnosis was wrong - do not re-tune it.**
+  This scroll was "fixed" three times by tuning before the actual cause, an
+  input handler with no velocity, was read.
+
 
 - **A fixed-size splash image is letterboxed with `boot_splash/bg_color`.** The
   only way the join is invisible is if the image resolves to exactly that colour

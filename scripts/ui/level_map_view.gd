@@ -72,6 +72,16 @@ const NUMBER_OUTLINE_SIZE := 6
 ## Extra rows drawn beyond the visible window. See _visible_slot_range.
 const BLEED_ROWS := 2
 
+## Flick physics. Friction is per second and applied exponentially, so the glide
+## feels the same whatever the frame rate; below MIN_GLIDE_SPEED it stops rather
+## than creeping for ever.
+const FRICTION := 0.06
+const MIN_GLIDE_SPEED := 12.0
+const VELOCITY_BLEND := 0.65
+const MIN_FRAME_DELTA := 1.0 / 240.0
+## Trackpad and mouse-wheel pan events are reported in notches, not pixels.
+const PAN_GESTURE_SCALE := 40.0
+
 ## Plate drop shadow: how far below the plate it sits, and how much larger it is
 ## drawn so it reads as a soft spread rather than as a hard offset copy.
 const SHADOW_DROP := 0.085
@@ -113,8 +123,10 @@ var last_level := 1
 var claimed_chests: Array[int] = []
 
 var _slot_count := 1
-var _window_top := 0.0
-var _window_bottom := 0.0
+## Content-space Y of the top of the viewport, plus the flick physics.
+var _scroll := 0.0
+var _velocity := 0.0
+var _dragging := false
 var _pulse := 0.0
 ## Press tracking, so a flick across a level plate scrolls instead of selecting.
 var _press_position := Vector2.ZERO
@@ -136,6 +148,9 @@ var _animated_layer: Control
 ## visible numbers; the answer only depends on the digits and the size, and both
 ## repeat constantly as the map scrolls.
 var _measure_cache: Dictionary = {}
+## The slot range the current painting covers, so a scroll that stays inside it
+## costs nothing.
+var _drawn_range := Vector2i(-1, -1)
 
 
 ## PASS, not STOP. The map fills the ScrollContainer, and a child that stops
@@ -192,6 +207,7 @@ func _build_plates() -> void:
 
 func _process(delta: float) -> void:
 	_pulse = fmod(_pulse + delta, TAU)
+	_advance_glide(delta)
 	# Only the animation layer repaints per frame. The map itself is expensive -
 	# a dozen nine-patched plates, their laurels, the path strokes, the scattered
 	# gems, and a hundred-odd draw_string calls for the outlined numbers - and
@@ -210,6 +226,7 @@ func _draw_animated_layer() -> void:
 	var range_slots := _visible_slot_range()
 	if range_slots.y < range_slots.x:
 		return
+	_animated_layer.draw_set_transform(Vector2(0.0, -_scroll))
 	var canvas := _animated_layer.get_canvas_item()
 	for slot in range(range_slots.x, range_slots.y + 1):
 		var contents := LevelMilestoneType.slot_contents(slot)
@@ -247,7 +264,11 @@ func configure(new_highest_level: int, new_claimed_chests: Array[int], levels_ah
 	claimed_chests = new_claimed_chests.duplicate()
 	last_level = highest_level + maxi(0, levels_ahead)
 	_slot_count = LevelMilestoneType.slot_count_through(last_level)
-	custom_minimum_size = Vector2(0.0, content_height())
+	# Deliberately does not set custom_minimum_size. This control is the viewport,
+	# not the content: sizing it to content_height() is what made it a node
+	# 186,000px tall back when a ScrollContainer owned the scrolling.
+	_scroll = clampf(_scroll, 0.0, max_scroll())
+	_drawn_range = Vector2i(-1, -1)
 	queue_redraw()
 
 
@@ -264,12 +285,30 @@ func content_height() -> float:
 ## Repainting the whole visible path - plates, laurels, crown, path strokes,
 ## studs and scattered gems - for a two-pixel change was the stutter: the work
 ## is identical until the slot range changes, so the redraw is not.
-func set_window(top: float, bottom: float) -> void:
-	var previous := _visible_slot_range()
-	_window_top = top
-	_window_bottom = bottom
-	if _visible_slot_range() != previous:
+## Furthest the map can be scrolled: everything below the viewport.
+func max_scroll() -> float:
+	return maxf(0.0, content_height() - size.y)
+
+
+## Moves the map by a finger delta and records the speed for the release glide.
+func _apply_drag(relative_y: float) -> void:
+	var before := _scroll
+	_scroll = clampf(_scroll - relative_y, 0.0, max_scroll())
+	var moved := _scroll - before
+	var delta := maxf(get_process_delta_time(), MIN_FRAME_DELTA)
+	# Blended rather than taken raw, so one jittery event cannot throw the glide.
+	_velocity = lerpf(_velocity, moved / delta, VELOCITY_BLEND)
+	if not is_equal_approx(before, _scroll):
+		_refresh_visible()
+
+
+## Repaints only when the visible slot range has actually changed. Between those
+## points the drawn content is identical and simply moves with the transform.
+func _refresh_visible() -> void:
+	if _drawn_range != _visible_slot_range():
 		queue_redraw()
+	if _animated_layer != null:
+		_animated_layer.queue_redraw()
 
 
 ## Position of a fractional slot. Drawing walks it in CURVE_STEPS increments to
@@ -291,7 +330,7 @@ func scroll_offset_for_level(level_number: int, viewport_height: float) -> float
 
 func _slot_in_window(slot: int) -> bool:
 	var y := _point_at(float(slot)).y
-	return y >= _window_top - ROW_HEIGHT and y <= _window_bottom + ROW_HEIGHT
+	return y >= _scroll - ROW_HEIGHT and y <= _scroll + size.y + ROW_HEIGHT
 
 
 ## Inclusive slot range covering the window plus BLEED_ROWS on each side.
@@ -301,13 +340,9 @@ func _slot_in_window(slot: int) -> bool:
 ## bleed the range changed every 182px of travel, which during a fast scroll is
 ## several full repaints a second and each one was a visible hitch.
 func _visible_slot_range() -> Vector2i:
-	if _window_bottom <= _window_top:
-		# Before the first scroll notification arrives, draw the bottom of the
-		# map rather than nothing at all.
-		return Vector2i(0, mini(_slot_count - 1, 12))
 	var height := content_height()
-	var lowest := int(floor((height - BOTTOM_PAD - _window_bottom) / ROW_HEIGHT)) - BLEED_ROWS
-	var highest := int(ceil((height - BOTTOM_PAD - _window_top) / ROW_HEIGHT)) + BLEED_ROWS
+	var lowest := int(floor((height - BOTTOM_PAD - (_scroll + size.y)) / ROW_HEIGHT)) - BLEED_ROWS
+	var highest := int(ceil((height - BOTTOM_PAD - _scroll) / ROW_HEIGHT)) + BLEED_ROWS
 	return Vector2i(maxi(0, lowest), mini(_slot_count - 1, maxi(0, highest)))
 
 
@@ -317,6 +352,10 @@ func _draw() -> void:
 	var range_slots := _visible_slot_range()
 	if range_slots.y < range_slots.x:
 		return
+	_drawn_range = range_slots
+	# Everything below is authored in content space. Shifting once here is what
+	# lets the whole map scroll without this control being content-sized.
+	draw_set_transform(Vector2(0.0, -_scroll))
 	_draw_scatter(range_slots)
 	_draw_path(range_slots)
 	for slot in range(range_slots.x, range_slots.y + 1):
@@ -484,17 +523,27 @@ func _draw_centred_number(centre: Vector2, text: String, colour: Color) -> void:
 ## Acting on press made every attempt to flick the map open a level instead: the
 ## first event of a scroll gesture is a press on whatever node is under the
 ## finger. Comparing press and release positions separates a tap from a drag.
+## Scrolling is owned here, not by a ScrollContainer.
+##
+## Two things were wrong with the container. It required this view to BE the
+## content, which for a thousand levels meant a node 186,000px tall inside a
+## container that re-laid it out on every scroll. And because a drag starting on
+## a custom-drawn child was not reliably claimed by the container, a handler had
+## been added that wrote `scroll_vertical` directly from each drag event - whole
+## pixels, no velocity, dead stop the instant the finger lifted. That is what
+## "not smooth" was: not frame rate, but a scroll with no momentum and integer
+## steps.
+##
+## Owning the offset keeps this control exactly viewport-sized, makes content
+## height irrelevant, and puts the flick physics here where they can be tuned.
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventScreenDrag:
-		# Android's ScrollContainer does not reliably claim a drag that begins on
-		# this custom-drawn child. Drive the owning scroll bar directly so a
-		# finger swipe always moves the map, while keeping mouse-wheel/desktop
-		# scrolling on the built-in container path.
-		var owner := get_parent() as ScrollContainer
-		if owner != null:
-			owner.scroll_vertical = maxi(0, owner.scroll_vertical - roundi(event.relative.y))
-			_press_active = false
-			accept_event()
+	if event is InputEventScreenDrag or (event is InputEventMouseMotion and _dragging):
+		_apply_drag(event.relative.y)
+		accept_event()
+		return
+	if event is InputEventPanGesture:
+		_apply_drag(-event.delta.y * PAN_GESTURE_SCALE)
+		accept_event()
 		return
 	if not (event is InputEventScreenTouch or event is InputEventMouseButton):
 		return
@@ -503,13 +552,20 @@ func _gui_input(event: InputEvent) -> void:
 	if event.pressed:
 		_press_position = event.position
 		_press_active = true
+		_dragging = true
+		# Catching a moving map is how a player stops it, so a press kills the
+		# glide rather than fighting it.
+		_velocity = 0.0
 		return
+	_dragging = false
 	if not _press_active:
 		return
 	_press_active = false
 	if event.position.distance_to(_press_position) > TAP_MOVE_TOLERANCE:
-		# The finger travelled: this was a scroll, not a choice.
+		# The finger travelled: this was a flick, not a choice. The velocity built
+		# up during the drag carries on from here.
 		return
+	_velocity = 0.0
 	var hit := slot_at_position(event.position)
 	if hit < 0:
 		return
@@ -529,15 +585,17 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 
-## Slot whose plate contains `point`, or -1. Only slots near the window are
+## Slot whose plate contains `point`, or -1. `point` arrives in this control.s
+## own space, so it is lifted into content space before it is compared. Only slots near the window are
 ## considered, which is both faster and correct: a tap can only land on
 ## something the player can see.
 func slot_at_position(point: Vector2) -> int:
+	var content_point := point + Vector2(0.0, _scroll)
 	var range_slots := _visible_slot_range()
 	for slot in range(range_slots.x, range_slots.y + 1):
 		var contents := LevelMilestoneType.slot_contents(slot)
 		var radius := CHEST_RADIUS if int(contents.get("chest", 0)) > 0 else NODE_RADIUS
-		if point.distance_to(_point_at(float(slot))) <= radius + TAP_SLOP:
+		if content_point.distance_to(_point_at(float(slot))) <= radius + TAP_SLOP:
 			return slot
 	return -1
 
@@ -586,3 +644,38 @@ func _measure(font: Font, text: String, font_size: int) -> Vector2:
 	var measured := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size)
 	_measure_cache[key] = measured
 	return measured
+
+
+## Carries a released flick on and brings it to rest.
+##
+## Exponential friction rather than a fixed deceleration, so the glide reads the
+## same on a 60Hz and a 120Hz screen.
+func _advance_glide(delta: float) -> void:
+	if _dragging or absf(_velocity) < MIN_GLIDE_SPEED:
+		if not _dragging and not is_zero_approx(_velocity):
+			_velocity = 0.0
+		return
+	var before := _scroll
+	_scroll = clampf(_scroll + _velocity * delta, 0.0, max_scroll())
+	_velocity *= pow(FRICTION, delta)
+	if is_equal_approx(before, _scroll):
+		# Hit an end; nothing left to carry.
+		_velocity = 0.0
+		return
+	_refresh_visible()
+
+
+## Puts `level_number` in the middle of a `clear_height` band. Used on open, so
+## the player's own level is what the screen lands on.
+func scroll_to_level(level_number: int, clear_height: float, top_inset: float = 0.0) -> void:
+	var centre := _point_at(float(LevelMilestoneType.slot_for_level(level_number))).y
+	_velocity = 0.0
+	_scroll = clampf(centre - clear_height * 0.5 - top_inset, 0.0, max_scroll())
+	_drawn_range = Vector2i(-1, -1)
+	queue_redraw()
+	if _animated_layer != null:
+		_animated_layer.queue_redraw()
+
+
+func scroll_offset() -> float:
+	return _scroll

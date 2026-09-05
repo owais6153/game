@@ -72,6 +72,16 @@ mascot at full band height.
 
 # Architecture Addendum - Level Select Map and Milestone Chests
 
+## LevelMapView owns scrolling as presentation state
+
+The map is a viewport-sized custom-drawn `Control`, not oversized content inside
+a `ScrollContainer`. `LevelMapView` owns `_scroll`, drag velocity, exponential
+friction, bounds, hit testing, and the draw transform. This keeps the map's
+thousand-level look-ahead virtual: scrolling never causes layout of a roughly
+186,000-pixel child, and the same content-space transform feeds drawing and hit
+testing. `LevelSelectOverlayLayer` supplies the viewport rectangle but does not
+duplicate scroll physics or progression rules.
+
 ## Progression identity is two numbers, not one
 
 `GameController.level_number` is the level currently loaded on the table.

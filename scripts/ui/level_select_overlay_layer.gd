@@ -49,7 +49,6 @@ var wash: ColorRect
 ## stay full-bleed.
 var header_margin: MarginContainer
 var footer_margin: MarginContainer
-var scroll: ScrollContainer
 var map_view: LevelMapView
 var title_label: Label
 var subtitle_label: Label
@@ -63,9 +62,6 @@ var _coins := 0
 var _claimed_chests: Array[int] = []
 var _entrance_tween: Tween
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
-## Set while the map is being scrolled to the player's level, so the resulting
-## scroll notification is not mistaken for the player browsing.
-var _centring := false
 
 
 func _ready() -> void:
@@ -154,34 +150,18 @@ func _chest_summary() -> String:
 
 ## The map runs the full height of the screen, but the top and bottom of it are
 ## under the two floating bars. Centring therefore targets the clear band
-## between them, or the player's own level opens half-hidden behind the banner.
+## between them, or the player.s own level opens half-hidden behind the banner.
 func _centre_on_current_level() -> void:
-	if scroll == null or map_view == null:
+	if map_view == null:
 		return
 	var header_height := header_margin.size.y if header_margin != null else 0.0
 	var footer_height := footer_margin.size.y if footer_margin != null else 0.0
-	var clear_band := maxf(1.0, scroll.size.y - header_height - footer_height)
-	var offset := map_view.scroll_offset_for_level(_highest_level, clear_band)
-	_centring = true
-	# Shift by the header so the centre of the clear band, not the centre of the
-	# full screen, is what lands on the player's level.
-	scroll.scroll_vertical = int(round(maxf(0.0, offset - header_height)))
-	_centring = false
-	_push_window()
-
-
-## The map draws only what is on screen, so it has to be told what that is
-## every time the scroll or the viewport moves.
-func _push_window() -> void:
-	if scroll == null or map_view == null:
-		return
-	var top := float(scroll.scroll_vertical)
-	map_view.set_window(top, top + scroll.size.y)
+	var clear_band := maxf(1.0, map_view.size.y - header_height - footer_height)
+	map_view.scroll_to_level(_highest_level, clear_band, header_height)
 
 
 func _on_viewport_resized() -> void:
 	_refresh_safe_margins()
-	_push_window()
 
 
 func _build() -> void:
@@ -217,36 +197,20 @@ func _build() -> void:
 	root_control.add_child(wash)
 	wash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	# The map is the whole screen. The header and the hero button float over it
-	# at the two edges rather than taking rows out of a column, so the path runs
-	# edge to edge and the artwork is never boxed into a panel in the middle.
-	scroll = ScrollContainer.new()
-	scroll.name = "LevelSelectScroll"
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	scroll.follow_focus = false
-	# Touch panning needs a little travel before it takes over, or a tap that
-	# wobbles by a pixel starts a scroll and the map twitches under the finger.
-	scroll.scroll_deadzone = 8
-	# Godot's built-in ScrollContainer panel is a bordered grey plate, and the
-	# project theme does not override it - that stylebox is what drew a visible
-	# box around the map.
-	scroll.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	root_control.add_child(scroll)
-	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# The scrollbar would sit on top of the artwork and never be dragged on a
-	# phone; the flick gesture is the real control.
-	var bar := scroll.get_v_scroll_bar()
-	if bar != null:
-		bar.modulate = Color(1.0, 1.0, 1.0, 0.0)
-		bar.value_changed.connect(_on_scrolled)
-
+	# The map is the whole screen. The header and the hero button float over it at
+	# the two edges rather than taking rows out of a column, so the path runs edge
+	# to edge and the artwork is never boxed into a panel in the middle.
+	#
+	# No ScrollContainer. The map owns its own scroll offset, which keeps it
+	# exactly viewport-sized - inside a container it had to BE its content, and a
+	# thousand levels is a node 186,000px tall being re-laid-out on every scroll.
 	map_view = LevelMapViewType.new()
 	map_view.name = "LevelMapView"
-	map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map_view.level_selected.connect(_on_level_selected)
 	map_view.chest_selected.connect(_on_chest_selected)
-	scroll.add_child(map_view)
+	map_view.clip_contents = true
+	root_control.add_child(map_view)
+	map_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	# Soft scrims under the two floating bars. They are not a frame around the
 	# map - they only stop a level plate from colliding with the banner or the
@@ -372,12 +336,6 @@ func _build_header() -> Control:
 	mascot_slot.add_child(mascot)
 
 	return header
-
-
-func _on_scrolled(_value: float) -> void:
-	if _centring:
-		return
-	_push_window()
 
 
 func _on_level_selected(level_number: int) -> void:

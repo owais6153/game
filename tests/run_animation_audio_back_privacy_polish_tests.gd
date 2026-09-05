@@ -2,6 +2,7 @@ extends SceneTree
 
 const GameControllerType = preload("res://scripts/gameplay/game_controller.gd")
 const HomeOverlayType = preload("res://scripts/ui/home_overlay_layer.gd")
+const ProgressionSaveServiceType = preload("res://scripts/services/progression_save_service.gd")
 
 var failures: Array[String] = []
 
@@ -68,16 +69,21 @@ func _test_timing_and_mix_contracts() -> void:
 
 func _test_exactly_once_restored_cadence_and_launcher_independence() -> void:
 	paused = false
+	# Every suite runs in its own process but they all share `user://`, so daily
+	# mission progress written by an earlier run is still there. That matters
+	# here: a merge can complete a daily mission, and a completed mission credits
+	# coins - which is exactly what the last assertion measures. Left alone this
+	# case passed on its own and failed roughly one full-suite run in five,
+	# depending on what previous runs had banked.
+	ProgressionSaveServiceType.clear_progress()
 	var controller := GameControllerType.new()
 	root.add_child(controller)
 	await process_frame
 	controller._on_home_level_intro_requested()
 	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
-	# This case drives presentation state by hand, one explicit advance at a time.
-	# Leaving the controller.s own _process running meant real frame deltas were
-	# advancing the same state in between, so the result depended on how busy the
-	# machine was - the suite passed alone and failed intermittently in a full run.
+	# This case drives presentation state by hand, one explicit advance at a time,
+	# so the controller.s own _process must not advance the same state in between.
 	controller.set_process(false)
 	controller.set_physics_process(false)
 	var result_level := controller.active_target_tier()

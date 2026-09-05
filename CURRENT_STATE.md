@@ -1,4 +1,12 @@
-# Gradient Splash, Scroll Performance, Chest Line - 1.0.21 (vc23) - 2026-09-05
+# Owned Map Scrolling and a Splash That Cannot Band - 1.0.18 (vc20) - 2026-09-05
+
+- **Canonical release identity is versionName `1.0.18`, versionCode `20`.** Higher values seen in local test APK iterations were accidental version drift and are retired.
+- **Release payload cleanup is conservative and reachability-based.** Five obsolete runtime branding derivatives were removed; supplied originals remain preserved, and dynamically named UI-kit resources remain intact.
+
+- **`LevelMapView` owns its scroll.** No `ScrollContainer`, no 186,000px content node, no per-event `scroll_vertical` writes. The control is viewport-sized, shifts its drawing with one `draw_set_transform`, and runs its own flick physics - drag follows the finger exactly, release glides under exponential friction, a touch mid-glide catches it.
+- **The boot splash border is exactly `boot_splash/bg_color`, asserted by the generator.** Reaching that colour only at the corners is not enough; the shortest distance from the centre is the top edge, and that is where it banded.
+- **The shared `user://` save is a cross-suite state leak.** Daily-mission progress from an earlier suite changed whether a merge credited coins in a later one. Tests that measure currency must clear progress first.
+- All 38 suites pass, verified over three consecutive full passes.
 
 - **The engine splash is a radial gradient whose edges are exactly `boot_splash/bg_color`**, which is what makes its letterboxing invisible at any aspect. A fixed-size raster whose edges did not match the fill is what banded; flattening it to a solid colour was not a fix. The short Android window background before the engine starts is still flat - a shape drawable through `custom_theme_attributes` was tried and the built APK showed Godot overwriting `windowBackground` with its own colour, so it was removed rather than left in looking like a fix.
 - **Level map repaint cost went from 4.13ms to below the noise floor**, measured. Cached text measurement, the plate nine-patch reused as its own shadow instead of a `StyleBoxFlat` with `shadow_size`, and one `draw_string_outline` in place of eight offset `draw_string` calls per number.

@@ -28,7 +28,7 @@ func _run() -> void:
 	_test_seeds_are_pure_functions_of_level()
 	await _test_map_view_geometry_and_hit_testing()
 	await _test_map_view_locks_future_levels()
-	await _test_mobile_drag_scrolls_the_container()
+	await _test_drag_scrolls_and_release_glides()
 	await _test_overlay_presents_and_centres()
 	_test_controller_flow_wiring()
 	if failures.is_empty():
@@ -181,30 +181,58 @@ func _test_map_view_locks_future_levels() -> void:
 	var before := chosen.size()
 	_drag(map, LevelMilestoneType.slot_for_level(4))
 	_assert(chosen.size() == before, "A drag across a level must scroll, not open it")
-	_assert(map.mouse_filter == Control.MOUSE_FILTER_PASS,
-		"The map must pass input through so the ScrollContainer can scroll")
-
 	map.queue_free()
 	await process_frame
 
 
-func _test_mobile_drag_scrolls_the_container() -> void:
-	var scroll := ScrollContainer.new()
-	scroll.size = Vector2(720.0, 1280.0)
-	root.add_child(scroll)
+## The map owns its scroll, so a drag must move it and a release must glide.
+##
+## The previous implementation wrote the parent ScrollContainer.s `scroll_vertical`
+## straight from each drag event, in whole pixels, with no velocity - so the map
+## stepped while the finger moved and stopped dead the instant it lifted. That is
+## what "not smooth" was, and it is what these assertions exist to prevent
+## coming back.
+func _test_drag_scrolls_and_release_glides() -> void:
 	var map := LevelMapViewType.new()
+	root.add_child(map)
 	map.size = Vector2(720.0, 1280.0)
 	map.configure(25, [] as Array[int], 1000)
-	scroll.add_child(map)
 	await process_frame
-	scroll.scroll_vertical = 500
-	var drag := InputEventScreenDrag.new()
-	drag.position = Vector2(360.0, 640.0)
-	drag.relative = Vector2(0.0, -120.0)
-	map._gui_input(drag)
-	_assert(scroll.scroll_vertical == 620,
-		"An Android finger drag must directly move the level ScrollContainer")
-	scroll.queue_free()
+	_assert(map.max_scroll() > 0.0, "A thousand-level map must have somewhere to scroll")
+
+	# Press, drag, and the map must follow the finger exactly - no rounding to
+	# whole pixels, and no dependence on a parent container.
+	_press(map, Vector2(360.0, 640.0))
+	var before: float = map.scroll_offset()
+	_drag_by(map, -120.5)
+	_assert(is_equal_approx(map.scroll_offset(), before + 120.5),
+		"The map must follow the finger exactly, got %f" % (map.scroll_offset() - before))
+
+	# Releasing after a flick must leave momentum behind.
+	_release(map, Vector2(360.0, 519.5))
+	_assert(absf(map._velocity) > 0.0, "A released flick must carry momentum")
+	# Stepped with explicit deltas rather than by counting frames: headless runs
+	# far faster than 60Hz, so a fixed frame count is a different amount of
+	# simulated time on every machine.
+	var glided: float = map.scroll_offset()
+	map._advance_glide(1.0 / 60.0)
+	_assert(map.scroll_offset() > glided,
+		"The map must keep gliding after the finger lifts")
+
+	# And it must come to rest rather than creep for ever.
+	for _step in range(240):
+		map._advance_glide(1.0 / 60.0)
+	var resting: float = map.scroll_offset()
+	map._advance_glide(1.0 / 60.0)
+	_assert(is_equal_approx(map.scroll_offset(), resting), "The glide must settle")
+
+	# A press on a moving map catches it, which is how a player stops a flick.
+	_drag_from(map, Vector2(360.0, 640.0), -400.0)
+	_release(map, Vector2(360.0, 240.0))
+	_press(map, Vector2(360.0, 640.0))
+	_assert(is_zero_approx(map._velocity), "Touching a gliding map must stop it")
+
+	map.queue_free()
 	await process_frame
 
 
@@ -334,3 +362,28 @@ func _ints(values: Array) -> Array[int]:
 	for value in values:
 		result.append(int(value))
 	return result
+
+
+func _press(map: Control, at: Vector2) -> void:
+	var event := InputEventScreenTouch.new()
+	event.pressed = true
+	event.position = at
+	map._gui_input(event)
+
+
+func _release(map: Control, at: Vector2) -> void:
+	var event := InputEventScreenTouch.new()
+	event.pressed = false
+	event.position = at
+	map._gui_input(event)
+
+
+func _drag_by(map: Control, relative_y: float) -> void:
+	var event := InputEventScreenDrag.new()
+	event.relative = Vector2(0.0, relative_y)
+	map._gui_input(event)
+
+
+func _drag_from(map: Control, at: Vector2, relative_y: float) -> void:
+	_press(map, at)
+	_drag_by(map, relative_y)

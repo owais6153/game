@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Final 1.0.18 (vc20) Optimization and Release](FINAL_V1.0.18_VC20_RELEASE_REPORT.md) - canonical version correction, conservative asset reachability cleanup, regression evidence, signed APK/AAB validation, and delivery provenance.
+
 - [Mood Mascot, Daily Reminders, and Popup Shell V1](MASCOT_REMINDERS_POPUP_SHELL_V1_REPORT.md) - the mascot mood dial and how eight frames are made to read as animation, the shared popup title shell that fixed the label animating separately, and the local daily-missions reminder with its untested native scheduler.
 
 - [Level Select Map V1](LEVEL_SELECT_MAP_V1_REPORT.md) - the level-selection screen, the derived-seed guarantee that makes replaying a cleared level reproduce it exactly, the split of `highest_level` from `level_number`, the restart-on-entry fix, milestone treasure chests every 20 levels, and the 3.7 GB artefact cleanup.
