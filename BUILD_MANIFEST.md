@@ -1,3 +1,15 @@
+# Final Release 1.0.18 (vc20) - Optimized APK and AAB
+
+- Source commit/tag: `9eacdff` / `final-v1.0.18-vc20-source`; the tree was clean at export.
+- APK: `build/android/majestic-gems-release-v1.0.18-vc20.apk`; 89,678,524 bytes; 2026-09-05 14:22:26 +05:00; SHA-256 `640309FAAD804E9B8E154F1B82CC6CA06D52DB029341A2E253D1DA5412192004`.
+- AAB: `build/android/majestic-gems-release-v1.0.18-vc20.aab`; 89,540,155 bytes; 2026-09-05 14:16:57 +05:00; SHA-256 `3B647507616AC697097A0D9030D0C591047BE0926596399E6FB393A95EDC8D67`.
+- Version: both artifacts embed package `com.owais.majestygems`, versionCode `20`, versionName `1.0.18`, min SDK 24, target/compile SDK 36. Version code 20 is strictly above every previously uploaded/delivered AAB code recorded here (highest AAB: 19); later 21-27 values belonged only to mistaken local/test APK iterations and are retired per the product-owner correction.
+- Signing: release/upload certificate `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`; certificate SHA-256 `e3ba3287a50af4ac49c07cbcb2e4f10940ad519642cb24f21bcf856b3f3bce14`. APK Signature Scheme v2 verifies; the AAB JAR signature verifies.
+- Validation: Bundletool 1.18.3 `validate` passes and `dump manifest` proves the prepared version values. AAPT2 badging independently proves the APK values. Both archives contain three native libraries for each of `arm64-v8a` and `armeabi-v7a`; no x86 library. Archive audit reports AAB 1,250 entries / APK 1,241 entries and zero packaged `tests/`, `reports/`, `scripts/dev/`, or removed v3/v4/v5 branding derivatives.
+- Optimization: five unreachable legacy runtime branding derivatives were deleted after reference audit; source originals were preserved. Superseded local APKs were removed. Existing Android export filters continue excluding source art, editor/dev content, historical/reference families, tests, and reports while retaining dynamically loaded UI-kit assets.
+- Tests: final source passed all 38 suites (`FINAL_REGRESSION passed=38 failed=0 total=38`). Standalone APK and AAB existence and non-zero size were confirmed.
+- Device status: `adb devices -l` returned no connected device. No install, launch, Firebase DebugView, notification, physical performance, or visual acceptance is claimed.
+
 # Release APK 1.0.22 (vc24) - Gradient Splash, Scroll Performance, Chest Line
 
 - Filename: `build/android/majestic-gems-release-v1.0.22-vc24.apk`
