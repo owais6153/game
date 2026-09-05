@@ -1,3 +1,17 @@
+# Release APK 1.0.22 (vc24) - Gradient Splash, Scroll Performance, Chest Line
+
+- Filename: `build/android/majestic-gems-release-v1.0.22-vc24.apk`
+- Size: 88430736 bytes (84.3 MB)
+- SHA-256: `631305ff3cef5dbcd97311cf855ff5fce2786d2ec0749ddb04e1bab2cc4cd985`
+- Built: 2026-09-05, Godot 4.6.3.stable, custom build template
+- Version: versionCode 24 / versionName 1.0.22, strictly above every code previously recorded here (highest prior 20 / 1.0.18 delivered; 21-23 were built and discarded during this pass)
+- Signing: release-signed with the real upload key, `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`
+- Validation (aapt2 badging + apksigner): package `com.owais.majestygems`, versionCode 24, versionName 1.0.22, minSdk 24, target/compile SDK 36; `MajesticNotifications` compiled into `classes3.dex`; no orphaned `launch_gradient` resource.
+- Fixes in this build: the engine splash is a radial gradient whose edges resolve to `boot_splash/bg_color`, so it no longer bands on a tall screen; level-map repaint cost cut from 4.13 ms to below the measurement noise floor; the map header announces an earned chest instead of counting down past it; a flaky regression suite made deterministic.
+- Tests: all 38 suites pass, confirmed over two consecutive full passes rather than one.
+- **Device status: not installed and not verified on hardware.** No device was available. Every symptom fixed in this build was reported from a device and none of the fixes has been re-checked on one. In particular the scroll fix is justified by a measured 4.13 ms -> ~0 ms repaint cost on desktop, which should translate, but was not observed on a phone.
+- **Known and deliberate:** the short Android window background shown before the engine starts is still a flat `#1C0734`. A shape drawable wired through `gradle_build/custom_theme_attributes` was tried; the built APK showed Godot overwriting `android:windowBackground` with its own colour, so the drawable was packaged and unused and has been removed.
+
 # Release APK 1.0.19 (vc21) - Coin Exploit, Icon Zoom, Splash Seam, Map Scroll
 
 - Filename: `build/android/majestic-gems-release-v1.0.19-vc21.apk`

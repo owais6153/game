@@ -132,12 +132,25 @@ func _refresh_labels() -> void:
 	if title_label != null:
 		title_label.text = "LEVEL %d" % _highest_level
 	if subtitle_label != null:
-		var next_chest := LevelMilestoneType.unlocked_chest_count(_highest_level) + 1
-		var remaining := LevelMilestoneType.level_for_chest(next_chest) - _highest_level + 1
-		subtitle_label.text = "Next chest in %d %s" % [remaining, "level" if remaining == 1 else "levels"]
+		subtitle_label.text = _chest_summary()
 	if play_button != null:
 		play_button.text = "PLAY LEVEL %d" % _highest_level
 
+
+## The chest line under the level title.
+##
+## An earned chest outranks the countdown. Reporting "next chest in 20 levels"
+## while an unopened one is sitting on the path a row below is not just wrong,
+## it actively talks the player out of collecting it.
+func _chest_summary() -> String:
+	var unlocked := LevelMilestoneType.unlocked_chest_count(_highest_level)
+	for index in range(1, unlocked + 1):
+		if not _claimed_chests.has(index):
+			return "Chest ready - tap to open"
+	var remaining := LevelMilestoneType.level_for_chest(unlocked + 1) - _highest_level + 1
+	if remaining <= 0:
+		return "Chest ready - tap to open"
+	return "Next chest in %d %s" % [remaining, "level" if remaining == 1 else "levels"]
 
 ## The map runs the full height of the screen, but the top and bottom of it are
 ## under the two floating bars. Centring therefore targets the clear band

@@ -1,3 +1,34 @@
+# 2026-09-05 - Splash and draw-cost guardrails
+
+- **A fixed-size splash image is letterboxed with `boot_splash/bg_color`.** The
+  only way the join is invisible is if the image resolves to exactly that colour
+  at its own edges. A gradient is fine - a gradient whose edges are some other
+  colour is what bands. Do not fix banding by removing the gradient.
+- **`themes.xml` is regenerated on every Android export**, and
+  `gradle_build/custom_theme_attributes` does NOT reliably override what Godot
+  writes itself. A `windowBackground` set there was silently replaced by Godot.s
+  own colour in the built APK - the drawable was packaged and never used. If you
+  need to change a generated theme attribute, verify it in the built APK with
+  `aapt2 dump resources | grep -A 10 GodotAppMainTheme` before believing it.
+- **Measure a draw cost before optimising it.** The level map stutter was three
+  things and none of them were the obvious one: `get_string_size` per number per
+  repaint (~1ms), a `StyleBoxFlat` with `shadow_size` drawn once per node - it
+  rebuilds a shadow mesh on every draw - and an eight-call outline loop per
+  number. `draw_string_outline` does the last in one call.
+
+
+- **Freeze the controller when a test drives its state by hand.** Several suites
+  add a GameController to the tree and then advance merge, target and launcher
+  state with explicit `_advance_*` and `_update_*` calls. Leaving `_process`
+  running means real frame deltas advance the same state in between, so the
+  result depends on machine load. `run_animation_audio_back_privacy_polish_tests`
+  failed about one full-suite run in five that way. Call
+  `controller.set_process(false)` and `set_physics_process(false)` immediately
+  after entering play in any test that steps time itself.
+- **A flaky suite is worse than a failing one.** It teaches everyone to re-run
+  rather than read, and it hides real regressions behind noise. Verify a fix by
+  running the whole suite twice, not the one test five times.
+
 # 2026-09-05 - Currency and icon guardrails
 
 - **`coins` is display, `level_start_coins` is money.** The first runs ahead

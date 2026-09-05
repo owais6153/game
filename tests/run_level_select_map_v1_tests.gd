@@ -223,6 +223,24 @@ func _test_overlay_presents_and_centres() -> void:
 	_assert(overlay.map_view.highest_level == 21, "The map must be configured with the furthest level")
 	_assert(overlay.map_view.claimed_chests == _ints([1]), "Opened chests must reach the map")
 
+	# The chest line must report the chest that is actually sitting on the path,
+	# not a countdown to the next one. Standing on 21 with chest 1 unopened, the
+	# old wording read "Next chest in 20 levels" - which talks the player out of
+	# collecting a reward they have already earned.
+	overlay.update_state(21, 1450, _ints([]))
+	_assert(overlay.subtitle_label.text.to_lower().contains("ready"),
+		"An unopened earned chest must be announced, got '%s'" % overlay.subtitle_label.text)
+	overlay.update_state(21, 1450, _ints([1]))
+	_assert(overlay.subtitle_label.text == "Next chest in 20 levels",
+		"With every earned chest opened the line must count down to the next, got '%s'" % overlay.subtitle_label.text)
+	overlay.update_state(20, 1450, _ints([]))
+	_assert(overlay.subtitle_label.text == "Next chest in 1 level",
+		"One level short of a chest must read as singular, got '%s'" % overlay.subtitle_label.text)
+	overlay.update_state(1, 1450, _ints([]))
+	_assert(overlay.subtitle_label.text == "Next chest in 20 levels",
+		"A new player must see the full countdown, got '%s'" % overlay.subtitle_label.text)
+	overlay.update_state(21, 1450, _ints([1]))
+
 	# The map opens on the player, not at the bottom of a thousand-level path.
 	_assert(overlay.scroll.scroll_vertical > 0, "The map must scroll to the player's level on open")
 

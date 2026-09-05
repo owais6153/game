@@ -1,3 +1,12 @@
+# Gradient Splash, Scroll Performance, Chest Line - 1.0.21 (vc23) - 2026-09-05
+
+- **The engine splash is a radial gradient whose edges are exactly `boot_splash/bg_color`**, which is what makes its letterboxing invisible at any aspect. A fixed-size raster whose edges did not match the fill is what banded; flattening it to a solid colour was not a fix. The short Android window background before the engine starts is still flat - a shape drawable through `custom_theme_attributes` was tried and the built APK showed Godot overwriting `windowBackground` with its own colour, so it was removed rather than left in looking like a fix.
+- **Level map repaint cost went from 4.13ms to below the noise floor**, measured. Cached text measurement, the plate nine-patch reused as its own shadow instead of a `StyleBoxFlat` with `shadow_size`, and one `draw_string_outline` in place of eight offset `draw_string` calls per number.
+
+- **An unopened earned chest outranks the countdown** on the level map header. It previously read "Next chest in 20 levels" while the chest was sitting a row below, unopened.
+- **The regression suite is deterministic.** `run_animation_audio_back_privacy_polish_tests` was leaving the controller's `_process` running while driving the same state by hand, so it failed about one full-suite run in five. Confirmed over two consecutive clean passes.
+- All 38 suites pass. Release-signed APK at versionCode 22 / versionName 1.0.20.
+
 # Coin Exploit, Icon Zoom, Splash Seam and Map Scroll - 1.0.19 (vc21) - 2026-09-05
 
 - **`restart()` now rolls the display balance back to the bank.** It never did, despite every comment saying so. `coins` is the display value and runs ahead of `level_start_coins` while a level is in progress; leaving a level unfinished left it inflated, and re-entering banked the inflation. Entering a level banks nothing, and leaving one discards unresolved earnings on the spot.

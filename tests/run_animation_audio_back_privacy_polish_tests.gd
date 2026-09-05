@@ -74,6 +74,12 @@ func _test_exactly_once_restored_cadence_and_launcher_independence() -> void:
 	controller._on_home_level_intro_requested()
 	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
+	# This case drives presentation state by hand, one explicit advance at a time.
+	# Leaving the controller.s own _process running meant real frame deltas were
+	# advancing the same state in between, so the result depended on how busy the
+	# machine was - the suite passed alone and failed intermittently in a full run.
+	controller.set_process(false)
+	controller.set_physics_process(false)
 	var result_level := controller.active_target_tier()
 	var result_id := 9001
 	var event := {

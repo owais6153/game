@@ -67,13 +67,15 @@ const LAUREL_WIDTH := 78.0
 const CROWN_WIDTH := 68.0
 const SPARKLE_WIDTH := 46.0
 const STUD_WIDTH := 24.0
+## Outline weight on the level numbers, drawn in a single pass.
+const NUMBER_OUTLINE_SIZE := 6
+## Extra rows drawn beyond the visible window. See _visible_slot_range.
+const BLEED_ROWS := 2
 
-## Plate drop shadow: how far it sits below the plate, how much smaller it is
-## drawn, its corner rounding, and its blur radius.
-const SHADOW_DROP := 0.10
-const SHADOW_INSET := 0.90
-const SHADOW_CORNER_RADIUS := 24
-const SHADOW_BLUR := 14
+## Plate drop shadow: how far below the plate it sits, and how much larger it is
+## drawn so it reads as a soft spread rather than as a hard offset copy.
+const SHADOW_DROP := 0.085
+const SHADOW_SPREAD := 1.04
 
 ## Horizontal swing of the path, as a fraction of the available width and as a
 ## hard ceiling for wide screens, where an unbounded swing would throw the nodes
@@ -125,10 +127,15 @@ var _plate_current: StyleBox
 var _plate_locked: StyleBox
 var _plate_chest: StyleBox
 var _plate_chest_locked: StyleBox
-var _plate_shadow: StyleBoxFlat
+var _plate_shadow: StyleBox
 ## Own canvas item for the halos and sparkles, so the static map underneath is
 ## not repainted every frame just to animate them.
 var _animated_layer: Control
+## Measured text sizes, keyed by "size:text". get_string_size shapes the string
+## to measure it and was costing about a millisecond per repaint across the
+## visible numbers; the answer only depends on the digits and the size, and both
+## repeat constantly as the map scrolls.
+var _measure_cache: Dictionary = {}
 
 
 ## PASS, not STOP. The map fills the ScrollContainer, and a child that stops
@@ -171,15 +178,16 @@ func _build_plates() -> void:
 	_plate_chest = UiKitType.nine_patch_style("btn_square_small", Vector4.ZERO, Color(1.10, 1.06, 1.16))
 	_plate_chest_locked = UiKitType.nine_patch_style("btn_square_small", Vector4.ZERO, Color(0.50, 0.46, 0.58, 0.94))
 
-	# A soft rounded drop shadow, matching the plate's own silhouette. The first
-	# pass used draw_circle, which put a hard-edged grey disc behind a rounded
-	# square - it poked out past the bottom corners and read as a bug rather than
-	# as depth. StyleBoxFlat gives a real blur through shadow_size.
-	_plate_shadow = StyleBoxFlat.new()
-	_plate_shadow.bg_color = Color(0.03, 0.0, 0.07, 0.34)
-	_plate_shadow.set_corner_radius_all(SHADOW_CORNER_RADIUS)
-	_plate_shadow.shadow_color = Color(0.03, 0.0, 0.07, 0.30)
-	_plate_shadow.shadow_size = SHADOW_BLUR
+	# The drop shadow is the plate art again, dark and offset - not a blurred
+	# StyleBoxFlat.
+	#
+	# A StyleBoxFlat with shadow_size rebuilds a shadow mesh every time it is
+	# drawn, and this is drawn once per visible node, eighteen times a repaint.
+	# Reusing the plate's own nine-patch is a plain textured draw and reads the
+	# same, because the plate art already has soft edges. A draw_circle was tried
+	# before either and was worse: a hard grey disc poking out past the corners
+	# of a rounded square.
+	_plate_shadow = UiKitType.nine_patch_style("btn_square_small", Vector4.ZERO, Color(0.03, 0.0, 0.07, 0.38))
 
 
 func _process(delta: float) -> void:
@@ -286,16 +294,20 @@ func _slot_in_window(slot: int) -> bool:
 	return y >= _window_top - ROW_HEIGHT and y <= _window_bottom + ROW_HEIGHT
 
 
-## Inclusive slot range covering the window plus one row of bleed on each side,
-## so a node scrolling into view is never drawn a frame late.
+## Inclusive slot range covering the window plus BLEED_ROWS on each side.
+##
+## The bleed is generous on purpose. The map repaints only when this range
+## changes, so a wider range means fewer repaints during a flick - at one row of
+## bleed the range changed every 182px of travel, which during a fast scroll is
+## several full repaints a second and each one was a visible hitch.
 func _visible_slot_range() -> Vector2i:
 	if _window_bottom <= _window_top:
 		# Before the first scroll notification arrives, draw the bottom of the
 		# map rather than nothing at all.
 		return Vector2i(0, mini(_slot_count - 1, 12))
 	var height := content_height()
-	var lowest := int(floor((height - BOTTOM_PAD - _window_bottom) / ROW_HEIGHT)) - 1
-	var highest := int(ceil((height - BOTTOM_PAD - _window_top) / ROW_HEIGHT)) + 1
+	var lowest := int(floor((height - BOTTOM_PAD - _window_bottom) / ROW_HEIGHT)) - BLEED_ROWS
+	var highest := int(ceil((height - BOTTOM_PAD - _window_top) / ROW_HEIGHT)) + BLEED_ROWS
 	return Vector2i(maxi(0, lowest), mini(_slot_count - 1, maxi(0, highest)))
 
 
@@ -426,7 +438,7 @@ func _draw_plate(plate: StyleBox, centre: Vector2, edge: float) -> void:
 	if plate == null:
 		return
 	if _plate_shadow != null:
-		var shadow_edge := edge * SHADOW_INSET
+		var shadow_edge := edge * SHADOW_SPREAD
 		_plate_shadow.draw(get_canvas_item(), Rect2(
 			centre - Vector2(shadow_edge, shadow_edge) * 0.5 + Vector2(0.0, edge * SHADOW_DROP),
 			Vector2(shadow_edge, shadow_edge)
@@ -449,13 +461,19 @@ func _draw_texture_centred(texture: Texture2D, centre: Vector2, width: float, ti
 func _draw_centred_number(centre: Vector2, text: String, colour: Color) -> void:
 	var font := UiDesignSystemType.heavy_font()
 	var font_size := 38 if text.length() <= 3 else (32 if text.length() == 4 else 26)
-	var measured := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size)
+	var measured := _measure(font, text, font_size)
 	var origin := centre - Vector2(measured.x * 0.5, -measured.y * 0.32)
-	# Outline first, as a ring of offset draws: draw_string has no outline pass,
-	# and the numbers sit on artwork that can be light or dark behind them.
-	for angle in range(0, 8):
-		var offset := Vector2(cos(float(angle) * PI / 4.0), sin(float(angle) * PI / 4.0)) * 3.0
-		font.draw_string(get_canvas_item(), origin + offset, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, UiDesignSystemType.COLOR_PURPLE_DEEP)
+	# One outline pass, not eight.
+	#
+	# This used to ring the glyphs with eight offset draw_string calls, which
+	# meant nine text batches per number and, with a dozen numbers on screen,
+	# over a hundred per repaint. That was the single biggest cost in the map's
+	# draw and the main reason a flick stuttered. draw_string_outline does the
+	# same job in one call, using the font's own outline pass.
+	font.draw_string_outline(
+		get_canvas_item(), origin, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0,
+		font_size, NUMBER_OUTLINE_SIZE, UiDesignSystemType.COLOR_PURPLE_DEEP
+	)
 	font.draw_string(get_canvas_item(), origin, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, colour)
 
 
@@ -557,3 +575,14 @@ func _draw_scatter(range_slots: Vector2i) -> void:
 				continue
 			var texture := AssetCatalogType.gem_texture(rng.randi_range(1, 8))
 			_draw_texture_centred(texture, point, edge, Color(1.0, 1.0, 1.0, SCATTER_ALPHA))
+
+
+## Cached text measurement. See `_measure_cache`.
+func _measure(font: Font, text: String, font_size: int) -> Vector2:
+	var key := "%d:%s" % [font_size, text]
+	var cached = _measure_cache.get(key)
+	if cached != null:
+		return cached
+	var measured := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size)
+	_measure_cache[key] = measured
+	return measured

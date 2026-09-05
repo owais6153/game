@@ -51,16 +51,27 @@ const SPLASH_LOGO_EDGE := 720
 
 const APP_ICON_EDGE := 192
 
-## The engine boot splash, used on every platform that is not the Android launch
-## screen. Painted on a flat plate in exactly `boot_splash/bg_color`, so the
-## letterboxing that any fixed-size splash gets on a tall phone is invisible -
-## the previous splash was a gradient whose edges did not match the fill, and
-## the seam showed as a band across the top and bottom of a 20:9 screen.
+## The engine boot splash, shown after the Android launch screen and on every
+## other platform.
+##
+## A radial gradient matching the launch-screen drawable, so the hand-off from
+## one to the other is not visible. The reason the previous gradient banded on a
+## tall phone was not that it was a gradient - it was that its edge colours did
+## not match `boot_splash/bg_color`, and Godot letterboxes a fixed-size splash
+## with that colour. This one resolves to exactly BOOT_SPLASH_BG at its edges,
+## so whatever is letterboxed away is the colour that replaces it and the join
+## cannot be seen. Flattening it to a solid plate "fixed" the band by throwing
+## the gradient away, which is not the same thing.
 const BOOT_SPLASH_SIZE := Vector2i(1080, 1920)
 const BOOT_SPLASH_LOGO_EDGE := 760
-## Must stay identical to project.godot boot_splash/bg_color and to
-## android windowBackground, or the seam comes back.
+## Must stay identical to project.godot boot_splash/bg_color, or the seam comes
+## back. The two stops above it match android/build/res/drawable/launch_gradient.xml
+## so the launch screen and the engine splash read as one image.
 const BOOT_SPLASH_BG := Color(0.109804, 0.027451, 0.203922, 1.0)
+const BOOT_SPLASH_INNER := Color("7A2A9E")
+const BOOT_SPLASH_MID := Color("3D1258")
+const BOOT_SPLASH_CENTRE_Y := 0.42
+const BOOT_SPLASH_RADIUS := 1.15
 const ADAPTIVE_CANVAS := 432
 ## An adaptive icon is authored at 108dp and only its middle 72dp is displayed,
 ## so artwork meant to be seen whole has to sit inside that viewport: 72/108 of
@@ -183,7 +194,18 @@ func _save(image: Image, path: String) -> void:
 ## exactly hides the join.
 func _boot_splash(mark: Image) -> Image:
 	var out := Image.create_empty(BOOT_SPLASH_SIZE.x, BOOT_SPLASH_SIZE.y, false, Image.FORMAT_RGBA8)
-	out.fill(BOOT_SPLASH_BG)
+	# Radius measured to the far corner, so the gradient has fully resolved to
+	# BOOT_SPLASH_BG by the time it reaches any edge.
+	var centre := Vector2(float(BOOT_SPLASH_SIZE.x) * 0.5, float(BOOT_SPLASH_SIZE.y) * BOOT_SPLASH_CENTRE_Y)
+	var radius := maxf(1.0, centre.distance_to(Vector2(0.0, float(BOOT_SPLASH_SIZE.y))) * BOOT_SPLASH_RADIUS)
+	for y in range(BOOT_SPLASH_SIZE.y):
+		for x in range(BOOT_SPLASH_SIZE.x):
+			var t := clampf(Vector2(float(x), float(y)).distance_to(centre) / radius, 0.0, 1.0)
+			# Two stops, matching launch_gradient.xml.
+			var colour := BOOT_SPLASH_MID.lerp(BOOT_SPLASH_BG, clampf((t - 0.5) / 0.5, 0.0, 1.0))
+			if t < 0.5:
+				colour = BOOT_SPLASH_INNER.lerp(BOOT_SPLASH_MID, clampf(t / 0.5, 0.0, 1.0))
+			out.set_pixel(x, y, Color(colour.r, colour.g, colour.b, 1.0))
 	var art := _fit(mark, BOOT_SPLASH_LOGO_EDGE)
 	out.blend_rect(
 		art,
