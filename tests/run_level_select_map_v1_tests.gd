@@ -28,6 +28,7 @@ func _run() -> void:
 	_test_seeds_are_pure_functions_of_level()
 	await _test_map_view_geometry_and_hit_testing()
 	await _test_map_view_locks_future_levels()
+	await _test_mobile_drag_scrolls_the_container()
 	await _test_overlay_presents_and_centres()
 	_test_controller_flow_wiring()
 	if failures.is_empty():
@@ -152,6 +153,7 @@ func _test_map_view_locks_future_levels() -> void:
 	map.set_window(0.0, map.content_height())
 	await process_frame
 
+
 	var chosen: Array[int] = []
 	var chests: Array[int] = []
 	map.level_selected.connect(func(value: int) -> void: chosen.append(value))
@@ -175,7 +177,34 @@ func _test_map_view_locks_future_levels() -> void:
 	_tap(map, LevelMilestoneType.slot_for_chest(1))
 	_assert(chests == _ints([1]), "Clearing level 20 must make chest 1 claimable")
 
+	# A flick that starts on a playable plate must scroll, not select.
+	var before := chosen.size()
+	_drag(map, LevelMilestoneType.slot_for_level(4))
+	_assert(chosen.size() == before, "A drag across a level must scroll, not open it")
+	_assert(map.mouse_filter == Control.MOUSE_FILTER_PASS,
+		"The map must pass input through so the ScrollContainer can scroll")
+
 	map.queue_free()
+	await process_frame
+
+
+func _test_mobile_drag_scrolls_the_container() -> void:
+	var scroll := ScrollContainer.new()
+	scroll.size = Vector2(720.0, 1280.0)
+	root.add_child(scroll)
+	var map := LevelMapViewType.new()
+	map.size = Vector2(720.0, 1280.0)
+	map.configure(25, [] as Array[int], 1000)
+	scroll.add_child(map)
+	await process_frame
+	scroll.scroll_vertical = 500
+	var drag := InputEventScreenDrag.new()
+	drag.position = Vector2(360.0, 640.0)
+	drag.relative = Vector2(0.0, -120.0)
+	map._gui_input(drag)
+	_assert(scroll.scroll_vertical == 620,
+		"An Android finger drag must directly move the level ScrollContainer")
+	scroll.queue_free()
 	await process_frame
 
 
@@ -243,12 +272,36 @@ func _test_controller_flow_wiring() -> void:
 	)
 
 
+## Selection happens on release now, so a tap is press then release at the same
+## point. A press alone is the start of a scroll and must select nothing.
 func _tap(map: Control, slot: int) -> void:
-	var event := InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_LEFT
-	event.pressed = true
-	event.position = map._point_at(float(slot))
-	map._gui_input(event)
+	var at: Vector2 = map._point_at(float(slot))
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = at
+	map._gui_input(press)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	release.position = at
+	map._gui_input(release)
+
+
+## A press, a move, and a release: a flick across the map, which must scroll
+## rather than opening whatever level happened to be under the finger.
+func _drag(map: Control, slot: int) -> void:
+	var at: Vector2 = map._point_at(float(slot))
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = at
+	map._gui_input(press)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	release.position = at + Vector2(0.0, 90.0)
+	map._gui_input(release)
 
 
 func _assert(condition: bool, message: String) -> void:

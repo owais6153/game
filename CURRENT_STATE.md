@@ -1,3 +1,15 @@
+# Mood Mascot, Daily Reminders, and One Popup Shell - 2026-09-05
+
+- **The mascot is a mood dial, not a clip.** Two eight-frame tracks (happy, sad) share a neutral first pose. Callers set a mood and an intensity; `MascotView` eases along the track and cross-fades the two frames either side of its position. Draw the lower frame opaque and the upper over it at the fractional alpha - drawing both semi-transparent leaves the shared gold ring 75% opaque and the mascot visibly dims mid-blend.
+- **It appears in four places.** Result popup at 300px (replacing the target gem and the fail badge), level briefing neutral, the centre of the top HUD between Coins and Next reacting to play, and the level-select header. No popup shows a target readout any more.
+- **In-game reactions come off the same beats the analytics record** - merge, combo (scaled by chain depth), win, fail - so the expression can never drift from what the game thinks happened. In-play reactions decay back to neutral after ~0.9s; win and fail hold, because the result popup arrives on top of them.
+- **Frames are registered, not just cropped.** Cut on an evenly spaced grid with a 103x107 elliptical mask. Per-frame bounding boxes would move when the character raises its hands and the head would jitter. `scripts/dev/slice_mascot_frames.gd` regenerates them from the original sheet.
+- **All four popups now share one title plate**, and it animates with the popup. The half-out banner is a sibling of the panel, so tweening the panel left the label at full opacity before and after - `UiDesignSystem.popup_shell()` returns both as one animated node, and a regression asserts the panel carries no animation of its own.
+- **A daily reminder fires at 19:00 local, only when missions are actually outstanding.** Local scheduled notification, no server. Re-evaluated on every mission-state change, so claiming the last mission cancels the pending reminder. An unopened chest counts as outstanding. All the rules are pure functions in `NotificationService` and are tested.
+- **Home settings has a REMINDERS toggle.** It also fixed a latent bug: `save_settings()` used to rebuild the config from scratch and drop keys it did not take as parameters.
+- **The Android notification plugin is source-only.** `android/plugins/majestic_notifications/` holds the Godot plugin singleton and alarm receiver, but it is **not wired into the build and has never been compiled or run**. Until it is, the game schedules nothing and every call is a no-op - which is tested. See the plugin README for wiring steps and the two known gaps (no boot receiver, so alarms do not survive a reboot; placeholder notification small icon).
+- All 38 regression suites pass. No Android build was produced and no device was used.
+
 # Level Select Map, Replay, and Milestone Chests - 2026-09-05
 
 - **There is a level screen between Home and play.** Home -> PLAY -> level map -> tap a level -> Level Ready -> play. Winning returns to the map, not straight into the next board. `LevelSelectOverlayLayer` sits on layer 61, between Home (60) and the Level Ready popup that the Home layer itself owns and must keep drawing on top.
@@ -823,3 +835,9 @@ Firebase Analytics is configured in the tracked Godot Android custom template us
 # Retention Sprint (unreleased)
 
 The active controller now owns limited-shots attempts, out-of-shots rescue, one safe danger-line continuation, and local daily mission state. The UI remains a snapshot consumer; physics, strict contact merges, target authority, and launch generation are unchanged. Daily missions are local-date based and therefore susceptible to device-clock manipulation until a future server-time implementation.
+# Brand Refresh, Smooth Mascot, Mobile Map Scroll, and Notifications - 2026-09-05
+
+- The newest supplied transparent and illustrated-background Majestic Gems logos replace their matching roles without cross-substitution. The engine splash is a purple gradient with the transparent logo centered at medium size; it contains no mascot.
+- The newest supplied mood sheet drives 12 happy and 12 sad registered runtime frames. `MascotView` glides through 12-frame tracks at 2.15 track units/second, preserving neutral rewinds and cross-fades while adding intermediate poses.
+- Android level-map swipes directly update the owning `ScrollContainer`, fixing touch scrolling that could be swallowed when a gesture began over the custom-drawn map. Tap selection remains release-based and rejects moved gestures.
+- Daily mission reminders are now wired into the Android build: runtime notification permission, native Godot singleton metadata, and the alarm receiver are present. Desktop/no-plugin behavior remains a safe no-op.

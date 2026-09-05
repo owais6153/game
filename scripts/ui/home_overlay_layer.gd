@@ -10,6 +10,10 @@ const TweenStepCollectionType = preload("res://tween_composer/ConfigurationResou
 const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/tween_step_item_resource.gd")
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
+const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
+
+## Level Ready is a full-screen beat, so the mascot is drawn large here.
+const INTRO_MASCOT_SIZE := 240.0
 const ICON_SETTINGS = preload("res://assets/runtime/ui/kit/icon_gear.png")
 const DECOR_DIAMOND = preload("res://assets/runtime/ui/kit/decor_diamond.png")
 ## The Home shop entry point. A de-fringed derivative of the supplied stall art.
@@ -30,6 +34,7 @@ signal skip_level_requested
 signal home_requested
 signal music_toggled(enabled: bool)
 signal sound_toggled(enabled: bool)
+signal notifications_toggled(enabled: bool)
 signal privacy_policy_requested
 signal privacy_options_requested
 signal ui_tap_requested
@@ -62,14 +67,16 @@ var settings_panel: PanelContainer
 const MODAL_Z_INDEX := 100
 var settings_music_toggle: Button
 var settings_sound_toggle: Button
+## Daily-reminder notifications. Off here means no reminder is ever scheduled,
+## independent of the OS-level permission.
+var settings_notifications_toggle: Button
 var settings_privacy_options_button: Button
 
 var level_intro_blocker: Control
 var level_intro_panel: PanelContainer
 var intro_level_label: Label
-var intro_target_badge: Label
-var intro_target_icon: TextureRect
-var intro_objective_label: Label
+## Level Ready shows the mascot neutral rather than a target readout.
+var intro_mascot: MascotView
 var intro_start_button: Button
 var intro_skip_button: Button
 
@@ -460,6 +467,11 @@ func _build_settings_popup() -> void:
 		_sync_switch_label(settings_sound_toggle)
 		sound_toggled.emit(enabled)
 	)
+	settings_notifications_toggle = _setting_switch_row(column, "REMINDERS", "HomeNotificationsToggle")
+	settings_notifications_toggle.toggled.connect(func(enabled: bool) -> void:
+		_sync_switch_label(settings_notifications_toggle)
+		notifications_toggled.emit(enabled)
+	)
 	settings_privacy_options_button = _button("HomePrivacyOptions", "PRIVACY OPTIONS", Vector2(400.0, UiDesignSystemType.BUTTON_HEIGHT), "SecondaryButton")
 	settings_privacy_options_button.visible = false
 	settings_privacy_options_button.pressed.connect(func() -> void: privacy_options_requested.emit())
@@ -493,21 +505,20 @@ func _build_level_intro_popup() -> void:
 	intro_level_label = _label("LEVEL 1", 38, UiDesignSystemType.COLOR_BLUE_DEEP)
 	intro_level_label.custom_minimum_size = Vector2(0, 60)
 	column.add_child(intro_level_label)
-	intro_target_badge = _label("TARGET 1 / 1", 18, Color.WHITE)
-	intro_target_badge.custom_minimum_size = Vector2(210, 48)
-	intro_target_badge.add_theme_stylebox_override("normal", UiDesignSystemType.target_badge_style())
-	column.add_child(intro_target_badge)
-	intro_target_icon = TextureRect.new()
-	intro_target_icon.name = "LevelIntroTargetGem"
-	intro_target_icon.custom_minimum_size = Vector2(132, 132)
-	intro_target_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	intro_target_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	intro_target_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(intro_target_icon)
-	intro_objective_label = _label("MERGE THE TARGET GEM", 24, UiDesignSystemType.COLOR_TEXT)
-	intro_objective_label.custom_minimum_size = Vector2(400, 70)
-	intro_objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(intro_objective_label)
+	# No target readout. Level Ready is the calm beat before a level starts, and
+	# the board itself shows the target the moment play begins; the mascot sits
+	# neutral here instead, like every other popup.
+	var intro_mascot_slot := CenterContainer.new()
+	intro_mascot_slot.name = "LevelIntroMascotSlot"
+	intro_mascot_slot.custom_minimum_size = Vector2(INTRO_MASCOT_SIZE, INTRO_MASCOT_SIZE)
+	intro_mascot_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(intro_mascot_slot)
+	intro_mascot = MascotViewType.new()
+	intro_mascot.name = "LevelIntroMascot"
+	intro_mascot.custom_minimum_size = Vector2(INTRO_MASCOT_SIZE, INTRO_MASCOT_SIZE)
+	# The popup carries its own entrance scale; see MascotView.breathing_enabled.
+	intro_mascot.breathing_enabled = false
+	intro_mascot_slot.add_child(intro_mascot)
 	intro_start_button = _button("StartLevelButton", "START GAME", Vector2(400.0, UiDesignSystemType.BUTTON_HEIGHT), "")
 	intro_start_button.icon = ICON_PLAY
 	intro_start_button.expand_icon = false
@@ -843,8 +854,10 @@ func _sync_settings_from_snapshot() -> void:
 		return
 	settings_music_toggle.set_pressed_no_signal(bool(_snapshot.get("music_enabled", true)))
 	settings_sound_toggle.set_pressed_no_signal(bool(_snapshot.get("sound_enabled", true)))
+	settings_notifications_toggle.set_pressed_no_signal(bool(_snapshot.get("notifications_enabled", true)))
 	_sync_switch_label(settings_music_toggle)
 	_sync_switch_label(settings_sound_toggle)
+	_sync_switch_label(settings_notifications_toggle)
 
 
 func set_privacy_options_available(available: bool) -> void:
@@ -859,14 +872,8 @@ func _refresh_intro_content() -> void:
 	if intro_level_label == null:
 		return
 	intro_level_label.text = "LEVEL %d" % _current_level
-	var target_level := int(_snapshot.get("target_level", 1))
-	var target_index := int(_snapshot.get("target_index", 0)) + 1
-	var target_total := maxi(1, int(_snapshot.get("target_total", 1)))
-	var target_quantity := maxi(1, int(_snapshot.get("target_quantity", 1)))
-	intro_target_badge.text = "TARGET %d / %d" % [target_index, target_total]
-	intro_target_icon.texture = AssetCatalogType.gem_texture(target_level)
-	# The target artwork is the identity. Player-facing gem names are omitted.
-	intro_objective_label.text = "MERGE TARGET  ×  %d" % target_quantity
+	if intro_mascot != null:
+		intro_mascot.show_idle(true)
 
 	if intro_skip_button != null:
 		var skip_cost := int(_snapshot.get("skip_cost", GameConfig.SKIP_LEVEL_COST))

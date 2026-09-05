@@ -89,7 +89,15 @@ const PROGRESSION_HEIGHT := 78.0
 ## compact so the Settings control beneath it has a clean independent gap.
 const SCORE_PANEL_SIZE := Vector2(164.25, 72.0)
 const NEXT_PANEL_SIZE := Vector2(128.0, 150.0)
-const TARGET_PANEL_SIZE := Vector2(340.0, 84.0)
+## The shots counter is a smaller sibling of the Next plate: it carries two
+## short lines rather than a gem, so it does not need the same footprint.
+const SHOTS_PANEL_SIZE_HUD := Vector2(112.0, 62.0)
+## Tall enough to carry the mascot alongside the gem and the two progress
+## labels, which previously left the whole right half of the plate empty.
+## Square, matching Next and Shots. Capped at 192 so the objective stack still
+## clears the table at 16:9 - the stack is Target + gap + the merge path, and at
+## 720x1280 there is only about 288px between the safe top and the table.
+const TARGET_PANEL_SIZE := Vector2(400.0, 116.0)
 
 ## Type scale. These are canvas units at the 720x1280 design viewport, so they
 ## read roughly half as large on a 360dp phone. The previous scale topped out at
@@ -705,6 +713,35 @@ static func popup_title_column(title: String) -> VBoxContainer:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	banner.add_child(label)
 	return column
+
+
+## A titled popup: the half-out gold banner and `panel` as one node.
+##
+## Every popup in the game is built through this, so they all wear the same
+## header in the same place, and - just as importantly - they all have one node
+## to animate.
+##
+## **Animate the value this returns, never the panel inside it.** The banner is
+## a sibling of the panel, not a child, so a tween pointed at the panel moves and
+## fades the body while the title plate sits there fully opaque: the label
+## appeared before the popup and outlived it on the way out. Scaling is set up
+## here too, because a shell scaled from its default top-left pivot grows out of
+## the corner instead of blooming from its middle.
+static func popup_shell(title: String, panel: PanelContainer) -> VBoxContainer:
+	var shell := popup_title_column(title)
+	shell.name = "PopupShell"
+	shell.add_child(panel)
+	shell.resized.connect(func() -> void: shell.pivot_offset = shell.size * 0.5)
+	return shell
+
+
+## The title label inside a shell, for popups whose heading changes with what
+## they are reporting. Looked up by name rather than handed back alongside the
+## shell so callers cannot accidentally reparent or animate it on its own.
+static func popup_shell_label(shell: Control) -> Label:
+	if shell == null:
+		return null
+	return shell.get_node_or_null("PopupTitleBanner/PopupTitleLabel") as Label
 
 
 ## Gameplay-HUD surface treatment. The flat amber rim and dark field read as

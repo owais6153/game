@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Mood Mascot, Daily Reminders, and Popup Shell V1](MASCOT_REMINDERS_POPUP_SHELL_V1_REPORT.md) - the mascot mood dial and how eight frames are made to read as animation, the shared popup title shell that fixed the label animating separately, and the local daily-missions reminder with its untested native scheduler.
+
 - [Level Select Map V1](LEVEL_SELECT_MAP_V1_REPORT.md) - the level-selection screen, the derived-seed guarantee that makes replaying a cleared level reproduce it exactly, the split of `highest_level` from `level_number`, the restart-on-entry fix, milestone treasure chests every 20 levels, and the 3.7 GB artefact cleanup.
 
 - [Low-End Performance, Rescue Softlock, and Merge Presentation V1](LOW_END_PERFORMANCE_AND_RESCUE_SOFTLOCK_V1_REPORT.md) - measured texture-memory and O(N^2) collision causes of the Y21A stalls, a bit-identical simulation optimization with its equivalence regression, the unrecoverable out-of-shots softlock, rewarded-video offers in place of unaffordable dead ends, blast tier safety, and the reworked merge burst.

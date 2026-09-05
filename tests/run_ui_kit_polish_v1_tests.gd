@@ -142,8 +142,17 @@ func _test_popup_animates() -> void:
 	var state := {"date": "2026-08-29", "missions": [], "chest_claimed": false}
 	overlay.present(state, 100)
 	await process_frame
-	_assert(overlay.panel.scale.x < 1.0 or overlay.panel.modulate.a < 1.0,
+	_assert(overlay.popup_shell.scale.x < 1.0 or overlay.popup_shell.modulate.a < 1.0,
 		"Opening the popup must start from a scaled/faded entrance state")
+	# The title plate is a sibling of the panel, so animating the panel alone
+	# left the label fully opaque before the popup arrived and after it left.
+	# The animated node must be their common parent.
+	var banner: Node = overlay.popup_shell.get_node_or_null("PopupTitleBanner")
+	_assert(banner != null, "The popup shell must own the title banner")
+	_assert(overlay.panel.get_parent() == overlay.popup_shell,
+		"The panel must sit inside the animated shell, not beside the title banner")
+	_assert(is_equal_approx(overlay.panel.modulate.a, 1.0) and is_equal_approx(overlay.panel.scale.x, 1.0),
+		"The panel must not be animated on its own; the shell carries the entrance")
 	overlay.queue_free()
 	await process_frame
 

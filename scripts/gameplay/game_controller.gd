@@ -24,6 +24,7 @@ const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.g
 const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
 const LevelSelectType = preload("res://scripts/ui/level_select_overlay_layer.gd")
 const LevelMilestoneType = preload("res://scripts/core/level_milestone.gd")
+const NotificationServiceType = preload("res://scripts/services/notification_service.gd")
 
 var pieces: Array[GemPiece] = []
 var simulation := BoardSimulation.new()
@@ -155,6 +156,9 @@ var level_select: LevelSelectOverlayLayer
 var highest_level := 1
 ## Milestone chests already opened, by chest index.
 var claimed_chests: Array[int] = []
+## Player preference for the daily reminder. The Android runtime permission is a
+## separate gate; this is only whether the player has opted out.
+var notifications_enabled := true
 var seen_level_types: Array[String] = []
 var ad_manager: Node
 var level_reward_for_completion := 0
@@ -230,6 +234,7 @@ func _ready() -> void:
 		ad_manager.privacy_options_availability_changed.connect(_on_privacy_options_availability_changed)
 	var saved := ProgressionSaveServiceType.load_progress()
 	var saved_settings := GameSettingsServiceType.load_settings()
+	notifications_enabled = bool(saved_settings.get("notifications_enabled", true))
 	level_number = int(saved.level_number)
 	highest_level = maxi(level_number, int(saved.get("highest_level", level_number)))
 	claimed_chests = saved.get("claimed_chests", [] as Array[int])
@@ -459,6 +464,7 @@ func hud_snapshot() -> Dictionary:
 		"target_completed": not target_sequence().is_empty() and presented_target_index >= target_sequence().size(),
 		"highest_level": highest_level,
 		"music_enabled": audio_feedback.music_enabled if audio_feedback != null else true,
+		"notifications_enabled": notifications_enabled,
 		"sound_enabled": audio_feedback.sfx_enabled if audio_feedback != null else true,
 		"limited_shots": is_limited_shots_level(),
 		"shots_remaining": shots_remaining,
@@ -1752,6 +1758,7 @@ func _setup_asset_presentation() -> void:
 	home_overlay.skip_level_requested.connect(_on_skip_level_requested)
 	home_overlay.music_toggled.connect(_on_music_toggled)
 	home_overlay.sound_toggled.connect(_on_sound_toggled)
+	home_overlay.notifications_toggled.connect(_on_notifications_toggled)
 	home_overlay.privacy_policy_requested.connect(_on_privacy_policy_requested)
 	home_overlay.privacy_options_requested.connect(_on_privacy_options_requested)
 	home_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
@@ -1802,6 +1809,7 @@ func _on_daily_missions_requested() -> void:
 	if all_claimed and not bool(daily_state.get("chest_claimed", false)):
 		_log_analytics("daily_chest_available", {"level_number": level_number})
 	daily_overlay.present(daily_state, coins)
+	_refresh_daily_reminder()
 
 func _on_daily_mission_claim_requested(index: int) -> void:
 	var claim := DailyMissionServiceType.claim_mission(daily_state, index)
@@ -1841,6 +1849,7 @@ func _on_daily_mission_claim_requested(index: int) -> void:
 		_log_analytics("daily_all_missions_complete", {"level_number": level_number})
 	_log_analytics("coin_earned", {"amount": reward, "coin_source": "daily_mission", "reason": "daily_mission", "level_number": level_number, "balance_before": coins - reward, "balance_after": coins, "resulting_balance": coins})
 	daily_overlay.present(daily_state, coins)
+	_refresh_daily_reminder()
 	# Celebrate only after the claim is persisted and banked, so the feedback can
 	# never imply a reward the player did not actually receive.
 	daily_overlay.celebrate_claim(index, reward)
@@ -1951,6 +1960,7 @@ func _on_daily_chest_claim_requested() -> void:
 			"owned": PowerInventoryServiceType.count(power_state, String(power)),
 		})
 	daily_overlay.present(daily_state, coins)
+	_refresh_daily_reminder()
 	# Presented after the grant is persisted, so the animation reports something
 	# that already happened rather than standing in for the reward.
 	daily_overlay.play_chest_open(granted)
@@ -2043,6 +2053,13 @@ func _apply_confirmed_merge_events(events: Array[Dictionary]) -> void:
 		})
 		attempt_analytics.record_merge(depth)
 		_record_daily_progress("merge")
+		# The mascot answers the same beats the analytics record, so its reaction
+		# can never drift from what the game thinks actually happened.
+		if gameplay_ui != null:
+			if depth > 0:
+				gameplay_ui.react_to_combo(depth)
+			else:
+				gameplay_ui.react_to_merge()
 		if depth > 0:
 			# A chained merge, i.e. a combo. Recorded per chain link so a deep
 			# chain counts for more than a single follow-up merge.
@@ -2633,6 +2650,8 @@ func _trigger_failure(fail_reason: String = "danger_line") -> void:
 	if failed:
 		return
 	failed = true
+	if gameplay_ui != null:
+		gameplay_ui.react_to_fail()
 	_emit_level_end_analytics_once("level_fail", _level_outcome_parameters({
 		"fail_reason": fail_reason,
 		# Retained from the previous schema so existing saved reports keep working.
@@ -3050,6 +3069,8 @@ func _update_win_presentation(delta: float) -> void:
 			win_presented = true
 			app_flow_state = AppFlowState.LEVEL_COMPLETE
 			if gameplay_ui != null:
+				gameplay_ui.react_to_win()
+			if gameplay_ui != null:
 				gameplay_ui.prepare_completion_reward_display(level_start_coins, coins)
 			_trace_presentation_event("win_overlay_started", final_target_result_id)
 			audio_feedback.emit_event("win")
@@ -3223,6 +3244,25 @@ func _on_sound_toggled(value: bool) -> void:
 		audio_feedback.sfx_enabled = value
 	_save_settings()
 	_refresh_hud()
+
+
+## Turning reminders on asks for the OS permission at the moment the player has
+## just said they want them, rather than firing the prompt at a cold start with
+## nothing to explain it.
+func _on_notifications_toggled(value: bool) -> void:
+	notifications_enabled = value
+	GameSettingsServiceType.save_notifications_enabled(value)
+	if value:
+		NotificationServiceType.request_permission_if_needed()
+	_refresh_daily_reminder()
+	_log_analytics("notifications_toggled", {"enabled": value})
+	_refresh_hud()
+
+
+## Re-evaluated whenever the setting or today's mission state changes, so
+## claiming the last mission also clears the reminder that was pending for it.
+func _refresh_daily_reminder() -> void:
+	NotificationServiceType.refresh({"notifications_enabled": notifications_enabled}, daily_state)
 
 func _on_ui_tap_requested() -> void:
 	if audio_feedback != null:
@@ -3576,6 +3616,8 @@ func _show_level_start() -> void:
 	app_flow_state = AppFlowState.LEVEL_READY
 	if gameplay_ui != null:
 		gameplay_ui.show()
+		# A new level starts neutral, whatever the last one ended as.
+		gameplay_ui.reset_mascot()
 	home_overlay.present_level_intro(level_number, coins, hud_snapshot())
 	if is_inside_tree():
 		get_tree().paused = true

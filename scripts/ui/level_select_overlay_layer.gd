@@ -17,6 +17,7 @@ const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const LevelMapViewType = preload("res://scripts/ui/level_map_view.gd")
 const LevelMilestoneType = preload("res://scripts/core/level_milestone.gd")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_lavender.svg")
+const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
 
 signal level_chosen(level_number: int)
 signal chest_claim_requested(chest_index: int)
@@ -53,6 +54,8 @@ var map_view: LevelMapView
 var title_label: Label
 var subtitle_label: Label
 var back_button: Button
+## Idle mascot in the header, on the right where the coin chip used to be.
+var mascot: MascotView
 var play_button: Button
 
 var _highest_level := 1
@@ -340,7 +343,18 @@ func _build_header() -> Control:
 
 	# No coin chip. The level screen spends nothing, so a balance here is a
 	# number the player cannot act on; Home and the shop both show it where it
-	# means something.
+	# means something. The mascot takes that corner instead, idle, so the screen
+	# has the same three-part header as everywhere else: back, title, character.
+	var mascot_slot := CenterContainer.new()
+	mascot_slot.name = "LevelSelectMascotSlot"
+	mascot_slot.custom_minimum_size = Vector2(BAR_HEIGHT, BAR_HEIGHT)
+	mascot_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_child(mascot_slot)
+	mascot = MascotViewType.new()
+	mascot.name = "LevelSelectMascot"
+	mascot.custom_minimum_size = Vector2(BAR_HEIGHT, BAR_HEIGHT)
+	mascot_slot.add_child(mascot)
+
 	return header
 
 

@@ -22,6 +22,10 @@ const EXIT_DURATION := 0.14
 
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
+const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
+
+## Big enough that the mascot, not the prose, is the first thing read.
+const MASCOT_SIZE := 260.0
 
 signal dismissed
 signal ui_tap_requested
@@ -29,11 +33,13 @@ signal ui_tap_requested
 var root: Control
 var dim_rect: ColorRect
 var panel: PanelContainer
+## The animated node: title banner plus panel. See UiDesignSystem.popup_shell.
+var popup_shell: Control
 var title_label: Label
 var badge_slot: CenterContainer
 var body_label: Label
 var start_button: Button
-var _badge: TextureRect
+var mascot: MascotView
 var _tween: Tween
 
 
@@ -52,10 +58,9 @@ func present(briefing: Dictionary) -> void:
 	_build()
 	title_label.text = String(briefing.get("title", "HOW TO PLAY"))
 	body_label.text = String(briefing.get("body", ""))
-	if _badge != null:
-		_badge.queue_free()
-	_badge = UiKitType.texture_rect(UiKitType.badge(String(briefing.get("badge", "gems"))), 150.0)
-	badge_slot.add_child(_badge)
+	# The briefing is the calm screen before a level starts, so the mascot sits
+	# neutral here. The old kit badge said nothing the title did not already say.
+	mascot.show_idle(true)
 	start_button.text = String(briefing.get("action", "GOT IT"))
 	root.visible = true
 	_start_entrance()
@@ -67,13 +72,13 @@ func dismiss() -> void:
 	_kill_tween()
 	_tween = create_tween().set_parallel(true)
 	_tween.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-	_tween.tween_property(panel, "scale", Vector2(0.92, 0.92), EXIT_DURATION)
-	_tween.tween_property(panel, "modulate:a", 0.0, EXIT_DURATION)
+	_tween.tween_property(popup_shell, "scale", Vector2(0.92, 0.92), EXIT_DURATION)
+	_tween.tween_property(popup_shell, "modulate:a", 0.0, EXIT_DURATION)
 	_tween.tween_property(dim_rect, "modulate:a", 0.0, EXIT_DURATION)
 	_tween.chain().tween_callback(func() -> void:
 		root.visible = false
-		panel.scale = Vector2.ONE
-		panel.modulate.a = 1.0
+		popup_shell.scale = Vector2.ONE
+		popup_shell.modulate.a = 1.0
 		dim_rect.modulate.a = 1.0
 		dismissed.emit())
 
@@ -103,12 +108,14 @@ func _build() -> void:
 	panel.custom_minimum_size = Vector2(596.0, 0.0)
 	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
-	center.add_child(panel)
+	popup_shell = UiDesignSystemType.popup_shell("HOW TO PLAY", panel)
+	center.add_child(popup_shell)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 28)
 	margin.add_theme_constant_override("margin_right", 28)
-	margin.add_theme_constant_override("margin_top", 24)
+	# Clears the half of the title plate that overlaps into the panel.
+	margin.add_theme_constant_override("margin_top", 58)
 	margin.add_theme_constant_override("margin_bottom", 28)
 	panel.add_child(margin)
 
@@ -116,20 +123,19 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 20)
 	margin.add_child(column)
 
-	var banner := PanelContainer.new()
-	banner.custom_minimum_size = Vector2(0.0, UiDesignSystemType.BANNER_HEIGHT)
-	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	banner.add_theme_stylebox_override("panel", UiKitType.nine_patch_style("bar_gold_frame", Vector4(76.0, 12.0, 76.0, 14.0)))
-	column.add_child(banner)
-	title_label = UiDesignSystemType.style_label(Label.new(), UiDesignSystemType.POPUP_TITLE_FONT_SIZE, Color.WHITE)
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	banner.add_child(title_label)
+	# The heading is the shared half-out plate from the shell, not a second
+	# banner inside the body.
+	title_label = UiDesignSystemType.popup_shell_label(popup_shell)
 
 	badge_slot = CenterContainer.new()
-	badge_slot.custom_minimum_size = Vector2(0.0, 154.0)
+	badge_slot.custom_minimum_size = Vector2(0.0, MASCOT_SIZE)
 	badge_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(badge_slot)
+	mascot = MascotViewType.new()
+	mascot.custom_minimum_size = Vector2(MASCOT_SIZE, MASCOT_SIZE)
+	# See the result popup: the panel already has an entrance scale of its own.
+	mascot.breathing_enabled = false
+	badge_slot.add_child(mascot)
 
 	# Running prose, so this is the one place that deliberately uses the lighter
 	# UI weight with generous line spacing rather than the heavy display face.
@@ -154,17 +160,17 @@ func _build() -> void:
 
 func _start_entrance() -> void:
 	_kill_tween()
-	panel.pivot_offset = panel.size * 0.5
-	panel.scale = Vector2(ENTER_START_SCALE, ENTER_START_SCALE)
-	panel.modulate.a = 0.0
+	popup_shell.pivot_offset = popup_shell.size * 0.5
+	popup_shell.scale = Vector2(ENTER_START_SCALE, ENTER_START_SCALE)
+	popup_shell.modulate.a = 0.0
 	dim_rect.modulate.a = 0.0
 	_tween = create_tween()
 	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 	_tween.tween_property(dim_rect, "modulate:a", 1.0, DIM_DURATION)
-	_tween.parallel().tween_property(panel, "modulate:a", 1.0, DIM_DURATION + ENTER_RISE)
-	_tween.parallel().tween_property(panel, "scale", Vector2(ENTER_OVERSHOOT, ENTER_OVERSHOOT), ENTER_RISE).set_delay(ENTER_DELAY)
+	_tween.parallel().tween_property(popup_shell, "modulate:a", 1.0, DIM_DURATION + ENTER_RISE)
+	_tween.parallel().tween_property(popup_shell, "scale", Vector2(ENTER_OVERSHOOT, ENTER_OVERSHOOT), ENTER_RISE).set_delay(ENTER_DELAY)
 	_tween.chain().set_ease(Tween.EASE_IN_OUT)
-	_tween.tween_property(panel, "scale", Vector2.ONE, ENTER_SETTLE)
+	_tween.tween_property(popup_shell, "scale", Vector2.ONE, ENTER_SETTLE)
 
 
 func _kill_tween() -> void:

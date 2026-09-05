@@ -192,7 +192,11 @@ func _test_hud_viewport(viewport_size: Vector2i, with_notch: bool) -> void:
 	_assert(next_rect.size.x >= UiDesignSystemType.NEXT_PANEL_SIZE.x * layout_scale - 1.0, "%s Next must retain its configured compact width" % viewport_size)
 	_assert(next_rect.size.y >= UiDesignSystemType.NEXT_PANEL_SIZE.y * layout_scale - 1.0, "%s Next must retain its configured compact height" % viewport_size)
 	_assert(next_rect.size.x <= 130.0 * layout_scale + 1.0 and next_rect.size.y <= 152.0 * layout_scale + 1.0, "%s Next must remain compact enough to clear Settings" % viewport_size)
-	_assert(target_rect.size.x > next_rect.size.x * 2.0, "%s Target must remain more prominent than Next" % viewport_size)
+	# Prominence by area, not by width. Target is a square plate now - the gem and
+	# progress line across the top, the mascot beneath - so the old "twice as wide
+	# as Next" test described a layout that no longer exists. It must still be the
+	# largest thing in the HUD.
+	_assert(target_rect.get_area() > next_rect.get_area() * 1.6, "%s Target must remain more prominent than Next" % viewport_size)
 	_assert(score_rect.position.x >= -0.5 and settings_rect.end.x <= float(viewport_size.x) + 0.5, "%s top HUD must remain inside horizontal bounds" % viewport_size)
 	_assert(progression_rect.position.x >= -0.5 and progression_rect.end.x <= float(viewport_size.x) + 0.5, "%s merge path must stay within screen width" % viewport_size)
 	_assert(absf(progression_rect.get_center().x - float(viewport_size.x) * 0.5) <= center_tolerance, "%s merge path must remain centered" % viewport_size)

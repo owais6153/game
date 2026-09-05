@@ -105,9 +105,15 @@ func _test_shots_panel_is_centred_and_legible() -> void:
 
 	var panel := hud.root_control.find_child("ShotsPanel", true, false) as Control
 	_assert(panel != null, "The limited-shots counter must exist as a framed panel")
+	# The counter moved out of the centred objective stack and under Coins, so the
+	# middle of the HUD could carry the Target plate and its mascot. It must be in
+	# the left column and must NOT be back in the stack.
 	var stack := hud.root_control.find_child("TableObjectiveStack", true, false) as Control
-	_assert(stack != null and panel != null and stack.is_ancestor_of(panel),
-		"The counter must live in the centred objective stack, not beside Coins")
+	_assert(stack != null and not stack.is_ancestor_of(panel),
+		"The counter must sit under Coins, not back in the centred objective stack")
+	var coins_slot := hud.root_control.find_child("CoinsSlot", true, false) as Control
+	_assert(coins_slot != null and coins_slot.is_ancestor_of(panel),
+		"The counter must live in the left column beneath Coins")
 
 	hud.update_snapshot({"limited_shots": false, "shots_remaining": 0})
 	await process_frame
@@ -117,15 +123,28 @@ func _test_shots_panel_is_centred_and_legible() -> void:
 	await process_frame
 	_assert(hud.shots_anchor.visible, "Limited-shots levels must show the counter")
 	_assert(hud.shots_label.text == "12", "The counter must show the remaining shots")
+	# The counter is a compact pill under Coins now, not a full-width plate, so it
+	# no longer carries score-sized type. What still has to hold is that the number
+	# dominates its own card: large in absolute terms, and clearly bigger than the
+	# caption under it.
 	var size: int = hud.shots_label.get_theme_font_size("font_size")
-	_assert(size >= UiDesignSystemType.SCORE_FONT_SIZE,
-		"The count must be at least score-sized to be readable, got %d" % size)
+	var caption := hud.root_control.find_child("ShotsCaption", true, false) as Label
+	_assert(size >= 34, "The count must stay large enough to read at a glance, got %d" % size)
+	_assert(caption != null and size > caption.get_theme_font_size("font_size") + 8,
+		"The count must clearly dominate its caption")
 
-	# Horizontally centred within the design width.
+	# Left-aligned under Coins now, and clear of the Target plate in the middle.
 	await process_frame
 	var rect := panel.get_global_rect()
-	_assert(absf(rect.get_center().x - 360.0) <= 2.0,
-		"The counter must be centred, found centre x=%.1f" % rect.get_center().x)
+	var score_rect := (hud.root_control.find_child("ScorePanel", true, false) as Control).get_global_rect() if hud.root_control.find_child("ScorePanel", true, false) != null else Rect2()
+	_assert(rect.get_center().x < 360.0,
+		"The counter must sit in the left column, found centre x=%.1f" % rect.get_center().x)
+	var target := hud.root_control.find_child("ActiveTargetPanel", true, false) as Control
+	_assert(target != null and not rect.intersects(target.get_global_rect()),
+		"The counter must not overlap the Target plate")
+	if score_rect.size.y > 0.0:
+		_assert(rect.position.y >= score_rect.end.y - 1.0,
+			"The counter must sit below the Coins card, not beside it")
 
 	# Running low must be visually distinct.
 	hud.update_snapshot({"limited_shots": true, "shots_remaining": 2})

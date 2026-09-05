@@ -482,3 +482,33 @@ Caveats recorded at intake, to be resolved before any runtime use:
 
 Replaces the bomb icon that stood in as the Home shop entry point. The original
 is preserved and is never loaded at runtime.
+
+## Mascot mood frames (2026-09-05)
+
+| Source | Runtime derivative | Notes |
+| --- | --- | --- |
+| `assets/character/mascot_mood_sheet_source.png` (1672x941) | `assets/runtime/character/mascot_happy_1..8.png`, `mascot_sad_1..8.png` (224x224 each) | Sliced by `scripts/dev/slice_mascot_frames.gd`. |
+
+Two eight-frame tracks that share a neutral first pose. Cut on evenly spaced
+measured centres (pitch 206.4, row centres 272 and 646) with a 103x107
+elliptical mask: the coins in the sheet touch, so a square crop carries the
+neighbouring rim into every frame, and per-frame bounding boxes would move with
+the character's hands and make the head jitter. Every frame is the same size on
+the same centre - that shared registration is what makes playback read as one
+character rather than sixteen pictures.
+
+Regenerate with:
+
+```
+godot --headless --path . --script scripts/dev/slice_mascot_frames.gd
+```
+# 2026-09-05 supplied brand and mascot refresh
+
+| Role | Preserved source | Runtime derivative |
+| --- | --- | --- |
+| Transparent Majestic Gems logo | `assets/logo/majestic_gems_home_logo_source_v6.png` | `assets/runtime/ui/majestic_gems_logo_v5.png` (pixel-for-pixel copy) |
+| Illustrated-background logo | `assets/logo/majestic_gems_logo_with_background_source_v6.png` | `assets/runtime/ui/majestic_gems_logo_with_background_v6.png` (pixel-for-pixel copy) |
+| Full mascot | `assets/character/mascot_full_source_v2.png` | source for presentation derivatives only; not used on splash |
+| 12x2 mood sheet | `assets/character/mascot_mood_sheet_source_v2.png` | `assets/runtime/character/mascot_{happy,sad}_1..12.png`, 160x160 registered crops |
+| Gradient boot splash | transparent v6 logo plus generated purple gradient | `assets/runtime/ui/majestic_gems_gradient_logo_splash_v1.png`, 720x1280 |
+| Android system splash mark | transparent v6 logo | `assets/runtime/ui/majestic_gems_system_splash_logo_v1.png`, transparent 1152x1152 canvas |

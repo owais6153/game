@@ -147,6 +147,14 @@ many players earned a reward and never went back for it.
 
 Like every other grant here, the claim event fires only after both saves commit.
 
+## Reminders
+
+`notifications_toggled`
+
+Carries `enabled`. The reminder itself is a local scheduled notification and
+fires with the app closed, so there is no client-side event for delivery; only
+the opt-in and opt-out are observable here.
+
 ## Recovery funnels
 
 `skip_level_attempt`, `skip_level_success`, `skip_level_failed`,

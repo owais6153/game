@@ -4,6 +4,12 @@ extends CanvasLayer
 const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
 const ScoreFormatterType = preload("res://scripts/core/score_formatter.gd")
 const CoinIconType = preload("res://scripts/presentation/coin_icon.gd")
+const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
+
+## Sized to the Target panel it rides in. Still smaller than the popup mascot on
+## purpose: here it is a reaction at the edge of vision, not the subject of the
+## screen.
+const HUD_MASCOT_SIZE := 100.0
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
 const TargetRewardOverlayType = preload("res://scripts/presentation/target_reward_overlay.gd")
 const ICON_SETTINGS = preload("res://assets/runtime/ui/kit/icon_gear.png")
@@ -54,7 +60,10 @@ var target_anchor: CenterContainer
 var score_panel: Control
 var score_label: Label
 var shots_label: Label
-var shots_anchor: CenterContainer
+var shots_anchor: BoxContainer
+## Kept so the objective stack can be positioned below whatever height the top
+## row actually needs, rather than below a fixed constant.
+var utility_row: HBoxContainer
 var shots_panel: PanelContainer
 var _shots_shown := -1
 var _shots_tween: Tween
@@ -62,6 +71,8 @@ var coin_icon: CoinIcon
 var progression_frames: Array[Control] = []
 var progression_icons: Array[TextureRect] = []
 var next_panel: Control
+## Reacts to play from the centre of the top HUD, between Coins and Next.
+var mascot: MascotView
 var next_icon: TextureRect
 ## One entry per power, keyed by power name: {button, count_label, plus_icon}.
 var power_tiles: Dictionary = {}
@@ -604,7 +615,7 @@ func _build_hud() -> void:
 	hud_margin.offset_top = 0.0
 	hud_margin.offset_right = UiDesignSystemType.DESIGN_WIDTH
 	hud_margin.offset_bottom = UiDesignSystemType.TOP_HUD_HEIGHT
-	var utility_row := HBoxContainer.new()
+	utility_row = HBoxContainer.new()
 	utility_row.name = "TopUtilityRow"
 	utility_row.custom_minimum_size = Vector2(0.0, UiDesignSystemType.TOP_HUD_HEIGHT)
 	utility_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -613,17 +624,34 @@ func _build_hud() -> void:
 	utility_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_margin.add_child(utility_row)
 
-	var left_slot := HBoxContainer.new()
+	# Coins with the shots counter stacked beneath it, mirroring the Next column
+	# on the right. The counter used to sit at the top of the centred objective
+	# stack, which put it directly over the middle of the HUD - the only place
+	# wide enough for the mascot. Moving it here is what frees that space.
+	var left_slot := VBoxContainer.new()
 	left_slot.name = "CoinsSlot"
-	left_slot.custom_minimum_size = Vector2(UiDesignSystemType.SCORE_PANEL_SIZE.x, UiDesignSystemType.TOP_HUD_HEIGHT)
+	left_slot.custom_minimum_size = Vector2(UiDesignSystemType.NEXT_PANEL_SIZE.x, UiDesignSystemType.TOP_HUD_HEIGHT)
 	left_slot.alignment = BoxContainer.ALIGNMENT_BEGIN
+	left_slot.add_theme_constant_override("separation", 12)
 	left_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	utility_row.add_child(left_slot)
 	score_panel = _build_score_panel()
 	# Coins and Next share one top baseline even though their card heights differ.
 	score_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	score_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	left_slot.add_child(score_panel)
+	shots_anchor = HBoxContainer.new()
+	shots_anchor.name = "ShotsSlot"
+	shots_anchor.alignment = BoxContainer.ALIGNMENT_BEGIN
+	shots_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shots_anchor.visible = false
+	left_slot.add_child(shots_anchor)
+	shots_anchor.add_child(_build_shots_panel())
 
+	# The mascot used to sit here, between Coins and Next. It now rides in the
+	# Target panel instead: keeping it in this row forced the objective stack
+	# below the whole header, which pushed Target and the merge path down onto
+	# the table on every screen shorter than 16:9.
 	var utility_spacer := Control.new()
 	utility_spacer.name = "TopUtilitySpacer"
 	utility_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -665,19 +693,6 @@ func _build_hud() -> void:
 	objective_stack.add_theme_constant_override("separation", UiDesignSystemType.OBJECTIVE_STACK_GAP)
 	objective_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	objective_stack_anchor.add_child(objective_stack)
-	# Limited-shots levels put their counter at the top of the centred objective
-	# stack, in the same framed language as the Target panel. It previously lived
-	# as a 72px label wedged beside Coins, where the number was too small to read
-	# and shared nothing with the rest of the HUD.
-	shots_anchor = CenterContainer.new()
-	shots_anchor.name = "ShotsSlot"
-	shots_anchor.custom_minimum_size = Vector2(0.0, SHOTS_PANEL_SIZE.y)
-	shots_anchor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	shots_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	shots_anchor.visible = false
-	objective_stack.add_child(shots_anchor)
-	shots_anchor.add_child(_build_shots_panel())
-
 	target_anchor = CenterContainer.new()
 	target_anchor.name = "TargetSlot"
 	target_anchor.custom_minimum_size = Vector2(0.0, UiDesignSystemType.TARGET_PANEL_SIZE.y)
@@ -1113,30 +1128,32 @@ func _build_progression_group() -> PanelContainer:
 ## Limited-shots readout. Framed like the Target panel so the two objective
 ## surfaces read as one system, with the count set large enough to be legible
 ## at a glance and to register when it ticks down.
+## Built in the Next panel's language - small caption over a large centred
+## number, same plate, same footprint - so the two columns flanking the mascot
+## read as a matched pair rather than as two unrelated widgets.
 func _build_shots_panel() -> Control:
 	shots_panel = PanelContainer.new()
 	shots_panel.name = "ShotsPanel"
-	shots_panel.custom_minimum_size = SHOTS_PANEL_SIZE
+	shots_panel.custom_minimum_size = UiDesignSystemType.SHOTS_PANEL_SIZE_HUD
 	shots_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	shots_panel.add_theme_stylebox_override("panel", UiDesignSystemType.target_panel_style())
+	shots_panel.add_theme_stylebox_override("panel", UiDesignSystemType.secondary_hud_panel_style())
+	_decorate_panel_ends(shots_panel)
 
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 16)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	shots_panel.add_child(row)
+	var column := VBoxContainer.new()
+	column.name = "ShotsContent"
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 3)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shots_panel.add_child(column)
 
-	var caption := _label("SHOTS LEFT", UiDesignSystemType.SMALL_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
-	caption.name = "ShotsCaption"
-	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(caption)
-
-	shots_label = _label("0", UiDesignSystemType.SCORE_FONT_SIZE, Color.WHITE)
+	shots_label = _label("0", 38, Color.WHITE)
 	shots_label.name = "ShotsRemainingLabel"
 	shots_label.add_theme_font_override("font", UiDesignSystemType.heavy_font())
-	shots_label.custom_minimum_size = Vector2(84.0, 0.0)
-	shots_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(shots_label)
+	column.add_child(shots_label)
+
+	var caption := _label("SHOTS", 16, UiDesignSystemType.COLOR_TEXT_MUTED)
+	caption.name = "ShotsCaption"
+	column.add_child(caption)
 	return shots_panel
 
 
@@ -1147,8 +1164,8 @@ func _apply_shots_state(limited: bool, remaining: int) -> void:
 	var visibility_changed := shots_anchor.visible != limited
 	shots_anchor.visible = limited
 	if visibility_changed:
-		# The stack is a different height with the counter in it, so the anchor has
-		# to be re-measured or the panels overlap the row above.
+		# The counter appearing changes the left column's height, and the objective
+		# stack is positioned relative to the HUD, so it has to be re-measured.
 		_refresh_safe_margins()
 	if not limited:
 		_shots_shown = -1
@@ -1180,17 +1197,29 @@ func _build_target_panel() -> Control:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_decorate_panel_ends(panel)
 	var content_margin := MarginContainer.new()
-	content_margin.add_theme_constant_override("margin_left", 16)
-	content_margin.add_theme_constant_override("margin_top", 10)
-	content_margin.add_theme_constant_override("margin_right", 16)
-	content_margin.add_theme_constant_override("margin_bottom", 10)
+	# Tight, because the square plate has to fit the objective stack above the
+	# table at 16:9 and every pixel of padding comes off the mascot.
+	content_margin.add_theme_constant_override("margin_left", 8)
+	content_margin.add_theme_constant_override("margin_top", 6)
+	content_margin.add_theme_constant_override("margin_right", 8)
+	content_margin.add_theme_constant_override("margin_bottom", 4)
 	content_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(content_margin)
+	# A square plate, matching Next and Shots: the target line across the top,
+	# the mascot filling the space beneath it. The old wide rectangle crowded the
+	# gem and both labels onto the left and left the right half empty.
+	var column := VBoxContainer.new()
+	column.name = "TargetContentColumn"
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 2)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_margin.add_child(column)
 	var row := HBoxContainer.new()
 	row.name = "TargetContentRow"
-	row.add_theme_constant_override("separation", 12)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 10)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content_margin.add_child(row)
+	column.add_child(row)
 	var icon_slot := CenterContainer.new()
 	icon_slot.name = "TargetGemCenter"
 	icon_slot.custom_minimum_size = Vector2(68.0, 60.0)
@@ -1220,6 +1249,18 @@ func _build_target_panel() -> Control:
 	target_status_label.add_theme_constant_override("outline_size", 3)
 	target_status_label.add_theme_color_override("font_outline_color", Color(0.08, 0.015, 0.14, 0.96))
 	details.add_child(target_status_label)
+
+	# The mascot takes the right end of the plate. A square panel was tried and
+	# rejected: at 16:9 it pushed the merge path down onto the table.
+	var mascot_slot := CenterContainer.new()
+	mascot_slot.name = "TargetMascotSlot"
+	mascot_slot.custom_minimum_size = Vector2(HUD_MASCOT_SIZE, HUD_MASCOT_SIZE)
+	mascot_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(mascot_slot)
+	mascot = MascotViewType.new()
+	mascot.name = "HudMascot"
+	mascot.custom_minimum_size = Vector2(HUD_MASCOT_SIZE, HUD_MASCOT_SIZE)
+	mascot_slot.add_child(mascot)
 	return panel
 
 
@@ -1317,25 +1358,25 @@ func _build_pause_popup() -> void:
 	pause_skip_button.tooltip_text = "Skip this level for %d coins" % GameConfig.SKIP_LEVEL_COST
 	pause_skip_button.pressed.connect(func() -> void: skip_level_requested.emit())
 	column.add_child(pause_skip_button)
-	var utility_row := HBoxContainer.new()
-	utility_row.custom_minimum_size = Vector2(424.0, 72.0)
-	utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	utility_row.add_theme_constant_override("separation", 14)
-	column.add_child(utility_row)
+	var pause_utility_row := HBoxContainer.new()
+	pause_utility_row.custom_minimum_size = Vector2(424.0, 72.0)
+	pause_utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	pause_utility_row.add_theme_constant_override("separation", 14)
+	column.add_child(pause_utility_row)
 	restart_button = _button("PauseRestartButton", "RESTART", Vector2(0.0, 72.0), "SecondaryButton")
 	restart_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	restart_button.icon = ICON_RESTART
 	restart_button.expand_icon = false
 	restart_button.tooltip_text = "Restart with the same gem chain"
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
-	utility_row.add_child(restart_button)
+	pause_utility_row.add_child(restart_button)
 	home_button = _button("PauseHomeButton", "HOME", Vector2(0.0, 72.0), "SecondaryButton")
 	home_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	home_button.icon = ICON_HOME
 	home_button.expand_icon = false
 	home_button.tooltip_text = "Return to home"
 	home_button.pressed.connect(func() -> void: home_requested.emit())
-	utility_row.add_child(home_button)
+	pause_utility_row.add_child(home_button)
 
 
 func _button(node_name: String, text: String, minimum: Vector2, variation: StringName) -> Button:
@@ -1670,18 +1711,15 @@ func _refresh_safe_margins() -> void:
 		objective_stack_anchor.offset_right = UiDesignSystemType.DESIGN_WIDTH
 		objective_stack_anchor.add_theme_constant_override("margin_left", left_margin)
 		objective_stack_anchor.add_theme_constant_override("margin_right", right_margin)
-		# The shots counter lives in this same stack on limited-shots levels. It was
-		# missing from the height, so the stack was taller than the space reserved
-		# for it and pushed up into the coins/Next/settings row.
+		# The shots counter now lives under Coins, not in this stack, so its height
+		# is no longer part of the reservation.
 		var stack_height := UiDesignSystemType.TARGET_PANEL_SIZE.y + UiDesignSystemType.OBJECTIVE_STACK_GAP + UiDesignSystemType.PROGRESSION_HEIGHT
-		if shots_anchor != null and shots_anchor.visible:
-			stack_height += SHOTS_PANEL_SIZE.y + float(UiDesignSystemType.OBJECTIVE_STACK_GAP)
 		var tall_t := clampf((design_height - GameConfig.VIEWPORT_SIZE.y) / GameConfig.TABLE_TALL_SCALE_REFERENCE_EXTRA, 0.0, 1.0)
 		var table_gap := lerpf(UiDesignSystemType.OBJECTIVE_TABLE_GAP_MIN, UiDesignSystemType.OBJECTIVE_TABLE_GAP_MAX, tall_t)
 		# The stack is narrow enough to sit between Coins and Next. Requiring it to
-		# begin below the complete utility row made the shots card force Target and
-		# the merge path onto the table at 16:9. Keep only a small safe-top floor;
-		# measured intersection tests protect the corner controls.
+		# begin below the complete utility row put Target and the merge path on the
+		# table at 16:9. Keep only a small safe-top floor; measured intersection
+		# tests protect the corner controls.
 		var minimum_top := top_margin + 32.0
 		var objective_top := maxf(minimum_top, GameConfig.table_outer_top() - table_gap - stack_height)
 		objective_stack_anchor.offset_top = objective_top
@@ -1931,3 +1969,46 @@ func _decorate_panel_ends(panel: Control) -> void:
 		diamond.offset_left = centre - half
 		diamond.offset_right = centre + half
 		overlay.add_child(diamond)
+
+
+## Mascot reactions, named by the gameplay beat rather than by mood, so the
+## controller never has to know which track or intensity a beat maps to.
+##
+## Every in-play beat carries a hold and then decays back to neutral, because
+## the mascot has to be ready to react to the next merge rather than sitting at
+## full grin for the rest of the level. The terminal beats do not decay: the
+## result popup arrives on top of them and the expression should match it.
+const MASCOT_HOLD := 0.9
+
+func react_to_merge() -> void:
+	_react(MascotViewType.MOOD_HAPPY, 0.35, MASCOT_HOLD)
+
+
+## `depth` is the chain depth; a longer chain reads as a bigger reaction, capped
+## so a huge combo and a very huge combo do not look identical to a shrug.
+func react_to_combo(depth: int) -> void:
+	_react(MascotViewType.MOOD_HAPPY, clampf(0.55 + 0.12 * float(maxi(0, depth - 1)), 0.55, 0.9), MASCOT_HOLD)
+
+
+func react_to_win() -> void:
+	_react(MascotViewType.MOOD_HAPPY, 1.0, 0.0)
+
+
+func react_to_fail() -> void:
+	_react(MascotViewType.MOOD_SAD, 1.0, 0.0)
+
+
+## Danger without a loss yet: the table is climbing toward the line.
+func react_to_danger() -> void:
+	_react(MascotViewType.MOOD_SAD, 0.45, MASCOT_HOLD)
+
+
+func reset_mascot() -> void:
+	if mascot != null:
+		mascot.show_idle(true)
+
+
+func _react(mood: String, intensity: float, hold: float) -> void:
+	if mascot == null:
+		return
+	mascot.set_mood(mood, intensity, hold)

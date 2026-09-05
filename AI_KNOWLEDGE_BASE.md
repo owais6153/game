@@ -1,3 +1,37 @@
+# 2026-09-05 - Mascot, popup shell, and reminder guardrails
+
+- **Never animate a popup's `panel` directly.** The title plate is a sibling of
+  the panel inside the shell, so a tween on the panel moves the body and leaves
+  the label behind. Build every popup with `UiDesignSystem.popup_shell()` and
+  animate the shell it returns. `run_ui_kit_polish_v1_tests` asserts this.
+- **Cross-fading sprite frames: draw the base opaque.** Two frames drawn at
+  complementary alphas do not sum to 1 - the shared opaque region ends up around
+  75%, and anything with a constant silhouette (the mascot's gold ring) visibly
+  dims at the midpoint. Draw frame N opaque and frame N+1 over it at the
+  fraction.
+- **Register frames on a grid, not on bounding boxes.** A bounding box follows
+  the character's extremities; crop to it and the head jitters between poses.
+  `slice_mascot_frames.gd` cuts on evenly spaced measured centres for this
+  reason, and the test asserts every frame shares one size.
+- **The mascot must never switch tracks mid-expression.** Happy and sad only
+  share the neutral pose, so `set_mood` rewinds to neutral first and applies the
+  queued mood on arrival. A direct swap cuts the face.
+- **The gameplay HUD's objective stack draws over the top utility row** and
+  moves with the table. Anything added to that row must share the coins card's
+  baseline and height or it will be hidden on limited-shots levels.
+- **A reminder that fires when nothing is outstanding is worse than none.** It
+  trains the player to dismiss the next one. `NotificationService.should_remind`
+  is the single gate, and it is re-evaluated on every mission-state change, not
+  once a day.
+- **Keep notification rules in GDScript.** The Android plugin schedules, cancels
+  and reports permission - nothing else. Anything it decided would be reachable
+  only from a device and therefore untested.
+- **`is_available()` false must stay a no-op, not an error.** Desktop and any
+  build without the plugin have to run normally and simply never schedule.
+- **Settings writers must preserve keys they do not own.** `save_settings()`
+  rebuilt the file from scratch, so adding any new key elsewhere would have been
+  silently wiped by the next audio toggle. Load, set, save.
+
 # 2026-09-05 - Level select, replay, and milestone chest guardrails
 
 - **Never store a level seed.** `LevelConfig.seed_for_level(n)` is pure and must
@@ -1202,3 +1236,9 @@ Bundletool `dump manifest` shows the intended versionCode/versionName, and
 `jarsigner -verify` reports the expected certificate. Also stop stale Gradle
 daemons (`android/build/gradlew --stop`) before a release export; one carried
 over from a run that had exhausted disk space crashed the first attempt.
+# 2026-09-05 - Brand, mascot, mobile-map, and reminder guardrails
+
+- Do not put the mascot on the splash. The splash uses `majestic_gems_gradient_logo_splash_v1.png`: gradient background plus the supplied transparent logo at medium center size.
+- Mascot v2 has 12 frames per mood. Keep all 24 runtime frames identically registered at 160x160 and regenerate them only from `mascot_mood_sheet_source_v2.png` through the slicing script.
+- Do not remove the explicit `InputEventScreenDrag` forwarding from `LevelMapView`; `MOUSE_FILTER_PASS` alone did not make the level map scroll reliably on Android.
+- Notification gameplay decisions stay in GDScript. Native Java may schedule/deliver but must never decide whether a mission is outstanding.

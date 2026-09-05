@@ -49,6 +49,9 @@ signal ui_tap_requested
 
 var root: Control
 var panel: PanelContainer
+## The animated node: the title banner and the panel together. Tweening `panel`
+## alone is what left the title plate visible before and after the popup.
+var popup_shell: Control
 var cards_row: HBoxContainer
 var chest_button: Button
 var chest_caption: Label
@@ -84,30 +87,30 @@ func dismiss() -> void:
 	_kill_tween()
 	_tween = create_tween().set_parallel(true)
 	_tween.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-	_tween.tween_property(panel, "scale", Vector2(0.92, 0.92), EXIT_DURATION)
-	_tween.tween_property(panel, "modulate:a", 0.0, EXIT_DURATION)
+	_tween.tween_property(popup_shell, "scale", Vector2(0.92, 0.92), EXIT_DURATION)
+	_tween.tween_property(popup_shell, "modulate:a", 0.0, EXIT_DURATION)
 	_tween.tween_property(dim_rect, "modulate:a", 0.0, EXIT_DURATION)
 	_tween.chain().tween_callback(func() -> void:
 		root.visible = false
-		panel.scale = Vector2.ONE
-		panel.modulate.a = 1.0
+		popup_shell.scale = Vector2.ONE
+		popup_shell.modulate.a = 1.0
 		dim_rect.modulate.a = 1.0)
 
 
 ## Dim leads, then the panel overshoots once and settles.
 func _start_entrance() -> void:
 	_kill_tween()
-	panel.pivot_offset = panel.size * 0.5
-	panel.scale = Vector2(ENTER_START_SCALE, ENTER_START_SCALE)
-	panel.modulate.a = 0.0
+	popup_shell.pivot_offset = popup_shell.size * 0.5
+	popup_shell.scale = Vector2(ENTER_START_SCALE, ENTER_START_SCALE)
+	popup_shell.modulate.a = 0.0
 	dim_rect.modulate.a = 0.0
 	_tween = create_tween()
 	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 	_tween.tween_property(dim_rect, "modulate:a", 1.0, DIM_DURATION)
-	_tween.parallel().tween_property(panel, "modulate:a", 1.0, DIM_DURATION + ENTER_RISE)
-	_tween.parallel().tween_property(panel, "scale", Vector2(ENTER_OVERSHOOT, ENTER_OVERSHOOT), ENTER_RISE).set_delay(ENTER_DELAY)
+	_tween.parallel().tween_property(popup_shell, "modulate:a", 1.0, DIM_DURATION + ENTER_RISE)
+	_tween.parallel().tween_property(popup_shell, "scale", Vector2(ENTER_OVERSHOOT, ENTER_OVERSHOOT), ENTER_RISE).set_delay(ENTER_DELAY)
 	_tween.chain().set_ease(Tween.EASE_IN_OUT)
-	_tween.tween_property(panel, "scale", Vector2.ONE, ENTER_SETTLE)
+	_tween.tween_property(popup_shell, "scale", Vector2.ONE, ENTER_SETTLE)
 
 
 ## Reward feedback for a confirmed claim: the card kicks, its badge pops, and a
@@ -187,9 +190,8 @@ func _build() -> void:
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	# The header now straddles the panel edge instead of sitting inside it, using
 	# the shared treatment so every titled popup in the game reads the same way.
-	var title_column := UiDesignSystemType.popup_title_column("DAILY MISSIONS")
-	center.add_child(title_column)
-	title_column.add_child(panel)
+	popup_shell = UiDesignSystemType.popup_shell("DAILY MISSIONS", panel)
+	center.add_child(popup_shell)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)

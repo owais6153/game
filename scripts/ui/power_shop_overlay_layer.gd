@@ -42,6 +42,8 @@ signal ui_tap_requested
 var root: Control
 var dim_rect: ColorRect
 var panel: PanelContainer
+## The animated node: title banner plus panel. See UiDesignSystem.popup_shell.
+var popup_shell: Control
 var rows_column: VBoxContainer
 var coins_label: Label
 var feedback_label: Label
@@ -80,17 +82,17 @@ func present(counts: Dictionary, coins: int) -> void:
 	_clear_purchase_feedback()
 	visible_shop = true
 	_set_visible(true)
-	panel.modulate.a = 1.0
+	popup_shell.modulate.a = 1.0
 	dim_rect.color.a = 0.0
-	panel.pivot_offset = panel.size * 0.5
-	panel.scale = Vector2.ONE * ENTER_START_SCALE
+	popup_shell.pivot_offset = popup_shell.size * 0.5
+	popup_shell.scale = Vector2.ONE * ENTER_START_SCALE
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	_tween = create_tween()
 	_tween.tween_property(dim_rect, "color:a", 0.62, DIM_DURATION)
 	_tween.tween_interval(ENTER_DELAY)
-	_tween.tween_property(panel, "scale", Vector2.ONE * ENTER_OVERSHOOT, ENTER_RISE).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_tween.tween_property(panel, "scale", Vector2.ONE, ENTER_SETTLE).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_tween.tween_property(popup_shell, "scale", Vector2.ONE * ENTER_OVERSHOOT, ENTER_RISE).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(popup_shell, "scale", Vector2.ONE, ENTER_SETTLE).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 ## Re-reads the balance the controller treats as authoritative. Called whenever
@@ -138,7 +140,7 @@ func close() -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	_tween = create_tween()
-	_tween.tween_property(panel, "modulate:a", 0.0, EXIT_DURATION)
+	_tween.tween_property(popup_shell, "modulate:a", 0.0, EXIT_DURATION)
 	_tween.parallel().tween_property(dim_rect, "color:a", 0.0, EXIT_DURATION)
 	_tween.finished.connect(func() -> void:
 		_set_visible(false)
@@ -210,13 +212,12 @@ func _build() -> void:
 	centre.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(centre)
 
-	var title_column := UiDesignSystemType.popup_title_column("POWERS")
-	centre.add_child(title_column)
 	panel = PanelContainer.new()
 	panel.name = "PowerShopPanel"
 	panel.custom_minimum_size = Vector2(PANEL_WIDTH, 0.0)
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
-	title_column.add_child(panel)
+	popup_shell = UiDesignSystemType.popup_shell("POWERS", panel)
+	centre.add_child(popup_shell)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 26)

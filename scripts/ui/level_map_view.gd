@@ -57,6 +57,9 @@ const NODE_RADIUS := NODE_PLATE * 0.5
 const CHEST_RADIUS := CHEST_PLATE * 0.5
 ## Taps are forgiving: a finger that lands just off the plate still counts.
 const TAP_SLOP := 14.0
+## How far a finger may travel between press and release and still count as a
+## tap rather than as the start of a flick.
+const TAP_MOVE_TOLERANCE := 12.0
 
 ## Ornament sizes, all quoted as the drawn width; heights follow each texture's
 ## own aspect so nothing in the kit is stretched.
@@ -90,6 +93,18 @@ const PATH_WIDTH := 17.0
 const PATH_GLOSS_WIDTH := 5.0
 
 const DECOR_DIAMOND_SMALL = preload("res://assets/runtime/ui/kit/decor_diamond_small.png")
+const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
+
+## Loose gems scattered in the empty half of the map, opposite whichever way the
+## path is leaning. Decoration only - they are drawn, never hit-tested, and the
+## scatter is derived from the slot index so it is identical every time the
+## screen opens rather than reshuffling under the player.
+const SCATTER_PER_SLOT := 2
+const SCATTER_MIN_SIZE := 34.0
+const SCATTER_MAX_SIZE := 62.0
+## Kept away from the path so a decorative gem is never mistaken for a node.
+const SCATTER_PATH_CLEARANCE := 118.0
+const SCATTER_ALPHA := 0.30
 
 var highest_level := 1
 var last_level := 1
@@ -99,6 +114,9 @@ var _slot_count := 1
 var _window_top := 0.0
 var _window_bottom := 0.0
 var _pulse := 0.0
+## Press tracking, so a flick across a level plate scrolls instead of selecting.
+var _press_position := Vector2.ZERO
+var _press_active := false
 
 ## Built once. A StyleBoxTexture per state costs nothing to draw but would be
 ## wasteful to rebuild for every plate on every frame of the pulse.
@@ -110,8 +128,12 @@ var _plate_chest_locked: StyleBox
 var _plate_shadow: StyleBoxFlat
 
 
+## PASS, not STOP. The map fills the ScrollContainer, and a child that stops
+## input never lets the container see the drag - which is exactly why the level
+## map would not scroll. PASS lets this view read the tap and still hands the
+## gesture on, so the flick works.
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_filter = Control.MOUSE_FILTER_PASS
 	_build_plates()
 	set_process(true)
 
@@ -214,6 +236,7 @@ func _draw() -> void:
 	var range_slots := _visible_slot_range()
 	if range_slots.y < range_slots.x:
 		return
+	_draw_scatter(range_slots)
 	_draw_path(range_slots)
 	for slot in range(range_slots.x, range_slots.y + 1):
 		var contents := LevelMilestoneType.slot_contents(slot)
@@ -387,12 +410,36 @@ func _draw_centred_number(centre: Vector2, text: String, colour: Color) -> void:
 
 
 
+## Selection happens on release, and only if the finger barely moved.
+##
+## Acting on press made every attempt to flick the map open a level instead: the
+## first event of a scroll gesture is a press on whatever node is under the
+## finger. Comparing press and release positions separates a tap from a drag.
 func _gui_input(event: InputEvent) -> void:
+	if event is InputEventScreenDrag:
+		# Android's ScrollContainer does not reliably claim a drag that begins on
+		# this custom-drawn child. Drive the owning scroll bar directly so a
+		# finger swipe always moves the map, while keeping mouse-wheel/desktop
+		# scrolling on the built-in container path.
+		var owner := get_parent() as ScrollContainer
+		if owner != null:
+			owner.scroll_vertical = maxi(0, owner.scroll_vertical - roundi(event.relative.y))
+			_press_active = false
+			accept_event()
+		return
 	if not (event is InputEventScreenTouch or event is InputEventMouseButton):
 		return
-	if not event.pressed:
-		return
 	if event is InputEventMouseButton and event.button_index != MOUSE_BUTTON_LEFT:
+		return
+	if event.pressed:
+		_press_position = event.position
+		_press_active = true
+		return
+	if not _press_active:
+		return
+	_press_active = false
+	if event.position.distance_to(_press_position) > TAP_MOVE_TOLERANCE:
+		# The finger travelled: this was a scroll, not a choice.
 		return
 	var hit := slot_at_position(event.position)
 	if hit < 0:
@@ -424,3 +471,38 @@ func slot_at_position(point: Vector2) -> int:
 		if point.distance_to(_point_at(float(slot))) <= radius + TAP_SLOP:
 			return slot
 	return -1
+
+
+## Decorative gems behind the path, filling the empty side of each row.
+##
+## Positions come from a slot-seeded RNG rather than a stored list, so nothing
+## has to be allocated for a thousand levels and the same slot always scatters
+## the same way - a map that reshuffled its decoration on every scroll would
+## shimmer. They are drawn before the path and well below full opacity so they
+## read as background, and they are never hit-tested: only levels and chests
+## are tappable.
+func _draw_scatter(range_slots: Vector2i) -> void:
+	var rng := RandomNumberGenerator.new()
+	for slot in range(maxi(0, range_slots.x - 1), range_slots.y + 2):
+		if slot >= _slot_count:
+			break
+		rng.seed = int(slot) * 7919 + 104729
+		var anchor := _point_at(float(slot))
+		for index in range(SCATTER_PER_SLOT):
+			# Placed on the far side of the screen from the path, so the gap the
+			# serpentine leaves is what gets filled.
+			var away := -signf(anchor.x - size.x * 0.5)
+			if is_zero_approx(away):
+				away = 1.0 if index % 2 == 0 else -1.0
+			var spread := rng.randf_range(SCATTER_PATH_CLEARANCE, maxf(SCATTER_PATH_CLEARANCE, size.x * 0.44))
+			var point := Vector2(
+				clampf(anchor.x + away * spread, 40.0, size.x - 40.0),
+				anchor.y + rng.randf_range(-ROW_HEIGHT * 0.42, ROW_HEIGHT * 0.42)
+			)
+			var edge := rng.randf_range(SCATTER_MIN_SIZE, SCATTER_MAX_SIZE)
+			# Anything that lands too near the path is dropped rather than nudged:
+			# nudging would pile them along a line just outside the clearance.
+			if absf(point.x - _point_at(float(slot)).x) < SCATTER_PATH_CLEARANCE * 0.8:
+				continue
+			var texture := AssetCatalogType.gem_texture(rng.randi_range(1, 8))
+			_draw_texture_centred(texture, point, edge, Color(1.0, 1.0, 1.0, SCATTER_ALPHA))

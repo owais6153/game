@@ -6,6 +6,11 @@ const ScoreFormatterType = preload("res://scripts/core/score_formatter.gd")
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
 const CoinIconType = preload("res://scripts/presentation/coin_icon.gd")
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
+const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
+
+## Deliberately large. The mascot is the first thing the eye should land on
+## when a result appears.
+const MASCOT_SIZE := 300.0
 const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_lavender.svg")
 const ICON_SKIP = preload("res://assets/runtime/ui/icons/fast_forward_lavender.svg")
@@ -17,6 +22,9 @@ const PANEL_ENTER_START_SCALE := 0.86
 const PANEL_ENTER_OVERSHOOT_SCALE := 1.04
 const PANEL_ENTER_RISE := 0.19
 const PANEL_ENTER_SETTLE := 0.12
+## When the mascot starts its run: after the panel has settled and, on a win,
+## after the mascot itself has faded in.
+const MASCOT_REACTION_DELAY := PANEL_ENTER_DELAY + PANEL_ENTER_RISE + PANEL_ENTER_SETTLE + 0.06
 
 signal retry_requested
 signal collect_requested
@@ -41,11 +49,17 @@ var root_control: Control
 var dimmer: ColorRect
 var safe_margin: MarginContainer
 var panel: PanelContainer
+## The animated node: title banner plus panel. See UiDesignSystem.popup_shell.
+var popup_shell: Control
+## The expression this popup will play, held until the entrance finishes.
+var _queued_mascot_mood := ""
+var _queued_mascot_intensity := 0.0
 var title_label: Label
 var celebration_label: Label
 var subtitle_label: Label
-var result_icon: TextureRect
-var fail_badge: PanelContainer
+## Replaces the old target-gem icon and fail badge. Win, loss and the rescue
+## offer are all told by the mascot's expression.
+var mascot: MascotView
 var reward_card: VBoxContainer
 var earned_label: Label
 var reward_row: HBoxContainer
@@ -132,9 +146,12 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 		subtitle_label.text = "YOU RAN OUT OF SHOTS"
 	else:
 		subtitle_label.text = "THE TABLE REACHED THE DANGER LINE"
-	result_icon.visible = won
-	result_icon.texture = AssetCatalogType.gem_texture(result_tier) if won else null
-	fail_badge.visible = not won
+	# Held neutral here and played once the popup has finished arriving - see
+	# _queue_mascot_reaction. Starting the expression during the entrance meant
+	# most of it ran while the panel was still scaling up and half transparent.
+	_queued_mascot_mood = MascotViewType.MOOD_HAPPY if won else MascotViewType.MOOD_SAD
+	_queued_mascot_intensity = 1.0
+	mascot.show_idle(true)
 	reward_card.custom_minimum_size = Vector2(424.0, 132.0 if won else 74.0)
 	_refresh_reward_copy()
 	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • READY TO RETRY" % level_number
@@ -173,8 +190,11 @@ func present_out_of_shots(coin_balance: int, shots_added: int, cost: int) -> boo
 	title_label.text = "OUT OF SHOTS"
 	celebration_label.visible = false
 	subtitle_label.text = "ADD %d SHOTS AND CONTINUE THIS ATTEMPT" % shots_added
-	result_icon.visible = false
-	fail_badge.visible = true
+	# The rescue offer is a setback, not a loss, so the mascot is downcast rather
+	# than at the bottom of the sad track.
+	_queued_mascot_mood = MascotViewType.MOOD_SAD
+	_queued_mascot_intensity = 0.6
+	mascot.show_idle(true)
 	reward_card.custom_minimum_size = Vector2(424.0, 74.0)
 	# The coin card directly above already shows the balance; repeating it here
 	# was redundant. This slot doubles as the purchase-feedback line.
@@ -229,13 +249,13 @@ func dismiss() -> void:
 		root_control.visible = false
 		root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if panel != null:
-		panel.scale = Vector2.ONE
-		panel.modulate = Color.WHITE
+		popup_shell.scale = Vector2.ONE
+		popup_shell.modulate = Color.WHITE
 	if reward_card != null:
 		reward_card.modulate = Color.WHITE
-	if result_icon != null:
-		result_icon.scale = Vector2.ONE
-		result_icon.modulate = Color.WHITE
+	if mascot != null:
+		mascot.scale = Vector2.ONE
+		mascot.modulate = Color.WHITE
 	if title_label != null:
 		title_label.scale = Vector2.ONE
 	if dimmer != null:
@@ -253,8 +273,8 @@ func layout_metrics() -> Dictionary:
 		"panel": panel.get_global_rect(),
 		"button": retry_button.get_global_rect(),
 		"double_button": double_button.get_global_rect(),
-		"icon": result_icon.get_global_rect(),
-		"fail_badge": fail_badge.get_global_rect(),
+		"icon": mascot.get_global_rect(),
+		"fail_badge": mascot.get_global_rect(),
 	}
 
 
@@ -291,12 +311,14 @@ func _build_ui() -> void:
 	panel.custom_minimum_size = Vector2(520.0, 620.0)
 	panel.add_theme_stylebox_override("panel", UiDesignSystemType.gameplay_modal_panel_style())
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	center.add_child(panel)
+	popup_shell = UiDesignSystemType.popup_shell("LEVEL COMPLETE", panel)
+	center.add_child(popup_shell)
 
 	var margin := MarginContainer.new()
 	margin.name = "ResultContentMargin"
 	margin.add_theme_constant_override("margin_left", 48)
-	margin.add_theme_constant_override("margin_top", 30)
+	# Clears the half of the title plate that overlaps into the panel.
+	margin.add_theme_constant_override("margin_top", 58)
 	margin.add_theme_constant_override("margin_right", 48)
 	margin.add_theme_constant_override("margin_bottom", 34)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -309,22 +331,9 @@ func _build_ui() -> void:
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(column)
 
-	# Same gold ribbon the daily-missions popup uses, so every modal in the game
-	# announces itself the same way. The former bare label with a white outline
-	# read as a different design language from the rest of the kit.
-	var title_banner := PanelContainer.new()
-	title_banner.name = "ResultTitleBanner"
-	title_banner.custom_minimum_size = Vector2(0.0, UiDesignSystemType.BANNER_HEIGHT)
-	title_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	title_banner.add_theme_stylebox_override("panel", UiKitType.nine_patch_style("bar_gold_frame", Vector4(76.0, 12.0, 76.0, 14.0)))
-	column.add_child(title_banner)
-
-	title_label = _label("LEVEL COMPLETE", UiDesignSystemType.POPUP_TITLE_FONT_SIZE, Color.WHITE)
-	title_label.name = "ResultTitle"
-	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title_label.add_theme_constant_override("outline_size", UiDesignSystemType.TEXT_OUTLINE_SIZE)
-	title_label.add_theme_color_override("font_outline_color", UiDesignSystemType.COLOR_TEXT_OUTLINE)
-	title_banner.add_child(title_label)
+	# The heading is the shared half-out plate carried by the shell, the same one
+	# every other popup wears, rather than a second banner inside the body.
+	title_label = UiDesignSystemType.popup_shell_label(popup_shell)
 
 	celebration_label = _label("✦", 18, UiDesignSystemType.COLOR_BLUE)
 	celebration_label.name = "CelebrationAccents"
@@ -339,35 +348,21 @@ func _build_ui() -> void:
 
 	var art_slot := CenterContainer.new()
 	art_slot.name = "ResultArtSlot"
-	art_slot.custom_minimum_size = Vector2(112.0, 112.0)
+	art_slot.custom_minimum_size = Vector2(MASCOT_SIZE, MASCOT_SIZE)
 	art_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(art_slot)
 
-	var icon_aspect := AspectRatioContainer.new()
-	icon_aspect.name = "ResultGemSlot"
-	icon_aspect.custom_minimum_size = Vector2(104.0, 104.0)
-	icon_aspect.ratio = 1.0
-	icon_aspect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	art_slot.add_child(icon_aspect)
-	result_icon = TextureRect.new()
-	result_icon.name = "ResultGem"
-	result_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	result_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	result_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon_aspect.add_child(result_icon)
-
-	fail_badge = PanelContainer.new()
-	fail_badge.name = "FailBadge"
-	fail_badge.custom_minimum_size = Vector2(132.0, 132.0)
-	fail_badge.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	fail_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	art_slot.add_child(fail_badge)
-	# Real kit art. The former empty bordered box with a bare exclamation mark
-	# read as unfinished placeholder rather than a designed state.
-	var fail_mark := UiKitType.texture_rect(UiKitType.BADGE_TIMER, 122.0)
-	fail_mark.name = "FailMark"
-	fail_badge.add_child(fail_mark)
-	fail_badge.visible = false
+	# The result screen used to show the target gem on a win and a timer badge on
+	# a loss. Neither told the player anything the title and the reward card did
+	# not already say, so the slot now carries the mascot instead: the whole point
+	# of the screen is how it went, and a face says that faster than an icon.
+	mascot = MascotViewType.new()
+	mascot.name = "ResultMascot"
+	mascot.custom_minimum_size = Vector2(MASCOT_SIZE, MASCOT_SIZE)
+	# The popup carries its own entrance scale; a breathing loop on top of it
+	# reads as the mascot wobbling rather than as the popup landing.
+	mascot.breathing_enabled = false
+	art_slot.add_child(mascot)
 
 	reward_card = VBoxContainer.new()
 	reward_card.name = "ResultRewardCard"
@@ -653,38 +648,43 @@ func _kill_total_tween() -> void:
 
 func _start_entrance() -> void:
 	_kill_entrance_tween()
-	panel.pivot_offset = _node_center(panel)
+	popup_shell.pivot_offset = _node_center(popup_shell)
 	if not is_inside_tree():
-		panel.scale = Vector2.ONE
-		panel.modulate = Color.WHITE
+		popup_shell.scale = Vector2.ONE
+		popup_shell.modulate = Color.WHITE
 		dimmer.color = UiDesignSystemType.COLOR_OVERLAY
 		return
-	panel.scale = Vector2.ONE * PANEL_ENTER_START_SCALE
-	panel.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	popup_shell.scale = Vector2.ONE * PANEL_ENTER_START_SCALE
+	popup_shell.modulate = Color(1.0, 1.0, 1.0, 0.0)
 	dimmer.color = Color(UiDesignSystemType.COLOR_OVERLAY.r, UiDesignSystemType.COLOR_OVERLAY.g, UiDesignSystemType.COLOR_OVERLAY.b, 0.0)
 	_entrance_tween = create_tween().set_parallel(true)
 	_entrance_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	# The gameplay background dims first; the panel then arrives on the settled dim.
 	_entrance_tween.tween_property(dimmer, "color:a", UiDesignSystemType.COLOR_OVERLAY.a, PANEL_DIM_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_entrance_tween.tween_property(panel, "scale", Vector2.ONE * PANEL_ENTER_OVERSHOOT_SCALE, PANEL_ENTER_RISE).set_delay(PANEL_ENTER_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_entrance_tween.tween_property(panel, "scale", Vector2.ONE, PANEL_ENTER_SETTLE).set_delay(PANEL_ENTER_DELAY + PANEL_ENTER_RISE).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	_entrance_tween.tween_property(panel, "modulate:a", 1.0, PANEL_ENTER_RISE).set_delay(PANEL_ENTER_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_entrance_tween.tween_property(popup_shell, "scale", Vector2.ONE * PANEL_ENTER_OVERSHOOT_SCALE, PANEL_ENTER_RISE).set_delay(PANEL_ENTER_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_entrance_tween.tween_property(popup_shell, "scale", Vector2.ONE, PANEL_ENTER_SETTLE).set_delay(PANEL_ENTER_DELAY + PANEL_ENTER_RISE).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	_entrance_tween.tween_property(popup_shell, "modulate:a", 1.0, PANEL_ENTER_RISE).set_delay(PANEL_ENTER_DELAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# The expression starts only once the popup has finished arriving and is fully
+	# opaque. Playing it during the entrance meant most of the idle-to-happy run
+	# happened behind a panel that was still scaling up and half transparent.
+	_entrance_tween.tween_callback(_play_queued_mascot_reaction).set_delay(MASCOT_REACTION_DELAY)
 	if result_won:
 		# Reveal hierarchy: title, then the completed target gem, then the reward
 		# card and its actions. The layout and artwork itself are unchanged.
 		title_label.pivot_offset = _node_center(title_label)
-		result_icon.pivot_offset = _node_center(result_icon)
+		mascot.pivot_offset = _node_center(mascot)
 		reward_card.pivot_offset = _node_center(reward_card)
 		title_label.scale = Vector2.ONE * 0.82
-		result_icon.scale = Vector2.ONE * 0.72
-		result_icon.modulate = Color(1.18, 1.18, 1.18, 0.0)
+		# Fade only. The scale-with-overshoot this used to run was a second bounce
+		# on top of the panel's own entrance.
+		mascot.scale = Vector2.ONE
+		mascot.modulate = Color(1.18, 1.18, 1.18, 0.0)
 		reward_card.modulate = Color(1.0, 1.0, 1.0, 0.0)
 		# The reveal overlaps the panel's own rise so the whole modal is settled
 		# inside the approved celebration budget.
 		var reveal_base := PANEL_ENTER_DELAY + 0.07
 		_entrance_tween.tween_property(title_label, "scale", Vector2.ONE, 0.18).set_delay(reveal_base).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		_entrance_tween.tween_property(result_icon, "scale", Vector2.ONE, 0.22).set_delay(reveal_base + 0.07).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		_entrance_tween.tween_property(result_icon, "modulate", Color.WHITE, 0.18).set_delay(reveal_base + 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_entrance_tween.tween_property(mascot, "modulate", Color.WHITE, 0.18).set_delay(reveal_base + 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		_entrance_tween.tween_property(reward_card, "modulate:a", 1.0, 0.18).set_delay(reveal_base + 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	else:
 		reward_card.modulate = Color.WHITE
@@ -744,3 +744,15 @@ func _node_center(control: Control) -> Vector2:
 func _kill_entrance_tween() -> void:
 	if _entrance_tween != null and _entrance_tween.is_valid():
 		_entrance_tween.kill()
+
+
+## Starts the expression the popup queued at present() time.
+##
+## Split out from the entrance tween so it is callable directly in tests, and so
+## the queue can be consumed exactly once: a re-present before the delay elapses
+## replaces the queued mood rather than playing both.
+func _play_queued_mascot_reaction() -> void:
+	if mascot == null or _queued_mascot_mood.is_empty():
+		return
+	mascot.play_from_idle(_queued_mascot_mood, _queued_mascot_intensity)
+	_queued_mascot_mood = ""
