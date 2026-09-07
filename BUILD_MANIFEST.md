@@ -1,3 +1,30 @@
+# Production AAB 1.0.18 (vc20) - Normal Level-Map Scroll, v7 Launcher Icon, Asset Purge
+
+Production upload candidate. Play production currently serves versionCode 19 /
+versionName 1.0.17, so 20 / 1.0.18 is the next release, per product-owner
+instruction. The 1.0.18 (vc20) artifacts recorded further down this file were
+built on 2026-09-05 but never uploaded; codes 21-27 and names 1.0.19-1.0.22
+belonged to local test iterations and were never uploaded either. The superseded
+2026-09-05 artifacts are retained locally as
+`build/android/archive-majestic-gems-release-v1.0.18-vc20-brandv6.{apk,aab}`.
+
+- Filename: `build/android/majestic-gems-release-v1.0.18-vc20.aab`
+- Size: 82,962,091 bytes
+- Built: 2026-09-07 11:40:17 +05:00
+- SHA-256: `F1883E562E54627D1A67C9D71E89DA81CE63F846E6FA37AE1F02FCE8E999A523`
+- Source commit/tag: `4fd5350` / `level-map-normal-scroll-brand-v7`; the tree was clean at export.
+- Export preset: `Android` (`gradle_build/export_format=1`), release mode.
+- **Bundletool manifest verification** (`bundletool 1.18.3 dump manifest`): the embedded manifest reads `package="com.owais.majestygems"`, `android:versionCode="20"`, `android:versionName="1.0.18"`, `minSdkVersion=24`, `targetSdkVersion=36`, `compileSdkVersion=36`. Both prepared values are present in the artifact rather than inferred from the preset.
+- **Bundletool buildability check** (`build-apks --mode=universal`): the bundle produces an installable universal APK, itself reporting versionCode 20 / versionName 1.0.18. The bundle is well-formed and splittable.
+- Signing: `jarsigner -verify` reports `jar verified`, signed by the established upload certificate `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`, SHA-256 digest algorithm. Same certificate as the companion APK (`e3ba3287a50af4ac49c07cbcb2e4f10940ad519642cb24f21bcf856b3f3bce14`).
+- ABIs: `arm64-v8a` and `armeabi-v7a`.
+- DEX inspection (base module, three DEX files): `com/google/android/gms/games` and `PlayGamesSdk` absent from all three, confirming Play Games Services remains fully removed. `com/google/android/gms/ads` and `com/google/firebase` present as intended. `MajesticNotifications` compiled into `classes3.dex`.
+- Asset verification: zero entries matching the retired brand derivatives (`logo_v4/v5`, `app_icon_192_v5/v6`, `adaptive_*_v3..v6`, `logo_with_background_v6`), and zero `ChatGPT Image*` entries, confirming both the asset purge and the new source-art exclusion took effect in the bundle.
+- Size: 6,578,064 bytes smaller than the superseded 2026-09-05 AAB (89,540,155).
+- Companion APK: `build/android/majestic-gems-release-v1.0.18-vc20.apk`, recorded in the entry below, installed and device-tested on `34385676890001M`. The AAB was built from the same clean tree and the same preset version values.
+- Device status for this AAB specifically: **not separately installed**. Play bundles are not directly installable; device validation was performed on the companion APK from the same commit, and the bundle was validated with Bundletool as recorded above.
+- Not validated: Firebase DebugView, live ad playback, notification delivery, and Play Console upload acceptance.
+
 # Release APK 1.0.18 (vc20) - Normal Level-Map Scroll, v7 Launcher Icon, Asset Purge
 
 - Filename: `build/android/majestic-gems-release-v1.0.18-vc20.apk`
