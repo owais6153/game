@@ -874,3 +874,65 @@ The active controller now owns limited-shots attempts, out-of-shots rescue, one 
 - The newest supplied mood sheet drives 12 happy and 12 sad registered runtime frames. `MascotView` glides through 12-frame tracks at 2.15 track units/second, preserving neutral rewinds and cross-fades while adding intermediate poses.
 - Android level-map swipes directly update the owning `ScrollContainer`, fixing touch scrolling that could be swallowed when a gesture began over the custom-drawn map. Tap selection remains release-based and rejects moved gestures.
 - Daily mission reminders are now wired into the Android build: runtime notification permission, native Godot singleton metadata, and the alarm receiver are present. Desktop/no-plugin behavior remains a safe no-op.
+
+# Level map scroll, v7 launcher icon, and asset purge - 2026-09-07
+
+**The level map uses an ordinary `ScrollContainer`.** `LevelSelectOverlayLayer`
+owns it; `LevelMapView` is its content. The map declares its full path height,
+draws in content space with no transform of its own, and is told which slice is
+visible through `set_window()`, so drawing stays windowed and opening the map at
+level 4000 costs what it costs at level 4. The map holds no scroll offset, no
+velocity and no friction: touch drag, momentum, rubber-band and the mouse wheel
+are all the container's. It is `MOUSE_FILTER_PASS` and never calls
+`accept_event()` on a drag, which is the whole contract - `MOUSE_FILTER_STOP` is
+what stopped the container seeing a drag when this screen was first built, and
+every workaround since had been compensating for that rather than fixing it.
+Selection is still release-based with a movement tolerance, so a flick that
+starts on a level plate scrolls instead of opening it.
+
+**The v7 illustrated logo is the launcher icon.** It replaces the previous
+illustrated square in the two roles that variety held - the legacy 192px icon
+and the adaptive background layer - and nothing else. The transparent mark is
+still v6 and still drives Home, the Android launch screen and the engine boot
+splash. The adaptive surround is an edge extension of the artwork's own border
+rather than a blur of the whole illustration; see `ASSET_INVENTORY.md` for why
+the two blur approaches were rejected. Verified under circle, squircle and
+rounded-square masks.
+
+**Superseded brand assets are gone.** Fifteen runtime derivatives, nine orphaned
+`.import` sidecars and the fully superseded
+`scripts/dev/prepare_majestic_gems_launcher_v2.gd` were deleted. Supplied
+sources under `assets/logo/` are preserved. `run_branding_push_line_tests` had
+been the only thing keeping the v4/v5 derivatives loadable and now asserts
+against the live v6/v7 art.
+
+**Google Play Games Services remains absent.** Removed on 2026-08-28 and
+re-verified in this pass against both source and the shipped APK's dex: no
+`com/google/android/gms/games` or `PlayGamesSdk` reference exists in any of the
+three DEX files. AdMob and Firebase Analytics are deliberately retained and are
+unaffected.
+
+**Daily missions roll on the local calendar date, not on a 24-hour timer.**
+`DailyMissionService.ensure_current_day()` keys the set on
+`Time.get_date_string_from_system()`, so the set changes at local midnight - a
+player who first opens the game at 23:50 sees a new set ten minutes later - and
+it remains susceptible to device-clock changes. This is unchanged existing
+behaviour, recorded here rather than altered.
+
+## Known-bad test reporting, not fixed in this pass
+
+A GDScript runtime error aborts the test case it occurs in but neither stops the
+runner nor fails the process, so a suite can print PASS while cases inside it
+never ran. `run_level_select_map_v1_tests` was fixed here by having each case
+sign a register that the runner checks. Two suites are still green in this false
+way and should be repaired the same way:
+
+- `run_game_flow_reward_splash_tests` - `HomeOverlayLayer.intro_objective_label`
+  no longer exists.
+- `run_no_ads_available_v1_tests` - `ResultOverlayLayer.actions_pending` no
+  longer exists.
+
+Both predate this pass; neither is caused by it.
+
+Gameplay is untouched: no simulation, `GameConfig`, launcher, aim, merge,
+collision or scoring file is modified.

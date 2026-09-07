@@ -1,3 +1,24 @@
+# Release APK 1.0.18 (vc20) - Normal Level-Map Scroll, v7 Launcher Icon, Asset Purge
+
+- Filename: `build/android/majestic-gems-release-v1.0.18-vc20.apk`
+- Size: 83,102,726 bytes
+- Built: 2026-09-07 11:26:15 +05:00
+- SHA-256: `A867D0C532A31B1B04B7700F40D13FE9CA66008F2EDBDB107A82EC93205D2F8A`
+- Source commit/tag: see `level-map-normal-scroll-brand-v7` (created after this export; the tree contained only the changes described in `reports/LEVEL_MAP_NORMAL_SCROLL_BRAND_V7_REPORT.md`)
+- Version: versionCode 20 / versionName 1.0.18. **Corrected on product-owner instruction**: Play production is at versionCode 19 / 1.0.17, so 20 / 1.0.18 is the next release. Codes 21-27 and names 1.0.19-1.0.22 recorded below belonged to local test iterations that were never uploaded and are not part of the release line. This build was briefly prepared as 28 / 1.0.23 before that correction and re-exported.
+- Validation (aapt2 badging + apksigner): package `com.owais.majestygems`, versionCode 20, versionName 1.0.18, minSdk 24, target/compile SDK 36. Release-signed by the established upload certificate, SHA-256 `e3ba3287a50af4ac49c07cbcb2e4f10940ad519642cb24f21bcf856b3f3bce14` (CN=Muhammad Owais Khan, O=Teckvertex Labs).
+- DEX inspection: three DEX files. `com/google/android/gms/games` and `PlayGamesSdk` absent from all three, confirming Play Games Services remains fully removed. `com/google/android/gms/ads` and `com/google/firebase` present as intended. `MajesticNotifications` compiled into `classes3.dex`.
+- Launcher icon: `mipmap/icon_background` resolves to the v7 illustrated artwork; extracted and visually confirmed from the APK, not inferred from the export settings.
+- Size note: 6,575,798 bytes smaller than the previous 1.0.18 build (89,678,524). Roughly 1.7MB of that was a supplied `ChatGPT Image ....png` sitting at the repository root, which was being imported and packed; `export_presets.cfg` now excludes `ChatGPT Image*.png` alongside the existing `WhatsApp Image*.jpeg` rule. The remainder is the deleted superseded brand derivatives.
+- Device status: **installed and tested** on connected device `34385676890001M` (720x1600, density 300, Android with target SDK 36).
+  - The device previously held a debug-signed 1.0.16 (vc18) from 2026-09-01. Signature mismatch blocked an in-place upgrade; with explicit product-owner authorization the package was uninstalled and the release build installed clean, so the tests below ran on a fresh save.
+  - Home renders with the transparent v6 mark over the garden art.
+  - Level map opens on the player's level, scrolls by swipe with momentum, accumulates across successive flicks (level 13 -> 68 -> 87 over two identical flicks, each settling and staying put), and comes to rest rather than drifting.
+  - A swipe that begins directly on a level plate scrolls instead of opening that level. A tap on the level 1 plate opens the Level Ready popup, so selection is intact.
+  - No crash; process stayed alive across map entry, scrolling, selection and Back.
+- Not validated on device: Firebase DebugView, ad playback, notification delivery.
+- No AAB was produced in this pass.
+
 # Final Release 1.0.18 (vc20) - Optimized APK and AAB
 
 - Source commit/tag: `9eacdff` / `final-v1.0.18-vc20-source`; the tree was clean at export.

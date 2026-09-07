@@ -7,8 +7,8 @@ extends SceneTree
 ##
 ## Run: godot --headless --path . --script scripts/dev/preview_adaptive_icon_masks.gd
 func _init():
-	var bg := Image.load_from_file(ProjectSettings.globalize_path("res://assets/runtime/ui/majestic_gems_adaptive_background_v6.png"))
-	var fg := Image.load_from_file(ProjectSettings.globalize_path("res://assets/runtime/ui/majestic_gems_adaptive_foreground_v6.png"))
+	var bg := Image.load_from_file(ProjectSettings.globalize_path("res://assets/runtime/ui/majestic_gems_adaptive_background_v7.png"))
+	var fg := Image.load_from_file(ProjectSettings.globalize_path("res://assets/runtime/ui/majestic_gems_adaptive_foreground_v7.png"))
 	bg.convert(Image.FORMAT_RGBA8); fg.convert(Image.FORMAT_RGBA8)
 	var flat := bg.duplicate() as Image
 	flat.blend_rect(fg, Rect2i(Vector2i.ZERO, fg.get_size()), Vector2i.ZERO)

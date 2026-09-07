@@ -55,16 +55,21 @@ func _test_audio_sits_between_combo_and_target() -> void:
 func _test_notification_fires_once_on_completion() -> void:
 	var controller = await _start()
 	var missions: Array = controller.daily_state.get("missions", []) as Array
-	var merge_mission: Dictionary = missions[0] as Dictionary
-	var target := int(merge_mission.get("target", 15))
-	var label := String(merge_mission.get("label", ""))
+	var first_mission: Dictionary = missions[0] as Dictionary
+	# Driven by whatever type actually rolled today, not a hard-coded "merge".
+	# The daily set is picked from the calendar date and the easy pool holds a
+	# target_complete objective as well as two merge ones, so hard-coding the
+	# event made this suite pass or fail depending on the day it was run.
+	var event := String(first_mission.get("type", ""))
+	var target := int(first_mission.get("target", 15))
+	var label := String(first_mission.get("label", ""))
 
 	# One short of the target: progress, but no completion yet.
-	controller._record_daily_progress("merge", target - 1)
+	controller._record_daily_progress(event, target - 1)
 	_assert(not controller.gameplay_ui.is_mission_toast_visible(),
 		"partial progress must not announce a completion")
 
-	controller._record_daily_progress("merge", 1)
+	controller._record_daily_progress(event, 1)
 	_assert(controller.gameplay_ui.is_mission_toast_visible(),
 		"reaching the target must show the banner")
 	# Visibility alone proves nothing: it is set synchronously, so a banner that
@@ -90,7 +95,7 @@ func _test_notification_fires_once_on_completion() -> void:
 
 	# Further merges on an already-complete mission must not re-announce.
 	controller.gameplay_ui.mission_toast.visible = false
-	controller._record_daily_progress("merge", 5)
+	controller._record_daily_progress(event, 5)
 	_assert(not controller.gameplay_ui.is_mission_toast_visible(),
 		"an already-complete mission must not announce again")
 	_free(controller)
@@ -101,8 +106,9 @@ func _test_notification_fires_once_on_completion() -> void:
 func _test_notification_never_blocks_gameplay() -> void:
 	var controller = await _start()
 	var missions: Array = controller.daily_state.get("missions", []) as Array
+	var event := String((missions[0] as Dictionary).get("type", ""))
 	var target := int((missions[0] as Dictionary).get("target", 15))
-	controller._record_daily_progress("merge", target)
+	controller._record_daily_progress(event, target)
 	_assert(controller.gameplay_ui.is_mission_toast_visible(), "the banner must be showing for this check")
 
 	var toast = controller.gameplay_ui.mission_toast
@@ -143,8 +149,9 @@ func _test_notification_never_blocks_gameplay() -> void:
 func _test_claiming_does_not_reannounce() -> void:
 	var controller = await _start()
 	var missions: Array = controller.daily_state.get("missions", []) as Array
+	var event := String((missions[0] as Dictionary).get("type", ""))
 	var target := int((missions[0] as Dictionary).get("target", 15))
-	controller._record_daily_progress("merge", target)
+	controller._record_daily_progress(event, target)
 	controller.gameplay_ui.mission_toast.visible = false
 
 	controller._on_daily_missions_requested()

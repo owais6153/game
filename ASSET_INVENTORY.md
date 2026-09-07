@@ -560,3 +560,63 @@ under circle, squircle and rounded-square masks.
 from 424x259 to 360x340. The mark is drawn with its aspect preserved, so the old
 wide box letterboxed the new square crest down to 259 across and made it look
 small.
+
+## Brand refresh v7 - illustrated logo only (2026-09-07)
+
+A new illustrated-background logo was supplied. It replaces the previous one in
+the roles that variety already held, and **only** those: the launcher icon and
+the adaptive background layer. The transparent mark is untouched and remains v6,
+so Home, the Android launch screen and the engine boot splash are unchanged -
+baking the new illustrated background into any of them would show as a square
+over artwork those screens already composite against.
+
+The two sources are versioned independently, because they are replaced
+independently.
+
+| Source | Runtime derivative | Used by |
+| --- | --- | --- |
+| `assets/logo/majestic_gems_logo_with_background_source_v7.png` (1254x1254, supplied) | `assets/runtime/ui/majestic_gems_app_icon_192_v7.png` | Legacy launcher icon, and `project.godot` `config/icon` |
+| same | `assets/runtime/ui/majestic_gems_adaptive_background_v7.png` | Adaptive launcher icon, background layer |
+| — | `assets/runtime/ui/majestic_gems_adaptive_foreground_v7.png` | Adaptive foreground: deliberately empty |
+| `assets/logo/majestic_gems_home_logo_source_v6.png` (transparent, unchanged) | `assets/runtime/ui/majestic_gems_logo_v6.png` | Home screen, via `AssetCatalog.BRAND_LOGO` |
+| same | `assets/runtime/ui/majestic_gems_system_splash_1152_v6.png` | Android launch screen, `splash_screen/icon` |
+| same | `assets/runtime/ui/majestic_gems_boot_splash_v6.png` | Engine boot splash |
+
+Regenerate with `scripts/dev/prepare_brand_refresh_v1.gd`, then verify the mask
+crop with `scripts/dev/preview_adaptive_icon_masks.gd`, exactly as for v6.
+
+**The adaptive surround is now an edge extension, not a blur of the whole
+illustration.** The ring around the artwork exists because only the middle 72 of
+an adaptive icon's 108dp is guaranteed to be shown. It is built by taking each
+surround pixel from the nearest pixel on the edge of the artwork and then
+blurring the result. Two other surrounds were tried on the v7 art and both
+failed visibly: a coarse blur of the whole illustration averaged its gold frame
+and brown wood into the ring and produced a muddy band that read as a border,
+and a fine blur left a recognisable ghost of the wordmark out in the ring, so
+the icon showed its logo twice. An edge extension can do neither, because the
+only colour the ring ever contains is the one the artwork already ends on -
+which on this art is its soft lilac bokeh, so the join has nothing to reveal it.
+
+### Retired in the same pass
+
+Every superseded runtime derivative was deleted, along with the `.import`
+sidecars left orphaned when their images were removed in an earlier pass. The
+supplied sources under `assets/logo/` are all preserved, per the standing rule
+that originals are kept and only derivatives are disposable.
+
+- `majestic_gems_adaptive_background_v3/v4/v5/v6.png`
+- `majestic_gems_adaptive_foreground_v3/v4/v5/v6.png`
+- `majestic_gems_app_icon_192_v5/v6.png`
+- `majestic_gems_logo_v4/v5.png`, `majestic_gems_logo_with_background_v6.png`
+- `majestic_gems_gradient_logo_splash_v1.png`, `majestic_gems_system_splash_logo_v1.png`
+- Orphan sidecars: `app_icon_192_v3/v4`, `logo_v3`, `system_splash_1152_v4/v5`,
+  `gradient_mascot_splash_v1`, `system_splash_mascot_v1`,
+  `logo_presentation_reference_v3`, and six `ChatGPT Image Aug 29 ...` files at
+  the repository root.
+- `scripts/dev/prepare_majestic_gems_launcher_v2.gd`, whose only outputs were
+  the v4/v5 derivatives above. It was fully superseded by
+  `prepare_brand_refresh_v1.gd`.
+
+`tests/run_branding_push_line_tests.gd` was the only thing still loading the
+v4/v5 derivatives, which is why they had survived two brand refreshes. It now
+asserts the shape contract against the live v6/v7 art.

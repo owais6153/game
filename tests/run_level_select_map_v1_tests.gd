@@ -22,15 +22,35 @@ func _init() -> void:
 	call_deferred("_run")
 
 
+## Every case that must run to completion. A GDScript runtime error inside a
+## case aborts that case but does NOT stop the runner or fail the process, so
+## for a while this suite printed PASS while three of its cases were dying on
+## calls to functions that no longer existed. Each case signs the register on
+## its way out and the run fails if a signature is missing.
+const REQUIRED_CASES := [
+	"map_view_geometry_and_hit_testing",
+	"map_view_locks_future_levels",
+	"scroll_container_owns_scrolling",
+	"overlay_scrolls_through_the_container",
+	"overlay_presents_and_centres",
+]
+
+var completed: Array[String] = []
+
+
 func _run() -> void:
 	_test_milestone_slot_arithmetic()
 	_test_chest_unlock_rules()
 	_test_seeds_are_pure_functions_of_level()
 	await _test_map_view_geometry_and_hit_testing()
 	await _test_map_view_locks_future_levels()
-	await _test_drag_scrolls_and_release_glides()
+	await _test_scroll_container_owns_scrolling()
+	await _test_overlay_scrolls_through_the_container()
 	await _test_overlay_presents_and_centres()
 	_test_controller_flow_wiring()
+	for name in REQUIRED_CASES:
+		if not completed.has(name):
+			failures.append("Case '%s' did not run to completion - look for a SCRIPT ERROR above" % name)
 	if failures.is_empty():
 		print("LEVEL_SELECT_MAP_V1_TESTS: PASS")
 		quit(0)
@@ -141,6 +161,7 @@ func _test_map_view_geometry_and_hit_testing() -> void:
 	_assert(centred >= 0.0 and centred <= map.content_height() - 1280.0, "Centring must stay inside the scrollable range")
 	_assert(map.scroll_offset_for_level(1, 1280.0) >= 0.0, "Centring on level 1 must not scroll past the bottom")
 
+	completed.append("map_view_geometry_and_hit_testing")
 	map.queue_free()
 	await process_frame
 
@@ -181,58 +202,107 @@ func _test_map_view_locks_future_levels() -> void:
 	var before := chosen.size()
 	_drag(map, LevelMilestoneType.slot_for_level(4))
 	_assert(chosen.size() == before, "A drag across a level must scroll, not open it")
+	completed.append("map_view_locks_future_levels")
 	map.queue_free()
 	await process_frame
 
 
-## The map owns its scroll, so a drag must move it and a release must glide.
+## An ordinary ScrollContainer does the scrolling, and the map's only job is to
+## stay out of its way.
 ##
-## The previous implementation wrote the parent ScrollContainer.s `scroll_vertical`
-## straight from each drag event, in whole pixels, with no velocity - so the map
-## stepped while the finger moved and stopped dead the instant it lifted. That is
-## what "not smooth" was, and it is what these assertions exist to prevent
-## coming back.
-func _test_drag_scrolls_and_release_glides() -> void:
+## Both previous attempts failed on that one point. The first made the map
+## MOUSE_FILTER_STOP, so the container never saw a drag and the screen would not
+## scroll at all; the workaround bolted on for it wrote `scroll_vertical`
+## straight from each drag event, in whole pixels with no momentum, which is
+## what "not smooth" actually was. The second gave up on the container and
+## hand-rolled the momentum instead.
+##
+## So these assertions are about the contract, not about scroll feel: the map is
+## scrollable content, it never swallows a drag, and it still claims a real tap.
+func _test_scroll_container_owns_scrolling() -> void:
+	# Its own SubViewport, because the assertions below read the viewport's
+	# input-handled flag and there is no public way to clear it again - a tap in
+	# an earlier case would otherwise leave it set for the rest of the run and
+	# these checks would report on that instead of on this map.
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(720, 1280)
+	root.add_child(viewport)
 	var map := LevelMapViewType.new()
-	root.add_child(map)
+	viewport.add_child(map)
 	map.size = Vector2(720.0, 1280.0)
 	map.configure(25, [] as Array[int], 1000)
 	await process_frame
-	_assert(map.max_scroll() > 0.0, "A thousand-level map must have somewhere to scroll")
 
-	# Press, drag, and the map must follow the finger exactly - no rounding to
-	# whole pixels, and no dependence on a parent container.
-	_press(map, Vector2(360.0, 640.0))
-	var before: float = map.scroll_offset()
+	# MOUSE_FILTER_PASS is the whole fix. STOP is what stopped the container
+	# seeing a drag the first time this screen was built, and it is what every
+	# workaround since was compensating for.
+	_assert(map.mouse_filter == Control.MOUSE_FILTER_PASS,
+		"The map must pass input through, or the ScrollContainer never sees a drag")
+
+	# It must be content, not a viewport: a ScrollContainer has nothing to scroll
+	# unless its child declares a height taller than the container.
+	_assert(is_equal_approx(map.custom_minimum_size.y, map.content_height()),
+		"The map must declare its full content height so a ScrollContainer can scroll it")
+	_assert(map.max_scroll(1280.0) > 0.0, "A thousand-level map must have somewhere to scroll")
+
+	# The map must not consume a drag. accept_event() marks the viewport's input
+	# handled, which is exactly what stops the event reaching the container, so
+	# that flag is the thing worth asserting.
+	# Whole map in the window, so hit testing can reach level 4 - it sits at the
+	# very bottom of 186,000px of content, and a realistic 1280px window opened at
+	# the top would put it far off screen where a tap could not land on it.
+	map.set_window(0.0, map.content_height())
+	await process_frame
+	_assert(not viewport.is_input_handled(), "Test precondition: input starts unhandled")
+	_press(map, map._point_at(float(LevelMilestoneType.slot_for_level(4))))
 	_drag_by(map, -120.5)
-	_assert(is_equal_approx(map.scroll_offset(), before + 120.5),
-		"The map must follow the finger exactly, got %f" % (map.scroll_offset() - before))
-
-	# Releasing after a flick must leave momentum behind.
-	_release(map, Vector2(360.0, 519.5))
-	_assert(absf(map._velocity) > 0.0, "A released flick must carry momentum")
-	# Stepped with explicit deltas rather than by counting frames: headless runs
-	# far faster than 60Hz, so a fixed frame count is a different amount of
-	# simulated time on every machine.
-	var glided: float = map.scroll_offset()
-	map._advance_glide(1.0 / 60.0)
-	_assert(map.scroll_offset() > glided,
-		"The map must keep gliding after the finger lifts")
-
-	# And it must come to rest rather than creep for ever.
-	for _step in range(240):
-		map._advance_glide(1.0 / 60.0)
-	var resting: float = map.scroll_offset()
-	map._advance_glide(1.0 / 60.0)
-	_assert(is_equal_approx(map.scroll_offset(), resting), "The glide must settle")
-
-	# A press on a moving map catches it, which is how a player stops a flick.
-	_drag_from(map, Vector2(360.0, 640.0), -400.0)
+	_assert(not viewport.is_input_handled(),
+		"The map must leave drags unhandled so the ScrollContainer can scroll")
 	_release(map, Vector2(360.0, 240.0))
-	_press(map, Vector2(360.0, 640.0))
-	_assert(is_zero_approx(map._velocity), "Touching a gliding map must stop it")
+	_assert(not viewport.is_input_handled(),
+		"A release that travelled is a flick and must stay with the container")
 
-	map.queue_free()
+	# But a genuine tap is still the map's, or the player could never open a level.
+	var chosen: Array[int] = []
+	map.level_selected.connect(func(value: int) -> void: chosen.append(value))
+	_tap(map, LevelMilestoneType.slot_for_level(4))
+	_assert(chosen == _ints([4]), "A tap that did not travel must still open its level")
+	_assert(viewport.is_input_handled(), "A tap the map acted on must be claimed by the map")
+
+	completed.append("scroll_container_owns_scrolling")
+	viewport.queue_free()
+	await process_frame
+
+
+## The screen must open on the player's own level rather than at the bottom of a
+## thousand-level path, and it must do that through the container's own offset.
+func _test_overlay_scrolls_through_the_container() -> void:
+	var overlay := LevelSelectType.new()
+	root.add_child(overlay)
+	await process_frame
+	overlay.present(21, 1450, _ints([]))
+	await process_frame
+	await process_frame
+
+	_assert(overlay.scroll != null, "The level screen must host the map in a ScrollContainer")
+	_assert(overlay.map_view.get_parent() == overlay.scroll,
+		"The map must be the container's content, not a sibling of it")
+	_assert(overlay.scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED,
+		"The map scrolls vertically only")
+	_assert(overlay.scroll.scroll_vertical > 0, "The map must scroll to the player's level on open")
+
+	# The map draws only what the container is showing, so the window it is told
+	# about has to track the container's offset.
+	_assert(is_equal_approx(overlay.map_view._window_top, float(overlay.scroll.scroll_vertical)),
+		"The map's drawing window must follow the container's offset")
+	var moved := overlay.scroll.scroll_vertical - 900
+	overlay.scroll.scroll_vertical = moved
+	await process_frame
+	_assert(is_equal_approx(overlay.map_view._window_top, float(overlay.scroll.scroll_vertical)),
+		"Scrolling the container must move the map's drawing window")
+
+	completed.append("overlay_scrolls_through_the_container")
+	overlay.queue_free()
 	await process_frame
 
 
@@ -285,6 +355,7 @@ func _test_overlay_presents_and_centres() -> void:
 
 	overlay.dismiss()
 	_assert(not overlay.is_open(), "dismiss() must hide the level screen")
+	completed.append("overlay_presents_and_centres")
 	overlay.queue_free()
 	await process_frame
 

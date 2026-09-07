@@ -33,20 +33,33 @@ func _run() -> void:
 	quit(1)
 
 
+## The event type that today's first mission actually asks for.
+##
+## These cases used to hard-code "merge", which made them pass or fail depending
+## on the date the suite happened to run: the daily set is rolled from the
+## calendar date, the easy pool holds a target_complete objective as well as two
+## merge ones, and on a day that rolled target_complete nothing advanced and
+## three cases failed. The date cannot simply be pinned instead, because
+## record() re-derives today internally and would roll the pinned state forward.
+func _first_mission_type(state: Dictionary) -> String:
+	return String((state.missions[0] as Dictionary).get("type", ""))
+
+
 ## The V1 service mutated the caller's Dictionary in place and returned the very
 ## same object, which made every change undetectable and every failed save
 ## unrecoverable.
 func _test_service_is_pure() -> void:
 	var state := DailyMissionServiceType.ensure_current_day({})
+	var event := _first_mission_type(state)
 	var before_progress := int((state.missions[0] as Dictionary).get("progress", -1))
-	var update := DailyMissionServiceType.record(state, "merge", 5)
+	var update := DailyMissionServiceType.record(state, event, 1)
 	var returned: Dictionary = update.get("state", {}) as Dictionary
 	_assert(int((state.missions[0] as Dictionary).get("progress", -1)) == before_progress,
 		"record() must not mutate the state it was given")
-	_assert(int((returned.missions[0] as Dictionary).get("progress", -1)) == before_progress + 5,
+	_assert(int((returned.missions[0] as Dictionary).get("progress", -1)) == before_progress + 1,
 		"record() must return advanced progress in a new state")
 
-	var claimable := DailyMissionServiceType.record(state, "merge", 999).get("state", {}) as Dictionary
+	var claimable := DailyMissionServiceType.record(state, event, 999).get("state", {}) as Dictionary
 	var claim := DailyMissionServiceType.claim_mission(claimable, 0)
 	_assert(not bool((claimable.missions[0] as Dictionary).get("claimed", true)),
 		"claim_mission() must not mark the caller's state claimed")
@@ -58,20 +71,22 @@ func _test_service_is_pure() -> void:
 ## service that comparison was always false and nothing was ever saved.
 func _test_progress_reports_change() -> void:
 	var state := DailyMissionServiceType.ensure_current_day({})
-	var first := DailyMissionServiceType.record(state, "merge", 3)
+	var event := _first_mission_type(state)
+	var first := DailyMissionServiceType.record(state, event, 1)
 	_assert(bool(first.get("changed", false)), "Advancing a mission must report changed")
 	var advanced: Dictionary = first.get("state", {}) as Dictionary
-	var noop := DailyMissionServiceType.record(advanced, "level_complete", 0)
+	var noop := DailyMissionServiceType.record(advanced, event, 0)
 	_assert(not bool(noop.get("changed", true)), "A zero-amount record must report no change")
-	var full := DailyMissionServiceType.record(advanced, "merge", 9999).get("state", {}) as Dictionary
-	var capped := DailyMissionServiceType.record(full, "merge", 5)
+	var full := DailyMissionServiceType.record(advanced, event, 9999).get("state", {}) as Dictionary
+	var capped := DailyMissionServiceType.record(full, event, 5)
 	_assert(not bool(capped.get("changed", true)), "Recording past a completed target must report no change")
 
 
 ## A save failure must leave the player's reward intact rather than consuming it.
 func _test_claim_does_not_mutate_until_persisted() -> void:
+	var today := DailyMissionServiceType.ensure_current_day({})
 	var state := DailyMissionServiceType.record(
-		DailyMissionServiceType.ensure_current_day({}), "merge", 9999).get("state", {}) as Dictionary
+		today, _first_mission_type(today), 9999).get("state", {}) as Dictionary
 	var claim := DailyMissionServiceType.claim_mission(state, 0)
 	_assert(bool(claim.get("ok", false)) and int(claim.get("reward", 0)) > 0, "A completed mission must be claimable")
 	# Caller discards the result, simulating a failed save.

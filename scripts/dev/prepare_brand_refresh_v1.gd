@@ -1,6 +1,15 @@
 extends SceneTree
 
-## Generates every runtime brand derivative from the two supplied v6 logos.
+## Generates every runtime brand derivative from the two supplied source logos.
+##
+## The two sources are versioned independently, because they are replaced
+## independently. The transparent mark is still v6; the illustrated square is v7,
+## and its derivatives are named for it. Only the outputs listed under
+## `with background` below changed when it was replaced - the Home logo, the
+## Android launch splash and the engine boot splash all come from the
+## transparent mark and were deliberately left alone, since baking the new
+## illustrated background into any of them would show as a square over artwork
+## those screens already have.
 ##
 ## Run on demand when the source art changes:
 ##   godot --headless --path . --script scripts/dev/prepare_brand_refresh_v1.gd
@@ -30,13 +39,13 @@ extends SceneTree
 ## colour, never the wordmark.
 
 const TRANSPARENT_LOGO := "res://assets/logo/majestic_gems_home_logo_source_v6.png"
-const BACKGROUND_LOGO := "res://assets/logo/majestic_gems_logo_with_background_source_v6.png"
+const BACKGROUND_LOGO := "res://assets/logo/majestic_gems_logo_with_background_source_v7.png"
 
 const OUT_HOME_LOGO := "res://assets/runtime/ui/majestic_gems_logo_v6.png"
 const OUT_SPLASH_ICON := "res://assets/runtime/ui/majestic_gems_system_splash_1152_v6.png"
-const OUT_APP_ICON := "res://assets/runtime/ui/majestic_gems_app_icon_192_v6.png"
-const OUT_ADAPTIVE_FOREGROUND := "res://assets/runtime/ui/majestic_gems_adaptive_foreground_v6.png"
-const OUT_ADAPTIVE_BACKGROUND := "res://assets/runtime/ui/majestic_gems_adaptive_background_v6.png"
+const OUT_APP_ICON := "res://assets/runtime/ui/majestic_gems_app_icon_192_v7.png"
+const OUT_ADAPTIVE_FOREGROUND := "res://assets/runtime/ui/majestic_gems_adaptive_foreground_v7.png"
+const OUT_ADAPTIVE_BACKGROUND := "res://assets/runtime/ui/majestic_gems_adaptive_background_v7.png"
 const OUT_BOOT_SPLASH := "res://assets/runtime/ui/majestic_gems_boot_splash_v6.png"
 
 ## Home draws the mark inside a 424x259 box with the aspect preserved, so the
@@ -116,8 +125,24 @@ const ADAPTIVE_CANVAS := 432
 const ADAPTIVE_VIEWPORT_EDGE := 288
 ## How far the surround behind the artwork is dimmed, and how hard it is blurred
 ## first. The blur is a downscale-then-upscale, so this is the intermediate edge.
-const SURROUND_DIM := 0.55
-const SURROUND_SAMPLE := 6
+##
+## Barely dimmed at all, and that is a property of the v7 art rather than a
+## preference. The surround is a blur of the artwork's own edges, and the v7
+## illustration carries a soft lilac bokeh right out to its border - so the blur
+## is already almost exactly the colour the artwork ends on. Dimming it to 0.55,
+## which suited the darker v6 square, left the inner artwork visibly brighter
+## than the ring around it and the icon read as a photo pasted on a card, which
+## is the one thing this surround exists to avoid. At 0.94 the join is invisible
+## and the ring still falls off just enough to give the artwork an edge.
+const SURROUND_DIM := 0.94
+## Finer than it looks like it should be. At 6 each cell is a sixth of the icon,
+## so the ring around the artwork averaged the illustration's whole outer sixth -
+## which on this art includes the gold frame and the brown wood, and came out a
+## muddy band that read as a border. At 16 the ring is drawn from the outer tenth
+## or so, which on the v7 illustration is purely its lilac bokeh, and the extra
+## structure that survives is irrelevant because everything inside the ring is
+## covered by the crisp artwork drawn over it.
+const SURROUND_SAMPLE := 16
 ## How far the wash is reduced before being scaled back up. Small enough that
 ## no glyph or gem survives it as a recognisable shape.
 const WASH_SAMPLE := 10
@@ -192,23 +217,44 @@ func _centre_on_canvas(mark: Image, canvas: int, logo_edge: int) -> Image:
 ## made the icon read as a picture pasted on a card, and an un-blurred copy of
 ## the illustration showed the logo twice, once in the ring and once on top.
 func _adaptive_background(source: Image, canvas: int) -> Image:
-	var out := source.duplicate() as Image
-	# Small enough that no gem, leaf or letter survives as a recognisable shape.
+	var art := _fit(source, ADAPTIVE_VIEWPORT_EDGE)
+	var width := art.get_width()
+	var height := art.get_height()
+	var left := (canvas - width) / 2
+	var top := (canvas - height) / 2
+
+	# The ring is the artwork's own border, stretched outwards - each surround
+	# pixel takes the colour of the nearest pixel on the edge of the artwork.
+	#
+	# Two other surrounds were tried on this art and both failed in the way the
+	# comment above predicts. Blurring the whole illustration coarsely averaged
+	# its gold frame and brown wood into the ring and produced a muddy band that
+	# read as a border; blurring it finely left a recognisable ghost of the logo
+	# out in the ring, so the icon showed its wordmark twice. Extending the edge
+	# cannot do either, because the only thing the ring ever contains is the
+	# colour the artwork already ends on - which on the v7 illustration is its
+	# soft lilac bokeh, so the join has nothing to reveal it.
+	var out := Image.create_empty(canvas, canvas, false, Image.FORMAT_RGBA8)
+	for y in range(canvas):
+		var source_y := clampi(y - top, 0, height - 1)
+		for x in range(canvas):
+			var pixel := art.get_pixel(clampi(x - left, 0, width - 1), source_y)
+			out.set_pixel(x, y, Color(pixel.r, pixel.g, pixel.b, 1.0))
+
+	# The extension leaves hard radial streaks where the border varies; a blur
+	# turns them into a wash. It cannot reintroduce the logo, because the ring
+	# holds no logo to blur.
 	out.resize(SURROUND_SAMPLE, SURROUND_SAMPLE, Image.INTERPOLATE_LANCZOS)
 	out.resize(canvas, canvas, Image.INTERPOLATE_CUBIC)
 	out.convert(Image.FORMAT_RGBA8)
 	for y in range(canvas):
 		for x in range(canvas):
 			var pixel := out.get_pixel(x, y)
-			# Opaque, and dimmed so the surround never competes with the artwork
-			# sitting on top of it.
+			# Opaque, and eased down just enough that the artwork still has an
+			# edge rather than dissolving into its own surround.
 			out.set_pixel(x, y, Color(pixel.r * SURROUND_DIM, pixel.g * SURROUND_DIM, pixel.b * SURROUND_DIM, 1.0))
-	var art := _fit(source, ADAPTIVE_VIEWPORT_EDGE)
-	out.blend_rect(
-		art,
-		Rect2i(Vector2i.ZERO, art.get_size()),
-		Vector2i((canvas - art.get_width()) / 2, (canvas - art.get_height()) / 2)
-	)
+
+	out.blend_rect(art, Rect2i(Vector2i.ZERO, art.get_size()), Vector2i(left, top))
 	return out
 
 

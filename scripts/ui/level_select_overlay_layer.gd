@@ -49,6 +49,7 @@ var wash: ColorRect
 ## stay full-bleed.
 var header_margin: MarginContainer
 var footer_margin: MarginContainer
+var scroll: ScrollContainer
 var map_view: LevelMapView
 var title_label: Label
 var subtitle_label: Label
@@ -101,8 +102,10 @@ func present(highest_level: int, coins: int, claimed_chests: Array[int]) -> void
 	_refresh_labels()
 	root_control.show()
 	_refresh_safe_margins()
-	# The map's height is only known after the configure above has propagated
-	# through the ScrollContainer's layout, so centring waits a frame.
+	# The map's content height is only known to the ScrollContainer after the
+	# configure above has propagated through layout, so centring waits a frame -
+	# scroll_vertical is clamped to the container's idea of the maximum, and set
+	# too early it would clamp to zero.
 	call_deferred("_centre_on_current_level")
 	_play_entrance()
 
@@ -152,12 +155,28 @@ func _chest_summary() -> String:
 ## under the two floating bars. Centring therefore targets the clear band
 ## between them, or the player.s own level opens half-hidden behind the banner.
 func _centre_on_current_level() -> void:
-	if map_view == null:
+	if map_view == null or scroll == null:
 		return
 	var header_height := header_margin.size.y if header_margin != null else 0.0
 	var footer_height := footer_margin.size.y if footer_margin != null else 0.0
-	var clear_band := maxf(1.0, map_view.size.y - header_height - footer_height)
-	map_view.scroll_to_level(_highest_level, clear_band, header_height)
+	var clear_band := maxf(1.0, scroll.size.y - header_height - footer_height)
+	# Jumped, not tweened: this is where the screen opens, and animating into it
+	# would show the player a thousand levels flying past on the way.
+	scroll.scroll_vertical = int(round(map_view.scroll_offset_for_level(_highest_level, clear_band, header_height)))
+	_report_window()
+	map_view.invalidate()
+
+
+## Hands the container's current viewport down to the map, which draws only the
+## slots inside it.
+func _report_window() -> void:
+	if map_view == null or scroll == null:
+		return
+	map_view.set_window(float(scroll.scroll_vertical), scroll.size.y)
+
+
+func _on_scrolled(_value: float) -> void:
+	_report_window()
 
 
 func _on_viewport_resized() -> void:
@@ -201,16 +220,35 @@ func _build() -> void:
 	# the two edges rather than taking rows out of a column, so the path runs edge
 	# to edge and the artwork is never boxed into a panel in the middle.
 	#
-	# No ScrollContainer. The map owns its own scroll offset, which keeps it
-	# exactly viewport-sized - inside a container it had to BE its content, and a
-	# thousand levels is a node 186,000px tall being re-laid-out on every scroll.
+	# An ordinary ScrollContainer, doing the scrolling the engine already knows
+	# how to do: touch drag, momentum, rubber-band at the ends, mouse wheel on
+	# desktop. Nothing here re-implements any of it.
+	#
+	# The map was given its own hand-rolled scroll once, after a first attempt at
+	# a container appeared not to scroll at all. The container was never the
+	# problem - the map was MOUSE_FILTER_STOP and the drag never reached it. It
+	# is PASS now, so the container sees every gesture.
+	scroll = ScrollContainer.new()
+	scroll.name = "LevelMapScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	# The map is full-bleed art; a scrollbar drawn over it would read as a rail
+	# down the side of the path.
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.get_v_scroll_bar().modulate = Color(1.0, 1.0, 1.0, 0.0)
+	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+	root_control.add_child(scroll)
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.get_v_scroll_bar().value_changed.connect(_on_scrolled)
+	scroll.resized.connect(_report_window)
+
 	map_view = LevelMapViewType.new()
 	map_view.name = "LevelMapView"
 	map_view.level_selected.connect(_on_level_selected)
 	map_view.chest_selected.connect(_on_chest_selected)
-	map_view.clip_contents = true
-	root_control.add_child(map_view)
-	map_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# The content fills the container's width and declares its own height, which
+	# is what makes it scrollable content rather than a viewport.
+	map_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(map_view)
 
 	# Soft scrims under the two floating bars. They are not a frame around the
 	# map - they only stop a level plate from colliding with the banner or the

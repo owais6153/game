@@ -1319,3 +1319,78 @@ over from a run that had exhausted disk space crashed the first attempt.
 - Mascot v2 has 12 frames per mood. Keep all 24 runtime frames identically registered at 160x160 and regenerate them only from `mascot_mood_sheet_source_v2.png` through the slicing script.
 - Do not remove the explicit `InputEventScreenDrag` forwarding from `LevelMapView`; `MOUSE_FILTER_PASS` alone did not make the level map scroll reliably on Android.
 - Notification gameplay decisions stay in GDScript. Native Java may schedule/deliver but must never decide whether a mission is outstanding.
+
+# Level map scrolling, brand v7, and false-green suites - 2026-09-07
+
+## A custom-drawn child must be MOUSE_FILTER_PASS to live in a ScrollContainer
+
+The level map went through three scrolling implementations. The first put it in
+a `ScrollContainer` and it would not scroll; the second wrote `scroll_vertical`
+straight from each drag event; the third abandoned the container and hand-rolled
+velocity and friction. Only the first diagnosis was ever wrong, and both later
+implementations inherited it.
+
+`MOUSE_FILTER_STOP` on the map is what stopped the container seeing a drag. A
+custom-drawn Control that wants a container to scroll it must be
+`MOUSE_FILTER_PASS`, must not handle drag events at all, and must not call
+`accept_event()` on a release that travelled. Do that and Godot's own touch
+scrolling - momentum, rubber-band, wheel - works with nothing re-implemented.
+
+**Do not conclude that "Android gesture capture over a custom Control is
+unreliable".** That claim was in `ARCHITECTURE.md` for weeks and it is false.
+
+## A huge ScrollContainer child costs a layout, not a repaint
+
+The map is ~186,000px tall. That was twice cited as the reason a container was
+impossible, on the grounds that it would be "re-laid-out on every scroll". A
+`ScrollContainer` positions its child on scroll; it does not re-measure it.
+Layout happens on configure and resize. Keep drawing windowed and gate the
+repaint on the visible range actually changing, and the height is free.
+
+## A GDScript error inside a test case does not fail the suite
+
+This is the single most dangerous pattern in this repository's test harness. A
+runtime error aborts the case it occurs in, but the runner keeps going, the
+`failures` array stays empty, and the suite prints PASS and exits 0. Three cases
+in `run_level_select_map_v1_tests` had been dead for weeks this way, calling
+functions a previous refactor had deleted.
+
+**Every suite with awaited cases needs a completion register**: each case appends
+its name on the way out and the runner fails on any missing signature.
+`run_level_select_map_v1_tests` has one now. Two suites still do not and are
+still falsely green - `run_game_flow_reward_splash_tests`
+(`HomeOverlayLayer.intro_objective_label`) and `run_no_ads_available_v1_tests`
+(`ResultOverlayLayer.actions_pending`).
+
+When auditing, grep a suite run for `SCRIPT ERROR` even when it prints PASS.
+
+## Daily-mission tests must not hard-code an event type
+
+The daily set is rolled from the calendar date and the easy pool contains a
+`target_complete` objective alongside two merge ones, so a test that records
+`"merge"` against `missions[0]` passes or fails depending on the day it runs.
+The date cannot be pinned either: `record()` calls `ensure_current_day(state)`
+with no date and would roll a pinned state forward. Read the type off the
+mission that actually rolled.
+
+Related: daily missions roll on the **local calendar date**, not 24 hours after
+the player saw them. First play at 23:50 means a new set at midnight.
+
+## An icon surround must be an edge extension, not a blur of the whole image
+
+An adaptive icon shows only its middle 72 of 108dp, so artwork sized to the safe
+viewport needs a ring around it. Blurring the whole illustration to make that
+ring fails in both directions depending on how hard you blur: too coarse and it
+averages the illustration's interior into a muddy band that reads as a border,
+too fine and a ghost of the logo appears in the ring so the icon shows its
+wordmark twice. Take each surround pixel from the nearest pixel on the artwork's
+edge instead, then blur that. The ring then contains only the colour the artwork
+already ends on, and neither failure is possible.
+
+## Supplied source art at the repository root ships in the APK
+
+`export_presets.cfg` excluded `WhatsApp Image*.jpeg` but nothing else, so a
+supplied `ChatGPT Image ....png` dropped at the repo root was imported and
+packed - 1.7MB of source art in the shipped build. Preserve supplied originals
+under `assets/logo/` (already excluded) and keep a pattern exclusion at the root
+for the delivery copies.
