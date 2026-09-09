@@ -19,6 +19,10 @@ const SuppliedPowerBomb: AudioStream = preload("res://assets/runtime/audio/power
 const SuppliedPowerHammer: AudioStream = preload("res://assets/runtime/audio/power_hammer_v1.ogg")
 const SuppliedPowerMagnet: AudioStream = preload("res://assets/runtime/audio/power_magnet_v1.ogg")
 const SuppliedPowerSwitch: AudioStream = preload("res://assets/runtime/audio/power_switch_v1.ogg")
+## Supplied award cues. The ding carries the three-star sequence, played at a
+## rising pitch per star; the shine lands on each claimed treasure reward.
+const SuppliedStarAward: AudioStream = preload("res://assets/runtime/audio/star_award_ding_v1.mp3")
+const SuppliedTreasureClaim: AudioStream = preload("res://assets/runtime/audio/treasure_claim_shine_v1.mp3")
 ## The new level-complete fanfare. The cue it replaces now plays when the daily
 ## treasure opens, so that moment gets a real payoff instead of borrowing the
 ## generic coin sound.
@@ -181,12 +185,13 @@ func _build_stream_cache() -> void:
 		"win": SuppliedLevelComplete,
 		# The previous level-complete cue, reused where it now belongs.
 		"treasure_open": SuppliedBasicMerge,
-		# Award cues. Both are chimes rather than crystal hits because they
-		# report an achievement rather than a physical event, and both are played
-		# as a rising series by their callers.
-		"star_award": _build_reward_chime_stream(GameConfig.AUDIO_TONES.star_award),
+		# Award cues. The star ding and the treasure shine are supplied recordings
+		# rather than generated chimes; both are played as a rising series by
+		# their callers. `star_complete` stays generated and sits under the ding,
+		# so the flourish that closes the sequence is plainly not a fourth star.
+		"star_award": SuppliedStarAward,
 		"star_complete": _build_reward_chime_stream(GameConfig.AUDIO_TONES.star_complete),
-		"treasure_claim": _build_reward_chime_stream(GameConfig.AUDIO_TONES.treasure_claim),
+		"treasure_claim": SuppliedTreasureClaim,
 		"button": SuppliedUiTap,
 	}
 

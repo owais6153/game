@@ -20,8 +20,13 @@ const STAR_SPACING := 26.0
 ## One star lands, its caption is read, then the next. Slower than a reward
 ## reveal on purpose - three stars arriving in half a second is a flicker, not
 ## an award.
-const STAR_AWARD_DURATION := 0.55
-const STAR_AWARD_GAP := 0.26
+const STAR_AWARD_DURATION := 0.62
+const STAR_AWARD_GAP := 0.24
+## While the stars land, the rest of the popup steps back to this opacity, so
+## the row is unambiguously what the screen is doing. Held back rather than
+## hidden: hiding would reflow the column and move the row mid-sequence.
+const STAR_FOCUS_DIM := 0.34
+const STAR_FOCUS_FADE := 0.22
 ## After the popup has settled and the mascot has begun to react.
 const STAR_SEQUENCE_DELAY := MASCOT_REACTION_DELAY + 0.18
 const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
@@ -177,6 +182,7 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 	_queued_mascot_intensity = 1.0
 	mascot.show_idle(true)
 	_prepare_star_award(won, star_award)
+	_set_star_focus(false, 0.0)
 	reward_card.custom_minimum_size = Vector2(424.0, 132.0 if won else 74.0)
 	_refresh_reward_copy()
 	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • READY TO RETRY" % level_number
@@ -673,6 +679,8 @@ func _play_star_award() -> void:
 		_finish_star_award()
 		return
 	_kill_star_tween()
+	# The rest of the popup steps back for the duration of the sequence.
+	_set_star_focus(true, STAR_FOCUS_FADE)
 	_star_tween = create_tween()
 	_star_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	for slot in pending:
@@ -687,8 +695,39 @@ func _play_star_award() -> void:
 	_star_tween.tween_callback(_finish_star_award)
 
 
+## Everything on the popup except the stars, dimmed while they land so the row
+## is unambiguously what the screen is doing.
+##
+## Held back rather than hidden: the coin figures and the actions are still
+## legible, they simply stop competing. Hiding them would reflow the column and
+## move the star row mid-sequence.
+func _star_focus_targets() -> Array[Control]:
+	var targets: Array[Control] = []
+	for control in [subtitle_label, reward_card, transition_label, retry_button, double_button, home_button]:
+		if control != null:
+			targets.append(control)
+	return targets
+
+
+func _set_star_focus(active: bool, duration: float) -> void:
+	var target := Color(1.0, 1.0, 1.0, STAR_FOCUS_DIM) if active else Color.WHITE
+	for control in _star_focus_targets():
+		# Assigned rather than tweened at zero duration: `present()` resets the
+		# focus before the popup is laid out, and a control hidden at that
+		# moment - DOUBLE COINS on a loss, say - must still be restored, or it
+		# would appear dimmed the next time it is shown.
+		if duration <= 0.0 or not control.visible or not control.is_inside_tree():
+			control.modulate = target
+			continue
+		var fade := create_tween()
+		fade.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		fade.tween_property(control, "modulate", target, duration) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
 func _finish_star_award() -> void:
 	_stars_pending = false
+	_set_star_focus(false, STAR_FOCUS_FADE)
 	var earned := 0
 	for result in _star_results:
 		if result:

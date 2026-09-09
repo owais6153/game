@@ -56,6 +56,12 @@ const BADGE_FLAME := preload("res://assets/runtime/ui/kit/badge_flame.png")
 const BADGE_CHEST := preload("res://assets/runtime/ui/kit/badge_chest.png")
 ## The opened state of the same chest, swapped in mid-animation on claim.
 const BADGE_CHEST_OPEN := preload("res://assets/runtime/ui/kit/badge_chest_open.png")
+# Level stars. Supplied art, sliced by scripts/dev/prepare_star_kit_art.gd.
+# `STAR_GLOW` is the same star wrapped in a halo; it is drawn behind an earned
+# star as a bloom while it lands, not as a state of its own.
+const STAR_FILLED := preload("res://assets/runtime/ui/kit/star_filled.png")
+const STAR_EMPTY := preload("res://assets/runtime/ui/kit/star_empty.png")
+const STAR_GLOW := preload("res://assets/runtime/ui/kit/star_glow.png")
 const BADGE_TIMER := preload("res://assets/runtime/ui/kit/badge_timer.png")
 const BADGE_MEDAL := preload("res://assets/runtime/ui/kit/badge_medal.png")
 const BADGE_CHECK_LAUREL := preload("res://assets/runtime/ui/kit/badge_check_laurel.png")

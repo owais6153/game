@@ -767,14 +767,23 @@ const AUDIO_TONES := {
 const GEM_CONTACT_SOUND_THRESHOLD := 170.0
 const WALL_CONTACT_SOUND_THRESHOLD := 220.0
 const CONTACT_SOUND_COOLDOWN := 0.075
-## Pitch for the Nth star in an award sequence. Ascending, and bounded well
-## inside AudioFeedbackService's 0.80-1.40 clamp so a fourth star - should the
-## count ever change - still lands on a real note rather than at the ceiling.
-const STAR_AWARD_PITCH_BASE := 1.0
-const STAR_AWARD_PITCH_STEP := 0.13
+## Pitch for the Nth star in an award sequence: an explicit ladder rather than a
+## base and a step, because the three values are the tuning and a formula only
+## hides them. Rising "ding -> ding -> ding!".
+##
+## A fourth star, should the count ever change, continues past the end of the
+## table by the last interval and is clamped inside AudioFeedbackService's
+## 0.80-1.40 range, so it still lands on a real note rather than at the ceiling.
+const STAR_AWARD_PITCHES := [1.0, 1.12, 1.25]
+const STAR_AWARD_PITCH_FALLBACK_STEP := 0.13
 
 static func star_award_pitch(index: int) -> float:
-	return clampf(STAR_AWARD_PITCH_BASE + STAR_AWARD_PITCH_STEP * float(maxi(0, index)), 0.80, 1.40)
+	var slot := maxi(0, index)
+	if slot < STAR_AWARD_PITCHES.size():
+		return float(STAR_AWARD_PITCHES[slot])
+	var last := float(STAR_AWARD_PITCHES[STAR_AWARD_PITCHES.size() - 1])
+	var beyond := slot - STAR_AWARD_PITCHES.size() + 1
+	return clampf(last + STAR_AWARD_PITCH_FALLBACK_STEP * float(beyond), 0.80, 1.40)
 
 const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN,

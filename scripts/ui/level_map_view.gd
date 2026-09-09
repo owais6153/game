@@ -483,29 +483,33 @@ func _draw_level(slot: int, level_number: int) -> void:
 ## Drawn here rather than by adding a `StarRow` child per node, for the same
 ## reason every other ornament on this map is drawn: the map spans a thousand
 ## levels and a Control per node would build several thousand of them on every
-## open. The geometry is the same five-point star `StarRow` draws.
+## open. The textures are the same supplied art `StarRow` uses, so a level's
+## row on the map and the row it was awarded on are the same stars.
 func _draw_star_row(centre: Vector2, earned: int) -> void:
 	var lit := clampi(earned, 0, LevelStarsType.MAX_STARS)
-	var pitch := MAP_STAR_SIZE + MAP_STAR_SPACING
+	var slot := _map_star_width()
+	var pitch := slot + MAP_STAR_SPACING
 	var origin := centre.x - pitch * float(LevelStarsType.MAX_STARS - 1) * 0.5
 	for index in range(LevelStarsType.MAX_STARS):
 		var at := Vector2(origin + pitch * float(index), centre.y)
-		var filled := index < lit
-		_draw_star(at, MAP_STAR_SIZE * 0.5,
-			StarRowType.COLOR_FILLED if filled else StarRowType.COLOR_EMPTY,
-			StarRowType.COLOR_FILLED_RIM if filled else StarRowType.COLOR_EMPTY_RIM)
+		_draw_star(UiKitType.STAR_FILLED if index < lit else UiKitType.STAR_EMPTY, at)
 
 
-func _draw_star(centre: Vector2, radius: float, fill: Color, rim: Color) -> void:
-	var points := PackedVector2Array()
-	for index in range(StarRowType.POINTS * 2):
-		var angle := StarRowType.ROTATION_OFFSET + TAU * float(index) / float(StarRowType.POINTS * 2)
-		var reach := radius if index % 2 == 0 else radius * StarRowType.INNER_RATIO
-		points.append(centre + Vector2(cos(angle), sin(angle)) * reach)
-	draw_colored_polygon(points, fill)
-	var outline := points.duplicate()
-	outline.append(points[0])
-	draw_polyline(outline, rim, maxf(1.0, radius * 0.18), true)
+## The supplied star is wider than it is tall, so the slot follows the art's own
+## aspect rather than assuming a square.
+func _map_star_width() -> float:
+	var texture := UiKitType.STAR_FILLED
+	if texture == null or texture.get_height() <= 0:
+		return MAP_STAR_SIZE
+	return MAP_STAR_SIZE * float(texture.get_width()) / float(texture.get_height())
+
+
+func _draw_star(texture: Texture2D, centre: Vector2) -> void:
+	if texture == null or texture.get_height() <= 0:
+		return
+	var width := MAP_STAR_SIZE * float(texture.get_width()) / float(texture.get_height())
+	draw_texture_rect(texture,
+		Rect2(centre - Vector2(width, MAP_STAR_SIZE) * 0.5, Vector2(width, MAP_STAR_SIZE)), false)
 
 
 func _draw_chest(slot: int, chest_index: int) -> void:

@@ -1,0 +1,49 @@
+{
+	"alpha_clear": 0.01,
+	"entries": [
+		{
+			"name": "star_filled",
+			"output": "res://assets/runtime/ui/kit/star_filled.png",
+			"size": [
+				256,
+				242
+			],
+			"source_rect": [
+				42,
+				315,
+				316,
+				299
+			]
+		},
+		{
+			"name": "star_glow",
+			"output": "res://assets/runtime/ui/kit/star_glow.png",
+			"size": [
+				256,
+				256
+			],
+			"source_rect": [
+				411,
+				293,
+				331,
+				331
+			]
+		},
+		{
+			"name": "star_empty",
+			"output": "res://assets/runtime/ui/kit/star_empty.png",
+			"size": [
+				256,
+				246
+			],
+			"source_rect": [
+				1151,
+				325,
+				298,
+				286
+			]
+		}
+	],
+	"source": "res://assets/ui_kit_source/sheet_stars.png",
+	"version": 1
+}

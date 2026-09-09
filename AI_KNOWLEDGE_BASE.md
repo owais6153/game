@@ -1,3 +1,32 @@
+# 2026-09-09 - Supplied-art integration guardrails
+
+- **Measure slice rects from the sheet, never by eye.** Walking the alpha
+  columns produced the five variant bounds in one pass, and asserting the sheet
+  size before applying them means a re-exported sheet fails loudly instead of
+  slicing garbage.
+- **An art-cleanup pass is not universal.** The hard alpha cut and the erosion
+  that de-fringe the power sheets would have deleted the star glow's halo and
+  eaten every star's anti-aliased edge. Ask what the pass was for before reusing
+  it on a different source.
+- **Do not assume supplied art is square.** The star is wider than it is tall.
+  Size by one axis, derive the other from the texture, and make the row's slot
+  pitch follow it too - otherwise three of them overlap.
+- **Byte-identical is a legitimate derivative.** Both award sounds needed no
+  trim, no fade and no re-encode. The copy under `assets/runtime/` exists
+  because that is what the export filter includes, and saying so in the
+  inventory is better than inventing a transform to justify the file.
+- **Assert supplied assets by identity, not by count.** A cached-stream count
+  catches an addition; only comparing the stream to the preloaded constant
+  catches someone swapping the player's own recording back out for a
+  procedural one.
+- **Write a tuning ladder as a table when the values are the point.**
+  `[1.0, 1.12, 1.25]` is the specification; a base plus a step reproduces it
+  only by accident and hides it from the next reader.
+- **Give an award animation the screen.** Dimming everything else on the popup
+  to a third and restoring it afterwards did more for the moment than any
+  amount of extra motion on the stars themselves - and dim rather than hide, or
+  the column reflows and moves the thing being animated.
+
 # 2026-09-09 - Award readability guardrails
 
 - **A score out of N is not a checklist.** Lighting the exact objectives that

@@ -1,3 +1,55 @@
+# Supplied star art and award audio - 2026-09-09
+
+Originals are preserved and export-excluded; production loads only the runtime
+derivatives.
+
+## Star art
+
+One supplied sheet carrying five star variants on a transparent field. Slice
+rects were measured by walking the sheet's alpha columns
+(`scripts/dev/prepare_star_kit_art.gd` asserts the sheet size before using
+them), not eyeballed.
+
+| Variant | Preserved source rect | Active runtime derivative (bytes / SHA-256) | Used for |
+| --- | --- | --- | --- |
+| Gold star | `sheet_stars.png` (42,315,316x299) | `assets/runtime/ui/kit/star_filled.png` (80,852 / 256x242 / `04B67F4F71ED35EC73765ED66844E62DC165BBCFA6BB78A8DFDB5068086FA080`) | An earned star, everywhere |
+| Gold star with halo | `sheet_stars.png` (411,293,331x331) | `assets/runtime/ui/kit/star_glow.png` (112,503 / 256x256 / `CEF7C3663FB490896E352F58AD5A21B8C9D3A30B75331FB2C16387586EF4A380`) | Bloom drawn behind a star as it lands |
+| Gold outline | `sheet_stars.png` (1151,325,298x286) | `assets/runtime/ui/kit/star_empty.png` (73,694 / 256x246 / `94B3FF2F07B56EA8CE43F0833D3C4D99456FDBBD7AE0B39CCFA7E64F80AD8E8A`) | The placeholder a star grows out of |
+
+Preserved source: `assets/ui_kit_source/sheet_stars.png` (558,591 /
+`7039CF7188E719ADB3B52D338158B8D883A023EA7D5E506630DDF0FE221643D1`).
+
+The half gold/silver star and the small star on the same sheet have nothing that
+uses them and are deliberately not extracted, matching the rule the power sheet
+follows for icons with no corresponding power.
+
+**These derivatives are not hard-cut or eroded.** Those two passes exist to strip
+the red fringe the power sheets carry; this source has none, and the glow variant
+is deliberately semi-transparent across most of its area - a 0.5 cut would delete
+the halo and an erosion pass would chew the anti-aliased edge off every star.
+Only sub-threshold noise is cleared, at the same 0.01 the gem derivatives use,
+and each is trimmed to its own alpha bounds and scaled to 256 on the longest
+edge with aspect preserved. A star is not square; squaring it would stretch it,
+which is why every consumer sizes by height and derives width from the art.
+
+## Award audio
+
+| Event | Preserved source (bytes / SHA-256) | Active runtime derivative |
+| --- | --- | --- |
+| Star awarded | `assets/sound/freesound_community-ding-101492.mp3` (87,771 / `1C0EA64CDDCF3FB9DC98D4C070C114C3A84C11E589F58BDBFA19A2DEB60C8196`) | `assets/runtime/audio/star_award_ding_v1.mp3` (identical bytes) |
+| Treasure reward claimed | `assets/sound/benkirb-shine-3-268903.mp3` (158,208 / `995786D039DD3CCB7C2BD060B6CC08BCF19883FBE6165D341E0847F4A830D5AD`) | `assets/runtime/audio/treasure_claim_shine_v1.mp3` (identical bytes) |
+
+Both runtime files are byte-identical copies of their sources. Neither needed
+trimming, re-encoding or a fade: they are already short, already start on their
+attack, and Godot decodes MP3 natively - `merge-basic.mp3` already ships the same
+way. The copy exists so the runtime path stays inside `assets/runtime/`, which
+is what the export filter includes; `assets/sound/` is excluded.
+
+The star ding is played at `GameConfig.star_award_pitch(index)` - 1.0, 1.12,
+1.25 - so the three stars ring as one rising phrase. The flourish that closes
+the sequence, `star_complete`, remains a generated chime pitched under the ding
+so it is plainly not a fourth star.
+
 # Final supplied power and completion audio - 2026-08-30
 
 All originals are preserved under editor-ignored/export-excluded `assets/sound/`.

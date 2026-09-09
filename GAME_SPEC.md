@@ -1,3 +1,12 @@
+# Supplied Star Art and Award Audio - 1.0.19 (vc21) - 2026-09-09
+
+- Every star drawn anywhere in the game uses the supplied star art through `UiKit`: the gold star for an earned one, the gold outline for a placeholder, and the haloed star as a bloom behind a landing star. No star is drawn procedurally.
+- Star art is sized by height, and width follows the texture's own aspect. The supplied star is wider than it is tall; treating it as square would stretch it or overlap a row.
+- An awarded star grows out of its placeholder, overshoots, bounces once, and settles on exactly the placeholder's size and position. The bloom rises with it and fades across the settle; the ring and rays fire at the peak of the growth, not during it.
+- While the star sequence runs, every other element on the result popup is dimmed rather than hidden, and restored when it finishes. Hiding would reflow the column and move the row mid-sequence.
+- The star cue and the treasure-claim cue are supplied recordings, not generated chimes. The star sequence rings at 1.0, 1.12 and 1.25; the closing flourish is a separate lower cue and must not read as a fourth star.
+- Supplied star and audio sources are preserved under `assets/` and excluded from export; only the derivatives under `assets/runtime/` are loaded. Slice rects are measured from the sheet's alpha, and the sheet's dimensions are asserted before they are applied.
+
 # Star Award, Treasure Pacing, and Level Ready Hierarchy - 1.0.19 (vc21) - 2026-09-09
 
 - A star row fills left to right. Two stars earned lights the first two, always: the row is a score out of three, not a checklist of which objectives were met. Which objectives were met is reported by the caption, which names each earned objective as its star lands.

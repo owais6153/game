@@ -35,6 +35,18 @@ func _test_audio_service() -> void:
 	# claimed treasure reward). The bound still matters: it is what stops the
 	# cache growing an unbounded stream per gameplay event.
 	_assert(service.cached_stream_count() == 28, "Audio service must cache the bounded contact, merge, target, coin, power, treasure, award, result, and UI identities")
+	# The two award cues are supplied recordings, not generated chimes. Asserted
+	# by identity so a future refactor cannot quietly swap the player's own
+	# sounds back out for procedural ones.
+	_assert(service.stream_for_event("star_award") == AudioFeedbackServiceType.SuppliedStarAward,
+		"The star award must play the supplied ding")
+	_assert(service.stream_for_event("treasure_claim") == AudioFeedbackServiceType.SuppliedTreasureClaim,
+		"A claimed treasure reward must play the supplied shine")
+	# The exact ladder the three stars ring on.
+	_assert(is_equal_approx(GameConfig.star_award_pitch(0), 1.0)
+		and is_equal_approx(GameConfig.star_award_pitch(1), 1.12)
+		and is_equal_approx(GameConfig.star_award_pitch(2), 1.25),
+		"The star sequence must ring at 1.0 / 1.12 / 1.25")
 	_assert(service._players.size() == GameConfig.AUDIO_MAX_CONCURRENT_PLAYERS, "Audio service must use the bounded shared voice pool")
 	_assert(GameConfig.AUDIO_MAX_CONCURRENT_CONTACTS == 3 and GameConfig.COLLISION_SFX_PER_FRAME == 3,
 		"collision audio must keep only the strongest three impacts")
