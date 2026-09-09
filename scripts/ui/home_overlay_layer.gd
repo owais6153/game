@@ -89,7 +89,7 @@ var intro_level_label: Label
 var intro_mascot: MascotView
 var intro_start_button: Button
 var intro_skip_button: Button
-var intro_objectives_panel: PanelContainer
+var intro_objectives_panel: MarginContainer
 var intro_objectives_column: VBoxContainer
 
 var exit_confirm_blocker: Control
@@ -517,7 +517,6 @@ func _build_level_intro_popup() -> void:
 	intro_level_label = _label("LEVEL 1", 38, UiDesignSystemType.COLOR_BLUE_DEEP)
 	intro_level_label.custom_minimum_size = Vector2(0, 60)
 	column.add_child(intro_level_label)
-	column.add_child(_build_intro_objectives())
 	# No target readout. Level Ready is the calm beat before a level starts, and
 	# the board itself shows the target the moment play begins; the mascot sits
 	# neutral here instead, like every other popup.
@@ -532,6 +531,11 @@ func _build_level_intro_popup() -> void:
 	# The popup carries its own entrance scale; see MascotView.breathing_enabled.
 	intro_mascot.breathing_enabled = false
 	intro_mascot_slot.add_child(intro_mascot)
+	# Objectives sit *below* the mascot. Above it they became the first thing the
+	# eye landed on and pushed the mascot down the panel; Level Ready is the calm
+	# beat before a level and the character is what it is for. The list is what
+	# the player reads second, on the way to START GAME.
+	column.add_child(_build_intro_objectives())
 	intro_start_button = _button("StartLevelButton", "START GAME", Vector2(400.0, UiDesignSystemType.BUTTON_HEIGHT), "")
 	intro_start_button.icon = ICON_PLAY
 	intro_start_button.expand_icon = false
@@ -557,23 +561,22 @@ func _build_level_intro_popup() -> void:
 ## Stars the player already holds for this level are drawn lit and the rest
 ## empty, which is what makes a replay legible: the row shows at a glance which
 ## one is still missing.
+## No card, no frame. The objectives are a short list read on the way to START
+## GAME, and boxing them made them a second panel competing with the popup they
+## already sit inside - the mascot has to stay the focus of this screen.
 func _build_intro_objectives() -> Control:
-	intro_objectives_panel = PanelContainer.new()
+	intro_objectives_panel = MarginContainer.new()
 	intro_objectives_panel.name = "LevelIntroObjectives"
-	intro_objectives_panel.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
 	intro_objectives_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var pad := MarginContainer.new()
-	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for side in ["left", "right"]:
-		pad.add_theme_constant_override("margin_%s" % side, 18)
+		intro_objectives_panel.add_theme_constant_override("margin_%s" % side, 10)
 	for side in ["top", "bottom"]:
-		pad.add_theme_constant_override("margin_%s" % side, 14)
-	intro_objectives_panel.add_child(pad)
+		intro_objectives_panel.add_theme_constant_override("margin_%s" % side, 4)
 	intro_objectives_column = VBoxContainer.new()
 	intro_objectives_column.name = "LevelIntroObjectiveRows"
 	intro_objectives_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	intro_objectives_column.add_theme_constant_override("separation", 8)
-	pad.add_child(intro_objectives_column)
+	intro_objectives_column.add_theme_constant_override("separation", 10)
+	intro_objectives_panel.add_child(intro_objectives_column)
 	return intro_objectives_panel
 
 

@@ -360,20 +360,44 @@ func _test_result_popup_awards_stars_before_unlocking_collect() -> void:
 	}), "The win popup must open")
 
 	_assert(overlay.star_row.visible, "A win must show the star row")
-	_assert(overlay.star_row.filled == 0, "The row must start at the stars the player came in with")
+	_assert(overlay.star_row.lit_count() == 0, "The row must start empty and light only what this attempt earned")
 	_assert(overlay.retry_button.disabled,
 		"COLLECT must be locked while the stars are still arriving")
+	_assert(overlay.double_button.disabled,
+		"DOUBLE COINS must be locked while the stars are still arriving")
+	# HOME is an escape hatch, not a reward action, and its plate has no distinct
+	# disabled art - gating it produced a button that looked live and refused taps.
+	_assert(not overlay.home_button.disabled,
+		"HOME must stay available while the stars arrive")
 
 	await create_timer(3.4, true, false, true).timeout
 	_assert(finished[0] == 1, "The star sequence must finish exactly once, got %d" % finished[0])
 	_assert(awarded.size() == 2 and awarded[0] == 0 and awarded[1] == 2,
 		"Only the earned stars must be awarded, in order; got %s" % str(awarded))
-	_assert(overlay.star_row.filled == 3,
-		"The row must end lit through the last earned star, got %d" % overlay.star_row.filled)
+	# The bug this replaced: award() used to raise a lit *count*, so awarding the
+	# third star of a [earned, missed, earned] result lit all three while the
+	# caption read "2 of 3". Lit state is per star now.
+	_assert(overlay.star_row.lit_count() == 2,
+		"Exactly the earned stars must be lit, got %d" % overlay.star_row.lit_count())
+	_assert(overlay.star_row.is_lit(0) and not overlay.star_row.is_lit(1) and overlay.star_row.is_lit(2),
+		"A missed star between two earned ones must stay empty")
 	_assert(not overlay.retry_button.disabled,
 		"COLLECT must unlock once the last star has landed")
 	_assert(overlay.star_caption.text.findn("2 of 3") >= 0,
 		"The caption must report the tally, got '%s'" % overlay.star_caption.text)
+
+	# Full marks gets its own line rather than a tally, and every star lights.
+	overlay.dismiss()
+	await process_frame
+	_assert(overlay.present(true, 1200, 5, 8, 100, false, false, 0, false, 0, 0, "danger_line", {
+		"objectives": objectives, "results": [true, true, true],
+		"earned": 3, "previous": 0, "total": 3,
+	}), "The win popup must reopen for a perfect result")
+	await create_timer(4.2, true, false, true).timeout
+	_assert(overlay.star_row.lit_count() == LevelStarsType.MAX_STARS,
+		"A perfect result must light every star, got %d" % overlay.star_row.lit_count())
+	_assert(overlay.star_caption.text.findn("PERFECT") >= 0,
+		"Full marks must be called out rather than tallied, got '%s'" % overlay.star_caption.text)
 
 	# A loss has no stars to wait for, so its actions stay live from the first
 	# frame exactly as before.

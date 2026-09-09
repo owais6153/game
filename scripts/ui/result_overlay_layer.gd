@@ -15,13 +15,13 @@ const LevelStarsType = preload("res://scripts/core/level_stars.gd")
 const MASCOT_SIZE := 300.0
 ## Star row on Level Complete. Large: the stars are the new headline of the
 ## screen and have to read from arm's length.
-const STAR_SIZE := 62.0
-const STAR_SPACING := 22.0
+const STAR_SIZE := 78.0
+const STAR_SPACING := 26.0
 ## One star lands, its caption is read, then the next. Slower than a reward
 ## reveal on purpose - three stars arriving in half a second is a flicker, not
 ## an award.
-const STAR_AWARD_DURATION := 0.44
-const STAR_AWARD_GAP := 0.30
+const STAR_AWARD_DURATION := 0.55
+const STAR_AWARD_GAP := 0.26
 ## After the popup has settled and the mascot has begun to react.
 const STAR_SEQUENCE_DELAY := MASCOT_REACTION_DELAY + 0.18
 const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
@@ -410,7 +410,7 @@ func _build_ui() -> void:
 	star_caption.name = "ResultStarCaption"
 	star_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	star_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	star_caption.custom_minimum_size = Vector2(424.0, 30.0)
+	star_caption.custom_minimum_size = Vector2(424.0, 34.0)
 	star_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(star_caption)
 
@@ -622,17 +622,26 @@ func _prepare_star_award(won: bool, star_award: Dictionary) -> void:
 	for entry in (star_award.get("results", []) as Array):
 		_star_results.append(bool(entry))
 	_star_objectives = (star_award.get("objectives", []) as Array).duplicate()
-	var previous := clampi(int(star_award.get("previous", 0)), 0, LevelStarsType.MAX_STARS)
 	var show_stars := won and not _star_results.is_empty()
 	star_row.visible = show_stars
 	star_caption.visible = show_stars
 	# A loss has no star sequence to wait for, so its actions are live from the
 	# first frame exactly as before.
+	if star_row != null:
+		star_row.shimmer_enabled = false
 	_stars_pending = show_stars
 	if not show_stars:
 		star_caption.text = ""
 		return
-	star_row.filled = previous
+	# The row always starts empty and lights exactly the stars this attempt
+	# earned, so the row and the tally under it can never disagree.
+	#
+	# It deliberately does not pre-light the stars the player already held.
+	# Storage is a *count*, not a set, so "two stars already" cannot say which
+	# two - pre-lighting the first two would claim a star the player may not
+	# have, and on a `[earned, missed, earned]` result it lit a star that was
+	# just missed while the caption said "2 of 3".
+	star_row.filled = 0
 	star_caption.text = ""
 
 
@@ -645,7 +654,7 @@ func _play_star_award() -> void:
 		return
 	var pending: Array[int] = []
 	for index in range(_star_results.size()):
-		if _star_results[index] and index >= star_row.filled:
+		if _star_results[index] and not star_row.is_lit(index):
 			pending.append(index)
 	if pending.is_empty():
 		_finish_star_award()
@@ -666,14 +675,37 @@ func _play_star_award() -> void:
 
 func _finish_star_award() -> void:
 	_stars_pending = false
+	var earned := 0
+	for result in _star_results:
+		if result:
+			earned += 1
 	if star_caption != null:
-		var earned := 0
-		for result in _star_results:
-			if result:
-				earned += 1
-		star_caption.text = "%d of %d stars" % [earned, LevelStarsType.MAX_STARS]
+		# Full marks gets its own line. "3 of 3 stars" is a tally; a perfect
+		# level deserves to be told it was perfect.
+		star_caption.text = "PERFECT!" if earned >= LevelStarsType.MAX_STARS \
+			else "%d of %d stars" % [earned, LevelStarsType.MAX_STARS]
+		_punch_star_caption()
+	if star_row != null:
+		# The settled row keeps a slow shimmer, so a finished award is not a
+		# static picture sitting above a live button.
+		star_row.shimmer_enabled = true
 	_refresh_action_state()
 	stars_finished.emit()
+
+
+## A short kick on the tally as it appears, so the line reads as the conclusion
+## of the sequence rather than as a label that was always there.
+func _punch_star_caption() -> void:
+	if star_caption == null or not star_caption.is_inside_tree():
+		return
+	star_caption.pivot_offset = _node_center(star_caption)
+	star_caption.scale = Vector2.ONE * 0.7
+	star_caption.modulate.a = 0.0
+	var punch := create_tween().set_parallel(true)
+	punch.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	punch.tween_property(star_caption, "modulate:a", 1.0, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	punch.tween_property(star_caption, "scale", Vector2.ONE * 1.12, 0.20).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	punch.chain().tween_property(star_caption, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func _kill_star_tween() -> void:
@@ -693,11 +725,16 @@ func _refresh_action_state() -> void:
 		continue_button.visible = false
 		home_button.disabled = _actions_pending
 		return
-	# The star sequence gates the win actions. COLLECT is the end of the level,
-	# and offering it before the player has been shown what they earned is how a
-	# fast tap skips the award entirely.
+	# The star sequence gates the two reward actions. COLLECT is the end of the
+	# level, and offering it before the player has been shown what they earned is
+	# how a fast tap skips the award entirely.
+	#
+	# HOME is deliberately not gated. It is an escape hatch rather than a reward
+	# action, and its plate has no distinct disabled art - a proof capture caught
+	# it rendering exactly as it does when live while refusing taps, which is a
+	# worse outcome than simply leaving the exit available.
 	retry_button.disabled = _actions_pending or _stars_pending
-	home_button.disabled = _actions_pending or _stars_pending
+	home_button.disabled = _actions_pending
 	double_button.disabled = _actions_pending or _stars_pending or not _rewarded_available or _reward_resolved
 	double_button.visible = result_won and not _reward_resolved
 	skip_button.visible = not result_won

@@ -96,7 +96,7 @@ objective from the one that is scored.
 
 **Level Complete** awards the earned stars one at a time (0.44 s each, 0.30 s
 apart), naming each objective under the row as it lands, then reports the tally.
-`COLLECT`, `DOUBLE COINS` and `HOME` are disabled until the last star has landed:
+`COLLECT` and `DOUBLE COINS` are disabled until the last star has landed:
 without the gate a tap on the popup's first frame dismissed an award the player
 never saw. A failed result shows no star row and gates nothing.
 
@@ -189,7 +189,7 @@ plus five pure-function cases.
 | `star_totals_and_clamping` | Totals, hand-edited-save clamping, `★★☆` glyphs |
 | `records_pin_a_level_once_it_has_been_played` | Write-once, drift detection, record beats a changed generator, derived metadata still regenerates |
 | `controller_awards_and_banks_stars` | Stars **on disk** before the popup; monotonic replay; snapshot carries objectives |
-| `result_popup_awards_stars_before_unlocking_collect` | COLLECT locked during the sequence, only earned stars awarded in order, unlock after the last, loss gates nothing |
+| `result_popup_awards_stars_before_unlocking_collect` | COLLECT and DOUBLE COINS locked during the sequence, HOME left live, only earned stars awarded in order, unlock after the last, loss gates nothing |
 | `level_ready_shows_the_objectives_it_will_be_judged_on` | Verbatim wording, held stars lit, block hidden when there is nothing to show |
 | `map_and_header_render_the_stored_stars` | Header total follows an update; the map draws only what it is handed and invents nothing |
 
@@ -259,3 +259,117 @@ read the vc24 entry and conclude the line had regressed.
 - **The three-star popup is longer than it was** — roughly 2.9 s from the popup
   opening to COLLECT unlocking on a full-marks win. Tuned on desktop at 60 fps;
   device feel is covered by the install below rather than by measurement.
+
+---
+
+# Follow-up pass — award polish, treasure pacing, Level Ready hierarchy
+
+Four issues raised after the first device build, and what each turned out to be.
+
+## 1. The star row lit stars that were not earned
+
+**Reported as:** "it says i got 2 stars but all 3 stars are filled."
+
+A real bug, and the most important thing in this pass. `StarRow.award()` raised
+a lit **count**:
+
+```gdscript
+filled = maxi(filled, index + 1)   # lights 0..index, not index
+```
+
+So a `[earned, missed, earned]` result — the ordinary case, since the efficiency
+star is the one most often missed — lit all three stars while the caption
+underneath read "2 of 3".
+
+A count cannot represent a gap. Lit state is per star now (`_fill`), `award()`
+touches only its own index, and `lit_count()` / `is_lit()` are derived from that
+array, so the row and the tally are two views of one thing.
+
+The same reasoning removed pre-lighting the stars the player already held:
+per-level storage is a count, so "two already" cannot say *which* two, and
+lighting the first two would claim a star that may have been missed. The row now
+starts empty and lights exactly what the attempt earned.
+
+The regression asserts the gap case directly: `lit_count() == 2` **and**
+`is_lit(0) and not is_lit(1) and is_lit(2)`.
+
+## 2. The award did not feel like an achievement
+
+Stars went 62px → 78px, and the arrival was rebuilt: each star drops in from
+2.9× scale with a spin, lands on an overshoot under a white bloom, and leaves an
+expanding ring plus a ten-ray burst. A settled row keeps a slow shimmer so the
+finished result is not a static picture sitting above a live button. Full marks
+now reads **PERFECT!** with a kick rather than tallying "3 of 3 stars".
+
+## 3. Sound
+
+Three new chime identities in `GameConfig.AUDIO_TONES` — `star_award`,
+`star_complete`, `treasure_claim` — played through the existing bounded
+`pitch_scale` at `GameConfig.star_award_pitch(index)`, so three stars are one
+climbing phrase rather than the same note three times, and the last star
+resolves on a lower `star_complete`. Treasure claims climb the same way.
+
+**The treasure fanfare was also a second early.** It played on `present()`, over
+a chest that was still shut and still waiting to be tapped. `chest_opened` and
+`reward_claimed(ordinal)` are new presentation signals and the controller owns
+every cue, so moving it to the burst was a controller change and no UI layer
+touches the audio service.
+
+The audio-service cached-stream bound moved 25 → 28. That existing assertion is
+what caught the additions.
+
+## 4. Treasures felt like every level
+
+Not a perception problem — measured:
+
+```
+raw 15% roll:  1:bonus 2:bonus 3:- 4:- 5:bonus ... 5 of the first 20
+```
+
+The rate is correct over 500 levels (14.4%), but a hash is only uniform in the
+large. It fired on levels 1, 2 and 5 — exactly the stretch a new player and
+every tester sees — and back-to-back drops read as "one every level" whatever
+the long-run average says.
+
+An accepted drop now also requires the previous `BONUS_MIN_GAP` (2) levels to
+have failed the raw roll. Because acceptance requires the raw roll, suppressing
+on the raw roll guarantees accepted drops are at least 3 levels apart, and it
+stays a pure function of the level number — no history, no state, replays
+unchanged.
+
+```
+with the gap rule:  1:bonus 5:bonus 10:bonus 17:bonus 23:bonus ... 10.2% overall
+```
+
+The regression asserts both the spacing and that the first twenty levels carry a
+few drops rather than a run of them.
+
+## 5. Level Ready hierarchy
+
+The objectives sat **above** the mascot inside a bordered card, so they were the
+first thing the eye landed on and the mascot had been pushed down the panel.
+They are below it now and carry no frame — a second panel inside a popup was
+competing with the popup it lived in. The mascot is the focus of the screen
+again.
+
+## 6. HOME was a dead button
+
+Caught by rendering a proof capture **mid-sequence** rather than only at rest:
+`HOME` was disabled during the star award but rendered exactly as it does when
+live, because its plate has no distinct disabled art. It is an escape hatch
+rather than a reward action, so it is no longer gated. `COLLECT` and
+`DOUBLE COINS` use plates that grey out and remain gated.
+
+## Files changed in this pass
+
+| File | Change |
+| --- | --- |
+| `scripts/presentation/star_row.gd` | Per-star lit state, bigger stars, drop-in/spin/bloom/ring/ray award, shimmer. |
+| `scripts/core/treasure_drop.gd` | `BONUS_MIN_GAP` spacing rule. |
+| `scripts/core/game_config.gd` | `star_award` / `star_complete` / `treasure_claim` tones, `star_award_pitch()`. |
+| `scripts/services/audio_feedback_service.gd` | Three new cached chime streams. |
+| `scripts/ui/result_overlay_layer.gd` | Empty-start row, per-star award, PERFECT! flourish, HOME ungated. |
+| `scripts/ui/treasure_overlay_layer.gd` | `chest_opened` / `reward_claimed` signals. |
+| `scripts/gameplay/game_controller.gd` | Cue routing for stars, chest opening and claims. |
+| `scripts/ui/home_overlay_layer.gd` | Objectives below the mascot, no card. |
+| `tests/capture_level_stars_v1.gd` | New proof harness; dismisses the first-run briefing. |

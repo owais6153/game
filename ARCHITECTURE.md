@@ -1,3 +1,73 @@
+# Architecture Addendum - Award Presentation and Cue Ownership
+
+## Lit state is per star, never a count
+
+`StarRow._fill` is the authority for which stars are lit, and `award()` touches
+only the index it is given. `lit_count()` and `is_lit()` are derived from it.
+
+This was a real defect, not a precaution. `award()` originally raised a `filled`
+count, so lighting the third star of a `[earned, missed, earned]` result lit all
+three and the caption underneath read "2 of 3" over a full row. A count cannot
+represent a gap, and a gap is the ordinary case - the second star is the
+efficiency star and is the one most often missed.
+
+The same reasoning removed the pre-lighting of stars the player already held.
+Per-level storage is a count, so "two stars already" cannot say *which* two;
+lighting the first two would claim a star that may have been missed. The row
+starts empty and lights exactly what the attempt earned, so the row and the
+tally are two views of one array.
+
+## Every cue is owned by the controller
+
+`ResultOverlayLayer` and `TreasureOverlayLayer` emit `star_awarded(index)`,
+`stars_finished`, `chest_opened` and `reward_claimed(ordinal)`. They play
+nothing. The controller routes each to `AudioFeedbackService` and
+`HapticsFeedbackService`, exactly as it already does for merges, targets and
+results, so the standing rule that audio and haptics live behind their services
+and are fed only confirmed events holds for award presentation too.
+
+Two things follow that would not otherwise be available:
+
+- **A cue can rise through a sequence.** `GameConfig.star_award_pitch(index)`
+  feeds the existing bounded `pitch_scale` parameter, so three stars are one
+  climbing phrase rather than the same note three times, and treasure claims
+  climb the same way. `star_complete` resolves the phrase lower, so the series
+  ends rather than stopping.
+- **A cue can be moved without touching the layer that triggers it.** The
+  treasure fanfare used to play on `present()` - a second early, over a chest
+  still shut and still waiting to be tapped. Moving it to `chest_opened` was a
+  controller change.
+
+## The treasure drop needs a spacing rule, not just a probability
+
+`TreasureDrop.rolls_bonus()` requires both the raw 15% roll and a clear run of
+`BONUS_MIN_GAP` levels behind it. Because acceptance requires the raw roll,
+suppressing on the raw roll guarantees accepted drops are at least
+`BONUS_MIN_GAP + 1` apart, and the whole thing stays a pure function of the
+level number - no history, no stored state, replays unchanged.
+
+The probability alone was correct and still wrong. A hash is uniform in the
+large but not in the small: this one fired on levels 1, 2 and 5, and five times
+in the first twenty. Those are the levels every new player and every tester
+sees, and back-to-back treasures read as "one every level" no matter what the
+long-run average says. Anything sized as an *event* needs a minimum spacing as
+well as a rate.
+
+## Level Ready is the mascot's screen
+
+The star objectives sit below the mascot and carry no panel of their own. Above
+it they were the first thing the eye landed on and pushed the mascot down; in a
+bordered card they were a second panel competing with the popup they lived in.
+The list is what the player reads second, on the way to START GAME.
+
+## A disabled control needs disabled art
+
+`HOME` on the result popup is deliberately outside the star gate. Its plate has
+no distinct disabled state, so gating it produced a button that rendered exactly
+as it does when live and refused taps - caught in a proof capture rather than by
+a test, because it is a rendering property rather than a logical one. `COLLECT`
+and `DOUBLE COINS` use plates that grey out, so they gate cleanly.
+
 # Architecture Addendum - Stars and Level Records
 
 ## A star threshold is derived, never authored
@@ -56,10 +126,15 @@ every caller gets the guarantee: a replay that earns fewer stars never takes
 back what the player holds. That is what makes going back for a missed star a
 free action.
 
-`_stars_pending` gates `COLLECT`, `DOUBLE COINS` and `HOME` in
-`_refresh_action_state()`. Without it a tap landing on the popup's first frame
-dismissed an award the player never saw. A loss sets it false, so the retry
-decision is never delayed by a sequence that has nothing to show.
+`_stars_pending` gates `COLLECT` and `DOUBLE COINS` in `_refresh_action_state()`.
+Without it a tap landing on the popup's first frame dismissed an award the
+player never saw. A loss sets it false, so the retry decision is never delayed by
+a sequence that has nothing to show.
+
+`HOME` is deliberately outside the gate. It is an escape hatch rather than a
+reward action, and its plate carries no distinct disabled art - a proof capture
+caught it rendering exactly as it does when live while refusing taps. A dead
+button is a worse outcome than an early exit.
 
 ## Level records pin what purity cannot
 

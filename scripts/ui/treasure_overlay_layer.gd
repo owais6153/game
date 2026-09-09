@@ -87,6 +87,16 @@ const VFX_IDLE_INTENSITY := 0.55
 const VFX_BURST_INTENSITY := 1.55
 const VFX_BURST_DECAY := 0.55
 
+## The lid giving, and each reward being claimed. Presentation signals only -
+## every reward was granted and saved before the ceremony opened. The controller
+## listens to them so the cues stay behind the audio and haptic services rather
+## than being played from a UI layer.
+##
+## `reward_claimed` carries a 1-based ordinal so the claim cue can rise through
+## the sequence instead of repeating one note.
+signal chest_opened
+signal reward_claimed(ordinal: int)
+
 ## Fired once the last reward has been claimed and the overlay has closed.
 ## The controller waits on this before presenting whatever comes next - on a
 ## post-win drop, that is the win popup.
@@ -121,6 +131,9 @@ var _card: Control
 var _phase := Phase.CLOSED
 var _tween: Tween
 var _idle_time := 0.0
+## How many rewards have been claimed this ceremony, so the claim cue can rise
+## with each one instead of repeating a single note.
+var _claimed_count := 0
 
 
 func _ready() -> void:
@@ -162,6 +175,7 @@ func present(coins: int, powers: Dictionary, title: String = "TREASURE") -> bool
 	_queue = _build_queue(coins, powers)
 	if _queue.is_empty():
 		return false
+	_claimed_count = 0
 	title_label.text = title
 	_clear_card()
 	_relayout()
@@ -307,6 +321,7 @@ func _open_chest() -> void:
 func _burst_open() -> void:
 	if chest_icon != null:
 		chest_icon.texture = UiKitType.BADGE_CHEST_OPEN
+	chest_opened.emit()
 	if vfx == null:
 		return
 	vfx.intensity = VFX_BURST_INTENSITY
@@ -360,6 +375,8 @@ func _claim_current_reward() -> void:
 	_phase = Phase.BUSY
 	prompt_label.text = ""
 	prompt_label.modulate.a = 0.0
+	_claimed_count += 1
+	reward_claimed.emit(_claimed_count)
 	var card := _card
 	_card = null
 	card.pivot_offset = card.size * 0.5

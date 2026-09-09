@@ -748,10 +748,34 @@ const AUDIO_TONES := {
 	"win": {"volume": 0.92},
 	"treasure_open": {"volume": 0.86},
 	"button": {"volume": 0.32},
+	## Stars and treasure claims. Both are award cues rather than gameplay
+	## events, and both are played as a rising series: the caller passes an
+	## ascending `pitch_scale` per item so three stars read as one climbing
+	## phrase instead of the same note three times.
+	##
+	## `star_award` sits just under `target_complete` (0.78): a star is the
+	## largest thing on the result screen, but it reports work already finished,
+	## so it must not out-shout the moment a target was actually met.
+	"star_award": {"frequency": 1046.0, "duration": 0.40, "volume": 0.76, "brightness": 0.72, "fall": 0.96},
+	## The flourish after the last star. Longer and lower so the series resolves
+	## rather than simply stopping.
+	"star_complete": {"frequency": 784.0, "duration": 0.62, "volume": 0.82, "brightness": 0.58, "fall": 0.74},
+	## One claimed treasure reward. Brighter and shorter than a star - a claim is
+	## a light, repeatable action inside the ceremony, not its conclusion.
+	"treasure_claim": {"frequency": 1318.0, "duration": 0.26, "volume": 0.70, "brightness": 0.86, "fall": 1.14},
 }
 const GEM_CONTACT_SOUND_THRESHOLD := 170.0
 const WALL_CONTACT_SOUND_THRESHOLD := 220.0
 const CONTACT_SOUND_COOLDOWN := 0.075
+## Pitch for the Nth star in an award sequence. Ascending, and bounded well
+## inside AudioFeedbackService's 0.80-1.40 clamp so a fourth star - should the
+## count ever change - still lands on a real note rather than at the ceiling.
+const STAR_AWARD_PITCH_BASE := 1.0
+const STAR_AWARD_PITCH_STEP := 0.13
+
+static func star_award_pitch(index: int) -> float:
+	return clampf(STAR_AWARD_PITCH_BASE + STAR_AWARD_PITCH_STEP * float(maxi(0, index)), 0.80, 1.40)
+
 const AUDIO_COOLDOWN_BY_EVENT := {
 	"gem_contact": CONTACT_SOUND_COOLDOWN,
 	"wall_contact": 0.11,

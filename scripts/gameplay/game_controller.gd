@@ -1797,6 +1797,8 @@ func _setup_asset_presentation() -> void:
 	result_overlay.extra_shots_declined.connect(_on_extra_shots_declined)
 	result_overlay.continue_requested.connect(_on_continue_requested)
 	result_overlay.reward_animation_finished.connect(_on_reward_animation_finished)
+	result_overlay.star_awarded.connect(_on_star_awarded)
+	result_overlay.stars_finished.connect(_on_stars_finished)
 	result_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	home_overlay = HomeOverlayType.new()
 	add_child(home_overlay)
@@ -1821,6 +1823,8 @@ func _setup_asset_presentation() -> void:
 	treasure_overlay = TreasureOverlayType.new()
 	add_child(treasure_overlay)
 	treasure_overlay.treasure_finished.connect(_on_treasure_finished)
+	treasure_overlay.chest_opened.connect(_on_treasure_chest_opened)
+	treasure_overlay.reward_claimed.connect(_on_treasure_reward_claimed)
 	treasure_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	power_overlay = PowerOverlayType.new()
 	add_child(power_overlay)
@@ -2081,6 +2085,27 @@ func _award_level_stars() -> Dictionary:
 	}
 
 
+## One star has landed on the result popup.
+##
+## The cue rises with the star index, so three stars read as one climbing phrase
+## rather than the same note three times - the audio is what makes the sequence
+## feel like an award rather than three icons appearing. Routed here rather than
+## from the overlay because audio and haptics stay behind their services and the
+## controller is the only thing that talks to them.
+func _on_star_awarded(index: int) -> void:
+	if audio_feedback != null:
+		audio_feedback.emit_event("star_award", 1.0, GameConfig.star_award_pitch(index))
+	if haptics_feedback != null:
+		haptics_feedback.emit_event("merge")
+
+
+## The last star has landed. A separate, lower cue resolves the phrase; without
+## it the series simply stops on whichever star happened to be last.
+func _on_stars_finished() -> void:
+	if audio_feedback != null:
+		audio_feedback.emit_event("star_complete")
+
+
 ## Whether the win popup must wait. True only while a post-win treasure is on
 ## screen; the drop itself is resolved exactly once per win, on the first call
 ## after the victory hold expires.
@@ -2180,17 +2205,32 @@ func _grant_post_win_treasure(drop: Dictionary) -> bool:
 func _present_treasure(reward_coins: int, granted: Dictionary, title: String) -> bool:
 	if treasure_overlay == null:
 		return false
-	if not treasure_overlay.present(reward_coins, granted, title):
-		return false
+	# The fanfare and the haptic are not played here. They belong to the moment
+	# the lid gives, which is a second or so later - see
+	# `_on_treasure_chest_opened()`. Playing them on `present()` put the sound
+	# over a chest that was still shut and still waiting to be tapped.
+	return treasure_overlay.present(reward_coins, granted, title)
+
+
+## The chest lid has given. The fanfare lands here rather than when the ceremony
+## opens, so the sound arrives with the burst instead of a second earlier while
+## the chest is still shut.
+func _on_treasure_chest_opened() -> void:
 	if audio_feedback != null:
-		# The chest owns a real fanfare - the cue that used to announce level
-		# completion - instead of borrowing the power charge. Coins stay layered
-		# underneath.
 		audio_feedback.emit_event("treasure_open")
-		audio_feedback.emit_event("coin_reward")
 	if haptics_feedback != null:
 		haptics_feedback.emit_event("win")
-	return true
+
+
+## One reward claimed. The cue rises through the sequence for the same reason
+## the stars do: a repeated note reads as a list being ticked off, a rising one
+## reads as a haul being counted.
+func _on_treasure_reward_claimed(ordinal: int) -> void:
+	if audio_feedback != null:
+		audio_feedback.emit_event("treasure_claim", 1.0, GameConfig.star_award_pitch(ordinal - 1))
+		audio_feedback.emit_event("coin_tick")
+	if haptics_feedback != null:
+		haptics_feedback.emit_event("merge")
 
 
 ## The ceremony has closed. Only the post-win drop has anything queued behind

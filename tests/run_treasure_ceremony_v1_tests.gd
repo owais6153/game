@@ -126,6 +126,24 @@ func _test_bonus_drop_is_pure_and_bounded() -> void:
 	var rate := float(bonus_levels) / 500.0
 	_assert(rate > 0.04 and rate < 0.30,
 		"The bonus drop must stay occasional; measured %.3f over 500 levels" % rate)
+	# A hash is only uniform in the large. The raw roll fired on levels 1, 2 and 5
+	# and five times in the first twenty - exactly the levels a new player sees -
+	# so back-to-back drops read as "a treasure every level" however correct the
+	# long-run average was. An accepted drop now requires a clear run behind it.
+	var previous_bonus := -99
+	for level in range(1, 501):
+		if not TreasureDropType.rolls_bonus(level):
+			continue
+		_assert(level - previous_bonus > TreasureDropType.BONUS_MIN_GAP,
+			"Bonus treasures must be at least %d levels apart; %d follows %d"
+				% [TreasureDropType.BONUS_MIN_GAP + 1, level, previous_bonus])
+		previous_bonus = level
+	var early := 0
+	for level in range(1, 21):
+		if TreasureDropType.rolls_bonus(level):
+			early += 1
+	_assert(early >= 1 and early <= 5,
+		"The first twenty levels must carry a few bonuses, not a run of them; got %d" % early)
 	_assert(powers_seen.size() >= 3,
 		"The bonus must not always pay the same power; saw %d distinct" % powers_seen.size())
 
@@ -145,8 +163,12 @@ func _test_overlay_opens_on_tap_and_claims_one_reward_at_a_time() -> void:
 	root.add_child(overlay)
 	await process_frame
 
+	var opened := [0]
+	var claims: Array[int] = []
 	var finished := [0]
 	overlay.treasure_finished.connect(func() -> void: finished[0] += 1)
+	overlay.chest_opened.connect(func() -> void: opened[0] += 1)
+	overlay.reward_claimed.connect(func(ordinal: int) -> void: claims.append(ordinal))
 
 	_assert(overlay.present(800, {"switch": 2, "magnet": 1}, "MILESTONE TREASURE"),
 		"A treasure with contents must open")
@@ -211,6 +233,9 @@ func _test_overlay_opens_on_tap_and_claims_one_reward_at_a_time() -> void:
 	_assert(not overlay.is_open(), "The ceremony must close after the last claim")
 	_assert(finished[0] == 1,
 		"treasure_finished must fire exactly once, got %d" % finished[0])
+	_assert(opened[0] == 1, "The lid must report opening exactly once, got %d" % opened[0])
+	_assert(claims.size() == 3 and claims[0] == 1 and claims[2] == 3,
+		"Each claim must report a rising ordinal so its cue can climb; got %s" % str(claims))
 	_assert(not overlay.handle_back_request(),
 		"A closed treasure must stop swallowing Back")
 

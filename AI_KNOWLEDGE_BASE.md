@@ -1,3 +1,34 @@
+# 2026-09-09 - Award presentation guardrails
+
+- **Never model a set of achievements as a count.** A count cannot express a
+  gap, and a gap is the ordinary case. The star row lit three stars over a
+  "2 of 3" caption because `award()` raised a lit count instead of setting an
+  index. Derive the tally from the per-item state so the two cannot disagree.
+- **Do not restore partial progress from an aggregate.** "Two stars already"
+  cannot say which two. Either store the set or start the presentation empty;
+  guessing lights something the player may not have earned.
+- **A probability is not a pacing rule.** A hash that averages 15% correctly
+  over 500 levels fired on levels 1, 2 and 5 - the exact stretch a new player
+  sees. Anything sized as an *event* needs a minimum spacing as well as a rate,
+  and a spacing rule expressed over the raw roll stays a pure function.
+- **Play a cue at the moment it describes.** The treasure fanfare fired on
+  `present()`, a second before the lid gave, over a chest that was still shut.
+  Emit a signal at the beat and let the cue owner listen.
+- **Let award cues rise.** The same note three times reads as a list being
+  ticked off; an ascending series reads as an achievement. The bounded
+  `pitch_scale` parameter already existed for exactly this.
+- **Keep cue playback with the service owner, not the UI layer.** The overlays
+  emit `star_awarded`, `chest_opened`, `reward_claimed`; the controller plays
+  them. That is what let the fanfare move without touching the overlay.
+- **A gated control needs disabled art.** Gating `HOME` produced a button that
+  looked live and refused taps, because its plate has no disabled state. Check
+  the rendering, not just the flag - and prefer leaving an escape hatch live.
+- **Render a proof capture mid-animation, not only at rest.** Both the star
+  fill bug and the dead HOME button were invisible in a settled frame and
+  obvious in a frame taken during the sequence.
+- **A first-run briefing will photobomb a capture harness.** Dismiss unrelated
+  popups explicitly rather than relying on save state that differs between runs.
+
 # 2026-09-09 - Star and level-record guardrails
 
 - **Never author a threshold a player has to hit.** Derive it from the level's

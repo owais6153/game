@@ -35,6 +35,12 @@ const KIND_BONUS := "bonus"
 ## about every seventh level, which is roughly once per session.
 const BONUS_CHANCE_PERCENT := 15
 
+## Levels that must pass without a bonus before another can land. Two accepted
+## drops are therefore always at least three levels apart, and the effective
+## rate falls to roughly 15% x 0.85^2, about one level in nine. See
+## `rolls_bonus()` for why the raw roll alone was not enough.
+const BONUS_MIN_GAP := 2
+
 ## The bonus payout. 120 coins is well under a level's own 310-480 income, so a
 ## bonus treasure is a garnish on the win rather than a reason to farm easy
 ## levels, and the single power keeps the sequence at two claims - long enough
@@ -71,7 +77,31 @@ static func for_level_win(level_number: int, claimed_chests: Array[int]) -> Dict
 ## Whether the bonus treasure lands on this level. Separate from
 ## `for_level_win()` so the odds can be asserted over a range of levels without
 ## having to stand up a chest list.
+##
+## The raw roll alone was not good enough. At 15% it averages correctly over
+## hundreds of levels, but a hash is only uniform in the large: it happened to
+## fire on levels 1, 2 and 5, and five times in the first twenty. Those are the
+## levels every new player and every tester actually sees, and back-to-back
+## treasures read as "a treasure every level" - which stops it being an event at
+## all, however correct the long-run average is.
+##
+## So an accepted drop also requires the previous BONUS_MIN_GAP levels to have
+## failed the raw roll. Because acceptance requires the raw roll, suppressing on
+## the raw roll guarantees accepted drops are at least BONUS_MIN_GAP + 1 levels
+## apart, and it stays a pure function of the level number - no history, no
+## state, replays unchanged.
 static func rolls_bonus(level_number: int) -> bool:
+	if level_number <= 0:
+		return false
+	if not _raw_roll(level_number):
+		return false
+	for back in range(1, BONUS_MIN_GAP + 1):
+		if _raw_roll(level_number - back):
+			return false
+	return true
+
+
+static func _raw_roll(level_number: int) -> bool:
 	if level_number <= 0:
 		return false
 	return _hash(level_number, 1) % 100 < BONUS_CHANCE_PERCENT

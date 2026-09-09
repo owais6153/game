@@ -1,6 +1,6 @@
 # Reports Index
 
-- [Level Stars and Pinned Level Records V1](LEVEL_STARS_V1_REPORT.md) - three solver-derived star objectives per level, the audit that caught the merge bar being sized above what a level can produce, the one-at-a-time award and its COLLECT gate, star totals on the map, and the per-level snapshot that survives a generator change.
+- [Level Stars and Pinned Level Records V1](LEVEL_STARS_V1_REPORT.md) - three solver-derived star objectives per level, the audit that caught the merge bar being sized above what a level can produce, the one-at-a-time award and its COLLECT gate, star totals on the map, the per-level snapshot that survives a generator change, and the follow-up pass covering the per-star fill bug, the award/sound polish, the treasure spacing rule, and the Level Ready hierarchy.
 
 - [Treasure Ceremony V1](TREASURE_CEREMONY_V1_REPORT.md) - the fullscreen tap-to-open treasure shared by the daily, milestone and new post-win chests, one-tap-per-reward claiming, the pure level-number drop rules, the two orderings that keep a treasure from being mistaken for the level reward, and the regression set.
 

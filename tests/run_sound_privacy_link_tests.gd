@@ -30,10 +30,11 @@ func _test_audio_service() -> void:
 	root.add_child(service)
 	await process_frame
 	# 18 original identities, one impact tone per power, the shared charge cue
-	# that leads every power cinematic, and the mission-complete rung of the
-	# reward hierarchy. The bound still matters: it is
-	# what stops the cache growing an unbounded stream per gameplay event.
-	_assert(service.cached_stream_count() == 25, "Audio service must cache the bounded contact, merge, target, coin, power, treasure, result, and UI identities")
+	# that leads every power cinematic, the mission-complete rung of the reward
+	# hierarchy, and the three award cues (two for the star sequence, one for a
+	# claimed treasure reward). The bound still matters: it is what stops the
+	# cache growing an unbounded stream per gameplay event.
+	_assert(service.cached_stream_count() == 28, "Audio service must cache the bounded contact, merge, target, coin, power, treasure, award, result, and UI identities")
 	_assert(service._players.size() == GameConfig.AUDIO_MAX_CONCURRENT_PLAYERS, "Audio service must use the bounded shared voice pool")
 	_assert(GameConfig.AUDIO_MAX_CONCURRENT_CONTACTS == 3 and GameConfig.COLLISION_SFX_PER_FRAME == 3,
 		"collision audio must keep only the strongest three impacts")

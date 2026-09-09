@@ -181,6 +181,12 @@ func _build_stream_cache() -> void:
 		"win": SuppliedLevelComplete,
 		# The previous level-complete cue, reused where it now belongs.
 		"treasure_open": SuppliedBasicMerge,
+		# Award cues. Both are chimes rather than crystal hits because they
+		# report an achievement rather than a physical event, and both are played
+		# as a rising series by their callers.
+		"star_award": _build_reward_chime_stream(GameConfig.AUDIO_TONES.star_award),
+		"star_complete": _build_reward_chime_stream(GameConfig.AUDIO_TONES.star_complete),
+		"treasure_claim": _build_reward_chime_stream(GameConfig.AUDIO_TONES.treasure_claim),
 		"button": SuppliedUiTap,
 	}
 

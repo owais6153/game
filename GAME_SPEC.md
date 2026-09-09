@@ -1,3 +1,15 @@
+# Star Award, Treasure Pacing, and Level Ready Hierarchy - 1.0.19 (vc21) - 2026-09-09
+
+- A star row renders per-star lit state, never a count. Exactly the stars an attempt earned are lit, and a missed star between two earned ones stays empty. The tally under the row is derived from the same state.
+- The row starts empty on every result. Stars the player already held are not pre-lit: per-level storage is a count and cannot say which stars they were.
+- Each awarded star arrives with scale, spin, bloom, ring and ray burst, and a settled row shimmers. Full marks reads `PERFECT!` rather than a tally.
+- Star awards, the treasure opening, and each treasure claim have dedicated audio identities. Star and claim cues rise in pitch through their sequence; the final star resolves on a separate lower cue.
+- The treasure fanfare plays when the lid gives, not when the ceremony opens.
+- Presentation layers emit award signals only. All audio and haptics for stars and treasures are routed by the controller through the existing services.
+- Bonus treasures are spaced as well as rated: an accepted drop requires the previous two levels to have produced none, so two bonus treasures are always at least three levels apart. The drop remains a pure function of the level number.
+- Level Ready renders the star objectives below the mascot, unframed. The mascot is the focus of that screen.
+- The star sequence gates `COLLECT` and `DOUBLE COINS` only. `HOME` is never gated; it has no disabled artwork and must not render as available while refusing input.
+
 # Level Stars and Pinned Level Records - 1.0.19 (vc21) - 2026-09-09
 
 - Every level has exactly three star objectives, resolved from the level's own generated config. They are shown on Level Ready before play and judged on the result popup after it, from the same source, so the two can never disagree.
@@ -6,7 +18,7 @@
 - Losing earns no stars at all, including the ones describing how a level was beaten.
 - Stars are evaluated and persisted before the result popup opens. The popup animates a record of something already saved and can never grant a star itself.
 - Star storage is monotonic per level: a replay that earns fewer stars never removes stars the player already holds.
-- Level Complete awards the earned stars one at a time, naming each objective as it lands, and `COLLECT`, `DOUBLE COINS` and `HOME` stay locked until the last one has landed. A failed result shows no star row and its actions are never gated.
+- Level Complete awards the earned stars one at a time, naming each objective as it lands, and `COLLECT` and `DOUBLE COINS` stay locked until the last one has landed. `HOME` is not gated - it is an escape hatch, not a reward action. A failed result shows no star row and gates nothing.
 - The level screen header shows the running star total beside the chest line. Every cleared level node on the map shows its own three-star row.
 - A level the player has entered is pinned. Its seed, gem identities, opening board, launcher queue, target cards, shot limit, background and table are snapshotted on first entry and restored on every later entry, so replaying a level reproduces the level that was played even across a generator or template change. A pinned level is never re-pinned.
 - Level records live in their own `user://level_records.cfg`, separate from the progression save, so a coin transaction never rewrites stored board layouts.
