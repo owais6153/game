@@ -24,6 +24,8 @@ const ScreenTransitionType = preload("res://scripts/ui/screen_transition_layer.g
 const LevelBriefingType = preload("res://scripts/ui/level_briefing_overlay_layer.gd")
 const LevelSelectType = preload("res://scripts/ui/level_select_overlay_layer.gd")
 const LevelMilestoneType = preload("res://scripts/core/level_milestone.gd")
+const TreasureDropType = preload("res://scripts/core/treasure_drop.gd")
+const TreasureOverlayType = preload("res://scripts/ui/treasure_overlay_layer.gd")
 const NotificationServiceType = preload("res://scripts/services/notification_service.gd")
 
 var pieces: Array[GemPiece] = []
@@ -78,6 +80,17 @@ var won := false
 var win_qualified := false
 var win_presented := false
 var win_hold_elapsed := 0.0
+## The fullscreen treasure ceremony, shared by the daily chest, the milestone
+## chest, and the drop a level win sometimes makes.
+var treasure_overlay: TreasureOverlayLayer
+## Post-win treasure state. The drop is resolved exactly once per win, between
+## the hold expiring and the result overlay opening, and `_post_win_treasure_done`
+## is what lets the win presentation carry on afterwards.
+var post_win_treasure_resolved := false
+var post_win_treasure_done := false
+## The level's own coin reward, captured before any treasure is granted so the
+## win popup reports what the level paid rather than what the chest added.
+var win_reward_captured := false
 var failed := false
 var collection_in_progress := false
 var target_collection: Dictionary = {}
@@ -523,6 +536,11 @@ func _handle_back_request(_allow_application_exit: bool = true) -> String:
 	# The app-flow owner decides Back. The previous gameplay-only callback could
 	# open Pause over Home, unpause a hidden run, and leave mutually inconsistent
 	# UI/process state behind.
+	# The treasure outranks every other surface for the same reason it draws
+	# above them: it is a reward already granted and already saved, and Back has
+	# nothing to answer inside it.
+	if treasure_overlay != null and treasure_overlay.handle_back_request():
+		return "treasure_overlay"
 	if power_shop != null and power_shop.handle_back_request():
 		return "power_shop"
 	if power_overlay != null and power_overlay.handle_back_request():
@@ -1672,6 +1690,9 @@ func restart() -> void:
 	win_qualified = false
 	win_presented = false
 	win_hold_elapsed = 0.0
+	post_win_treasure_resolved = false
+	post_win_treasure_done = false
+	win_reward_captured = false
 	level_reward_for_completion = 0
 	completion_action_pending = false
 	completion_transition_consumed = false
@@ -1780,6 +1801,10 @@ func _setup_asset_presentation() -> void:
 	daily_overlay.mission_claim_requested.connect(_on_daily_mission_claim_requested)
 	daily_overlay.chest_claim_requested.connect(_on_daily_chest_claim_requested)
 	daily_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
+	treasure_overlay = TreasureOverlayType.new()
+	add_child(treasure_overlay)
+	treasure_overlay.treasure_finished.connect(_on_treasure_finished)
+	treasure_overlay.ui_tap_requested.connect(_on_ui_tap_requested)
 	power_overlay = PowerOverlayType.new()
 	add_child(power_overlay)
 	power_overlay.ad_confirmed.connect(_on_power_ad_confirmed)
@@ -1919,13 +1944,12 @@ func _on_milestone_chest_claim_requested(chest_index: int) -> void:
 		"balance_after": coins,
 		"resulting_balance": coins,
 	})
-	if audio_feedback != null:
-		audio_feedback.emit_event("treasure_open")
 	# Repainted rather than re-presented, so the map keeps the player's scroll
 	# position and the chest simply changes to its opened state under their
 	# finger.
 	if level_select != null:
 		level_select.update_state(highest_level, coins, claimed_chests)
+	_present_treasure(reward, granted, "MILESTONE TREASURE")
 	_refresh_hud()
 
 
@@ -1972,18 +1996,133 @@ func _on_daily_chest_claim_requested() -> void:
 	daily_overlay.present(daily_state, coins)
 	_refresh_daily_reminder()
 	# Presented after the grant is persisted, so the animation reports something
-	# that already happened rather than standing in for the reward.
+	# that already happened rather than standing in for the reward. The in-place
+	# chest still opens underneath, so the popup the player returns to shows what
+	# they received; the ceremony itself is the fullscreen layer.
 	daily_overlay.play_chest_open(granted)
+	_present_treasure(0, granted, "DAILY TREASURE")
+	if power_shop != null and power_shop.is_open():
+		power_shop.present(power_counts(), spendable_coins())
+	_refresh_hud()
+
+
+## Whether the win popup must wait. True only while a post-win treasure is on
+## screen; the drop itself is resolved exactly once per win, on the first call
+## after the victory hold expires.
+func _try_present_post_win_treasure() -> bool:
+	if post_win_treasure_done:
+		return false
+	if treasure_overlay != null and treasure_overlay.is_open():
+		return true
+	if post_win_treasure_resolved:
+		return false
+	post_win_treasure_resolved = true
+	var drop := TreasureDropType.for_level_win(level_number, claimed_chests)
+	if drop.is_empty() or not _grant_post_win_treasure(drop):
+		post_win_treasure_done = true
+		return false
+	var title := "MILESTONE TREASURE" if String(drop.get("kind", "")) == TreasureDropType.KIND_MILESTONE else "BONUS TREASURE"
+	if not _present_treasure(int(drop.get("coins", 0)), drop.get("powers", {}) as Dictionary, title):
+		post_win_treasure_done = true
+		return false
+	return true
+
+
+## Grants a post-win treasure with the same atomicity rule the daily and
+## milestone chests use: the whole resulting inventory and balance are built and
+## persisted before any of them is adopted, so a failed save can never hand out
+## half a chest. Returns false when nothing was granted, and the caller then
+## carries on to the win popup as if no treasure had dropped.
+func _grant_post_win_treasure(drop: Dictionary) -> bool:
+	var reward := maxi(0, int(drop.get("coins", 0)))
+	var granted: Dictionary = drop.get("powers", {}) as Dictionary
+	var chest_index := int(drop.get("chest_index", 0))
+	var kind := String(drop.get("kind", ""))
+	var next_powers := power_state
+	for power in granted.keys():
+		for _index in range(maxi(0, int(granted[power]))):
+			next_powers = _granted_inventory(next_powers, String(power))
+	var next_claimed := claimed_chests.duplicate()
+	if chest_index > 0 and not next_claimed.has(chest_index):
+		next_claimed.append(chest_index)
+	var resulting_balance := coins + reward
+	if chest_index > 0 and ProgressionSaveServiceType.save_claimed_chest(chest_index, next_claimed, resulting_balance) != OK:
+		_log_analytics("treasure_drop_failed", {
+			"treasure_kind": kind,
+			"level_number": level_number,
+			"failure_reason": "save_failed",
+		})
+		return false
+	if ProgressionSaveServiceType.save_power_state(next_powers, resulting_balance) != OK:
+		_log_analytics("treasure_drop_failed", {
+			"treasure_kind": kind,
+			"level_number": level_number,
+			"failure_reason": "power_save_failed",
+		})
+		return false
+	claimed_chests = next_claimed
+	power_state = next_powers
+	coins = resulting_balance
+	# The baseline moves with the balance so `coins - level_start_coins` still
+	# equals what the level itself paid. Without this the treasure would be
+	# double-counted: once as its own reward and again as the level's.
+	level_start_coins += reward
+	_log_analytics("treasure_drop", {
+		"treasure_kind": kind,
+		"chest_index": chest_index,
+		"level_number": level_number,
+		"amount": reward,
+		"powers": JSON.stringify(granted),
+		"resulting_balance": coins,
+	})
+	if reward > 0:
+		_log_analytics("coin_earned", {
+			"amount": reward,
+			"coin_source": "treasure_drop",
+			"reason": kind,
+			"level_number": level_number,
+			"balance_before": coins - reward,
+			"balance_after": coins,
+			"resulting_balance": coins,
+		})
+	for power in granted.keys():
+		_log_analytics("power_granted", {
+			"power": String(power),
+			"source": "treasure_drop",
+			"level_number": level_number,
+			"owned": PowerInventoryServiceType.count(power_state, String(power)),
+		})
+	return true
+
+
+## Opens the fullscreen treasure ceremony for a reward that has already been
+## granted and persisted, and carries the audio/haptic peak for every chest so
+## the three sources cannot drift apart.
+##
+## Returns false when there was nothing to show, which is what lets the post-win
+## caller carry straight on to the win popup instead of waiting on a
+## `treasure_finished` that would never arrive.
+func _present_treasure(reward_coins: int, granted: Dictionary, title: String) -> bool:
+	if treasure_overlay == null:
+		return false
+	if not treasure_overlay.present(reward_coins, granted, title):
+		return false
 	if audio_feedback != null:
-		# The chest is the daily loop peak and now owns a real fanfare - the cue
-		# that used to announce level completion - instead of borrowing the
-		# power charge. Coins stay layered underneath.
+		# The chest owns a real fanfare - the cue that used to announce level
+		# completion - instead of borrowing the power charge. Coins stay layered
+		# underneath.
 		audio_feedback.emit_event("treasure_open")
 		audio_feedback.emit_event("coin_reward")
 	if haptics_feedback != null:
 		haptics_feedback.emit_event("win")
-	if power_shop != null and power_shop.is_open():
-		power_shop.present(power_counts(), spendable_coins())
+	return true
+
+
+## The ceremony has closed. Only the post-win drop has anything queued behind
+## it; the daily and milestone chests simply return the player to the screen
+## they opened the chest from.
+func _on_treasure_finished() -> void:
+	post_win_treasure_done = true
 	_refresh_hud()
 
 
@@ -3059,6 +3198,11 @@ func _qualify_win_if_target_complete() -> void:
 	win_qualified = true
 	win_presented = false
 	win_hold_elapsed = 0.0
+	# A fresh victory resolves its own drop. Nothing else clears these between
+	# a retry and the win it eventually produces.
+	post_win_treasure_resolved = false
+	post_win_treasure_done = false
+	win_reward_captured = false
 	var active := get_active_piece()
 	if active != null:
 		active.is_active_launcher = false
@@ -3073,7 +3217,19 @@ func _update_win_presentation(delta: float) -> void:
 	win_hold_elapsed += delta
 	if win_hold_elapsed >= GameConfig.WIN_PRESENTATION_HOLD:
 		var completed_tier := int((target_sequence().back() as Dictionary).get("tier", 8))
-		level_reward_for_completion = maxi(0, coins - level_start_coins)
+		# Captured before any treasure is granted. A milestone chest pays 800
+		# coins into the same balance, and without this the win popup would
+		# report the chest as the level's own reward and Double Coins would
+		# offer to match it.
+		if not win_reward_captured:
+			level_reward_for_completion = maxi(0, coins - level_start_coins)
+			win_reward_captured = true
+		# The treasure lands between the board settling and the popup opening,
+		# so the reward is met on the table it was won on rather than behind a
+		# modal. The popup - mascot reaction and all - runs unchanged once the
+		# ceremony closes.
+		if _try_present_post_win_treasure():
+			return
 		var rewarded_ready := ad_manager != null and bool(ad_manager.call("is_rewarded_ready"))
 		if result_overlay.present(true, score, level_number, completed_tier, level_reward_for_completion, rewarded_ready):
 			win_presented = true

@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Treasure Ceremony V1](TREASURE_CEREMONY_V1_REPORT.md) - the fullscreen tap-to-open treasure shared by the daily, milestone and new post-win chests, one-tap-per-reward claiming, the pure level-number drop rules, the two orderings that keep a treasure from being mistaken for the level reward, and the regression set.
+
 - [Final 1.0.18 (vc20) Optimization and Release](FINAL_V1.0.18_VC20_RELEASE_REPORT.md) - canonical version correction, conservative asset reachability cleanup, regression evidence, signed APK/AAB validation, and delivery provenance.
 
 - [Mood Mascot, Daily Reminders, and Popup Shell V1](MASCOT_REMINDERS_POPUP_SHELL_V1_REPORT.md) - the mascot mood dial and how eight frames are made to read as animation, the shared popup title shell that fixed the label animating separately, and the local daily-missions reminder with its untested native scheduler.

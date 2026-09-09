@@ -70,11 +70,37 @@ Three missions per day, one from each difficulty tier:
 `DailyMissionService.CHEST_REWARD` is **`0` coins**. The chest pays in powers
 only: `{switch: 2, magnet: 1, hammer: 1}`. It is not a coin source.
 
-### Milestone chest (added 2026-09-05)
+### Milestone chest (added 2026-09-05, handed over on the win since 2026-09-09)
 
-One chest per twenty levels, on the level-select path, unlocked by clearing
-levels 20, 40, 60 and so on. `LevelMilestone.COIN_REWARD` is **`800` coins**,
-paid alongside the same power grant the daily chest gives.
+One chest per twenty levels, unlocked by clearing levels 20, 40, 60 and so on.
+`LevelMilestone.COIN_REWARD` is **`800` coins**, paid alongside the same power
+grant the daily chest gives.
+
+Since 2026-09-09 it is handed over the moment the twentieth level is cleared,
+before the win popup, rather than waiting on the level-select path to be
+noticed and tapped. The amount, the powers and the once-only rule are unchanged
+— `TreasureDrop` consults `claimed_chests`, so a chest already opened never
+drops again and a chest granted by a win shows as opened on the map. Chests
+earned before the change remain tappable there.
+
+### Bonus treasure (added 2026-09-09)
+
+Every level win that is not a milestone rolls a bonus treasure at
+`TreasureDrop.BONUS_CHANCE_PERCENT` = **15%**, paying **`120` coins** and
+**one power** chosen from the four.
+
+Deliberately small. `120` is well under a level's own 310-480 income, so a bonus
+is a garnish on a win rather than a reason to farm cheap levels, and the single
+power keeps the sequence to two claims. Across a hundred levels it adds roughly
+`1,800` coins and 15 powers — about four levels' income and under four levels'
+worth of the cheapest power — against the roughly 40,000 coins those levels
+already pay. It exists so that any win can become a treasure, which is what
+makes the ceremony worth having: a moment the player meets twice a day is not a
+moment.
+
+The roll is a pure function of the level number, so it is fixed per level rather
+than per attempt. Replaying a level reproduces its drop, and a player cannot
+re-roll a level for a treasure it does not have.
 
 It pays coins where the daily chest does not, because the two answer different
 questions. The daily chest recurs once a day against a coin flow that already

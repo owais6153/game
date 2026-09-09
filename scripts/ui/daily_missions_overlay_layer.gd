@@ -56,6 +56,8 @@ var cards_row: HBoxContainer
 var chest_button: Button
 var chest_caption: Label
 var chest_icon: TextureRect
+## Invisible button over the chest art, so the chest opens on a tap of itself.
+var chest_tap_target: Button
 var chest_reward_row: HBoxContainer
 var coins_label: Label
 var close_button: Button
@@ -252,9 +254,28 @@ func _chest_section() -> Control:
 	row.add_theme_constant_override("separation", 18)
 	frame.add_child(row)
 
+	# The chest itself is the affordance. Reaching past a picture of a chest to
+	# press a button labelled CLAIM is the least direct way to open one, so the
+	# art carries an invisible button of its own and the CLAIM plate beside it
+	# stays only because it is what says LOCKED and DONE.
 	chest_icon = UiKitType.texture_rect(UiKitType.BADGE_CHEST, CHEST_ICON_SIZE)
 	chest_icon.name = "DailyChestIcon"
-	row.add_child(chest_icon)
+	chest_tap_target = Button.new()
+	chest_tap_target.name = "DailyChestTapTarget"
+	chest_tap_target.focus_mode = Control.FOCUS_NONE
+	chest_tap_target.custom_minimum_size = chest_icon.custom_minimum_size
+	# Every state is explicitly empty. `flat` only suppresses the draw call, so
+	# the button would still inherit the shared gem plate - and be measured
+	# against a plate 92px tall that an 88px chest cannot carry without crushing
+	# its caps. The chest art is the button; there is no plate behind it.
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+		chest_tap_target.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	chest_tap_target.pressed.connect(func() -> void:
+		ui_tap_requested.emit()
+		chest_claim_requested.emit())
+	row.add_child(chest_tap_target)
+	chest_tap_target.add_child(chest_icon)
+	chest_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	var copy := VBoxContainer.new()
 	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -305,8 +326,10 @@ func _refresh(state: Dictionary, coins: int) -> void:
 		cards_row.add_child(_mission_card(missions[index] as Dictionary, index))
 
 	var ready := DailyMissionServiceType.chest_ready(state)
-	chest_button.text = "CLAIM" if ready else ("DONE" if bool(state.get("chest_claimed", false)) else "LOCKED")
+	chest_button.text = "OPEN" if ready else ("DONE" if bool(state.get("chest_claimed", false)) else "LOCKED")
 	chest_button.disabled = not ready
+	if chest_tap_target != null:
+		chest_tap_target.disabled = not ready
 	var claimed := bool(state.get("chest_claimed", false))
 	chest_caption.text = "Collected today" if claimed else _chest_reward_caption()
 	if chest_reward_row != null and not _chest_opening:

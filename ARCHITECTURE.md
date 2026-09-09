@@ -1,3 +1,90 @@
+# Architecture Addendum - The Treasure Ceremony
+
+## Three sources, one ceremony, and a strict grant/present split
+
+`TreasureOverlayLayer` (layer 70, above daily missions at 65, the level map at
+61 and the result overlay at 50) is the only treasure presentation in the game.
+The daily chest, the milestone chest and the post-win drop all reach it through
+`GameController._present_treasure()`, which also carries the audio and haptic
+peak so the three sources cannot drift apart.
+
+The boundary is load-bearing rather than stylistic. In every path the controller
+builds the complete resulting inventory, balance and chest record, **persists
+them**, adopts them, and only then calls `present()`. What the layer runs is a
+report of something that already happened, so a player who force-closes the app
+mid-animation keeps the reward, and the layer is free to be as slow as the
+ceremony needs. Nothing in `treasure_overlay_layer.gd` may grant, consume or
+modify coins or powers.
+
+`present()` returns a bool, and that is what makes the post-win path safe: an
+empty treasure declines to open rather than opening an empty ceremony, so the
+caller waiting on `treasure_finished` is never left waiting for a signal that
+would not arrive.
+
+## The drop is arithmetic, not a roll
+
+`TreasureDrop` is pure, in the same sense and for the same reason as
+`LevelConfig.seed_for_level()`: given a level number and the chests already
+claimed, it returns the same treasure forever. Nothing persists a drop and
+nothing should. A drop that consulted the clock or a live RNG would make a
+replay of level 20 differ from its first clear, and the level screen exists
+precisely so that levels are replayed.
+
+The milestone outranks the bonus, so clearing level 20 can never pay 120 coins
+instead of 800. `_hash()` takes a salt because whether a bonus drops and which
+power it pays are two independent decisions; sharing one bit pattern would make
+every bonus in the game hand out the same power.
+
+## Where the treasure sits in the win sequence
+
+`_update_win_presentation()` gained one gate. After the victory hold expires it
+captures `level_reward_for_completion` once, then asks
+`_try_present_post_win_treasure()`; a true answer returns without presenting the
+result overlay, and `_on_treasure_finished()` releases the gate on the next
+tick. The drop resolves exactly once per win - `post_win_treasure_resolved`
+guards the resolution, `post_win_treasure_done` the release - and `restart()`
+and the win transition both clear all three flags.
+
+Two orderings in that sequence are the whole reason it is written this way.
+
+**The reward is captured before the grant.** A milestone pays 800 coins into the
+same balance the popup reads, so capturing afterwards would have Level Complete
+claim the level paid 900 and Double Coins offer to match it.
+
+**The grant moves the baseline with the balance.** `level_start_coins` is raised
+by the treasure's coins, so `coins - level_start_coins` still equals what the
+level itself paid and the existing Retry-rollback contract is unaffected.
+
+`ResultOverlayLayer` is untouched. The treasure only delays `present()`, so the
+popup's entrance and the mascot reaction it holds back until that entrance lands
+run exactly as before - asserted in `run_treasure_ceremony_v1_tests` rather than
+assumed, because the mascot frames are a static cache shared by every instance
+and the ceremony has its own `PROCESS_MODE_ALWAYS` layer and tweens.
+
+## The sequence is a phase machine driven by taps, not by tweens
+
+`Phase` is `CLOSED / READY / OPENING / REWARD / BUSY`, and `handle_tap()` acts
+only in `READY` and `REWARD`. Everything else is `BUSY`, which is what makes a
+tap during the opening burst harmless instead of a skip.
+
+The idle beckon on the chest and the breathing prompt are driven from `_process`
+against the current phase rather than from looping tweens. A looping tween has
+to be found and killed on every exit path, and the one that is missed is what
+leaves a chest pulsing under an open lid.
+
+Layout does one job that would otherwise be a second animation: the reward card
+is added to a `MarginContainer` inside the centred column, so the chest lifts as
+a card arrives because the column reflowed, not because something tweened it.
+
+## Presentation-only drawing stays in a drawing helper
+
+`TreasureVfx` (`scripts/presentation/`) owns the rays, halos and sparkles and
+nothing else - no reward, no texture, no layout. `intensity` is one dial the
+overlay opens from zero, spikes past one when the lid gives and lets fall back,
+which is what makes the burst read as the chest opening rather than as a light
+that was always on. It is immediate-mode drawing for the same reason the level
+map is: this sits over a live scene on low-end phones.
+
 # Architecture Addendum - Mascot, Popup Shell, and Local Reminders
 
 ## One node animates a popup, and it is not the panel

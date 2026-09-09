@@ -8,6 +8,7 @@ const GameControllerType = preload("res://scripts/gameplay/game_controller.gd")
 const GameplayEffectsLayerType = preload("res://scripts/presentation/gameplay_effects_layer.gd")
 const PieceType = preload("res://scripts/core/gem_piece.gd")
 const ProgressionSaveServiceType = preload("res://scripts/services/progression_save_service.gd")
+const TreasureDropType = preload("res://scripts/core/treasure_drop.gd")
 const SAVE_FILE := "user://infinite_progression.cfg"
 
 const STEP := 1.0 / 60.0
@@ -267,7 +268,28 @@ func _test_bonus_release_grace() -> void:
 	_assert((resolved.presentation_events[0].source_ids as Array).has(first.id), "The real bonus gem must participate in the confirmed gameplay merge")
 
 
+## The first odd level that drops no treasure.
+##
+## These cases measure the level's own coin reward end to end, and a post-win
+## treasure is a separate reward that lands in the same balance and holds the
+## win popup until it has been claimed. Neither belongs in an assertion about
+## what the level paid, so the win is driven on a quiet level rather than on
+## whichever one the save happens to be sitting on. Odd, because the every-two-
+## levels interstitial cadence would otherwise gate the transition these cases
+## drive deterministically.
+func _treasure_free_level() -> int:
+	var none: Array[int] = []
+	for level in range(1, 400):
+		if level % 2 == 1 and TreasureDropType.for_level_win(level, none).is_empty():
+			return level
+	return 1
+
+
 func _prepare_final_target(controller: GameControllerType, final_target: bool) -> void:
+	# The drop is a pure function of the level number, so pinning the level is
+	# all it takes to keep a treasure out of these measurements.
+	controller.level_number = _treasure_free_level()
+	controller.claimed_chests = [] as Array[int]
 	var sequence := controller.target_sequence()
 	if final_target:
 		controller.target_index = sequence.size() - 1
@@ -420,9 +442,9 @@ func _test_hud_coin_counter_continuity() -> void:
 	controller._on_home_level_intro_requested()
 	controller._on_level_chosen(controller.highest_level)
 	controller._on_home_play_requested()
-	# Fix the level number so the interstitial cadence (every 2 levels) never
-	# gates the transition this test drives deterministically.
-	controller.level_number = 1
+	# The level number is pinned by _prepare_final_target: odd, so the every-two-
+	# levels interstitial cadence never gates the transition this test drives,
+	# and treasure-free, so no chest lands in the balance being measured.
 	_prepare_final_target(controller, true)
 	var hud := controller.gameplay_ui
 	var target_tier := controller.active_target_tier()

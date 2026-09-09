@@ -1,3 +1,16 @@
+# Treasure Ceremony V1 - 2026-09-09
+
+- Every treasure uses one fullscreen presentation - the daily chest, the twenty-level milestone chest, and the bonus chest a level win sometimes drops. A chest presented in a panel beside a CLAIM button is no longer a treasure presentation.
+- A treasure opens on a tap of the screen, never on a timer and never on a separate button. The chest waits with `TAP TO OPEN` under a light effect until the player taps it.
+- Rewards are claimed one at a time. Each reward appears alone under `TAP TO CLAIM`, leaves only when the player taps it, and is followed by the next. Coins are one claim; each granted power is one claim carrying its own count. Nothing in the sequence advances by itself.
+- Reward order is coins first, then powers in the shared `PowerInventoryService.ALL` display order, so the same treasure always plays back the same way.
+- The ceremony is presentation only. The controller grants and persists the complete reward before `TreasureOverlayLayer.present()` is called; the layer may never grant, consume, or modify coins or powers, and Back is swallowed for as long as it is open.
+- A level win may drop a treasure, and it arrives before the win popup rather than after it. Clearing a twentieth level hands over that milestone chest immediately; every other win rolls a small bonus treasure at a fixed 15% rate. Both are pure functions of the level number, so replaying a level reproduces its drop.
+- A milestone is still earned once. A chest already recorded in `claimed_chests` never drops again, and a chest granted by a win shows as opened on the level map.
+- A post-win treasure must not be mistaken for the level's own reward. The level's coin reward is captured before the treasure is granted, and the treasure moves the banked baseline with the balance, so Level Complete reports what the level paid and Double Coins offers to match only that.
+- The Level Complete popup keeps its mascot reaction unchanged after a treasure. The treasure only delays the popup; it does not alter its entrance, its queued expression, or its reward copy.
+- The milestone chest on the level map remains tappable for any chest that was earned before this milestone existed, and opens the same ceremony.
+
 # Power Motion and Level Entry - 2026-08-31
 
 - A power cinematic keeps its full 1.65-second readable duration, but screen travel must finish by 32% of that timeline. Remaining pre-impact time must contain visible local movement at the action point, not slower travel.

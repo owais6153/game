@@ -1,3 +1,41 @@
+# 2026-09-09 - Treasure ceremony guardrails
+
+- **Grant, persist, then present - never present and then grant.** Every chest
+  path builds the whole resulting inventory and balance, saves it, adopts it,
+  and only then opens the animation. That is what lets the ceremony be slow: a
+  force-close halfway through costs the player nothing.
+- **A presentation that a caller waits on must be able to decline.**
+  `TreasureOverlayLayer.present()` returns false for an empty reward, so the
+  win-popup gate is never left waiting on a `treasure_finished` that cannot
+  arrive. Any "show this, then continue" layer needs the same escape.
+- **Capture a measured value before anything else writes to it.** The level's
+  coin reward is read before the treasure is granted, and the treasure raises
+  `level_start_coins` with `coins`. Adding an unrelated reward to a balance that
+  a popup derives its own number from is how Double Coins ends up offering to
+  match a chest.
+- **`Button.flat = true` does not remove the theme's stylebox**, it only skips
+  drawing it. `get_theme_stylebox("normal")` still returns the shared plate, so
+  an invisible tap target must override every state with `StyleBoxEmpty` or it
+  will be measured against a plate it is too small to carry.
+- **Drive idle animation from `_process` against the current state, not from a
+  looping tween.** A phase change then cancels it by simply not being that phase
+  any more; a looping tween has to be found and killed on every exit path, and
+  the missed one is what leaves a chest pulsing under an open lid.
+- **Let the container do the movement it already implies.** The chest lifts when
+  a reward arrives because the column reflowed around a new child - a second
+  tween to move the chest would be one more thing to keep in sync with layout.
+- **A reward reveal must not advance on a timer.** The player's eye is still on
+  the first reward when an auto-advance moves to the second, and there is
+  nothing they did to earn the feeling of having claimed it.
+- **Reward-drop rules belong with level seeds, in a pure function of the level
+  number.** A drop that read the clock or a live RNG would make replaying a
+  level differ from clearing it, which is exactly what the level screen promises
+  it will not do. Salt each independent decision or they share one bit pattern.
+- **When a test fails because behaviour genuinely changed, change what it
+  measures - do not weaken the assertion.** `run_reward_feedback_v3_tests` pins
+  a treasure-free level chosen *through* `TreasureDrop`, so the pin cannot drift
+  if the drop rules move.
+
 # 2026-09-05 - Scroll, splash and test-isolation guardrails
 
 - **Do not put a virtually-scrolled view inside a ScrollContainer.** The

@@ -147,6 +147,26 @@ many players earned a reward and never went back for it.
 
 Like every other grant here, the claim event fires only after both saves commit.
 
+## Treasure drops (added 2026-09-09)
+
+`treasure_drop`, `treasure_drop_failed`
+
+A treasure handed over by a level win, before the win popup. Fires once per win,
+only after both saves commit. Parameters: `treasure_kind` (`milestone` or
+`bonus`), `chest_index` (0 for a bonus), `level_number`, `amount`, `powers`,
+`resulting_balance`. It is paired with a `coin_earned` carrying `coin_source`
+`treasure_drop`, and with one `power_granted` per power carrying `source`
+`treasure_drop`. `treasure_drop_failed` carries a `failure_reason` of
+`save_failed` or `power_save_failed`.
+
+`treasure_kind` is the parameter worth segmenting on. A `milestone` drop
+replaces the map claim that `milestone_chest_claim` used to report, so a
+milestone cleared after this change appears here rather than there — comparing
+the two over the boundary would otherwise read as milestone rewards collapsing
+to zero. `milestone_chest_unlocked` still fires on the same win, and
+`milestone_chest_claim` now reports only chests earned before the change and
+opened later on the map.
+
 ## Reminders
 
 `notifications_toggled`
