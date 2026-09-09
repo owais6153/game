@@ -2,6 +2,7 @@ class_name ProgressionSaveService
 extends RefCounted
 
 const SAVE_PATH := "user://infinite_progression.cfg"
+const LevelStarsType = preload("res://scripts/core/level_stars.gd")
 
 static func load_progress() -> Dictionary:
 	var config := ConfigFile.new()
@@ -29,7 +30,51 @@ static func load_progress() -> Dictionary:
 		# Level types whose briefing the player has already been shown. Absent on
 		# every pre-existing save, which correctly reads as "nothing seen yet".
 		"seen_level_types": _string_array(config.get_value("tutorial", "seen_level_types", [])),
+		# Stars earned per level, keyed by level number. Absent on every save
+		# written before stars existed, which correctly reads as "none earned" -
+		# levels already cleared are not retroactively credited, because the game
+		# has no record of how they were cleared and awarding three would make
+		# the first star meaningless everywhere behind the player.
+		"level_stars": _star_map(config.get_value("progress", "level_stars", {})),
 	}
+
+
+## Stars are stored as a `level -> count` Dictionary. ConfigFile hands back
+## whatever was written, and keys survive a round trip as ints or as strings
+## depending on how they were set, so both are normalised to int keys here and
+## the count is clamped - a hand-edited save must not be able to inflate the
+## total the level map prints.
+static func _star_map(value: Variant) -> Dictionary:
+	var result := {}
+	if not (value is Dictionary):
+		return result
+	for key in (value as Dictionary).keys():
+		var level := int(str(key).to_int()) if key is String else int(key)
+		if level <= 0:
+			continue
+		result[level] = clampi(int((value as Dictionary)[key]), 0, LevelStarsType.MAX_STARS)
+	return result
+
+
+## Records the stars earned on one level. Monotonic: a replay that earns fewer
+## stars never takes back what the player already has, which is what lets a
+## player go back to an old level to try for a star they missed without risking
+## the ones they hold.
+##
+## Separate from save_progress() so earning a star is never coupled to a coin
+## transaction, and so a failed star write cannot roll back a banked reward.
+static func save_level_stars(level_number: int, stars: int) -> Error:
+	if level_number <= 0:
+		return OK
+	var config := ConfigFile.new()
+	config.load(SAVE_PATH)
+	var stored := _star_map(config.get_value("progress", "level_stars", {}))
+	var earned := clampi(stars, 0, LevelStarsType.MAX_STARS)
+	if int(stored.get(level_number, 0)) >= earned:
+		return OK
+	stored[level_number] = earned
+	config.set_value("progress", "level_stars", stored)
+	return config.save(SAVE_PATH)
 
 
 ## ConfigFile hands back whatever was stored, so a hand-edited or older save can

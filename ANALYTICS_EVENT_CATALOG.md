@@ -147,6 +147,31 @@ many players earned a reward and never went back for it.
 
 Like every other grant here, the claim event fires only after both saves commit.
 
+## Level stars (added 2026-09-09)
+
+`level_stars_awarded`, `level_stars_save_failed`
+
+Fires once per level win, after the stars have been evaluated and banked and
+before the result popup animates them. Parameters: `level_number`, `stars`
+(0-3 earned this attempt), `previous_stars` (held before it), `total_stars`
+(running total across all levels), `bonus_kind` (`merges`, `combo` or
+`no_power`), plus the four quantities the evaluation read — `shots_used`,
+`merges`, `best_combo`, `used_power`.
+
+Carrying the raw quantities alongside the verdict is the point of the event.
+`stars` alone says a threshold was missed; the quantities say by how much, which
+is what separates a star that is tuned slightly too tight from one players
+simply are not trying for. Segment `bonus_kind` against `stars` to compare the
+three rotating objectives against each other.
+
+`previous_stars` is what makes replays legible: an attempt where
+`stars <= previous_stars` earned nothing new, and a high volume of those on one
+level means players are grinding a star they cannot reach.
+
+`level_stars_save_failed` carries `level_number` and `stars`. The award still
+displays — the popup animates the evaluated result — so this event is the only
+signal that a star was shown and not kept.
+
 ## Treasure drops (added 2026-09-09)
 
 `treasure_drop`, `treasure_drop_failed`

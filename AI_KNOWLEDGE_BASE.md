@@ -1,3 +1,44 @@
+# 2026-09-09 - Star and level-record guardrails
+
+- **Never author a threshold a player has to hit.** Derive it from the level's
+  own solver play-out. The hand-written shot ladder made every limited level
+  unwinnable for months precisely because nothing tied it to what the level
+  contained. If a number is promised on a screen, a test must prove it is
+  reachable across the whole range, not at three sample levels.
+- **Print the derived numbers before shipping them.** A dev audit script that
+  dumps the table is how "Merge 120 gems" got caught as a threshold sized
+  *above* what the level demonstrably produces.
+- **Failure modes for a difficulty knob are asymmetric.** A slightly easy
+  objective is a mild waste; an impossible one is a promise broken on screen.
+  When the true value cannot be computed, err on the reachable side and say so
+  in the constant's comment.
+- **Round a displayed derived number.** "Merge 98 gems" reads as a formula
+  output; "Merge 95 gems" reads as an objective. Round in the direction that
+  loosens the bar.
+- **Show and judge from one source.** The level-start screen renders the exact
+  `text` field the result popup evaluates. Composing wording separately in
+  presentation is how a screen ends up promising a different objective from the
+  one that is scored.
+- **Evaluate from the aggregates that already exist.** Stars read
+  `LevelAttemptAnalytics`, not new counters. A parallel counter set will
+  disagree with the analytics event for the same attempt the first time one of
+  them is reset in the wrong place.
+- **Gate the action that ends the screen on the animation that rewards it.**
+  COLLECT was tappable on the popup's first frame and skipped the whole star
+  award. Anything that can be dismissed faster than it can be read needs a gate.
+- **Purity is with respect to a generator, and the generator is ours.**
+  `f(level_number)` being pure guarantees reproducibility across devices and
+  reinstalls, not across updates. Anything the player has already experienced
+  and can return to needs a snapshot, not just a pure function.
+- **A snapshot must be write-once.** Re-writing it on every visit re-pins the
+  record to the current generator and silently undoes the whole feature.
+- **ConfigFile does not preserve Dictionary key order.** Comparing `str()` of a
+  stored and a regenerated structure reports a mismatch for identical data.
+  Compare structurally, and reconcile int against float while you are there.
+- **Keep large per-entity records out of the hot save file.** The progression
+  save is read on every launch and written on every coin transaction; board
+  layouts belong in their own file.
+
 # 2026-09-09 - Treasure ceremony guardrails
 
 - **Grant, persist, then present - never present and then grant.** Every chest

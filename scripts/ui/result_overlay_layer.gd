@@ -7,10 +7,23 @@ const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
 const CoinIconType = preload("res://scripts/presentation/coin_icon.gd")
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
+const StarRowType = preload("res://scripts/presentation/star_row.gd")
+const LevelStarsType = preload("res://scripts/core/level_stars.gd")
 
 ## Deliberately large. The mascot is the first thing the eye should land on
 ## when a result appears.
 const MASCOT_SIZE := 300.0
+## Star row on Level Complete. Large: the stars are the new headline of the
+## screen and have to read from arm's length.
+const STAR_SIZE := 62.0
+const STAR_SPACING := 22.0
+## One star lands, its caption is read, then the next. Slower than a reward
+## reveal on purpose - three stars arriving in half a second is a flicker, not
+## an award.
+const STAR_AWARD_DURATION := 0.44
+const STAR_AWARD_GAP := 0.30
+## After the popup has settled and the mascot has begun to react.
+const STAR_SEQUENCE_DELAY := MASCOT_REACTION_DELAY + 0.18
 const ICON_RETRY = preload("res://assets/runtime/ui/icons/restart_white.svg")
 const ICON_HOME = preload("res://assets/runtime/ui/icons/home_lavender.svg")
 const ICON_SKIP = preload("res://assets/runtime/ui/icons/fast_forward_lavender.svg")
@@ -36,6 +49,11 @@ signal ui_tap_requested
 signal extra_shots_requested
 signal extra_shots_declined
 signal continue_requested
+## One star has landed, and the whole sequence has finished. Presentation
+## signals only - the stars were banked by the controller before this popup
+## opened.
+signal star_awarded(index: int)
+signal stars_finished
 
 ## Dedicated result UI. It owns only its backdrop and panel; gameplay roots,
 ## gem sprites, simulation state, and reward timing are never modified here.
@@ -60,6 +78,8 @@ var subtitle_label: Label
 ## Replaces the old target-gem icon and fail badge. Win, loss and the rescue
 ## offer are all told by the mascot's expression.
 var mascot: MascotView
+var star_row: StarRow
+var star_caption: Label
 var reward_card: VBoxContainer
 var earned_label: Label
 var reward_row: HBoxContainer
@@ -88,6 +108,10 @@ var _double_request_in_flight := false
 var _displayed_total := 0
 var _total_tween: Tween
 var _entrance_tween: Tween
+var _star_tween: Tween
+var _stars_pending := false
+var _star_results: Array[bool] = []
+var _star_objectives: Array = []
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 
 
@@ -109,7 +133,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
-func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8, level_reward_amount: int = 0, rewarded_available: bool = false, skip_available: bool = false, skip_cost: int = 0, continue_available: bool = false, continue_cost: int = 0, _coin_balance: int = 0, fail_reason: String = "danger_line") -> bool:
+func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8, level_reward_amount: int = 0, rewarded_available: bool = false, skip_available: bool = false, skip_cost: int = 0, continue_available: bool = false, continue_cost: int = 0, _coin_balance: int = 0, fail_reason: String = "danger_line", star_award: Dictionary = {}) -> bool:
 	_build_ui()
 	# The guard exists to stop the same result being presented twice. It must not
 	# block a genuine mode change: declining the out-of-shots rescue calls
@@ -152,6 +176,7 @@ func present(won: bool, score: int, level_number: int = 1, result_tier: int = 8,
 	_queued_mascot_mood = MascotViewType.MOOD_HAPPY if won else MascotViewType.MOOD_SAD
 	_queued_mascot_intensity = 1.0
 	mascot.show_idle(true)
+	_prepare_star_award(won, star_award)
 	reward_card.custom_minimum_size = Vector2(424.0, 132.0 if won else 74.0)
 	_refresh_reward_copy()
 	transition_label.text = "LEVEL %d  →  LEVEL %d" % [level_number, level_number + 1] if won else "LEVEL %d • READY TO RETRY" % level_number
@@ -187,6 +212,9 @@ func present_out_of_shots(coin_balance: int, shots_added: int, cost: int) -> boo
 	level_reward = 0
 	_displayed_total = coin_balance
 	_actions_pending = false
+	# The rescue offer is mid-level: nothing has been earned yet, so the star row
+	# has nothing to say and would only crowd the decision.
+	_prepare_star_award(false, {})
 	title_label.text = "OUT OF SHOTS"
 	celebration_label.visible = false
 	subtitle_label.text = "ADD %d SHOTS AND CONTINUE THIS ATTEMPT" % shots_added
@@ -245,6 +273,8 @@ func dismiss() -> void:
 	_actions_pending = false
 	_kill_total_tween()
 	_kill_entrance_tween()
+	_kill_star_tween()
+	_stars_pending = false
 	if root_control != null:
 		root_control.visible = false
 		root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -363,6 +393,26 @@ func _build_ui() -> void:
 	# reads as the mascot wobbling rather than as the popup landing.
 	mascot.breathing_enabled = false
 	art_slot.add_child(mascot)
+
+	# Between the mascot and the reward card: the stars land first, then the
+	# coins they were earned alongside. Hidden entirely on a loss, where there
+	# are no stars to report and the row would only take space from the retry
+	# decision.
+	star_row = StarRowType.new()
+	star_row.name = "ResultStarRow"
+	star_row.star_size = STAR_SIZE
+	star_row.spacing = STAR_SPACING
+	star_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	column.add_child(star_row)
+
+	star_caption = UiDesignSystemType.style_label(
+		Label.new(), UiDesignSystemType.SMALL_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
+	star_caption.name = "ResultStarCaption"
+	star_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	star_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	star_caption.custom_minimum_size = Vector2(424.0, 30.0)
+	star_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(star_caption)
 
 	reward_card = VBoxContainer.new()
 	reward_card.name = "ResultRewardCard"
@@ -559,6 +609,79 @@ func _refresh_reward_copy() -> void:
 		score_label.text = ScoreFormatterType.format(result_score)
 
 
+## Stars earned this attempt, and the ones the player already held.
+##
+## Nothing here decides anything: the controller has already evaluated and
+## banked the result, and this only replays it. The row starts with the stars
+## the player already had lit, so a replay animates only what the attempt
+## actually added rather than re-awarding what they came in with.
+func _prepare_star_award(won: bool, star_award: Dictionary) -> void:
+	if star_row == null:
+		return
+	_star_results.clear()
+	for entry in (star_award.get("results", []) as Array):
+		_star_results.append(bool(entry))
+	_star_objectives = (star_award.get("objectives", []) as Array).duplicate()
+	var previous := clampi(int(star_award.get("previous", 0)), 0, LevelStarsType.MAX_STARS)
+	var show_stars := won and not _star_results.is_empty()
+	star_row.visible = show_stars
+	star_caption.visible = show_stars
+	# A loss has no star sequence to wait for, so its actions are live from the
+	# first frame exactly as before.
+	_stars_pending = show_stars
+	if not show_stars:
+		star_caption.text = ""
+		return
+	star_row.filled = previous
+	star_caption.text = ""
+
+
+## Runs after the popup has settled. One star lands, its objective is named
+## under it, then the next; the actions unlock only once the last one has
+## landed, so a player who taps COLLECT the instant the popup opens still sees
+## what they earned.
+func _play_star_award() -> void:
+	if star_row == null or not _stars_pending:
+		return
+	var pending: Array[int] = []
+	for index in range(_star_results.size()):
+		if _star_results[index] and index >= star_row.filled:
+			pending.append(index)
+	if pending.is_empty():
+		_finish_star_award()
+		return
+	_kill_star_tween()
+	_star_tween = create_tween()
+	_star_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	for index in pending:
+		_star_tween.tween_callback(func() -> void:
+			if star_row != null:
+				star_row.award(index, STAR_AWARD_DURATION)
+			if star_caption != null and index < _star_objectives.size():
+				star_caption.text = String((_star_objectives[index] as Dictionary).get("text", ""))
+			star_awarded.emit(index))
+		_star_tween.tween_interval(STAR_AWARD_DURATION + STAR_AWARD_GAP)
+	_star_tween.tween_callback(_finish_star_award)
+
+
+func _finish_star_award() -> void:
+	_stars_pending = false
+	if star_caption != null:
+		var earned := 0
+		for result in _star_results:
+			if result:
+				earned += 1
+		star_caption.text = "%d of %d stars" % [earned, LevelStarsType.MAX_STARS]
+	_refresh_action_state()
+	stars_finished.emit()
+
+
+func _kill_star_tween() -> void:
+	if _star_tween != null and _star_tween.is_valid():
+		_star_tween.kill()
+	_star_tween = null
+
+
 func _refresh_action_state() -> void:
 	if retry_button == null or double_button == null or home_button == null or skip_button == null or continue_button == null:
 		return
@@ -570,9 +693,12 @@ func _refresh_action_state() -> void:
 		continue_button.visible = false
 		home_button.disabled = _actions_pending
 		return
-	retry_button.disabled = _actions_pending
-	home_button.disabled = _actions_pending
-	double_button.disabled = _actions_pending or not _rewarded_available or _reward_resolved
+	# The star sequence gates the win actions. COLLECT is the end of the level,
+	# and offering it before the player has been shown what they earned is how a
+	# fast tap skips the award entirely.
+	retry_button.disabled = _actions_pending or _stars_pending
+	home_button.disabled = _actions_pending or _stars_pending
+	double_button.disabled = _actions_pending or _stars_pending or not _rewarded_available or _reward_resolved
 	double_button.visible = result_won and not _reward_resolved
 	skip_button.visible = not result_won
 	# Affordability no longer disables Skip; the controller offers a video when
@@ -668,6 +794,7 @@ func _start_entrance() -> void:
 	# opaque. Playing it during the entrance meant most of the idle-to-happy run
 	# happened behind a panel that was still scaling up and half transparent.
 	_entrance_tween.tween_callback(_play_queued_mascot_reaction).set_delay(MASCOT_REACTION_DELAY)
+	_entrance_tween.tween_callback(_play_star_award).set_delay(STAR_SEQUENCE_DELAY)
 	if result_won:
 		# Reveal hierarchy: title, then the completed target gem, then the reward
 		# card and its actions. The layout and artwork itself are unchanged.

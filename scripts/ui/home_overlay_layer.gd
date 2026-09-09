@@ -11,9 +11,14 @@ const TweenStepItemType = preload("res://tween_composer/ConfigurationResources/t
 const UiKitType = preload("res://scripts/ui/ui_kit.gd")
 const DailyMissionServiceType = preload("res://scripts/services/daily_mission_service.gd")
 const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
+const StarRowType = preload("res://scripts/presentation/star_row.gd")
 
 ## Level Ready is a full-screen beat, so the mascot is drawn large here.
 const INTRO_MASCOT_SIZE := 240.0
+## Star objective rows on Level Ready. Small enough that three of them plus the
+## mascot still fit the 700px popup without the panel growing.
+const INTRO_OBJECTIVE_STAR_SIZE := 30.0
+const INTRO_OBJECTIVE_FONT_SIZE := 17
 const ICON_SETTINGS = preload("res://assets/runtime/ui/kit/icon_gear.png")
 const DECOR_DIAMOND = preload("res://assets/runtime/ui/kit/decor_diamond.png")
 ## The Home shop entry point. A de-fringed derivative of the supplied stall art.
@@ -84,6 +89,8 @@ var intro_level_label: Label
 var intro_mascot: MascotView
 var intro_start_button: Button
 var intro_skip_button: Button
+var intro_objectives_panel: PanelContainer
+var intro_objectives_column: VBoxContainer
 
 var exit_confirm_blocker: Control
 var exit_confirm_panel: PanelContainer
@@ -510,6 +517,7 @@ func _build_level_intro_popup() -> void:
 	intro_level_label = _label("LEVEL 1", 38, UiDesignSystemType.COLOR_BLUE_DEEP)
 	intro_level_label.custom_minimum_size = Vector2(0, 60)
 	column.add_child(intro_level_label)
+	column.add_child(_build_intro_objectives())
 	# No target readout. Level Ready is the calm beat before a level starts, and
 	# the board itself shows the target the moment play begins; the mascot sits
 	# neutral here instead, like every other popup.
@@ -539,6 +547,65 @@ func _build_level_intro_popup() -> void:
 	intro_skip_button.tooltip_text = "Skip this level"
 	intro_skip_button.pressed.connect(func() -> void: skip_level_requested.emit())
 	column.add_child(intro_skip_button)
+
+
+## The star objectives, as one row per star: the star itself, then what it asks
+## for. Presentation only - the wording comes from `LevelStars` through the
+## controller snapshot, so this screen cannot promise a different objective from
+## the one the result popup judges.
+##
+## Stars the player already holds for this level are drawn lit and the rest
+## empty, which is what makes a replay legible: the row shows at a glance which
+## one is still missing.
+func _build_intro_objectives() -> Control:
+	intro_objectives_panel = PanelContainer.new()
+	intro_objectives_panel.name = "LevelIntroObjectives"
+	intro_objectives_panel.add_theme_stylebox_override("panel", UiDesignSystemType.home_status_card_style())
+	intro_objectives_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var pad := MarginContainer.new()
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side in ["left", "right"]:
+		pad.add_theme_constant_override("margin_%s" % side, 18)
+	for side in ["top", "bottom"]:
+		pad.add_theme_constant_override("margin_%s" % side, 14)
+	intro_objectives_panel.add_child(pad)
+	intro_objectives_column = VBoxContainer.new()
+	intro_objectives_column.name = "LevelIntroObjectiveRows"
+	intro_objectives_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	intro_objectives_column.add_theme_constant_override("separation", 8)
+	pad.add_child(intro_objectives_column)
+	return intro_objectives_panel
+
+
+func _refresh_intro_objectives() -> void:
+	if intro_objectives_column == null:
+		return
+	for child in intro_objectives_column.get_children():
+		child.queue_free()
+	var objectives: Array = _snapshot.get("star_objectives", []) as Array
+	var earned := int(_snapshot.get("star_earned", 0))
+	if objectives.is_empty():
+		intro_objectives_panel.visible = false
+		return
+	intro_objectives_panel.visible = true
+	for index in range(objectives.size()):
+		var objective: Dictionary = objectives[index] as Dictionary
+		var row := HBoxContainer.new()
+		row.name = "LevelIntroObjective%d" % index
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_theme_constant_override("separation", 12)
+		intro_objectives_column.add_child(row)
+		var star := StarRowType.new()
+		star.star_count = 1
+		star.star_size = INTRO_OBJECTIVE_STAR_SIZE
+		star.filled = 1 if index < earned else 0
+		row.add_child(star)
+		var text := _label(String(objective.get("text", "")), INTRO_OBJECTIVE_FONT_SIZE,
+			UiDesignSystemType.COLOR_TEXT if index < earned else UiDesignSystemType.COLOR_TEXT_MUTED)
+		text.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(text)
 
 
 func _build_exit_confirmation_popup() -> void:
@@ -880,6 +947,7 @@ func _refresh_intro_content() -> void:
 	if intro_level_label == null:
 		return
 	intro_level_label.text = "LEVEL %d" % _current_level
+	_refresh_intro_objectives()
 	if intro_mascot != null:
 		intro_mascot.show_idle(true)
 

@@ -71,6 +71,10 @@ const TAP_MOVE_TOLERANCE := 12.0
 ## Ornament sizes, all quoted as the drawn width; heights follow each texture's
 ## own aspect so nothing in the kit is stretched.
 const LAUREL_WIDTH := 78.0
+## Stars under a cleared node. Small - they are a record, not a control - but
+## still legible at a glance while scrolling.
+const MAP_STAR_SIZE := 26.0
+const MAP_STAR_SPACING := 6.0
 const CROWN_WIDTH := 68.0
 const SPARKLE_WIDTH := 46.0
 const STUD_WIDTH := 24.0
@@ -103,6 +107,8 @@ const PATH_GLOSS_WIDTH := 5.0
 
 const DECOR_DIAMOND_SMALL = preload("res://assets/runtime/ui/kit/decor_diamond_small.png")
 const AssetCatalogType = preload("res://scripts/core/asset_catalog.gd")
+const LevelStarsType = preload("res://scripts/core/level_stars.gd")
+const StarRowType = preload("res://scripts/presentation/star_row.gd")
 
 ## Loose gems scattered in the empty half of the map, opposite whichever way the
 ## path is leaning. Decoration only - they are drawn, never hit-tested, and the
@@ -118,6 +124,9 @@ const SCATTER_ALPHA := 0.30
 var highest_level := 1
 var last_level := 1
 var claimed_chests: Array[int] = []
+## Stars earned per level, rendered under each cleared node. The map owns no
+## rule about how a star is earned; it draws what the controller hands it.
+var stars_by_level: Dictionary = {}
 
 var _slot_count := 1
 ## The slice of the content the player can currently see, in this control's own
@@ -261,9 +270,10 @@ func _draw_animated_layer() -> void:
 ## `levels_ahead` is how far beyond the player's furthest level the path keeps
 ## going. It exists so the map never shows an end: the player can always scroll
 ## up into levels they have not reached.
-func configure(new_highest_level: int, new_claimed_chests: Array[int], levels_ahead: int) -> void:
+func configure(new_highest_level: int, new_claimed_chests: Array[int], levels_ahead: int, new_stars_by_level: Dictionary = {}) -> void:
 	highest_level = maxi(1, new_highest_level)
 	claimed_chests = new_claimed_chests.duplicate()
+	stars_by_level = new_stars_by_level.duplicate()
 	last_level = highest_level + maxi(0, levels_ahead)
 	_slot_count = LevelMilestoneType.slot_count_through(last_level)
 	# This control IS the content, so it declares its full height and lets the
@@ -457,6 +467,45 @@ func _draw_level(slot: int, level_number: int) -> void:
 	if cleared:
 		# The kit's laurelled tick, the same mark a completed daily mission wears.
 		_draw_texture_centred(UiKitType.BADGE_CHECK_LAUREL, centre + Vector2(edge * 0.40, -edge * 0.40), LAUREL_WIDTH)
+
+	# Stars sit under any level the player has actually finished, so the map
+	# reads as a record rather than only as a route. A level ahead of the player
+	# has nothing to report and gets nothing, which is also what keeps the
+	# thousand unplayed rows free of a row of empty stars each.
+	if cleared or current:
+		var earned := LevelStarsType.stars_for_level(stars_by_level, level_number)
+		if cleared or earned > 0:
+			_draw_star_row(centre + Vector2(0.0, edge * 0.62), earned)
+
+
+## Three small stars under a node, lit up to `earned`.
+##
+## Drawn here rather than by adding a `StarRow` child per node, for the same
+## reason every other ornament on this map is drawn: the map spans a thousand
+## levels and a Control per node would build several thousand of them on every
+## open. The geometry is the same five-point star `StarRow` draws.
+func _draw_star_row(centre: Vector2, earned: int) -> void:
+	var lit := clampi(earned, 0, LevelStarsType.MAX_STARS)
+	var pitch := MAP_STAR_SIZE + MAP_STAR_SPACING
+	var origin := centre.x - pitch * float(LevelStarsType.MAX_STARS - 1) * 0.5
+	for index in range(LevelStarsType.MAX_STARS):
+		var at := Vector2(origin + pitch * float(index), centre.y)
+		var filled := index < lit
+		_draw_star(at, MAP_STAR_SIZE * 0.5,
+			StarRowType.COLOR_FILLED if filled else StarRowType.COLOR_EMPTY,
+			StarRowType.COLOR_FILLED_RIM if filled else StarRowType.COLOR_EMPTY_RIM)
+
+
+func _draw_star(centre: Vector2, radius: float, fill: Color, rim: Color) -> void:
+	var points := PackedVector2Array()
+	for index in range(StarRowType.POINTS * 2):
+		var angle := StarRowType.ROTATION_OFFSET + TAU * float(index) / float(StarRowType.POINTS * 2)
+		var reach := radius if index % 2 == 0 else radius * StarRowType.INNER_RATIO
+		points.append(centre + Vector2(cos(angle), sin(angle)) * reach)
+	draw_colored_polygon(points, fill)
+	var outline := points.duplicate()
+	outline.append(points[0])
+	draw_polyline(outline, rim, maxf(1.0, radius * 0.18), true)
 
 
 func _draw_chest(slot: int, chest_index: int) -> void:

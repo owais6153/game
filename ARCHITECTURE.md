@@ -1,3 +1,110 @@
+# Architecture Addendum - Stars and Level Records
+
+## A star threshold is derived, never authored
+
+`LevelStars` is pure arithmetic over a generated level config, in the same
+spirit as `LevelMilestone` and `TreasureDrop`. The level-start screen that shows
+the objectives, the result popup that awards them, and the map that draws the
+totals all call the same functions, so none of them can hold a different opinion
+about what a level asks for.
+
+Both numeric stars are sized against `LevelSolver.simulate()`, which plays the
+level out greedily with the real merge and bonus-gem rules. `simulate()` now
+reports `merges` alongside `shots_used`; every pre-existing caller ignores it.
+
+This is not a stylistic choice. The shot ladder that preceded the solver counted
+down 40 -> 30 with no reference to what the level contained, and every limited
+level was unwinnable as a result. A star is the same failure waiting to happen -
+a number promised on the level-start screen - so no threshold in this file is a
+literal. `scripts/dev/print_level_star_audit.gd` prints the whole table and
+`run_level_stars_v1_tests` asserts the achievability bounds for levels 1-120.
+
+The two numeric stars are tuned from opposite directions, and deliberately so:
+
+- **The shot star is tightened toward what is reachable.** It is above a perfect
+  play-out by at least 25% at its tightest, and on a limited level strictly
+  below that level's own budget, or winning would award it for free.
+- **The merge star is loosened away from it.** A real player takes more shots
+  (more material, more merges) but strands gems the play-out pairs perfectly,
+  and the net is not knowable from the config. The failure modes are asymmetric,
+  so the bar sits at 90% of the demonstrated count.
+
+## Star 2 and star 3 pull against each other
+
+One rewards taking fewer shots; the other rewards the volume or depth of what
+those shots produce. Three stars is therefore a decision about how to play
+rather than the same play executed better. `no_power` is the third kind and is
+orthogonal to both.
+
+## Evaluation reads the analytics aggregates, not new counters
+
+`level_star_outcome()` is built from `LevelAttemptAnalytics` - `shots_fired`,
+`total_merges`, `max_chain_depth` - plus the existing `level_used_power`. No
+counter was added. A star and the `level_complete` event that reports the same
+attempt therefore cannot disagree, which a parallel set of counters would make
+possible the first time one of them was reset in the wrong place.
+
+## Stars are banked before they are shown
+
+`_award_level_stars()` evaluates, persists through
+`ProgressionSaveService.save_level_stars()`, logs, and returns a dictionary the
+popup animates. The popup owns no rule and grants nothing - the same boundary
+the treasure ceremony keeps, and for the same reason.
+
+Storage is monotonic inside the save service rather than at the call site, so
+every caller gets the guarantee: a replay that earns fewer stars never takes
+back what the player holds. That is what makes going back for a missed star a
+free action.
+
+`_stars_pending` gates `COLLECT`, `DOUBLE COINS` and `HOME` in
+`_refresh_action_state()`. Without it a tap landing on the popup's first frame
+dismissed an award the player never saw. A loss sets it false, so the retry
+decision is never delayed by a sequence that has nothing to show.
+
+## Level records pin what purity cannot
+
+`LevelConfig.generated()` is a pure function of the level number and still is;
+`run_level_select_map_v1_tests` asserts it directly. But it is pure *with respect
+to our generator*. Retuning a template, adding a gem to the catalog or bumping
+`GENERATOR_VERSION` rewrites every level the player has already played. The
+purity guarantee holds across devices and reinstalls; it does not hold across
+updates, and the level map's promise - that going back to level 9 means going
+back to *that* level 9 - has to survive the next content patch.
+
+`LevelRecordService` snapshots only the fields that decide what a level *is*:
+seed, gem identities, opening board, launcher queue, target cards, shot limit,
+level type, background and table. Everything else is derived metadata and is
+left to regenerate, so a future field is not frozen at whatever value it
+happened to have.
+
+Two rules are load-bearing:
+
+- **`store()` is write-once.** A level already on file is left exactly as it is.
+  An unconditional write would re-pin the level to whatever the current
+  generator produces on every visit, which is precisely the behaviour the
+  snapshot exists to prevent.
+- **`matches()` compares structurally.** A ConfigFile round trip does not
+  preserve Dictionary key order, so `str()` comparison reported a mismatch for
+  two byte-identical opening boards and made the drift detector useless. Ints
+  and floats are reconciled for the same reason.
+
+Records live in `user://level_records.cfg`. The progression save is read on
+every launch and written on every coin transaction; a player at level 300 would
+otherwise parse and rewrite three hundred board layouts to bank one merge.
+
+## The map draws stars, it does not own them
+
+`LevelMapView` is handed `stars_by_level` and renders exactly that. Handed
+nothing it draws nothing, rather than inferring stars from how far the player
+has come. The stars are drawn in `_draw()` using the same five-point geometry
+`StarRow` uses, for the same reason every other ornament on that map is drawn:
+it spans a thousand levels and a Control per node would build several thousand
+of them on every open.
+
+`StarRow` (`scripts/presentation/`) is the Control version, used where a row has
+to animate: it drives fill, pop and burst per star as scalars read by one draw
+pass, so a single star can land inside a row that is not itself moving.
+
 # Architecture Addendum - The Treasure Ceremony
 
 ## Three sources, one ceremony, and a strict grant/present split

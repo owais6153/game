@@ -93,6 +93,10 @@ static func simulate(config: Dictionary, bonus_per_shot := GameConfig.BONUS_GEM_
 
 	var target_index := 0
 	var shots_used := 0
+	# Merges performed by the play-out. Reported so star objectives can be sized
+	# against work the level demonstrably contains rather than against a guess;
+	# every existing caller ignores it.
+	var merges := 0
 	var budget := shot_limit if shot_limit > 0 else sequence.size() * 8
 	while shots_used < budget and target_index < targets.size():
 		counts[int(sequence[posmod(shots_used, sequence.size())])] = int(
@@ -117,6 +121,7 @@ static func simulate(config: Dictionary, bonus_per_shot := GameConfig.BONUS_GEM_
 				var pairs := available / 2
 				counts[tier] = available - pairs * 2
 				counts[tier + 1] = int(counts.get(tier + 1, 0)) + pairs
+				merges += pairs
 				if bonus_budget > 0:
 					var granted := mini(bonus_budget, pairs)
 					bonus_budget -= granted
@@ -142,6 +147,7 @@ static func simulate(config: Dictionary, bonus_per_shot := GameConfig.BONUS_GEM_
 	return {
 		"completed": target_index >= targets.size(),
 		"shots_used": shots_used,
+		"merges": merges,
 		"spare_shots": maxi(0, shot_limit - shots_used) if shot_limit > 0 else -1,
 		"targets_done": done,
 		"targets_total": targets.size(),

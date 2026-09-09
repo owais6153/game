@@ -1,5 +1,7 @@
 # Reports Index
 
+- [Level Stars and Pinned Level Records V1](LEVEL_STARS_V1_REPORT.md) - three solver-derived star objectives per level, the audit that caught the merge bar being sized above what a level can produce, the one-at-a-time award and its COLLECT gate, star totals on the map, and the per-level snapshot that survives a generator change.
+
 - [Treasure Ceremony V1](TREASURE_CEREMONY_V1_REPORT.md) - the fullscreen tap-to-open treasure shared by the daily, milestone and new post-win chests, one-tap-per-reward claiming, the pure level-number drop rules, the two orderings that keep a treasure from being mistaken for the level reward, and the regression set.
 
 - [Final 1.0.18 (vc20) Optimization and Release](FINAL_V1.0.18_VC20_RELEASE_REPORT.md) - canonical version correction, conservative asset reachability cleanup, regression evidence, signed APK/AAB validation, and delivery provenance.

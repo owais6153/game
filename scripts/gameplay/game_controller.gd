@@ -26,6 +26,8 @@ const LevelSelectType = preload("res://scripts/ui/level_select_overlay_layer.gd"
 const LevelMilestoneType = preload("res://scripts/core/level_milestone.gd")
 const TreasureDropType = preload("res://scripts/core/treasure_drop.gd")
 const TreasureOverlayType = preload("res://scripts/ui/treasure_overlay_layer.gd")
+const LevelStarsType = preload("res://scripts/core/level_stars.gd")
+const LevelRecordServiceType = preload("res://scripts/services/level_record_service.gd")
 const NotificationServiceType = preload("res://scripts/services/notification_service.gd")
 
 var pieces: Array[GemPiece] = []
@@ -91,6 +93,14 @@ var post_win_treasure_done := false
 ## The level's own coin reward, captured before any treasure is granted so the
 ## win popup reports what the level paid rather than what the chest added.
 var win_reward_captured := false
+## The three objectives for the level currently loaded, resolved once when the
+## level is configured. The level-start screen and the result popup both render
+## this array, so the objectives a player is shown are the ones they are judged
+## against.
+var level_star_objectives: Array[Dictionary] = []
+## Stars earned per level, loaded from the save. The level map draws it and the
+## header totals it; only `_award_level_stars()` writes it.
+var level_stars: Dictionary = {}
 var failed := false
 var collection_in_progress := false
 var target_collection: Dictionary = {}
@@ -251,6 +261,7 @@ func _ready() -> void:
 	level_number = int(saved.level_number)
 	highest_level = maxi(level_number, int(saved.get("highest_level", level_number)))
 	claimed_chests = saved.get("claimed_chests", [] as Array[int])
+	level_stars = (saved.get("level_stars", {}) as Dictionary).duplicate()
 	# A session always opens on the furthest level, never on whichever earlier
 	# level the last session happened to replay. The replay is a detour; the
 	# player's place in the game is `highest_level`.
@@ -467,6 +478,12 @@ func hud_snapshot() -> Dictionary:
 		"pending_power_target": pending_power_target,
 		"skip_cost": GameConfig.SKIP_LEVEL_COST,
 		"skip_enabled": _can_skip_level(),
+		# The three objectives for the loaded level, and how many of them the
+		# player already holds. Level Ready renders both; it composes no wording
+		# and evaluates nothing, so what it shows is exactly what the result
+		# popup will judge.
+		"star_objectives": level_star_objectives.duplicate(true),
+		"star_earned": LevelStarsType.stars_for_level(level_stars, level_number),
 		"chain_multiplier": chain_multiplier,
 		"target_level": int(visible_target.get("tier", 1)),
 		"target_progress": presented_target_progress,
@@ -1948,7 +1965,7 @@ func _on_milestone_chest_claim_requested(chest_index: int) -> void:
 	# position and the chest simply changes to its opened state under their
 	# finger.
 	if level_select != null:
-		level_select.update_state(highest_level, coins, claimed_chests)
+		level_select.update_state(highest_level, coins, claimed_chests, level_stars)
 	_present_treasure(reward, granted, "MILESTONE TREASURE")
 	_refresh_hud()
 
@@ -2004,6 +2021,64 @@ func _on_daily_chest_claim_requested() -> void:
 	if power_shop != null and power_shop.is_open():
 		power_shop.present(power_counts(), spendable_coins())
 	_refresh_hud()
+
+
+## What the finished attempt did, in the terms LevelStars evaluates. Read from
+## the attempt aggregates that already existed for analytics rather than from
+## new counters, so a star can never disagree with the event that reports the
+## same attempt.
+func level_star_outcome(won: bool) -> Dictionary:
+	return {
+		"won": won,
+		"shots_used": attempt_analytics.shots_fired,
+		"merges": attempt_analytics.total_merges,
+		"best_combo": attempt_analytics.max_chain_depth,
+		"used_power": level_used_power,
+	}
+
+
+## Resolves this attempt's stars, banks them, and returns what the result popup
+## needs to animate them.
+##
+## Persistence is monotonic and lives in ProgressionSaveService: a replay that
+## earns fewer stars never takes back what the player already holds, so going
+## back for a missed star can only ever help. `previous` is carried into the
+## popup so the row can start with the stars the player already had lit and
+## animate only the ones this attempt actually added.
+func _award_level_stars() -> Dictionary:
+	var objectives := level_star_objectives
+	if objectives.is_empty():
+		objectives = LevelStarsType.objectives_for(level_config)
+	var outcome := level_star_outcome(true)
+	var results := LevelStarsType.evaluate(objectives, outcome)
+	var earned := LevelStarsType.awarded(objectives, outcome)
+	var previous := LevelStarsType.stars_for_level(level_stars, level_number)
+	if earned > previous:
+		if ProgressionSaveServiceType.save_level_stars(level_number, earned) == OK:
+			level_stars[level_number] = earned
+		else:
+			_log_analytics("level_stars_save_failed", {
+				"level_number": level_number,
+				"stars": earned,
+			})
+	_log_analytics("level_stars_awarded", {
+		"level_number": level_number,
+		"stars": earned,
+		"previous_stars": previous,
+		"total_stars": LevelStarsType.total(level_stars),
+		"bonus_kind": LevelStarsType.bonus_kind(level_number),
+		"shots_used": attempt_analytics.shots_fired,
+		"merges": attempt_analytics.total_merges,
+		"best_combo": attempt_analytics.max_chain_depth,
+		"used_power": level_used_power,
+	})
+	return {
+		"objectives": objectives,
+		"results": results,
+		"earned": earned,
+		"previous": previous,
+		"total": LevelStarsType.total(level_stars),
+	}
 
 
 ## Whether the win popup must wait. True only while a post-win treasure is on
@@ -2654,6 +2729,17 @@ func _configure_generated_level(requested_level: int, requested_seed: int) -> vo
 	level_number = maxi(1, requested_level)
 	level_seed = requested_seed
 	level_config = LevelConfigType.generated(level_number, level_seed)
+	# A level the player has already met is restored from its snapshot; one they
+	# have not is generated and then pinned. Generation is pure, so restoring
+	# changes nothing today - it is what keeps level 9 the level 9 they remember
+	# after a template retune or a generator bump, which purity does not cover.
+	# See LevelRecordService.
+	var record := LevelRecordServiceType.record_for(level_number)
+	if record.is_empty():
+		LevelRecordServiceType.store(level_number, level_config)
+	else:
+		level_config = LevelRecordServiceType.apply(level_config, record)
+	level_star_objectives = LevelStarsType.objectives_for(level_config)
 	AssetCatalogType.set_active_level_mapping(level_config.get("gem_identity_by_tier", {}))
 	merge_service.max_result_level = int(level_config.active_tier_max)
 	next_queue_index = 0
@@ -3230,8 +3316,12 @@ func _update_win_presentation(delta: float) -> void:
 		# ceremony closes.
 		if _try_present_post_win_treasure():
 			return
+		# Stars are resolved and banked here, before the popup opens, so the
+		# award animation inside it reports something already saved - the same
+		# rule the treasure follows.
+		var star_award := _award_level_stars()
 		var rewarded_ready := ad_manager != null and bool(ad_manager.call("is_rewarded_ready"))
-		if result_overlay.present(true, score, level_number, completed_tier, level_reward_for_completion, rewarded_ready):
+		if result_overlay.present(true, score, level_number, completed_tier, level_reward_for_completion, rewarded_ready, false, 0, false, 0, 0, "danger_line", star_award):
 			win_presented = true
 			app_flow_state = AppFlowState.LEVEL_COMPLETE
 			if gameplay_ui != null:
@@ -3753,7 +3843,7 @@ func _show_level_select() -> void:
 		if home_overlay != null:
 			home_overlay.dismiss()
 		app_flow_state = AppFlowState.LEVEL_SELECT
-		level_select.present(highest_level, coins, claimed_chests)
+		level_select.present(highest_level, coins, claimed_chests, level_stars)
 		if is_inside_tree():
 			get_tree().paused = true
 	if screen_transition != null:

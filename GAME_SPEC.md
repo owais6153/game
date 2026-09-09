@@ -1,3 +1,16 @@
+# Level Stars and Pinned Level Records - 1.0.19 (vc21) - 2026-09-09
+
+- Every level has exactly three star objectives, resolved from the level's own generated config. They are shown on Level Ready before play and judged on the result popup after it, from the same source, so the two can never disagree.
+- Star 1 is completing the level and is always the first star. Star 2 is finishing inside a shot budget. Star 3 is one of three rotating objectives - merge a stated number of gems, reach a stated combo depth, or win without using a power - selected per level so two levels in the same band do not read identically.
+- Every numeric threshold is derived from `LevelSolver`'s play-out of that exact level, never authored. The shot star must leave at least 20% headroom over a perfect play-out and, on a limited level, must sit strictly inside that level's own shot budget. The merge star must sit at or below the merge count a perfect play-out performs.
+- Losing earns no stars at all, including the ones describing how a level was beaten.
+- Stars are evaluated and persisted before the result popup opens. The popup animates a record of something already saved and can never grant a star itself.
+- Star storage is monotonic per level: a replay that earns fewer stars never removes stars the player already holds.
+- Level Complete awards the earned stars one at a time, naming each objective as it lands, and `COLLECT`, `DOUBLE COINS` and `HOME` stay locked until the last one has landed. A failed result shows no star row and its actions are never gated.
+- The level screen header shows the running star total beside the chest line. Every cleared level node on the map shows its own three-star row.
+- A level the player has entered is pinned. Its seed, gem identities, opening board, launcher queue, target cards, shot limit, background and table are snapshotted on first entry and restored on every later entry, so replaying a level reproduces the level that was played even across a generator or template change. A pinned level is never re-pinned.
+- Level records live in their own `user://level_records.cfg`, separate from the progression save, so a coin transaction never rewrites stored board layouts.
+
 # Treasure Ceremony V1 - 2026-09-09
 
 - Every treasure uses one fullscreen presentation - the daily chest, the twenty-level milestone chest, and the bonus chest a level win sometimes drops. A chest presented in a panel beside a CLAIM button is no longer a treasure presentation.

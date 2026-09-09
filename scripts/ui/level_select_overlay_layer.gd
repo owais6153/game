@@ -18,6 +18,8 @@ const LevelMapViewType = preload("res://scripts/ui/level_map_view.gd")
 const LevelMilestoneType = preload("res://scripts/core/level_milestone.gd")
 const ICON_BACK = preload("res://assets/runtime/ui/icons/back_lavender.svg")
 const MascotViewType = preload("res://scripts/ui/mascot_view.gd")
+const StarRowType = preload("res://scripts/presentation/star_row.gd")
+const LevelStarsType = preload("res://scripts/core/level_stars.gd")
 
 signal level_chosen(level_number: int)
 signal chest_claim_requested(chest_index: int)
@@ -36,6 +38,8 @@ const LEVELS_AHEAD := 1000
 const BAR_HEIGHT := 96.0
 const TITLE_FONT_SIZE := 38
 const SUBTITLE_FONT_SIZE := 24
+## The single star drawn beside the running total in the header.
+const HEADER_STAR_SIZE := 26.0
 ## Clear space each bar keeps from its screen edge before device safe insets are
 ## added. The reference leaves about 3.6% of height above the header and below
 ## the hero button; at the previous 12px both bars looked pinned on.
@@ -53,6 +57,9 @@ var scroll: ScrollContainer
 var map_view: LevelMapView
 var title_label: Label
 var subtitle_label: Label
+## Running star total in the header: one lit star plus the count.
+var total_star_row: StarRow
+var total_stars_label: Label
 var back_button: Button
 ## Idle mascot in the header, on the right where the coin chip used to be.
 var mascot: MascotView
@@ -61,6 +68,7 @@ var play_button: Button
 var _highest_level := 1
 var _coins := 0
 var _claimed_chests: Array[int] = []
+var _stars_by_level: Dictionary = {}
 var _entrance_tween: Tween
 var _safe_insets_override := Vector4(-1.0, -1.0, -1.0, -1.0)
 
@@ -93,12 +101,13 @@ func is_open() -> bool:
 	return root_control != null and root_control.visible
 
 
-func present(highest_level: int, coins: int, claimed_chests: Array[int]) -> void:
+func present(highest_level: int, coins: int, claimed_chests: Array[int], stars_by_level: Dictionary = {}) -> void:
 	_highest_level = maxi(1, highest_level)
 	_coins = maxi(0, coins)
 	_claimed_chests = claimed_chests.duplicate()
+	_stars_by_level = stars_by_level.duplicate()
 	if map_view != null:
-		map_view.configure(_highest_level, _claimed_chests, LEVELS_AHEAD)
+		map_view.configure(_highest_level, _claimed_chests, LEVELS_AHEAD, _stars_by_level)
 	_refresh_labels()
 	root_control.show()
 	_refresh_safe_margins()
@@ -118,12 +127,13 @@ func dismiss() -> void:
 
 ## Applied without re-centring the map, so a coin change while the player is
 ## browsing level 300 does not yank them back to their own level.
-func update_state(highest_level: int, coins: int, claimed_chests: Array[int]) -> void:
+func update_state(highest_level: int, coins: int, claimed_chests: Array[int], stars_by_level: Dictionary = {}) -> void:
 	_highest_level = maxi(1, highest_level)
 	_coins = maxi(0, coins)
 	_claimed_chests = claimed_chests.duplicate()
+	_stars_by_level = stars_by_level.duplicate()
 	if map_view != null:
-		map_view.configure(_highest_level, _claimed_chests, LEVELS_AHEAD)
+		map_view.configure(_highest_level, _claimed_chests, LEVELS_AHEAD, _stars_by_level)
 	_refresh_labels()
 
 
@@ -132,6 +142,8 @@ func _refresh_labels() -> void:
 		title_label.text = "LEVEL %d" % _highest_level
 	if subtitle_label != null:
 		subtitle_label.text = _chest_summary()
+	if total_stars_label != null:
+		total_stars_label.text = str(LevelStarsType.total(_stars_by_level))
 	if play_button != null:
 		play_button.text = "PLAY LEVEL %d" % _highest_level
 
@@ -356,8 +368,28 @@ func _build_header() -> Control:
 	title_label = _label("LEVEL 1", TITLE_FONT_SIZE, Color.WHITE)
 	title_label.add_theme_font_override("font", UiDesignSystemType.heavy_font())
 	banner_column.add_child(title_label)
+	# The running star total shares the subtitle line with the chest countdown
+	# rather than taking a third row: the banner is BAR_HEIGHT tall and the title
+	# plus one line of copy already fill it.
+	var subtitle_row := HBoxContainer.new()
+	subtitle_row.name = "LevelSelectSubtitleRow"
+	subtitle_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	subtitle_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	subtitle_row.add_theme_constant_override("separation", 6)
+	banner_column.add_child(subtitle_row)
+	total_star_row = StarRowType.new()
+	total_star_row.name = "LevelSelectTotalStar"
+	total_star_row.star_count = 1
+	total_star_row.star_size = HEADER_STAR_SIZE
+	total_star_row.filled = 1
+	subtitle_row.add_child(total_star_row)
+	total_stars_label = _label("0", SUBTITLE_FONT_SIZE, Color.WHITE)
+	total_stars_label.name = "LevelSelectTotalStars"
+	subtitle_row.add_child(total_stars_label)
+	var subtitle_separator := _label("·", SUBTITLE_FONT_SIZE, UiDesignSystemType.COLOR_TEXT_MUTED)
+	subtitle_row.add_child(subtitle_separator)
 	subtitle_label = _label("", SUBTITLE_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
-	banner_column.add_child(subtitle_label)
+	subtitle_row.add_child(subtitle_label)
 
 	# No coin chip. The level screen spends nothing, so a balance here is a
 	# number the player cannot act on; Home and the shop both show it where it
