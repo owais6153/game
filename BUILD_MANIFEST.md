@@ -1,3 +1,47 @@
+# Production AAB 1.0.19 (vc21) - Level Stars, Pinned Level Records, Treasure Ceremony
+
+Production upload candidate. Play production serves versionCode 20 / versionName
+1.0.18, so 21 / 1.0.19 is the next release, per product-owner instruction.
+
+**On the version choice.** Codes 21-27 and names 1.0.19-1.0.22 appear further
+down this file against local test iterations built on 2026-09-05. None of those
+were ever uploaded, and the product owner retired them on 2026-09-05 when the
+canonical release identity was corrected back to 1.0.18 / vc20 - which is what
+was actually delivered. vc21 is therefore strictly above the highest *uploaded*
+code, which is the constraint Play enforces. This is a deliberate departure from
+the standing "strictly greater than every code recorded here" rule, following
+the precedent already recorded for the vc20 correction, and is flagged so a
+future pass does not read the vc24 entry and conclude the line regressed.
+
+- Filename: `build/android/majestic-gems-release-v1.0.19-vc21.aab`
+- Size: 83,011,156 bytes
+- Built: 2026-09-09 13:09:08 +05:00
+- SHA-256: `92F067C3F70541B82F7FE93192D9579A3950A04E79EA8BB9EB8F779687B24A4B`
+- Source commit/tag: `34a4146` / `level-stars-v1`; the tree was clean at export.
+- Export preset: `Android` (`gradle_build/export_format=1`), release mode.
+- **Bundletool manifest verification** (`bundletool 1.18.3 dump manifest`): the embedded manifest reads `package="com.owais.majestygems"`, `android:versionCode="21"`, `android:versionName="1.0.19"`, `compileSdkVersion=36`. Both prepared values are present in the artifact rather than inferred from the preset, and both are strictly above the delivered 20 / 1.0.18.
+- **Bundletool buildability check** (`build-apks --mode=universal`): the bundle produces an installable universal APK (95,727,401 bytes). The bundle is well-formed and splittable.
+- Signing: `jarsigner -verify` reports `jar verified`, signed by the established upload certificate `CN=Muhammad Owais Khan, OU=Development, O=Teckvertex Labs, L=Karachi, ST=Sindh, C=PK`.
+- ABIs: `arm64-v8a` and `armeabi-v7a`.
+- Contents: level stars (three solver-derived objectives per level, sequential award, per-level and total display), per-level record pinning, the fullscreen treasure ceremony with post-win drops, and the award/treasure audio cues.
+- Companion APK: `build/android/majestic-gems-release-v1.0.19-vc21.apk`, recorded below, installed and launched on `34385676890001M` from the same commit and the same preset version values.
+- Device status for this AAB specifically: **not separately installed**. Play bundles are not directly installable; device validation was performed on the companion APK from the same commit, and the bundle was validated with Bundletool as recorded above.
+- Not validated: Firebase DebugView, live ad playback, notification delivery, and Play Console upload acceptance.
+
+# Release APK 1.0.19 (vc21) - Level Stars, Pinned Level Records, Treasure Ceremony
+
+- Filename: `build/android/majestic-gems-release-v1.0.19-vc21.apk`
+- Size: 83,150,208 bytes
+- Built: 2026-09-09 13:10:12 +05:00
+- SHA-256: `8AC458F6742C9FBA341DE7E3EA3F79C24483550008A09A46D28C02AB3BBAC588`
+- Source commit/tag: `34a4146` / `level-stars-v1`; the tree was clean at export.
+- Export: Godot 4.6.3 `--export-release "Android APK"`, Gradle APK format, `arm64-v8a` + `armeabi-v7a`, existing upload signing.
+- Validation (aapt2 badging): package `com.owais.majestygems`, versionCode 21, versionName 1.0.19, minSdk 24, target/compile SDK 36, native code `arm64-v8a` + `armeabi-v7a`.
+- **Device status: installed and launched on `34385676890001M` (vivo V2149).** `adb install -r` reported `Success`; the process started and stayed up with no `FATAL`, `AndroidRuntime` or `SCRIPT ERROR` entries in logcat.
+- **Device-verified in this build**: the level-screen header renders the running star total alone (`★ 6`, small star, no disc, no chest countdown); cleared level nodes render their own three-star rows (levels 2 and 3 showed `★★☆`); a level advanced by Skip Level correctly shows `☆☆☆`, since skipping is not a win and awards no stars.
+- **Device-verified in the immediately preceding build of the same source line**: Level Ready renders the three star objectives for level 1 as `Complete the level` / `Finish in 57 shots or fewer` / `Merge 95 gems`, matching `print_level_star_audit.gd` exactly.
+- Not device-verified: the star award sequence and its audio on hardware (proved in `reports/level-stars-v1/` renders and by regression, not by a device play-through to a win), Firebase DebugView, live ad playback, notification delivery.
+
 # Production AAB 1.0.18 (vc20) - Normal Level-Map Scroll, v7 Launcher Icon, Asset Purge
 
 Production upload candidate. Play production currently serves versionCode 19 /
