@@ -39,7 +39,7 @@ const BAR_HEIGHT := 96.0
 const TITLE_FONT_SIZE := 38
 const SUBTITLE_FONT_SIZE := 24
 ## The single star drawn beside the running total in the header.
-const HEADER_STAR_SIZE := 26.0
+const HEADER_STAR_SIZE := 20.0
 ## Clear space each bar keeps from its screen edge before device safe insets are
 ## added. The reference leaves about 3.6% of height above the header and below
 ## the hero button; at the previous 12px both bars looked pinned on.
@@ -60,6 +60,7 @@ var subtitle_label: Label
 ## Running star total in the header: one lit star plus the count.
 var total_star_row: StarRow
 var total_stars_label: Label
+var subtitle_separator: Label
 var back_button: Button
 ## Idle mascot in the header, on the right where the coin chip used to be.
 var mascot: MascotView
@@ -144,24 +145,27 @@ func _refresh_labels() -> void:
 		subtitle_label.text = _chest_summary()
 	if total_stars_label != null:
 		total_stars_label.text = str(LevelStarsType.total(_stars_by_level))
+	# The separator only earns its place when there is something after it.
+	if subtitle_separator != null:
+		subtitle_separator.visible = not _chest_summary().is_empty()
 	if play_button != null:
 		play_button.text = "PLAY LEVEL %d" % _highest_level
 
 
-## The chest line under the level title.
+## The line under the level title, beside the running star total.
 ##
-## An earned chest outranks the countdown. Reporting "next chest in 20 levels"
-## while an unopened one is sitting on the path a row below is not just wrong,
-## it actively talks the player out of collecting it.
+## The "next chest in N levels" countdown is gone. It was on screen permanently,
+## it changed by one per level, and there is nothing the player can do about it -
+## the chest is drawn on the path where they will actually reach it. What is
+## left is the one case that is worth a line of text and is actionable: a chest
+## that is earned and still unopened. When there is none, the header carries the
+## star total alone.
 func _chest_summary() -> String:
 	var unlocked := LevelMilestoneType.unlocked_chest_count(_highest_level)
 	for index in range(1, unlocked + 1):
 		if not _claimed_chests.has(index):
 			return "Chest ready - tap to open"
-	var remaining := LevelMilestoneType.level_for_chest(unlocked + 1) - _highest_level + 1
-	if remaining <= 0:
-		return "Chest ready - tap to open"
-	return "Next chest in %d %s" % [remaining, "level" if remaining == 1 else "levels"]
+	return ""
 
 ## The map runs the full height of the screen, but the top and bottom of it are
 ## under the two floating bars. Centring therefore targets the clear band
@@ -386,7 +390,7 @@ func _build_header() -> Control:
 	total_stars_label = _label("0", SUBTITLE_FONT_SIZE, Color.WHITE)
 	total_stars_label.name = "LevelSelectTotalStars"
 	subtitle_row.add_child(total_stars_label)
-	var subtitle_separator := _label("·", SUBTITLE_FONT_SIZE, UiDesignSystemType.COLOR_TEXT_MUTED)
+	subtitle_separator = _label("·", SUBTITLE_FONT_SIZE, UiDesignSystemType.COLOR_TEXT_MUTED)
 	subtitle_row.add_child(subtitle_separator)
 	subtitle_label = _label("", SUBTITLE_FONT_SIZE, UiDesignSystemType.COLOR_GOLD_LIGHT)
 	subtitle_row.add_child(subtitle_label)

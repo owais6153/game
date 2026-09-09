@@ -1,3 +1,29 @@
+# 2026-09-09 - Award readability guardrails
+
+- **A score out of N is not a checklist.** Lighting the exact objectives that
+  were met leaves a gap when the middle one is missed, and a gap reads as a
+  rendering fault. Fill left to right and name the specific objectives in a
+  caption instead. Precision in the wrong channel is worse than no precision.
+- **Every surface showing the same quantity must use the same model.** The map
+  and the header were counts because storage is a count; only the result popup
+  disagreed, which is what made its gap look like a bug rather than a choice.
+- **Reward motion should grow in place, not arrive from elsewhere.** Anything
+  that travels has to be tracked by the eye before it can be read, and three in
+  sequence read as busy rather than as earned. Grow out of the placeholder,
+  overshoot, settle back onto it exactly.
+- **Fire the impact at the peak, not during the growth.** A burst that runs
+  alongside the arrival reads as noise; one that fires when the motion stops
+  reads as the thing landing.
+- **A filled disc behind an icon reads as a badge it is sitting on**, not as
+  light coming off it. Use a ring and rays that fade, or nothing.
+- **A permanent countdown the player cannot act on is noise.** "Next chest in 20
+  levels" moved by one per level and named something already drawn on the path.
+  Keep only the state that is actionable, and hide its separator when it is
+  absent.
+- **When a design decision is reversed, say so where it was recorded.** The
+  per-objective star mapping was documented as deliberate before it was
+  replaced; leaving that in place would have had the next reader restore it.
+
 # 2026-09-09 - Award presentation guardrails
 
 - **Never model a set of achievements as a count.** A count cannot express a
@@ -20,6 +46,13 @@
 - **Keep cue playback with the service owner, not the UI layer.** The overlays
   emit `star_awarded`, `chest_opened`, `reward_claimed`; the controller plays
   them. That is what let the fanfare move without touching the overlay.
+- **A zero default is not a neutral default.** `resize()` zero-fills, and the
+  draw pass read that field as "arrival in progress", so every star that had
+  never been animated drew at its full arrival scale. When a field means
+  progress, the resting value is 1, and every path that creates one must say so.
+- **Do not reserve layout space for an overflowing effect.** `clip_contents` is
+  off by default, so a burst draws past its bounds regardless; padding the box
+  only made every static row twice the height of what was in it.
 - **A gated control needs disabled art.** Gating `HOME` produced a button that
   looked live and refused taps, because its plate has no disabled state. Check
   the rendering, not just the flag - and prefer leaving an escape hatch live.

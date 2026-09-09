@@ -1,3 +1,56 @@
+# Architecture Addendum - The Star Row Is a Score, Not a Checklist
+
+`StarRow` fills left to right. Two stars earned lights the first two, always.
+
+This supersedes the per-objective mapping described further down: the row
+briefly lit the exact objectives that were met, so a `[earned, missed, earned]`
+result showed a gap in the middle. That is the more precise rendering and the
+wrong one. Three things argued against it:
+
+- A player who earned two stars expects to see two, together. A gap reads as a
+  rendering fault, not as information.
+- The map and the level-screen header are both counts, because per-level storage
+  is a count. The result popup was the only surface disagreeing with them.
+- Nothing was actually lost by changing it. The caption under the row names each
+  earned objective as its star lands, which is a better place for that detail
+  than a position in a row of three.
+
+The per-star state (`_fill`) is still per star and still the authority for what
+is drawn - `lit_count()` and `is_lit()` derive from it. What changed is which
+slots the result popup asks for: `_play_star_award()` collects the earned
+objectives' captions in order and awards slots `0..n-1`, rather than awarding
+each objective's own index.
+
+## The award grows in place
+
+A star grows out of its own empty placeholder, overshoots, and settles back onto
+exactly that placeholder's size and position. It does not travel and does not
+spin.
+
+An earlier version dropped each star in from 2.9x with a spin. Motion that
+arrives from off the slot has to be tracked by the eye before the star can be
+read, and at three in a row that reads as busy rather than as earned. Growing in
+place keeps the row still and puts all of the motion on the one thing that
+changed.
+
+The ring and the rays fire at the *peak* of the growth rather than alongside it,
+so the burst reads as the star landing on its slot. There is no filled disc
+behind a lit star: a solid circle reads as a badge the star is sitting on rather
+than as light coming off it.
+
+`_scale` is a multiplier on the resting size where 1.0 is settled. Zero is a
+star scaled to nothing, so every path that creates an entry - the `filled`
+setter and `_resize_state()` - writes 1.0 explicitly. `resize()` zero-fills, and
+that is what once drew every un-animated star at arrival size.
+
+## The level screen header is a total, not a countdown
+
+`_chest_summary()` returns the "chest ready" line or nothing at all. The
+"next chest in N levels" countdown was permanent, moved by one per level, and
+named something the player cannot act on - the chest is drawn on the path where
+they will reach it. What is left is the one actionable case, and the separator
+before it is hidden when it has nothing to separate.
+
 # Architecture Addendum - Award Presentation and Cue Ownership
 
 ## Lit state is per star, never a count

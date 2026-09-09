@@ -352,6 +352,23 @@ They are below it now and carry no frame — a second panel inside a popup was
 competing with the popup it lived in. The mascot is the focus of the screen
 again.
 
+## 5b. A statically lit star rendered at 2.9x
+
+Caught on the device rather than in a capture: the single star beside the level
+screen.s running total towered over the line of text it sits in.
+
+`_draw` reads `_pop` as the progress of the arrival, and `resize()` zero-fills.
+Zero means *mid-arrival*, so a star that had never been animated - every star on
+the map, the header, and the level-start list - drew at the full
+`AWARD_START_SCALE`. 1.0 is settled; that is now the default both in the
+`filled` setter and for entries added by `_resize_state()`.
+
+The row.s measured box was also inflated to reserve room for the burst ring,
+which made every static row about twice the height of the star inside it.
+`clip_contents` is off by default on Control and on every container these rows
+sit in, so the arrival and the ring draw past the bounds anyway and the box is
+now tight.
+
 ## 6. HOME was a dead button
 
 Caught by rendering a proof capture **mid-sequence** rather than only at rest:

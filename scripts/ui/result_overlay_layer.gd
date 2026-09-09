@@ -652,23 +652,37 @@ func _prepare_star_award(won: bool, star_award: Dictionary) -> void:
 func _play_star_award() -> void:
 	if star_row == null or not _stars_pending:
 		return
-	var pending: Array[int] = []
+	# Stars fill left to right: two earned lights the first two, always. The row
+	# is a score out of three, not a checklist of which objectives were met -
+	# lighting the first and third with a gap between them reads as a mistake,
+	# and it disagrees with the map and the header, which are both counts.
+	#
+	# Which objectives were actually met is still reported: the caption names
+	# each earned objective as its star lands, in objective order.
+	var earned_captions: Array[String] = []
 	for index in range(_star_results.size()):
-		if _star_results[index] and not star_row.is_lit(index):
-			pending.append(index)
+		if not _star_results[index]:
+			continue
+		earned_captions.append(String((_star_objectives[index] as Dictionary).get("text", "")) \
+			if index < _star_objectives.size() else "")
+	var pending: Array[int] = []
+	for slot in range(earned_captions.size()):
+		if not star_row.is_lit(slot):
+			pending.append(slot)
 	if pending.is_empty():
 		_finish_star_award()
 		return
 	_kill_star_tween()
 	_star_tween = create_tween()
 	_star_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	for index in pending:
+	for slot in pending:
+		var caption := earned_captions[slot] if slot < earned_captions.size() else ""
 		_star_tween.tween_callback(func() -> void:
 			if star_row != null:
-				star_row.award(index, STAR_AWARD_DURATION)
-			if star_caption != null and index < _star_objectives.size():
-				star_caption.text = String((_star_objectives[index] as Dictionary).get("text", ""))
-			star_awarded.emit(index))
+				star_row.award(slot, STAR_AWARD_DURATION)
+			if star_caption != null and not caption.is_empty():
+				star_caption.text = caption
+			star_awarded.emit(slot))
 		_star_tween.tween_interval(STAR_AWARD_DURATION + STAR_AWARD_GAP)
 	_star_tween.tween_callback(_finish_star_award)
 

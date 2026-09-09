@@ -1,8 +1,9 @@
 # Star Award, Treasure Pacing, and Level Ready Hierarchy - 1.0.19 (vc21) - 2026-09-09
 
-- A star row renders per-star lit state, never a count. Exactly the stars an attempt earned are lit, and a missed star between two earned ones stays empty. The tally under the row is derived from the same state.
+- A star row fills left to right. Two stars earned lights the first two, always: the row is a score out of three, not a checklist of which objectives were met. Which objectives were met is reported by the caption, which names each earned objective as its star lands.
 - The row starts empty on every result. Stars the player already held are not pre-lit: per-level storage is a count and cannot say which stars they were.
-- Each awarded star arrives with scale, spin, bloom, ring and ray burst, and a settled row shimmers. Full marks reads `PERFECT!` rather than a tally.
+- The level-screen header carries the star total. It does not carry a countdown to the next chest; only a chest that is earned and still unopened is announced.
+- Each awarded star grows out of its own empty placeholder, overshoots, and settles back onto exactly that placeholder. It never travels, never spins, and no filled disc is drawn behind it. A settled row shimmers. Full marks reads `PERFECT!` rather than a tally.
 - Star awards, the treasure opening, and each treasure claim have dedicated audio identities. Star and claim cues rise in pitch through their sequence; the final star resolves on a separate lower cue.
 - The treasure fanfare plays when the lid gives, not when the ceremony opens.
 - Presentation layers emit award signals only. All audio and haptics for stars and treasures are routed by the controller through the existing services.

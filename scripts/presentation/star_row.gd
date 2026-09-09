@@ -14,13 +14,13 @@ extends Control
 ## header draws one beside the running total. None of them owns a rule; they all
 ## render `LevelStars` output.
 ##
-## ## Lit state is per star, not a count
+## ## Stars fill in sequence
 ##
-## `_fill` is the authority for which stars are lit, and `award()` touches only
-## the index it is given. This was a real bug first time round: `award()` raised
-## a `filled` *count*, so awarding the third star of a `[earned, missed, earned]`
-## result lit all three and the popup said "2 of 3 stars" over a full row.
-## A count cannot express a gap, and a gap is the normal case.
+## Two stars earned lights the first two, always. The row is a score out of
+## three, not a checklist of which objectives were met - that is what the
+## caption under it is for, and it is how the map and the header already read.
+## Lighting the first and third with a gap between them was tried and is simply
+## confusing: a player who earned two stars expects to see two, together.
 
 const UiDesignSystemType = preload("res://scripts/ui/ui_design_system.gd")
 const LevelStarsType = preload("res://scripts/core/level_stars.gd")
@@ -33,32 +33,36 @@ const INNER_RATIO := 0.45
 ## Stars sit point-up. Without this they are drawn point-right.
 const ROTATION_OFFSET := -PI * 0.5
 
-## The award. A star drops in from well above its final size and spins down into
-## place, rather than simply scaling up: the arrival is the reward, so it needs
-## somewhere to arrive from.
-const AWARD_START_SCALE := 2.9
-const AWARD_START_SPIN := -1.25
-## Overshoot the settle so the star lands with weight.
-const AWARD_SETTLE_SCALE := 1.18
+## The award: the star grows out of its own empty placeholder, overshoots a
+## little, and settles back onto exactly the placeholder's size and position.
+##
+## It does not fly in from elsewhere and it does not spin. A star that arrives
+## from off its slot has to be tracked by the eye before it can be read, and at
+## three in a row that reads as busy rather than as earned. Growing in place
+## keeps the row still and puts the whole of the motion on the one thing that
+## changed.
+const AWARD_START_SCALE := 0.15
+const AWARD_PEAK_SCALE := 1.34
+## Fraction of the award spent growing to the peak; the rest settles back.
+const AWARD_RISE_SHARE := 0.55
 
-## What the landing leaves behind: an expanding ring, a short burst of rays, and
-## a white flash on the star itself.
-const BURST_RING_WIDTH := 5.0
-const BURST_RING_MAX := 2.9
-const BURST_RAYS := 10
-const BURST_RAY_INNER := 0.62
-const BURST_RAY_OUTER := 2.05
-const BURST_RAY_WIDTH := 3.0
+## What the landing leaves behind: one expanding ring and a white bloom on the
+## star itself. Both are brief - the star is the reward, not the effect.
+const BURST_RING_WIDTH := 4.0
+const BURST_RING_MAX := 2.1
+const BURST_RAYS := 8
+const BURST_RAY_INNER := 0.70
+const BURST_RAY_OUTER := 1.65
+const BURST_RAY_WIDTH := 2.5
 
 ## A lit star keeps a slow shimmer, so a finished row is not a static picture.
 const SHIMMER_PERIOD := 2.2
-const SHIMMER_SCALE := 0.035
+const SHIMMER_SCALE := 0.030
 
 const COLOR_FILLED := Color("ffd46d")
 const COLOR_FILLED_RIM := Color("a9661c")
 const COLOR_EMPTY := Color(0.32, 0.24, 0.44, 0.85)
 const COLOR_EMPTY_RIM := Color(0.52, 0.42, 0.66, 0.75)
-const COLOR_GLOW := Color("ffb43a")
 
 ## Star radius and the gap between stars, both in design pixels.
 var star_size := 34.0:
@@ -80,13 +84,11 @@ var star_count := LevelStarsType.MAX_STARS:
 		custom_minimum_size = _measure()
 		queue_redraw()
 
-## A lit shimmer runs only while this is on. The map and the level-start screen
-## draw static rows and leave it off.
+## A lit shimmer runs only while this is on. The map, the header and the
+## level-start screen draw static rows and leave it off.
 var shimmer_enabled := false
 
-## Lights the first `value` stars and clears the rest. The static case - the
-## map, the header and the level-start screen. The result popup calls `award()`
-## per star instead, because it has to express a gap.
+## Lights the first `value` stars and clears the rest.
 var filled := 0:
 	set(value):
 		# Resized here as well as in _ready(), because a caller may set this on a
@@ -96,16 +98,16 @@ var filled := 0:
 		filled = clampi(value, 0, star_count)
 		for index in range(star_count):
 			_fill[index] = 1.0 if index < filled else 0.0
-			_pop[index] = 0.0
-			_spin[index] = 0.0
+			_scale[index] = 1.0
 			_burst[index] = 0.0
 			_flash[index] = 0.0
 		queue_redraw()
 
-## Per-star animation state, all presentation.
+## Per-star animation state, all presentation. `_scale` is a multiplier on the
+## resting size, so 1.0 is a settled star - not zero, which would read as a star
+## still growing and is what once drew every un-animated star at arrival size.
 var _fill: Array[float] = []
-var _pop: Array[float] = []
-var _spin: Array[float] = []
+var _scale: Array[float] = []
 var _burst: Array[float] = []
 var _flash: Array[float] = []
 var _shimmer := 0.0
@@ -139,38 +141,35 @@ func is_lit(index: int) -> bool:
 	return index >= 0 and index < _fill.size() and _fill[index] >= 0.999
 
 
-## Lands one star. Touches only `index` - a star the player did not earn stays
-## empty even when a later one is awarded.
-##
-## Returns the tween so a caller can chain the next star behind it. `LevelStars`
-## decides which stars are lit; this only decides how they arrive.
+## Lands one star: it grows out of its own placeholder, overshoots, and settles
+## back to exactly the placeholder's size. Returns the tween so a caller can
+## chain the next star behind it.
 func award(index: int, duration: float = 0.55) -> Tween:
 	if index < 0 or index >= star_count:
 		return null
 	_resize_state()
 	_fill[index] = 0.0
-	_pop[index] = 0.0
-	_spin[index] = 0.0
+	_scale[index] = AWARD_START_SCALE
 	_burst[index] = 0.0
 	_flash[index] = 0.0
+	var rise := duration * AWARD_RISE_SHARE
+	var settle := duration - rise
 	var tween := create_tween().set_parallel(true)
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	# The star becomes solid quickly, then keeps moving. Fading it in over the
-	# whole arrival made it look like it was resolving rather than landing.
-	tween.tween_method(_set_fill.bind(index), 0.0, 1.0, duration * 0.30) \
+	# Solid almost immediately: the growth is the animation, and fading through
+	# it made the star look like it was resolving rather than appearing.
+	tween.tween_method(_set_fill.bind(index), 0.0, 1.0, rise * 0.5) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	# Scale and spin share one timeline, so the star stops turning exactly as it
-	# reaches its size.
-	tween.tween_method(_set_pop.bind(index), 0.0, 1.0, duration * 0.62) \
+	tween.tween_method(_set_scale.bind(index), AWARD_START_SCALE, AWARD_PEAK_SCALE, rise) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_method(_set_spin.bind(index), 1.0, 0.0, duration * 0.62) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	# Ring and rays run the full length so the impact outlives the arrival.
-	tween.tween_method(_set_burst.bind(index), 0.0, 1.0, duration) \
+	# Ring and bloom fire at the peak, so the impact reads as the star landing on
+	# its slot rather than as something happening while it is still growing.
+	tween.tween_method(_set_burst.bind(index), 0.0, 1.0, settle + 0.10).set_delay(rise) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	# A brief white bloom at the moment of landing.
-	tween.tween_method(_set_flash.bind(index), 1.0, 0.0, duration * 0.45) \
-		.set_delay(duration * 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_method(_set_flash.bind(index), 1.0, 0.0, settle).set_delay(rise) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_method(_set_scale.bind(index), AWARD_PEAK_SCALE, 1.0, settle) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	return tween
 
 
@@ -179,13 +178,8 @@ func _set_fill(value: float, index: int) -> void:
 	queue_redraw()
 
 
-func _set_pop(value: float, index: int) -> void:
-	_pop[index] = value
-	queue_redraw()
-
-
-func _set_spin(value: float, index: int) -> void:
-	_spin[index] = value
+func _set_scale(value: float, index: int) -> void:
+	_scale[index] = value
 	queue_redraw()
 
 
@@ -200,18 +194,25 @@ func _set_flash(value: float, index: int) -> void:
 
 
 func _resize_state() -> void:
+	var previous := _scale.size()
 	_fill.resize(star_count)
-	_pop.resize(star_count)
-	_spin.resize(star_count)
+	_scale.resize(star_count)
 	_burst.resize(star_count)
 	_flash.resize(star_count)
+	# `resize` zero-fills, and zero is a star scaled to nothing. A star that has
+	# never been awarded is at rest, not mid-award.
+	for index in range(previous, star_count):
+		_scale[index] = 1.0
 
 
+## Deliberately tight: the box is the stars themselves, not the space the
+## arrival sweeps through. `clip_contents` is off by default on Control and on
+## every container these rows sit in, so the overshoot and the ring draw past
+## these bounds without being cut - and reserving room for them made every
+## static row about twice the height of the star inside it.
 func _measure() -> Vector2:
 	var width := float(star_count) * star_size + float(star_count - 1) * spacing
-	# Room for the arrival scale and the ring, so a landing star is never clipped
-	# by the container that owns the row.
-	return Vector2(width * 1.06, star_size * BURST_RING_MAX * 0.66)
+	return Vector2(width, star_size * 1.15)
 
 
 func _draw() -> void:
@@ -223,56 +224,49 @@ func _draw() -> void:
 	for index in range(star_count):
 		var centre := Vector2(origin + float(index) * (star_size + spacing), centre_y)
 		var fill: float = _fill[index] if index < _fill.size() else 0.0
-		var pop: float = _pop[index] if index < _pop.size() else 0.0
-		var spin: float = _spin[index] if index < _spin.size() else 0.0
+		var star_scale: float = _scale[index] if index < _scale.size() else 1.0
 		var burst: float = _burst[index] if index < _burst.size() else 0.0
 		var flash: float = _flash[index] if index < _flash.size() else 0.0
 
-		# The empty plate is always drawn, so a star being filled reads as a star
-		# being filled rather than as one growing out of nothing.
-		_draw_star(centre, star_size * 0.5, 0.0, COLOR_EMPTY, COLOR_EMPTY_RIM)
+		# The empty placeholder is always drawn, and a star grows out of it, so
+		# the slot is visible before, during and after the award.
+		_draw_star(centre, star_size * 0.5, COLOR_EMPTY, COLOR_EMPTY_RIM)
 		if fill <= 0.0:
 			continue
 
 		if burst > 0.0 and burst < 1.0:
 			_draw_burst(centre, burst)
 
-		# `pop` runs 0 -> 1 as the star travels from its arrival size down to
-		# rest; a settled star sits at 1 and only shimmers.
-		var arrival := lerpf(AWARD_START_SCALE, 1.0, pop) if pop < 1.0 else 1.0
-		var settle := 1.0
-		if shimmer_enabled and fill >= 0.999 and pop >= 1.0:
-			settle = 1.0 + sin(_shimmer * TAU / SHIMMER_PERIOD + float(index) * 1.1) * SHIMMER_SCALE
-		var radius := star_size * 0.5 * arrival * settle
-		var rotation := AWARD_START_SPIN * spin
-
-		# A soft glow under a lit star gives the gold something to sit on.
-		draw_circle(centre, radius * 1.05, Color(COLOR_GLOW, 0.20 * fill))
-		_draw_star(centre, radius, rotation, Color(COLOR_FILLED, fill), Color(COLOR_FILLED_RIM, fill))
+		if shimmer_enabled and fill >= 0.999 and is_equal_approx(star_scale, 1.0):
+			star_scale = 1.0 + sin(_shimmer * TAU / SHIMMER_PERIOD + float(index) * 1.1) * SHIMMER_SCALE
+		var radius := star_size * 0.5 * star_scale
+		_draw_star(centre, radius, Color(COLOR_FILLED, fill), Color(COLOR_FILLED_RIM, fill))
 		if flash > 0.0:
-			_draw_star(centre, radius, rotation, Color(1.0, 1.0, 1.0, 0.75 * flash), Color(1.0, 1.0, 1.0, 0.0))
+			_draw_star(centre, radius, Color(1.0, 1.0, 1.0, 0.70 * flash), Color(1.0, 1.0, 1.0, 0.0))
 
 
-## The ring and the ray burst a landing star leaves behind.
+## The ring and short rays a landing star leaves behind. No filled disc: a solid
+## circle behind a star reads as a badge the star is sitting on rather than as
+## light coming off it.
 func _draw_burst(centre: Vector2, burst: float) -> void:
 	var fade := 1.0 - burst
-	var ring := star_size * 0.5 * lerpf(0.85, BURST_RING_MAX, burst)
-	draw_arc(centre, ring, 0.0, TAU, 30, Color(COLOR_FILLED, fade * 0.75), BURST_RING_WIDTH, true)
-	var inner := star_size * 0.5 * lerpf(0.5, BURST_RAY_INNER, burst)
-	var outer := star_size * 0.5 * lerpf(0.7, BURST_RAY_OUTER, burst)
+	var ring := star_size * 0.5 * lerpf(0.9, BURST_RING_MAX, burst)
+	draw_arc(centre, ring, 0.0, TAU, 28, Color(COLOR_FILLED, fade * 0.70), BURST_RING_WIDTH, true)
+	var inner := star_size * 0.5 * lerpf(0.6, BURST_RAY_INNER, burst)
+	var outer := star_size * 0.5 * lerpf(0.8, BURST_RAY_OUTER, burst)
 	if outer <= inner:
 		return
 	for index in range(BURST_RAYS):
 		var angle := ROTATION_OFFSET + TAU * float(index) / float(BURST_RAYS)
 		var direction := Vector2(cos(angle), sin(angle))
 		draw_line(centre + direction * inner, centre + direction * outer,
-			Color(COLOR_FILLED, fade * 0.60), BURST_RAY_WIDTH, true)
+			Color(COLOR_FILLED, fade * 0.55), BURST_RAY_WIDTH, true)
 
 
-func _draw_star(centre: Vector2, radius: float, rotation: float, fill: Color, rim: Color) -> void:
+func _draw_star(centre: Vector2, radius: float, fill: Color, rim: Color) -> void:
 	var points := PackedVector2Array()
 	for index in range(POINTS * 2):
-		var angle := ROTATION_OFFSET + rotation + TAU * float(index) / float(POINTS * 2)
+		var angle := ROTATION_OFFSET + TAU * float(index) / float(POINTS * 2)
 		var reach := radius if index % 2 == 0 else radius * INNER_RATIO
 		points.append(centre + Vector2(cos(angle), sin(angle)) * reach)
 	draw_colored_polygon(points, fill)

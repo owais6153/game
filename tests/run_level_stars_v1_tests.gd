@@ -372,15 +372,15 @@ func _test_result_popup_awards_stars_before_unlocking_collect() -> void:
 
 	await create_timer(3.4, true, false, true).timeout
 	_assert(finished[0] == 1, "The star sequence must finish exactly once, got %d" % finished[0])
-	_assert(awarded.size() == 2 and awarded[0] == 0 and awarded[1] == 2,
-		"Only the earned stars must be awarded, in order; got %s" % str(awarded))
-	# The bug this replaced: award() used to raise a lit *count*, so awarding the
-	# third star of a [earned, missed, earned] result lit all three while the
-	# caption read "2 of 3". Lit state is per star now.
+	_assert(awarded.size() == 2 and awarded[0] == 0 and awarded[1] == 1,
+		"Earned stars must be awarded into consecutive slots; got %s" % str(awarded))
+	# Two earned lights the first two, in sequence. The row is a score out of
+	# three, not a checklist of which objectives were met - a gap in the middle
+	# reads as a mistake and disagrees with the map and header, which are counts.
 	_assert(overlay.star_row.lit_count() == 2,
-		"Exactly the earned stars must be lit, got %d" % overlay.star_row.lit_count())
-	_assert(overlay.star_row.is_lit(0) and not overlay.star_row.is_lit(1) and overlay.star_row.is_lit(2),
-		"A missed star between two earned ones must stay empty")
+		"Exactly as many stars as were earned must be lit, got %d" % overlay.star_row.lit_count())
+	_assert(overlay.star_row.is_lit(0) and overlay.star_row.is_lit(1) and not overlay.star_row.is_lit(2),
+		"Earned stars must fill left to right with no gap")
 	_assert(not overlay.retry_button.disabled,
 		"COLLECT must unlock once the last star has landed")
 	_assert(overlay.star_caption.text.findn("2 of 3") >= 0,
